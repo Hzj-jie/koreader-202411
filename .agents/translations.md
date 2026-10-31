@@ -1,75 +1,57 @@
 # Translation and Localization Workflow
 
-This document outlines the workflow and tools used to manage translations, update `.po` / `.pot` localization templates, and merge translations for newly added plugins or core features in this workspace.
+This document outlines the workflow and conventions used to manage translations, update `.po` / `.pot` localization files, and maintain internationalization (i18n) hygiene in KOReader.
 
 ---
 
-## Overview of the Translation Process
+## 1. Overview of the Translation Process
 
-KOReader uses standard GNU `gettext` tools for localization. The process generally follows these steps:
+KOReader uses GNU `gettext` tools for localization. Translatable strings are extracted from source files into a master template, synchronized across language catalogs, translated, and validated:
 
-1.  **Extract Strings**: Extract translatable strings (using `_("string")` or `_("string", ...)` functions) from source code into the master template (`koreader.pot`).
-2.  **Merge Template**: Merge the updated `koreader.pot` template into the individual language catalogs (`koreader.po`).
-3.  **Translate Strings**: Translate the new/empty keys. This can be done via automated helper scripts, translation dictionaries, or manual translation.
-4.  **Validate syntax**: Validate the syntax of PO files using `msgfmt`.
+1.  **Extract Strings**: `xgettext` extracts translatable strings into `koreader/l10n/templates/koreader.pot`.
+2.  **Merge Template**: `msgmerge` syncs the master template into individual catalogs (`koreader/l10n/*/koreader.po`).
+3.  **Translate Strings**: Active translations are maintained for Simplified Chinese (`zh_CN`) and Traditional Chinese (`zh_TW`).
+4.  **Validate Catalogs**: Catalogs are validated using `msgfmt -c -o /dev/null`.
 
 ---
 
-## 1. Updating POT Template and PO Catalogs
+## 2. Extraction and Template Update (`./update-po.sh`)
 
-To extract new strings from Lua files and update the translation template:
+To extract new strings from Lua files and update translation catalogs:
 
 ```bash
-# Run the PO update script from the workspace root
+# Run from repository root
 ./update-po.sh
 ```
 
-This script:
-*   Scans the codebase (`koreader/` directory) for translatable strings.
-*   Updates `koreader/l10n/koreader.pot`.
-*   Uses `msgmerge` to sync the updated keys into all target language directories (`koreader/l10n/*/koreader.po`), marking new additions as empty/untranslated.
+### Extraction Scope and Keyword Rules
+*   `xgettext` scans `reader.lua`, `datastorage.lua`, `frontend/`, `plugins/`, and `tools/` using `--from-code=utf-8 --no-location`.
+*   Supported extraction keywords: `_` is supported by default in `xgettext`; `update-po.sh` configures additional keywords:
+    *   `gettext`
+    *   `C_:1c,2` (contextual / `pgettext`)
+    *   `N_:1,2` (plural forms / `ngettext`)
+    *   `NC_:1c,2,3` (contextual plural forms / `npgettext`)
+    *   `T_N:1,2` and `gettext.T_N:1,2` (template plural forms)
+*   **Variable Binding Requirement**: Source files must define `local gettext = require("gettext")` (typically at the top of the file, or as a local variable in scope) and call `gettext("...")`. Inline calls like `require("gettext")("...")` are ignored by `xgettext` and will fail localization extraction hygiene tests in `linux/spec/unit/gettext_spec.lua`.
+*   **Dynamic Concatenation Forbidden**: Never concatenate runtime variables inside `gettext(...)` (e.g. `gettext("Page " .. p)`). Use formatting templates (`T(gettext("Page %1"), p)`).
+*   **Template Plurals (`T_N`)**: Use `gettext.T_N(msgid, msgid_plural, n, ...)` or import `local T_N = require("gettext").T_N` to combine plural selection with template substitution.
 
----
-
-## 2. Automated Translation and Merging
-
-When importing third-party plugins (like `simpleui`), translations might be defined inline or in separate localization tables. We use scripts to merge these translations into the main PO catalogs.
-
-### A. Python Helper Scripts
-
-For bulk translation, we have developed several Python scripts located in the sandbox/scratch directory:
-
-*   **`scratch/merge_plugin_translations.py`**:
-    *   Iterates over all plugin-specific translations.
-    *   Finds matching empty/fuzzy keys in individual `koreader.po` files.
-    *   Applies the translations while preserving formatting (escaping double quotes, preserving newlines, and supporting plurals `msgstr[0]`/`msgstr[1]`).
-*   **`scratch/apply_translations.py`**:
-    *   Applies a mapping of translated strings directly to specified PO files.
-    *   Translates default British English (`en_GB`) by copying `msgid` to `msgstr` and marking them as fuzzy (`#, fuzzy`).
-*   **`scratch/manual_translate.py`**:
-    *   Used to write targeted, user-provided dictionary overrides directly into the PO catalogs.
-
-### B. Mappings & Conversions
-
-*   **Simplified Chinese (`zh_CN`) & Traditional Chinese (`zh_TW`)**:
-    *   For `zh_TW`, we use OpenCC (`opencc-purepy` library) to automatically convert Simplified Chinese translations to Traditional Chinese variants.
-    *   We supplement this with custom dictionaries to handle region-specific phrasing (e.g. "folder" -> "資料夾", "file" -> "檔案").
+### Location Suppression (`--no-location`)
+*   On `master`, both `xgettext` and `msgmerge` invocations in `update-po.sh` use the `--no-location` flag to prevent code location comments (`#: filename:line`) from being generated in templates and `.po` catalogs. This avoids noisy diffs when code lines shift.
 
 ---
 
 ## 3. String Rules and PO File Formatting
 
-When editing PO files (manually or via scripts), adhere to the following rules:
+When adding or updating entries in `.po` files, follow standard PO formatting rules:
 
-### A. Escaping Quotes
-*   Since PO entries are wrapped in double quotes, any inner double quotes in the translation text **must** be escaped with a backslash:
+### A. Escaping Quotes and Formatting
+*   Inner double quotes inside `msgid` or `msgstr` must be escaped with a backslash:
     ```po
     msgid "Show \"Cover\" image"
     msgstr "显示\"封面\"图片"
     ```
-
-### B. Multi-line Strings
-*   If a string spans multiple lines, split it into concatenated quoted strings:
+*   Multi-line strings must begin with an empty string `""` on the first line:
     ```po
     msgid ""
     "This is a very long string\n"
@@ -79,26 +61,86 @@ When editing PO files (manually or via scripts), adhere to the following rules:
     "跨越了多行。"
     ```
 
-### C. Plural Forms
-*   Plural translations use `msgid_plural` and indices starting at `[0]` (depending on the language specification):
+### B. Plural Forms
+*   Plural translations use `msgid_plural` with language-specific plural indices:
     ```po
-    msgid "Delete %d book"
-    msgid_plural "Delete %d books"
-    msgstr[0] "删除 %d 本书"
+    msgid "Delete %1 book"
+    msgid_plural "Delete %1 books"
+    msgstr[0] "删除 %1 本书"
     ```
+
+### C. Language-Specific Conventions
+*   **Simplified Chinese (`zh_CN`) & Traditional Chinese (`zh_TW`)**:
+    *   For phrases involving background execution, `zh_TW` uses `後台` rather than `背景` (e.g. `正在後台同步` vs `正在后台同步`), except for pre-existing legacy UI rows such as "Background jobs" / "背景工作".
+*   **English Catalogs**: Do not add dummy or fuzzy entries to `en_GB`.
 
 ---
 
-## 4. Validation
+## 4. Parser Invariants (`gettext.lua`)
 
-Always validate the PO file syntax before committing changes. Syntactically invalid PO files will break localizations or fail compilation.
+KOReader's runtime translation parser (`koreader/frontend/gettext.lua`) relies on strict formatting invariants:
+
+*   **Blank Line Delimiters**: `gettext.lua`'s `parseEntry` only commits an entry when it encounters an empty line (`""` or EOF). Every PO entry must be separated by at least one blank line; missing blank lines cause subsequent entries to be skipped.
+*   **Obsolete Entry Boundaries**: On branches whose catalogs retain obsolete sections (`#~`), placing an active entry immediately after a fuzzy obsolete entry (`#, fuzzy` followed by `#~ msgid ...`) can cause `gettext.lua` to drop the active entry. Always insert new active entries in template order within the active section of the catalog, above any obsolete blocks.
+
+---
+
+## 5. Validation and Testing
+
+### Syntax and Consistency Validation
+Always pass `-o /dev/null` when running `msgfmt -c` to prevent an untracked `messages.mo` file from being created in the current working directory:
 
 ```bash
-# Validate a specific PO file
-msgfmt -c koreader/l10n/zh_CN/koreader.po
+# Validate individual catalogs
+msgfmt -c -o /dev/null koreader/l10n/zh_CN/koreader.po
+msgfmt -c -o /dev/null koreader/l10n/zh_TW/koreader.po
 
-# Validate all PO files in the project
-find koreader/l10n/ -name "*.po" -exec msgfmt -c {} \;
+# Validate all project catalogs
+find koreader/l10n/ -name "*.po" -exec msgfmt -c -o /dev/null {} +
 ```
 
-If there are syntax errors (e.g., mismatched variables, unclosed quotes, or bad escapes), `msgfmt` will output the file name and the exact line number of the failure. Make sure all validation warnings are resolved.
+`msgfmt -c` validates syntax, formatting variables, escape sequences, and flags duplicate `(msgctxt, msgid)` entries.
+
+### Runtime Unit Testing Pattern
+When asserting translations in unit tests, test language switching explicitly and restore the locale in `after_each`:
+
+```lua
+local gettext = require("gettext")
+
+describe("Localization checks", function()
+    after_each(function()
+        gettext.changeLang("C")
+    end)
+
+    it("translates expected strings in zh_CN and zh_TW", function()
+        gettext.changeLang("zh_CN")
+        assert.are.same("无法找到任何 Wi-Fi，请稍后重试。", gettext("Cannot find any Wi-Fi, please try again later."))
+
+        gettext.changeLang("zh_TW")
+        assert.are.same("找不到任何 Wi-Fi，請稍後重試。", gettext("Cannot find any Wi-Fi, please try again later."))
+    end)
+end)
+```
+
+---
+
+## 6. Resolving Catalogs When Merging `master.hotfix` into `master`
+
+`master.hotfix` retains line location comments (`#: file:line`), whereas `master` suppresses them with `--no-location`. When merging `master.hotfix` into `master`:
+
+1.  Check out `master`'s version of the catalogs during the merge to preserve `--no-location`:
+    ```bash
+    git checkout --ours koreader/l10n/
+    ```
+2.  Run `./update-po.sh` on `master` to extract new strings and synchronize catalog keys.
+3.  Merge in the translations added on `master.hotfix` using `msgmerge` with a compendium reference:
+    ```bash
+    msgmerge --update --backup=off --no-fuzzy-matching --no-location \
+        -C <(git show master.hotfix:koreader/l10n/zh_CN/koreader.po) \
+        koreader/l10n/zh_CN/koreader.po koreader/l10n/templates/koreader.pot
+
+    msgmerge --update --backup=off --no-fuzzy-matching --no-location \
+        -C <(git show master.hotfix:koreader/l10n/zh_TW/koreader.po) \
+        koreader/l10n/zh_TW/koreader.po koreader/l10n/templates/koreader.pot
+    ```
+4.  Verify with `msgfmt -c -o /dev/null` across all modified catalogs before finalizing the merge.
