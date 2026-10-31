@@ -9,6 +9,7 @@ local GestureDetector = require("device/gesturedetector")
 local Key = require("device/key")
 local UIManager
 local framebuffer = require("ffi/framebuffer")
+local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
 
@@ -513,6 +514,35 @@ end
 
 function Input:UIManagerReady(uimgr)
   UIManager = uimgr
+  if os.getenv("KO_DONT_GRAB_INPUT") then
+    return
+  end
+  for path, fd in pairs(Input.opened_devices) do
+    if
+      path ~= "fake_events"
+      and (
+        C.ioctl(fd, C.EVIOCGRAB, ffi.cast("int", 0)) ~= 0
+        or C.ioctl(fd, C.EVIOCGRAB, ffi.cast("int", 1)) ~= 0
+      )
+    then
+      logger.warn(
+        "Failed to grab input device (already grabbed by another process):",
+        path
+      )
+      UIManager:nextTick(function()
+        UIManager:show(require("ui/widget/infomessage"):new({
+          text = gettext(
+            "Failed to grab input device. KOReader will try to terminate conflicting processes and exit in 10 seconds without restarting automatically to avoid a crash loop. Please try starting KOReader again afterward."
+          ),
+        }))
+        UIManager:scheduleIn(10, function()
+          os.execute("sh -c 'sleep 1; pkill lua; pkill luajit' &")
+          UIManager:quit()
+        end)
+      end)
+      return
+    end
+  end
 end
 
 --[[--
