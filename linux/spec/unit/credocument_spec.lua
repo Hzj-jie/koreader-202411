@@ -44,6 +44,50 @@ describe("CreDocument unit tests", function()
     end)
   end)
 
+  describe("getStorageSizeFactor", function()
+    it("should return 10 by default when unset", function()
+      local orig_read = G_reader_settings.read
+      finally(function()
+        G_reader_settings.read = orig_read
+      end)
+      G_reader_settings.read = function(self_settings, key)
+        if key == "cre_storage_size_factor" then
+          return nil
+        end
+        return orig_read(self_settings, key)
+      end
+      assert.are.equal(10, CreDocument.getStorageSizeFactor())
+    end)
+
+    it("should return the configured factor when <= 10", function()
+      local orig_read = G_reader_settings.read
+      finally(function()
+        G_reader_settings.read = orig_read
+      end)
+      G_reader_settings.read = function(self_settings, key)
+        if key == "cre_storage_size_factor" then
+          return 5
+        end
+        return orig_read(self_settings, key)
+      end
+      assert.are.equal(5, CreDocument.getStorageSizeFactor())
+    end)
+
+    it("should cap the factor at 10 when configured > 10", function()
+      local orig_read = G_reader_settings.read
+      finally(function()
+        G_reader_settings.read = orig_read
+      end)
+      G_reader_settings.read = function(self_settings, key)
+        if key == "cre_storage_size_factor" then
+          return 40
+        end
+        return orig_read(self_settings, key)
+      end
+      assert.are.equal(10, CreDocument.getStorageSizeFactor())
+    end)
+  end)
+
   describe("CreDocument instance operations", function()
     local doc
 
@@ -59,13 +103,22 @@ describe("CreDocument unit tests", function()
     end)
 
     it(
-      "should initialize crengine cache using DataStorage:getCacheDir",
+      "should initialize crengine cache using DataStorage:getCacheDir with capped factor",
       function()
         local cre_lib = require("libs/libkoreader-cre")
         local orig_initCache = cre_lib.initCache
+        local orig_read = G_reader_settings.read
         local captured_dir = nil
-        cre_lib.initCache = function(dir)
+        local captured_factor = nil
+
+        finally(function()
+          cre_lib.initCache = orig_initCache
+          G_reader_settings.read = orig_read
+        end)
+
+        cre_lib.initCache = function(dir, _, _, factor)
           captured_dir = dir
+          captured_factor = factor
         end
 
         doc:cacheInit()
@@ -73,8 +126,16 @@ describe("CreDocument unit tests", function()
           require("datastorage"):getCacheDir() .. "/cr3cache",
           captured_dir
         )
+        assert.are.equal(10, captured_factor)
 
-        cre_lib.initCache = orig_initCache
+        G_reader_settings.read = function(self_settings, key)
+          if key == "cre_storage_size_factor" then
+            return 40
+          end
+          return orig_read(self_settings, key)
+        end
+        doc:cacheInit()
+        assert.are.equal(10, captured_factor)
       end
     )
 
