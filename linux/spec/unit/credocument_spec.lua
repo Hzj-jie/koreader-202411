@@ -429,6 +429,22 @@ describe("CreDocument unit tests", function()
       assert.truthy(gamma)
       doc:setGammaIndex(1)
     end)
+
+    it("should handle large progress mark tables without stack overflow", function()
+      local juliet_epub = "spec/front/unit/data/juliet.epub"
+      local test_doc = DocumentRegistry:openDocument(juliet_epub)
+      test_doc:render()
+      finally(function()
+        test_doc:close()
+      end)
+
+      local pages = test_doc:getPageCount()
+      local ticks = {}
+      for i = 1, 70000 do
+        ticks[i] = (i - 1) % pages + 1
+      end
+      test_doc._document:setHeaderProgressMarks(pages, ticks)
+    end)
   end)
 
   describe("CreDocument init with fb2 file", function()
