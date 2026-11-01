@@ -402,6 +402,41 @@ describe("Coverbrowser BookInfoManager module", function()
     )
 
     it(
+      "should initialize cre cache with storage size factor capped at 10 during extractBookInfo",
+      function()
+        local cre_lib = require("libs/libkoreader-cre")
+        local orig_initCache = cre_lib.initCache
+        local orig_read = G_reader_settings.read
+        local orig_overriden = BookInfoManager.cre_cache_overriden
+        local captured_factor = nil
+
+        finally(function()
+          cre_lib.initCache = orig_initCache
+          G_reader_settings.read = orig_read
+          BookInfoManager.cre_cache_overriden = orig_overriden
+        end)
+
+        cre_lib.initCache = function(dir, size, compress, factor)
+          captured_factor = factor
+          orig_initCache(dir, size, compress, factor)
+        end
+
+        G_reader_settings.read = function(self_settings, key)
+          if key == "cre_storage_size_factor" then
+            return 40
+          end
+          return orig_read(self_settings, key)
+        end
+
+        BookInfoManager.cre_cache_overriden = false
+        local sample_file = "spec/front/unit/data/leaves.epub"
+
+        BookInfoManager:extractBookInfo(sample_file, nil)
+        assert.are.equal(10, captured_factor)
+      end
+    )
+
+    it(
       "should handle cover and metadata ignore, delete, and clean operations",
       function()
         BookInfoManager:createDB()
