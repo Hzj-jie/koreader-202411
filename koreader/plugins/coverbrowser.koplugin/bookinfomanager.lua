@@ -459,18 +459,17 @@ function BookInfoManager:extractBookInfo(filepath, cover_specs)
     -- We need to init engine (if no crengine book has yet been opened),
     -- so it does not reset our temporary cache dir when we first open
     -- a crengine book for extraction.
-    local cre = require("document/credocument"):engineInit()
+    local CreDocument = require("document/credocument")
+    local cre = CreDocument:engineInit()
     -- If we wanted to disallow caching completely:
     -- cre.initCache("", 1024*1024*32) -- empty path = no cache
     -- But it's best to use a cache for quicker and less memory
     -- usage when opening big books:
-    local default_cre_storage_size_factor = 20 -- note: keep in sync with the one in credocument.lua
     cre.initCache(
       self.tmpcr3cache,
       0, -- 0 = previous book caches are removed when opening a book
       true,
-      G_reader_settings:read("cre_storage_size_factor")
-        or default_cre_storage_size_factor
+      CreDocument.getStorageSizeFactor()
     )
     self.cre_cache_overriden = true
   end
