@@ -1512,7 +1512,7 @@ function Kobo:_doSuspend()
   logger.dbg("Kobo suspend: asking for a suspend to RAM . . .")
 
   -- Do the real suspend.
-  local ret = ffiUtil.writeToSysfs("mem", "/sys/power/state")
+  local ret = self:sysfsSuspend()
 
   if ret then
     logger.info("Kobo suspend: ZzZ ZzZ ZzZ... And woke up!")

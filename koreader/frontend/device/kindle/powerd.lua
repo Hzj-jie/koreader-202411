@@ -69,7 +69,7 @@ function KindlePowerD:isFrontlightOnHW()
   return hw_intensity > self.fl_min
 end
 
-function KindlePowerD:setIntensityHW(intensity)
+function KindlePowerD:_setIntensity(intensity)
   -- Handle the synthetic step switcheroo on ! canTurnFrontlightOff devices...
   local turn_it_off = false
   if not self.device:canTurnFrontlightOff() then
@@ -97,6 +97,10 @@ function KindlePowerD:setIntensityHW(intensity)
       ffiUtil.writeToSysfs(intensity, self.warmth_intensity_file)
     end
   end
+end
+
+function KindlePowerD:setIntensityHW(intensity)
+  self:_setIntensity(intensity)
 
   -- The state might have changed, make sure we don't break isFrontlightOn
   self:_decideFrontlightState()
@@ -164,6 +168,14 @@ function KindlePowerD:isHallSensorEnabled()
   return int == 1
 end
 
+function KindlePowerD:_hallWakeup()
+  return self:hasHallSensor()
+    and self:read_int_file(
+        (self.hall_file:gsub("hall_enable$", "hall_trig_wkup"))
+      )
+      == 1
+end
+
 function KindlePowerD:onToggleHallSensor(toggle)
   if toggle == nil then
     -- Flip it
@@ -222,8 +234,28 @@ function KindlePowerD:checkUnexpectedWakeup()
   end
 end
 
--- Dummy functions. They will be defined in initWakeupMgr
-function KindlePowerD:wakeupFromSuspend() end
+function KindlePowerD:wakeupFromSuspend(_ts)
+  if
+    self:_hallWakeup()
+    and not self:isHallSensorEnabled()
+    and self:getPowerdState() == "screenSaver"
+  then
+    logger.info("Kindle Hall wakeup while Hall sensor is disabled")
+    if self.device:hasFrontlight() then
+      self:_setIntensity(self.fl_min)
+    end
+    self.device:sysfsSuspend()
+  end
+  if self.device.wakeup_mgr then
+    -- Give the device a few seconds to settle.
+    -- This filters out user input resumes -> device will resume to active
+    -- Also the Kindle stays in Ready to suspend for 10 seconds
+    -- so the alarm may fire 10 seconds early
+    UIManager:scheduleIn(15, self.checkUnexpectedWakeup, self)
+  end
+end
+
+-- Dummy function. It will be defined in initWakeupMgr
 function KindlePowerD:readyToSuspend() end
 
 -- Support WakeupMgr on Lipc & supportsScreensaver devices.
@@ -237,14 +269,6 @@ function KindlePowerD:initWakeupMgr()
 
   self.device.wakeup_mgr =
     WakeupMgr:new({ rtc = require("device/kindle/mockrtc") })
-
-  function KindlePowerD:wakeupFromSuspend(_ts)
-    -- Give the device a few seconds to settle.
-    -- This filters out user input resumes -> device will resume to active
-    -- Also the Kindle stays in Ready to suspend for 10 seconds
-    -- so the alarm may fire 10 seconds early
-    UIManager:scheduleIn(15, self.checkUnexpectedWakeup, self)
-  end
 
   function KindlePowerD:readyToSuspend(_delay)
     if self.device.wakeup_mgr:isWakeupAlarmScheduled() then

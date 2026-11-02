@@ -1,26 +1,38 @@
 local BasePowerD = require("device/generic/powerd")
+local Device = require("device/generic/device")
 local LibLipcs = require("liblipcs")
 local WakeupMgr = require("device/wakeupmgr")
 local ffiUtil = require("ffi/util")
+local lfs = require("libs/libkoreader-lfs")
 
 describe("KindlePowerD", function()
   local KindlePowerD
   local mock_device, mock_powerd
-  local mock_lipc
+  local mock_lipc, mock_uimgr
+  local orig_write_to_sysfs
+  local sys_ops
   local tmp_files = {}
+  local hall_dir = "/tmp/test_kindle_hall_" .. ffiUtil.getpid()
+  local hall_enable_file = hall_dir .. "/hall_enable"
+  local hall_trig_file = hall_dir .. "/hall_trig_wkup"
 
   setup(function()
     require("commonrequire")
     KindlePowerD = require("device/kindle/powerd")
+    lfs.mkdir(hall_dir)
   end)
 
-  local function create_temp_file(content)
-    local path = "/tmp/test_kindle_" .. ffiUtil.getpid() .. "_" .. #tmp_files
+  local function write_file(path, content)
     local f = io.open(path, "w")
     if content then
       f:write(content)
     end
     f:close()
+  end
+
+  local function create_temp_file(content)
+    local path = "/tmp/test_kindle_" .. ffiUtil.getpid() .. "_" .. #tmp_files
+    write_file(path, content)
     table.insert(tmp_files, path)
     return path
   end
@@ -29,9 +41,22 @@ describe("KindlePowerD", function()
     for _, path in ipairs(tmp_files) do
       os.remove(path)
     end
+    os.remove(hall_enable_file)
+    os.remove(hall_trig_file)
+    lfs.rmdir(hall_dir)
   end)
 
   before_each(function()
+    sys_ops = {}
+    orig_write_to_sysfs = ffiUtil.writeToSysfs
+    ffiUtil.writeToSysfs = function(val, path)
+      table.insert(sys_ops, { op = "sysfs", path = path, val = val })
+      if path == "/sys/power/state" then
+        return true
+      end
+      return orig_write_to_sysfs(val, path)
+    end
+
     mock_lipc = {
       props = {
         ["com.lab126.powerd:flIntensity"] = 10,
@@ -45,12 +70,14 @@ describe("KindlePowerD", function()
       end,
       set_int_property = function(self_l, bus, prop, val)
         self_l.props[bus .. ":" .. prop] = val
+        table.insert(sys_ops, { op = "lipc", prop = prop, val = val })
       end,
       get_string_property = function(self_l, bus, prop)
         return self_l.props[bus .. ":" .. prop]
       end,
       set_string_property = function(self_l, bus, prop, val)
         self_l.props[bus .. ":" .. prop] = val
+        table.insert(sys_ops, { op = "lipc", prop = prop, val = val })
       end,
     }
 
@@ -74,17 +101,37 @@ describe("KindlePowerD", function()
       supportsScreensaver = function()
         return true
       end,
+      sysfsSuspend = Device.sysfsSuspend,
       _beforeSuspend = function() end,
       _afterResume = function() end,
     }
+
+    mock_uimgr = {
+      scheduled = {},
+      ticks = {},
+      scheduleIn = function(self_u, delay, fn, arg)
+        table.insert(self_u.scheduled, { delay = delay, fn = fn, arg = arg })
+      end,
+      tickAfterNext = function(self_u, fn)
+        table.insert(self_u.ticks, fn)
+      end,
+    }
+
+    write_file(hall_enable_file, "1")
+    write_file(hall_trig_file, "0")
 
     mock_powerd = KindlePowerD:new({
       device = mock_device,
       fl_intensity_file = create_temp_file("10"),
       batt_capacity_file = create_temp_file("85"),
       batt_status_file = create_temp_file("Full"),
-      hall_file = create_temp_file("1"),
+      hall_file = hall_enable_file,
     })
+    mock_powerd:UIManagerReady(mock_uimgr)
+  end)
+
+  after_each(function()
+    ffiUtil.writeToSysfs = orig_write_to_sysfs
   end)
 
   describe("Initialization and synthetic frontlight step", function()
@@ -267,6 +314,312 @@ describe("KindlePowerD", function()
 
         mock_powerd:readyToSuspend()
         assert.is_false(mock_powerd.device.wakeup_mgr:isWakeupAlarmScheduled())
+      end
+    )
+  end)
+
+  describe("Disabled Hall sensor wakeup handling", function()
+    local function count_scheduled(fn)
+      local count = 0
+      for _, item in ipairs(mock_uimgr.scheduled) do
+        if item.fn == fn then
+          count = count + 1
+        end
+      end
+      return count
+    end
+
+    local function flush_ticks()
+      while #mock_uimgr.ticks > 0 do
+        table.remove(mock_uimgr.ticks, 1)()
+      end
+    end
+
+    local function new_powerd_no_off()
+      mock_device.canTurnFrontlightOff = function()
+        return false
+      end
+      local powerd = KindlePowerD:new({
+        device = mock_device,
+        fl_intensity_file = create_temp_file("10"),
+        batt_capacity_file = create_temp_file("85"),
+        batt_status_file = create_temp_file("Full"),
+        hall_file = hall_enable_file,
+      })
+      powerd:UIManagerReady(mock_uimgr)
+      return powerd
+    end
+
+    it(
+      "turns off frontlight before suspending to mem when hall_enable is 0, hall_trig_wkup is 1, and state is screenSaver",
+      function()
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_true(mock_powerd:isFrontlightOn())
+        assert.are.equal(10, mock_powerd.fl_intensity)
+        assert.are.equal(
+          1,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({
+          { op = "lipc", prop = "flIntensity", val = 0 },
+          { op = "sysfs", path = "/sys/power/state", val = "mem" },
+        }, sys_ops)
+      end
+    )
+
+    it(
+      "writes 0 to sysfs intensity file before mem on devices that cannot turn frontlight off via lipc",
+      function()
+        local powerd_no_off = new_powerd_no_off()
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        powerd_no_off:wakeupFromSuspend()
+
+        assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_true(powerd_no_off:isFrontlightOn())
+        assert.are.equal(11, powerd_no_off.fl_intensity)
+        assert.are.equal(
+          1,
+          count_scheduled(powerd_no_off.checkUnexpectedWakeup)
+        )
+        assert.are.same({
+          { op = "lipc", prop = "flIntensity", val = 0 },
+          { op = "sysfs", path = powerd_no_off.fl_intensity_file, val = 0 },
+          { op = "sysfs", path = "/sys/power/state", val = "mem" },
+        }, sys_ops)
+      end
+    )
+
+    it(
+      "writes mem without touching frontlight when device has no frontlight",
+      function()
+        mock_device.hasFrontlight = function()
+          return false
+        end
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.are.equal(
+          1,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({
+          { op = "sysfs", path = "/sys/power/state", val = "mem" },
+        }, sys_ops)
+      end
+    )
+
+    it(
+      "does not touch frontlight or mem when hall_enable is 1",
+      function()
+        write_file(hall_enable_file, "1")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.are.equal(
+          1,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({}, sys_ops)
+      end
+    )
+
+    it(
+      "does not touch frontlight or mem when hall_trig_wkup is 0",
+      function()
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "0")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.are.equal(
+          1,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({}, sys_ops)
+      end
+    )
+
+    it(
+      "does not touch frontlight or mem when state is active or suspended",
+      function()
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "active"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.are.equal(
+          1,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({}, sys_ops)
+
+        mock_lipc.props["com.lab126.powerd:state"] = "suspended"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.are.equal(
+          2,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({}, sys_ops)
+      end
+    )
+
+    it(
+      "does not crash or suspend when hall_file is nil",
+      function()
+        mock_powerd.hall_file = nil
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.are.equal(
+          1,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({}, sys_ops)
+      end
+    )
+
+    it(
+      "reads 0 and does not suspend when hall_trig_wkup file is missing",
+      function()
+        write_file(hall_enable_file, "0")
+        os.remove(hall_trig_file)
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        mock_powerd:wakeupFromSuspend()
+
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.are.equal(
+          1,
+          count_scheduled(mock_powerd.checkUnexpectedWakeup)
+        )
+        assert.are.same({}, sys_ops)
+      end
+    )
+
+    it(
+      "turns off frontlight and writes mem without scheduling checkUnexpectedWakeup on Special Offers devices",
+      function()
+        mock_device.supportsScreensaver = function()
+          return false
+        end
+        mock_device.wakeup_mgr = nil
+        local powerd_so = KindlePowerD:new({
+          device = mock_device,
+          fl_intensity_file = create_temp_file("10"),
+          batt_capacity_file = create_temp_file("85"),
+          batt_status_file = create_temp_file("Full"),
+          hall_file = hall_enable_file,
+        })
+        powerd_so:UIManagerReady(mock_uimgr)
+
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+        sys_ops = {}
+
+        powerd_so:wakeupFromSuspend()
+
+        assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_true(powerd_so:isFrontlightOn())
+        assert.are.equal(
+          0,
+          count_scheduled(powerd_so.checkUnexpectedWakeup)
+        )
+        assert.are.same({
+          { op = "lipc", prop = "flIntensity", val = 0 },
+          { op = "sysfs", path = "/sys/power/state", val = "mem" },
+        }, sys_ops)
+      end
+    )
+
+    it(
+      "preserves is_fl_on across disabled-Hall wakeup and restores frontlight on afterResume",
+      function()
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+
+        mock_powerd:wakeupFromSuspend()
+        assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_true(mock_powerd:isFrontlightOn())
+
+        mock_powerd:afterResume()
+        flush_ticks()
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_true(mock_powerd:isFrontlightOn())
+      end
+    )
+
+    it(
+      "preserves is_fl_on and restores synthetic step on afterResume when canTurnFrontlightOff is false",
+      function()
+        local powerd_no_off = new_powerd_no_off()
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+
+        powerd_no_off:wakeupFromSuspend()
+        assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_true(powerd_no_off:isFrontlightOn())
+
+        powerd_no_off:afterResume()
+        flush_ticks()
+        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_true(powerd_no_off:isFrontlightOn())
+      end
+    )
+
+    it(
+      "keeps frontlight off on afterResume when frontlight was off before disabled-Hall wakeup",
+      function()
+        mock_powerd:setIntensityHW(0)
+        assert.is_false(mock_powerd:isFrontlightOn())
+
+        write_file(hall_enable_file, "0")
+        write_file(hall_trig_file, "1")
+        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+
+        mock_powerd:wakeupFromSuspend()
+        assert.is_false(mock_powerd:isFrontlightOn())
+
+        mock_powerd:afterResume()
+        flush_ticks()
+        assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
+        assert.is_false(mock_powerd:isFrontlightOn())
       end
     )
   end)

@@ -501,6 +501,10 @@ function Device:usbPlugOut() end
 -- Hardware specific method to suspend the device
 function Device:suspend() end
 
+function Device:sysfsSuspend()
+  return ffiUtil.writeToSysfs("mem", "/sys/power/state")
+end
+
 -- Hardware specific method to resume the device
 function Device:resume() end
 
