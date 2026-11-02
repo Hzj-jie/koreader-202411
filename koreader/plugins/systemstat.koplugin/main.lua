@@ -10,6 +10,7 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local ffiUtil = require("ffi/util")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local time = require("ui/time")
 local util = require("util")
 local Version = require("version")
@@ -26,6 +27,7 @@ local function systemInfo()
       io_wait = 0,
       hardirq = 0,
       softirq = 0,
+      count = 0,
     }
     local stat = io.open("/proc/stat", "r")
     assert(stat ~= nil)
@@ -53,6 +55,9 @@ local function systemInfo()
         if #t > 7 then
           result.cpu.softirq = tonumber(t[8])
         end
+      elseif #t > 0 and string.lower(t[1]):match("^cpu%d+$") then
+        result.cpu.count = result.cpu.count + 1
+      else
         break
       end
     end
@@ -64,14 +69,6 @@ local function systemInfo()
       + result.cpu.hardirq
       + result.cpu.softirq
     stat:close()
-  end
-
-  do
-    local handle = io.popen("cat /proc/stat | grep ^cpu | wc -l")
-    assert(handle ~= nil)
-    -- Exclude cpu line.
-    result.cpu.count = tonumber(handle:read("*a")) - 1
-    handle:close()
   end
 
   do
@@ -107,27 +104,34 @@ local function systemInfo()
   end
 
   do
-    result.processes = {}
-    local handle = io.popen("ps -e | wc -l")
-    assert(handle ~= nil)
-    -- Exclude ps and wc
-    result.processes.count = tonumber(handle:read("*a")) - 2
-    handle:close()
+    local iter, dir_obj = lfs.dir("/proc")
+    assert(iter ~= nil)
+    local count = 0
+    for entry in iter, dir_obj do
+      if tonumber(entry) ~= nil then
+        count = count + 1
+      end
+    end
+    result.processes = {
+      count = count,
+    }
   end
 
   do
     result.cpu.average = {}
-    local handle = io.popen("uptime | sed 's/.*load average://g'")
-    assert(handle ~= nil)
-    for word in handle:read("*a"):gmatch("[^,%s]+") do
-      table.insert(result.cpu.average, tonumber(word))
+    local loadavg = io.open("/proc/loadavg", "r")
+    assert(loadavg ~= nil)
+    local t = util.splitToArray(loadavg:read("*line"), " ")
+    for i = 1, math.min(3, #t) do
+      table.insert(result.cpu.average, tonumber(t[i]))
     end
-    handle:close()
+    loadavg:close()
   end
 
   do
     result.uptime = {
       sec = 0,
+      monotonic = time.monotonic(),
     }
     local file = io.open("/proc/uptime", "r")
     assert(file ~= nil)
@@ -181,6 +185,19 @@ function SystemStat:putSeparator()
   self.kv_pairs[#self.kv_pairs].separator = true
 end
 
+function SystemStat:_koreaderUptime()
+  local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
+  local suspend = 0
+  if Device:canSuspend() then
+    suspend = Device.total_suspend_time
+  end
+  local standby = 0
+  if Device:canStandby() then
+    standby = Device.total_standby_time
+  end
+  return uptime, suspend, standby
+end
+
 function SystemStat:appendCounters()
   self:put({
     gettext("KOReader started at"),
@@ -198,15 +215,7 @@ function SystemStat:appendCounters()
       datetime.secondsToDateTime(time.to_s(Device.last_resume_at), nil, true),
     })
   end
-  local uptime = time.boottime_or_realtime_coarse() - self.start_monotonic_time
-  local suspend = 0
-  if Device:canSuspend() then
-    suspend = Device.total_suspend_time
-  end
-  local standby = 0
-  if Device:canStandby() then
-    standby = Device.total_standby_time
-  end
+  local uptime, suspend, standby = self:_koreaderUptime()
   self:put({
     "  " .. gettext("Up time"),
     datetime.secondsToClockDuration("", time.to_s(uptime), false, true),
@@ -464,19 +473,32 @@ function SystemStat:appendProcessInfo()
     return
   end
   n1 = tonumber(t[14])
-  n2 = tonumber(t[15])
   if n1 ~= nil then
-    if n2 ~= nil then
-      n1 = n1 + n2
+    for i = 15, 17 do
+      n2 = tonumber(t[i])
+      if n2 ~= nil then
+        n1 = n1 + n2
+      end
     end
     -- Fairly hard for reader.lua to use so much processor resources, do not
     -- change the unit to millions.
     self:put({ "  " .. gettext("Total ticks"), n1 })
     if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
-      assert(self.sys_stat.cpu.total > 0) -- Imporssible to be 0.
+      assert(self.sys_stat.cpu.total > 0) -- Impossible to be 0.
+      local uptime, suspend, standby = self:_koreaderUptime()
+      local koreader_awake = uptime - suspend - standby
+      assert(koreader_awake > 0 and self.sys_stat.uptime.monotonic > 0)
       self:put({
         gettext("  Processor usage %"),
-        string.format("%.2f", n1 / self.sys_stat.cpu.total * 100),
+        string.format(
+          "%.2f",
+          n1
+            / (
+              self.sys_stat.cpu.total
+              * (koreader_awake / self.sys_stat.uptime.monotonic)
+            )
+            * 100
+        ),
       })
     end
   end
