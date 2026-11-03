@@ -19,11 +19,7 @@ function Version:isLuaJIT()
 end
 
 function Version:getRuntime()
-  local parts = {}
-  for i = getArgvMinIndex(), -1 do
-    table.insert(parts, arg[i])
-  end
-  return table.concat(parts, " ")
+  return table.concat(arg, " ", getArgvMinIndex())
 end
 
 --- Returns current KOReader git-rev.

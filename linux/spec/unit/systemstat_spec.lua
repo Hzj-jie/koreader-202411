@@ -103,15 +103,24 @@ describe("systemstat", function()
     local cases = {
       {
         arg = { [-1] = "./lua", [0] = "reader.lua" },
-        expected = "./lua",
+        expected = "./lua reader.lua",
       },
       {
         arg = { [-1] = "./luajit", [0] = "reader.lua" },
-        expected = "./luajit",
+        expected = "./luajit reader.lua",
       },
       {
         arg = { [-2] = "./luajit", [-1] = "-O3", [0] = "./reader.lua" },
-        expected = "./luajit -O3",
+        expected = "./luajit -O3 ./reader.lua",
+      },
+      {
+        arg = {
+          [-2] = "./luajit",
+          [-1] = "-O3",
+          [0] = "./reader.lua",
+          [1] = "-d",
+        },
+        expected = "./luajit -O3 ./reader.lua -d",
       },
     }
 
