@@ -77,4 +77,71 @@ describe("Kindle device", function()
       end
     )
   end)
+
+  describe("IntoSS and OutOfSS handlers", function()
+    local UIManager
+    local Screensaver
+    local calls
+    local mock_dev
+
+    before_each(function()
+      UIManager = require("ui/uimanager")
+      Screensaver = require("ui/screensaver")
+      calls = {}
+      stub(Screensaver, "setup", function()
+        table.insert(calls, "Screensaver:setup")
+      end)
+      stub(Screensaver, "show", function()
+        mock_dev.screen_saver_mode = true
+        table.insert(calls, "Screensaver:show")
+      end)
+      stub(Screensaver, "close", function()
+        mock_dev.screen_saver_mode = false
+        table.insert(calls, "Screensaver:close")
+        return true
+      end)
+      stub(UIManager, "nextTick")
+      stub(UIManager, "scheduleIn")
+
+      mock_dev = setmetatable({
+        screen_saver_mode = false,
+        canDeepSleep = false,
+        input = {
+          open = function() end,
+          fake_event_args = {},
+        },
+        powerd = {
+          beforeSuspend = function()
+            table.insert(calls, "powerd:beforeSuspend")
+          end,
+          afterResume = function()
+            table.insert(calls, "powerd:afterResume")
+          end,
+        },
+        supportsScreensaver = function()
+          return true
+        end,
+      }, { __index = KindlePaperWhite })
+      mock_dev:UIManagerReady(UIManager)
+      mock_dev:setEventHandlers(UIManager)
+    end)
+
+    after_each(function()
+      Screensaver.setup:revert()
+      Screensaver.show:revert()
+      Screensaver.close:revert()
+      UIManager.nextTick:revert()
+      UIManager.scheduleIn:revert()
+    end)
+
+    it("shows screensaver before beforeSuspend on IntoSS", function()
+      table.insert(mock_dev.input.fake_event_args.IntoSS, 1)
+      UIManager.event_handlers.IntoSS("IntoSS")
+      assert.are.same({
+        "Screensaver:setup",
+        "Screensaver:show",
+        "powerd:beforeSuspend",
+      }, calls)
+    end)
+  end)
 end)

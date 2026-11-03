@@ -832,10 +832,10 @@ function Kindle:setEventHandlers(_uimgr)
     self.powerd:toggleSuspend()
   end
   UIManager.event_handlers.IntoSS = function(input_event)
-    self.powerd:beforeSuspend()
     -- Retrieve the argument set by Input:handleKeyBoardEv
     local arg = table.remove(self.input.fake_event_args[input_event])
     self:_intoScreenSaver(arg)
+    self.powerd:beforeSuspend()
   end
   UIManager.event_handlers.OutOfSS = function(input_event)
     local arg = table.remove(self.input.fake_event_args[input_event])
