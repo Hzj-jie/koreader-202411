@@ -33,13 +33,17 @@ describe("device/generic/powerd", function()
     mock_device = {
       hasFrontlight = stub().returns(true),
       hasNaturalLight = stub().returns(true),
-      _beforeSuspend = stub(),
-      _afterResume = stub(),
+      disableKeyRepeat = stub(),
+      restoreKeyRepeat = stub(),
+      last_suspend_at = 0,
+      last_resume_at = 0,
       total_suspend_time = 20,
     }
 
     mock_uimgr = {
+      flushSettings = stub(),
       broadcastEvent = stub(),
+      updateLastUserActionTime = stub(),
       getElapsedTimeSinceBoot = stub().returns(100),
     }
 
@@ -277,19 +281,63 @@ describe("device/generic/powerd", function()
 
   describe("suspend and resume lifecycle", function()
     it(
-      "triggers device hooks and invalidates caches on suspend/resume",
+      "triggers device hooks, broadcasts events, and invalidates caches on suspend/resume",
       function()
         powerd:UIManagerReady(mock_uimgr)
+        powerd.beforeSuspendHW = stub()
+        local last_resume_at_in_hw = nil
+        local broadcast_count_in_hw = nil
+        powerd.afterResumeHW = spy.new(function()
+          last_resume_at_in_hw = mock_device.last_resume_at
+          broadcast_count_in_hw = #mock_uimgr.broadcastEvent.calls
+        end)
+        mock_device.total_suspend_time = 0
 
         powerd:beforeSuspend()
-        assert.spy(mock_device._beforeSuspend).was.called()
+        assert.spy(mock_uimgr.flushSettings).was.called()
+        assert.spy(mock_uimgr.broadcastEvent).was.called_with(
+          mock_uimgr,
+          match.is_table()
+        )
+        assert.are.equal(
+          "Suspend",
+          mock_uimgr.broadcastEvent.calls[1].vals[2].name
+        )
+        assert.is_true(mock_device.last_suspend_at > 0)
+        assert.spy(mock_device.disableKeyRepeat).was.called()
+        assert.spy(powerd.beforeSuspendHW).was.called()
 
         powerd:afterResume()
-        assert.spy(mock_device._afterResume).was.called()
+        assert.spy(powerd.afterResumeHW).was.called()
+        assert.are.equal(0, last_resume_at_in_hw)
+        assert.are.equal(1, broadcast_count_in_hw)
+        assert.spy(mock_device.restoreKeyRepeat).was.called()
+        assert.is_true(mock_device.last_resume_at >= mock_device.last_suspend_at)
+        assert.is_true(mock_device.total_suspend_time >= 0)
+        assert.spy(mock_uimgr.updateLastUserActionTime).was.called()
+        assert.are.equal(
+          "Resume",
+          mock_uimgr.broadcastEvent.calls[2].vals[2].name
+        )
         -- Capacity caches should be invalidated (set to -61)
         local time = require("ui/time")
         assert.are.equal(time.s(-61), powerd.last_capacity_pull_time)
         assert.are.equal(time.s(-61), powerd.last_aux_capacity_pull_time)
+      end
+    )
+
+    it(
+      "skips restoreKeyRepeat on afterResume when input_no_key_repeat is true",
+      function()
+        local orig_no_key_repeat = G_reader_settings:read("input_no_key_repeat")
+        G_reader_settings:save("input_no_key_repeat", true)
+        finally(function()
+          G_reader_settings:save("input_no_key_repeat", orig_no_key_repeat)
+        end)
+
+        powerd:UIManagerReady(mock_uimgr)
+        powerd:afterResume()
+        assert.spy(mock_device.restoreKeyRepeat).was_not.called()
       end
     )
   end)

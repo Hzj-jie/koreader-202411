@@ -64,8 +64,7 @@ describe("PocketBookPowerD", function()
 
   local mock_device
   local powerd
-  local before_suspend_called = false
-  local after_resume_called = false
+  local events_broadcast = {}
 
   before_each(function()
     frontlight_state = 50
@@ -77,8 +76,7 @@ describe("PocketBookPowerD", function()
     v2_enabled_exists = true
     battery_power = 85
     is_charging_val = 1
-    before_suspend_called = false
-    after_resume_called = false
+    events_broadcast = {}
 
     mock_device = {
       hasFrontlight = function()
@@ -87,16 +85,22 @@ describe("PocketBookPowerD", function()
       hasNaturalLight = function()
         return true
       end,
-      _beforeSuspend = function()
-        before_suspend_called = true
-      end,
-      _afterResume = function()
-        after_resume_called = true
-      end,
+      disableKeyRepeat = function() end,
+      restoreKeyRepeat = function() end,
+      last_suspend_at = 0,
+      last_resume_at = 0,
+      total_suspend_time = 0,
     }
 
     powerd = PocketBookPowerD:new({
       device = mock_device,
+    })
+    powerd:UIManagerReady({
+      flushSettings = function() end,
+      broadcastEvent = function(_self, ev)
+        table.insert(events_broadcast, ev.handler)
+      end,
+      updateLastUserActionTime = function() end,
     })
   end)
 
@@ -114,12 +118,12 @@ describe("PocketBookPowerD", function()
       assert.is_false(powerd:isChargingHW())
     end)
 
-    it("delegates suspend and resume notifications to device", function()
+    it("broadcasts Suspend and Resume events on suspend/resume", function()
       powerd:beforeSuspend()
-      assert.is_true(before_suspend_called)
+      assert.are.same({ "onSuspend" }, events_broadcast)
 
       powerd:afterResume()
-      assert.is_true(after_resume_called)
+      assert.are.same({ "onSuspend", "onResume" }, events_broadcast)
     end)
   end)
 

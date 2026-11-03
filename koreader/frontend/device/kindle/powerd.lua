@@ -234,17 +234,7 @@ function KindlePowerD:resetT1Timeout()
   end
 end
 
-function KindlePowerD:beforeSuspend()
-  -- Inhibit user input and emit the Suspend event.
-  self.device:_beforeSuspend()
-end
-
-function KindlePowerD:afterResume()
-  self:invalidateCapacityCache()
-
-  -- Restore user input and emit the Resume event.
-  self.device:_afterResume()
-
+function KindlePowerD:afterResumeHW()
   if not self.device:hasFrontlight() then
     return
   end

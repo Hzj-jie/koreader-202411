@@ -747,28 +747,6 @@ describe("device module", function()
         assert.spy(test_dev.powerd.afterResume).was_called()
       end)
 
-      it("executes _beforeSuspend and _afterResume", function()
-        local UIManager = require("ui/uimanager")
-        local flushed = false
-        stub(UIManager, "flushSettings", function()
-          flushed = true
-        end)
-        stub(UIManager, "broadcastEvent")
-
-        test_dev.total_suspend_time = 0
-        test_dev:_beforeSuspend()
-        assert.is_true(flushed)
-        assert.spy(test_dev.disableKeyRepeat).was_called()
-        assert.stub(UIManager.broadcastEvent).was_called()
-
-        test_dev:_afterResume()
-        assert.spy(test_dev.restoreKeyRepeat).was_called()
-        assert.is_true(test_dev.total_suspend_time >= 0)
-
-        UIManager.flushSettings:revert()
-        UIManager.broadcastEvent:revert()
-      end)
-
       it("executes _beforeCharging and _afterNotCharging", function()
         local UIManager = require("ui/uimanager")
         stub(UIManager, "broadcastEvent")

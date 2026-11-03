@@ -1175,32 +1175,6 @@ function Device:setEventHandlers(_uimgr)
   end
 end
 
--- The common operations that should be performed before suspending the device.
-function Device:_beforeSuspend()
-  UIManager:flushSettings()
-  UIManager:broadcastEvent(Event:new("Suspend"))
-  self.last_suspend_at = time.realtime()
-  -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
-  self:disableKeyRepeat()
-end
-
--- The common operations that should be performed after resuming the device.
-function Device:_afterResume()
-  -- Restore key repeat if it's not disabled
-  if G_reader_settings:nilOrFalse("input_no_key_repeat") then
-    self:restoreKeyRepeat()
-  end
-
-  self.last_resume_at = time.realtime()
-  self.total_suspend_time = self.total_suspend_time
-    + (self.last_resume_at - self.last_suspend_at)
-  -- This is a hacky way to ensure the resume can be treated as an input.
-  -- Ideally UIManager should understand the Resume event, but it needs to check every single
-  -- event being processed.
-  UIManager:updateLastUserActionTime()
-  UIManager:broadcastEvent(Event:new("Resume"))
-end
-
 -- The common operations that should be performed when the device is plugged to a power source.
 function Device:_beforeCharging()
   -- Invalidate the capacity cache to make sure we poll up-to-date values for the LED check
