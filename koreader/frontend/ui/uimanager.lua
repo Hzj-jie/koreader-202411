@@ -457,16 +457,6 @@ function UIManager:closeIfNotNil(widget)
   end
 end
 
---- Shift the execution times of all scheduled tasks.
--- UIManager uses CLOCK_MONOTONIC (which doesn't tick during standby), so shifting the execution
--- time by a negative value will lead to an execution at the expected time.
--- @param time if positive execute the tasks later, if negative they should be executed earlier
-function UIManager:shiftScheduledTasksBy(shift_time)
-  for i, v in ipairs(self._task_queue) do
-    v.time = v.time + shift_time
-  end
-end
-
 -- Schedule an execution task; task queue is in descending order
 function UIManager:schedule(sched_time, action, ...)
   local lo, hi = 1, #self._task_queue
@@ -918,13 +908,6 @@ function UIManager:broadcastEvent(event)
     else
       i = i - 1
     end
-  end
-end
-
-function UIManager:getNextTaskTime()
-  local next_task = self._task_queue[#self._task_queue]
-  if next_task then
-    return next_task.time - time.monotonic()
   end
 end
 

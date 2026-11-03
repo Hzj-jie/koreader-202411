@@ -1473,7 +1473,7 @@ describe("ReaderAnnotation module", function()
     local Widget = require("ui/widget/widget")
 
     local function fastforward()
-      UIManager:shiftScheduledTasksBy(-1e9)
+      shiftScheduledTasksBy(-1e9)
       UIManager:_checkTasks()
     end
 
@@ -1725,7 +1725,7 @@ describe("ReaderAnnotation module", function()
     local Widget = require("ui/widget/widget")
 
     local function fastforward()
-      UIManager:shiftScheduledTasksBy(-1e9)
+      shiftScheduledTasksBy(-1e9)
       UIManager:_checkTasks()
     end
 

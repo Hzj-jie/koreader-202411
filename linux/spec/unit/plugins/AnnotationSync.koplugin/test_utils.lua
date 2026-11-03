@@ -15,7 +15,7 @@ local ImageViewer = require("ui/widget/imageviewer")
 local ReaderUI = require("apps/reader/readerui")
 local UIManager = require("ui/uimanager")
 _G.fastforward_ui_events = function()
-  UIManager:shiftScheduledTasksBy(-1e9)
+  shiftScheduledTasksBy(-1e9)
   UIManager:handleInput()
 end
 local json = require("json")
