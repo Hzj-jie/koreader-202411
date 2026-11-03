@@ -356,6 +356,7 @@ function Device:handlePowerEvent(ev)
         logger.dbg("Resuming...")
         UIManager:unschedule(self.suspend)
         self:resume()
+        self.powerd:initWakeup()
         local widget_was_closed = Screensaver:close()
         if widget_was_closed and self:needsScreenRefreshAfterResume() then
           UIManager:scheduleIn(1, function()
@@ -383,6 +384,7 @@ function Device:handlePowerEvent(ev)
         )
         -- Basically, this is the only difference.
         -- We need it because we're actually in a sane post-Resume event state right now.
+        self.powerd:initSuspend()
         self.powerd:beforeSuspend()
       else
         logger.dbg("Already in screen saver mode, going back to suspend...")
@@ -399,7 +401,17 @@ function Device:handlePowerEvent(ev)
     logger.dbg("Suspending...")
     -- Add the current state of the SleepCover flag...
     logger.dbg("Sleep cover is", self.is_cover_closed and "closed" or "open")
+    self.powerd:initSuspend()
     Screensaver:setup()
+    -- NOTE: This side of the check needs to be laxer, some platforms can handle Wi-Fi without WifiManager ;).
+    if self:hasWifiToggle() then
+      -- NOTE: wifi_was_on does not necessarily mean that Wi-Fi is *currently* on! It means *we* enabled it.
+      --     This is critical on Kobos (c.f., #3936), where it might still be on from KSM or Nickel,
+      --     without us being aware of it (i.e., wifi_was_on still unset or false),
+      --     because suspend will at best fail, and at worst deadlock the system if Wi-Fi is on,
+      --     regardless of who enabled it!
+      require("ui/network/manager"):toggleWifiOff()
+    end
     Screensaver:show()
     -- NOTE: show() will return well before the refresh ioctl is even *sent*:
     --     the only thing it's done is *enqueued* the refresh in UIManager's stack.
@@ -415,17 +427,6 @@ function Device:handlePowerEvent(ev)
         self.screen:getWidth(),
         self.screen:getHeight()
       )
-    end
-    -- NOTE: In the same vein as above, make sure we update the screen *now*, before dealing with Wi-Fi.
-    UIManager:forceRepaint()
-    -- NOTE: This side of the check needs to be laxer, some platforms can handle Wi-Fi without WifiManager ;).
-    if self:hasWifiToggle() then
-      -- NOTE: wifi_was_on does not necessarily mean that Wi-Fi is *currently* on! It means *we* enabled it.
-      --     This is critical on Kobos (c.f., #3936), where it might still be on from KSM or Nickel,
-      --     without us being aware of it (i.e., wifi_was_on still unset or false),
-      --     because suspend will at best fail, and at worst deadlock the system if Wi-Fi is on,
-      --     regardless of who enabled it!
-      require("ui/network/manager"):toggleWifiOff()
     end
     -- Only turn off the frontlight *after* we've displayed the screensaver and dealt with Wi-Fi,
     -- to prevent that from affecting the smoothness of the frontlight ramp down.

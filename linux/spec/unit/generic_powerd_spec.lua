@@ -41,6 +41,9 @@ describe("device/generic/powerd", function()
     }
 
     mock_uimgr = {
+      show = stub(),
+      close = stub(),
+      forceRepaint = stub(),
       flushSettings = stub(),
       broadcastEvent = stub(),
       updateLastUserActionTime = stub(),
@@ -338,6 +341,125 @@ describe("device/generic/powerd", function()
         powerd:UIManagerReady(mock_uimgr)
         powerd:afterResume()
         assert.spy(mock_device.restoreKeyRepeat).was_not.called()
+      end
+    )
+
+    it(
+      "shows Sleeping notification in initSuspend and closes it in beforeSuspend",
+      function()
+        local gettext = require("gettext")
+        local orig_notification = package.loaded["ui/widget/notification"]
+        local created_args = nil
+        local fake_notif = { id = "sleeping" }
+        package.loaded["ui/widget/notification"] = {
+          new = function(_self, args)
+            created_args = args
+            return fake_notif
+          end,
+        }
+        finally(function()
+          package.loaded["ui/widget/notification"] = orig_notification
+        end)
+
+        powerd:UIManagerReady(mock_uimgr)
+        powerd:initSuspend()
+        assert.are.same({ text = gettext("Sleeping") }, created_args)
+        assert.spy(mock_uimgr.show).was.called_with(mock_uimgr, fake_notif)
+        assert.spy(mock_uimgr.forceRepaint).was.called(1)
+
+        local calls = {}
+        stub(mock_uimgr, "close", function(_self, widget)
+          if widget == fake_notif then
+            table.insert(calls, "close")
+          end
+        end)
+        stub(mock_uimgr, "forceRepaint", function()
+          table.insert(calls, "forceRepaint")
+        end)
+        stub(mock_uimgr, "flushSettings", function()
+          table.insert(calls, "flushSettings")
+        end)
+        stub(mock_uimgr, "broadcastEvent", function(_self, ev)
+          table.insert(calls, ev.name)
+        end)
+        powerd.beforeSuspendHW = spy.new(function()
+          table.insert(calls, "beforeSuspendHW")
+        end)
+
+        powerd:beforeSuspend()
+        assert.are.same({
+          "close",
+          "forceRepaint",
+          "flushSettings",
+          "Suspend",
+          "beforeSuspendHW",
+        }, calls)
+
+        -- Safe no-op when sleeping_notification is nil
+        calls = {}
+        powerd:beforeSuspend()
+        assert.are.same({
+          "flushSettings",
+          "Suspend",
+          "beforeSuspendHW",
+        }, calls)
+      end
+    )
+
+    it(
+      "shows Waking up notification in initWakeup and closes it in afterResume",
+      function()
+        local gettext = require("gettext")
+        local orig_notification = package.loaded["ui/widget/notification"]
+        local created_args = nil
+        local fake_notif = { id = "wakeup" }
+        package.loaded["ui/widget/notification"] = {
+          new = function(_self, args)
+            created_args = args
+            return fake_notif
+          end,
+        }
+        finally(function()
+          package.loaded["ui/widget/notification"] = orig_notification
+        end)
+
+        powerd:UIManagerReady(mock_uimgr)
+        powerd:initWakeup()
+        assert.are.same({ text = gettext("Waking up") }, created_args)
+        assert.spy(mock_uimgr.show).was.called_with(mock_uimgr, fake_notif)
+        assert.spy(mock_uimgr.forceRepaint).was.called(1)
+
+        local calls = {}
+        stub(mock_uimgr, "close", function(_self, widget)
+          if widget == fake_notif then
+            table.insert(calls, "close")
+          end
+        end)
+        stub(mock_uimgr, "forceRepaint", function()
+          table.insert(calls, "forceRepaint")
+        end)
+        stub(mock_uimgr, "broadcastEvent", function(_self, ev)
+          table.insert(calls, ev.name)
+        end)
+        powerd.afterResumeHW = spy.new(function()
+          table.insert(calls, "afterResumeHW")
+        end)
+
+        powerd:afterResume()
+        assert.are.same({
+          "close",
+          "forceRepaint",
+          "afterResumeHW",
+          "Resume",
+        }, calls)
+
+        -- Safe no-op when wakeup_notification is nil
+        calls = {}
+        powerd:afterResume()
+        assert.are.same({
+          "afterResumeHW",
+          "Resume",
+        }, calls)
       end
     )
   end)

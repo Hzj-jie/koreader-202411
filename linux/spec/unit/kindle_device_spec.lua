@@ -111,8 +111,14 @@ describe("Kindle device", function()
           fake_event_args = {},
         },
         powerd = {
+          initSuspend = function()
+            table.insert(calls, "powerd:initSuspend")
+          end,
           beforeSuspend = function()
             table.insert(calls, "powerd:beforeSuspend")
+          end,
+          initWakeup = function()
+            table.insert(calls, "powerd:initWakeup")
           end,
           afterResume = function()
             table.insert(calls, "powerd:afterResume")
@@ -134,14 +140,95 @@ describe("Kindle device", function()
       UIManager.scheduleIn:revert()
     end)
 
-    it("shows screensaver before beforeSuspend on IntoSS", function()
+    it(
+      "calls initSuspend before Screensaver and beforeSuspend on IntoSS",
+      function()
+        table.insert(mock_dev.input.fake_event_args.IntoSS, 1)
+        UIManager.event_handlers.IntoSS("IntoSS")
+        assert.are.same({
+          "powerd:initSuspend",
+          "Screensaver:setup",
+          "Screensaver:show",
+          "powerd:beforeSuspend",
+        }, calls)
+      end
+    )
+
+    it(
+      "skips initSuspend on IntoSS when already in screensaver mode",
+      function()
+        mock_dev.screen_saver_mode = true
+        table.insert(mock_dev.input.fake_event_args.IntoSS, 1)
+        UIManager.event_handlers.IntoSS("IntoSS")
+        assert.are.same({
+          "powerd:beforeSuspend",
+        }, calls)
+      end
+    )
+
+    it("skips initSuspend on IntoSS on SO Kindles", function()
+      mock_dev.supportsScreensaver = function()
+        return false
+      end
+      local execute_stub = stub(os, "execute", function()
+        return 0
+      end)
+      finally(function()
+        execute_stub:revert()
+      end)
+
       table.insert(mock_dev.input.fake_event_args.IntoSS, 1)
       UIManager.event_handlers.IntoSS("IntoSS")
       assert.are.same({
-        "Screensaver:setup",
-        "Screensaver:show",
         "powerd:beforeSuspend",
       }, calls)
+      assert.is_true(mock_dev.screen_saver_mode)
+    end)
+
+    it(
+      "calls initWakeup before Screensaver:close and afterResume on OutOfSS",
+      function()
+        mock_dev.screen_saver_mode = true
+        table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
+        UIManager.event_handlers.OutOfSS("OutOfSS")
+        assert.are.same({
+          "powerd:initWakeup",
+          "Screensaver:close",
+          "powerd:afterResume",
+        }, calls)
+      end
+    )
+
+    it(
+      "skips initWakeup on OutOfSS when not in screensaver mode",
+      function()
+        mock_dev.screen_saver_mode = false
+        table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
+        UIManager.event_handlers.OutOfSS("OutOfSS")
+        assert.are.same({
+          "powerd:afterResume",
+        }, calls)
+      end
+    )
+
+    it("skips initWakeup on OutOfSS on SO Kindles", function()
+      mock_dev.screen_saver_mode = true
+      mock_dev.supportsScreensaver = function()
+        return false
+      end
+      local execute_stub = stub(os, "execute", function()
+        return 0
+      end)
+      finally(function()
+        execute_stub:revert()
+      end)
+
+      table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
+      UIManager.event_handlers.OutOfSS("OutOfSS")
+      assert.are.same({
+        "powerd:afterResume",
+      }, calls)
+      assert.is_false(mock_dev.screen_saver_mode)
     end)
   end)
 end)

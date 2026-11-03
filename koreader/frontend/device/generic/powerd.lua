@@ -1,8 +1,13 @@
 local Event = require("ui/event")
 local Math = require("optmath")
-local UIManager
+local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
+
+local UIManager
+local sleeping_notification
+local wakeup_notification
+
 local BasePowerD = {
   fl_min = 0, -- min frontlight intensity
   fl_max = 10, -- max frontlight intensity
@@ -107,8 +112,31 @@ function BasePowerD:beforeSuspendHW() end
 -- (Such as restoring front light state).
 function BasePowerD:afterResumeHW() end
 
+function BasePowerD:initSuspend()
+  local Notification = require("ui/widget/notification")
+  sleeping_notification = Notification:new({
+    text = gettext("Sleeping"),
+  })
+  UIManager:show(sleeping_notification)
+  UIManager:forceRepaint()
+end
+
+function BasePowerD:initWakeup()
+  local Notification = require("ui/widget/notification")
+  wakeup_notification = Notification:new({
+    text = gettext("Waking up"),
+  })
+  UIManager:show(wakeup_notification)
+  UIManager:forceRepaint()
+end
+
 -- The common operations that should be performed before suspending the device.
 function BasePowerD:beforeSuspend()
+  if sleeping_notification then
+    UIManager:close(sleeping_notification)
+    sleeping_notification = nil
+    UIManager:forceRepaint()
+  end
   UIManager:flushSettings()
   UIManager:broadcastEvent(Event:new("Suspend"))
   self.device.last_suspend_at = time.realtime()
@@ -119,6 +147,11 @@ end
 
 -- The common operations that should be performed after resuming the device.
 function BasePowerD:afterResume()
+  if wakeup_notification then
+    UIManager:close(wakeup_notification)
+    wakeup_notification = nil
+    UIManager:forceRepaint()
+  end
   -- MONOTONIC doesn't tick during suspend,
   -- invalidate the last battery capacity pull time so that we get up to date data immediately.
   self:invalidateCapacityCache()
