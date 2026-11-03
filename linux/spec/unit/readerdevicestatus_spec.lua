@@ -46,7 +46,6 @@ describe("ReaderDeviceStatus", function()
       getPowerDevice = function()
         return mock_powerd
       end,
-      total_standby_time = 0,
       total_suspend_time = 0,
       _UIManagerReady = function() end,
       input = { group = { Any = "Any" } },

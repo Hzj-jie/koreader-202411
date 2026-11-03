@@ -305,7 +305,6 @@ local Input = {
     Charging = true,
     NotCharging = true,
     WakeupFromSuspend = true,
-    ReadyToSuspend = true,
     UsbDevicePlugIn = true,
     UsbDevicePlugOut = true,
   },
@@ -471,7 +470,6 @@ function Input:init()
   self.event_map[10020] = "Charging"
   self.event_map[10021] = "NotCharging"
   self.event_map[10030] = "WakeupFromSuspend"
-  self.event_map[10031] = "ReadyToSuspend"
   self.event_map[10040] = "UsbDevicePlugIn"
   self.event_map[10041] = "UsbDevicePlugOut"
 

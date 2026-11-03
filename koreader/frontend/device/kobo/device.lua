@@ -1,11 +1,9 @@
 local Generic = require("device/generic/device")
 local Geom = require("ui/geometry")
 local UIManager
-local WakeupMgr = require("device/wakeupmgr")
 local ffiUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local time = require("ui/time")
 local util = require("util")
 
 -- We're going to need a few <linux/fb.h> & <linux/input.h> constants...
@@ -28,28 +26,6 @@ end
 local function koboDisableWifi()
   logger.info("Kobo Wi-Fi: disabling Wi-Fi")
   os.execute("./disable-wifi.sh")
-end
-
--- checks if standby is available on the device
-local function checkStandby(target_state)
-  logger.dbg("Kobo: checking if standby is possible ...")
-  local f = io.open("/sys/power/state")
-  if not f then
-    return util.no
-  end
-  local mode = f:read()
-  f:close()
-  logger.dbg("Kobo: available power states:", mode)
-  if mode and mode:find(target_state) then
-    logger.dbg(
-      "Kobo: target standby state '" .. target_state .. "' is supported"
-    )
-    return util.yes
-  end
-  logger.dbg(
-    "Kobo: target standby state '" .. target_state .. "' is unsupported"
-  )
-  return util.no
 end
 
 -- Return the highest core number
@@ -82,17 +58,6 @@ local function getCPUGovernor(knob)
   end
 end
 
-local function getRTCName()
-  local fd = io.open("/sys/class/rtc/rtc0/name", "re")
-  if fd then
-    local str = fd:read("*line")
-    fd:close()
-    return str
-  else
-    return nil
-  end
-end
-
 local Kobo = Generic:extend({
   model = "Kobo",
   ota_model = "kobo",
@@ -100,7 +65,6 @@ local Kobo = Generic:extend({
   isTouchDevice = util.yes, -- all of them are
   hasWifiManager = util.yes,
   hasWifiRestore = util.yes,
-  canStandby = util.no, -- will get updated by checkStandby()
   canReboot = util.yes,
   canPowerOff = util.yes,
   canSuspend = util.yes,
@@ -154,8 +118,6 @@ local Kobo = Generic:extend({
   hasEclipseWfm = util.no,
   -- Device ships with various hardware revisions under the same device code, requiring automatic hardware detection (PMIC & FL)...
   automagic_sysfs = false,
-  -- The standard "standby" power state
-  standby_state = "standby",
 
   unexpected_wakeup_count = 0,
 })
@@ -800,15 +762,6 @@ function Kobo:init()
     end
   end
 
-  -- NOTE: i.MX5 devices have a wonky RTC that doesn't like alarms set further away that UINT16_MAX seconds from now...
-  --     (c.f., WakeupMgr for more details).
-  -- NOTE: getRTCName is currently hardcoded to rtc0 (which is also WakeupMgr's default).
-  local dodgy_rtc = false
-  if getRTCName() == "pmic_rtc" then
-    -- This *should* match the 'RTC' (46) NTX HWConfig field being set to 'MSP430' (0).
-    dodgy_rtc = true
-  end
-
   -- Detect the various CPU governor sysfs knobs...
   if util.pathExists("/sys/devices/system/cpu/cpufreq/policy0") then
     self.cpu_governor_knob =
@@ -907,9 +860,6 @@ function Kobo:init()
     },
     main_finger_slot = self.main_finger_slot or 0,
     pressure_event = self.pressure_event,
-  })
-  self.wakeup_mgr = WakeupMgr:new({
-    dodgy_rtc = dodgy_rtc,
   })
 
   -- Input handling on Kobo is a thing of nightmares, start by setting up the actual evdev handler...
@@ -1030,18 +980,6 @@ function Kobo:init()
 
   -- Only enable a single core on startup
   self:enableCPUCores(1)
-
-  -- On MTK, the "standby" power state is unavailable, and Nickel instead uses "mem" (and /sys/power/mem_sleep doesn't exist either)
-  if self:isMTK() then
-    self.standby_state = "mem"
-  end
-
-  self.canStandby = checkStandby(self.standby_state)
-  if self.canStandby() and (self:isMk7() or self:isSunxi()) then
-    -- NOTE: Do *NOT* enable this on MTK. What happens if you do can only be described as "shit hits the fan".
-    --     (Nickel doesn't).
-    self.canPowerSaveWhileCharging = util.yes
-  end
 
   -- Check if the device has a Neonode IR grid (to tone down the chatter on resume ;)).
   if
@@ -1304,123 +1242,22 @@ function Kobo:checkUnexpectedWakeup()
   -- Just in case another event like SleepCoverClosed also scheduled a suspend
   UIManager:unschedule(self.suspend)
 
-  -- The proximity window is rather large, because we're scheduled to run 15 seconds after resuming,
-  -- so we're already guaranteed to be at least 15s away from the alarm ;).
-  if
-    self.wakeup_mgr:isWakeupAlarmScheduled()
-    and self.wakeup_mgr:wakeupAction(30)
-  then
-    -- Assume we want to go back to sleep after running the scheduled action
-    -- (Kobo:resume will unschedule this on an user-triggered resume).
-    logger.info(
-      "Kobo suspend: scheduled wakeup; the device will go back to sleep in 30s."
-    )
-    -- We need significant leeway for the poweroff action to send out close events to all requisite widgets,
-    -- since we don't actually want to suspend behind its back ;).
-    UIManager:scheduleIn(30, self.suspend, self)
-  else
-    -- We've hit an early resume, assume this is unexpected (as we only run if Kobo:resume hasn't already).
-    logger.dbg(
-      "Kobo suspend: checking unexpected wakeup number",
-      self.unexpected_wakeup_count
-    )
-    if self.unexpected_wakeup_count > 20 then
-      -- If we've failed to put the device back to sleep over 20 consecutive times, we give up.
-      -- Broadcast a specific event, so that AutoSuspend can pick up the baton...
-      local Event = require("ui/event")
-      UIManager:broadcastEvent(Event:new("UnexpectedWakeupLimit"))
-      return
-    end
-
-    logger.err(
-      "Kobo suspend: putting device back to sleep after",
-      self.unexpected_wakeup_count,
-      "unexpected wakeups."
-    )
-    self:suspend()
-  end
-end
-
---- The function to put the device into standby, with enabled touchscreen.
--- max_duration ... maximum time for the next standby, can wake earlier (e.g. Tap, Button ...)
-function Kobo:standby(max_duration)
-  -- On MTK, any suspend/standby attempt while plugged-in will hang the kernel... -_-"
-  -- NOTE: isCharging is still true while isCharged!
-  if self:isMTK() and self.powerd:isCharging() then
-    logger.info(
-      "Kobo standby: skipping the standby request for now: device is plugged in and would otherwise crash!"
-    )
-
+  -- We've hit an early resume, assume this is unexpected (as we only run if Kobo:resume hasn't already).
+  logger.dbg(
+    "Kobo suspend: checking unexpected wakeup number",
+    self.unexpected_wakeup_count
+  )
+  if self.unexpected_wakeup_count > 20 then
+    -- If we've failed to put the device back to sleep over 20 consecutive times, we give up.
     return
   end
 
-  -- NOTE: Switch to the performance CPU governor, in order to speed up the resume process so as to lower its latency cost...
-  --     (It won't have any impact on power efficiency *during* suspend, so there's not really any drawback).
-  self:performanceCPUGovernor()
-
-  --[[
-  -- On most devices, attempting to PM with a Wi-Fi module loaded will horribly crash the kernel, so, don't?
-  -- NOTE: Much like suspend, our caller should ensure this never happens, hence this being commented out ;).
-  if NetworkMgr:isWifiOn() then
-    -- AutoSuspend relies on NetworkMgr:getWifiState to prevent this, so, if we ever trip this, it's a bug ;).
-    logger.err("Kobo standby: cannot standby with Wi-Fi modules loaded! (NetworkMgr is confused: this is a bug)")
-    return
-  end
-  --]]
-
-  -- We don't really have anything to schedule, we just need an alarm out of WakeupMgr ;).
-  local function standby_alarm() end
-
-  if max_duration then
-    self.wakeup_mgr:addTask(max_duration, standby_alarm)
-  end
-
-  logger.dbg("Kobo standby: asking to enter standby . . .")
-  local standby_time = time.boottime_or_realtime_coarse()
-
-  -- The odd Sunxi needs some time to settle before entering standby.
-  -- This will avoid the screen puzzling effect documented in
-  -- https://github.com/koreader/koreader/pull/10306#issue-1659242042 not only for
-  -- WiFi toggle, but (almost) everywhere.
-  ffiUtil.usleep(90000) -- sleep 0.09s (0.08s would also work)
-
-  local ret = ffiUtil.writeToSysfs(self.standby_state, "/sys/power/state")
-
-  self.last_standby_time = time.boottime_or_realtime_coarse() - standby_time
-  self.total_standby_time = self.total_standby_time + self.last_standby_time
-
-  if ret then
-    logger.dbg("Kobo standby: zZz zZz zZz zZz... And woke up!")
-    if G_reader_settings:isTrue("pm_debug_entry_failure") then
-      -- NOTE: This is a debug option where we coopt the charging LED, hence us not using setupChargingLED here.
-      --     (It's called on resume anyway).
-      self:toggleChargingLED(false)
-    end
-  else
-    logger.warn("Kobo standby: the kernel refused to enter standby!")
-    if G_reader_settings:isTrue("pm_debug_entry_failure") then
-      self:toggleChargingLED(true)
-    end
-  end
-
-  if max_duration then
-    -- NOTE: We don't actually care about discriminating exactly *why* we woke up,
-    --     and our scheduled wakeup action is a NOP anyway,
-    --     so we can just drop the task instead of doing things the right way like suspend ;).
-    --     This saves us some pointless RTC shenanigans, so, everybody wins.
-    --[[
-    -- There's no scheduling shenanigans like in suspend, so the proximity window can be much tighter...
-    if self.wakeup_mgr:isWakeupAlarmScheduled() and self.wakeup_mgr:wakeupAction(5) then
-      -- We tripped the standby alarm, UIManager will be able to run whatever was actually scheduled,
-      -- and AutoSuspend will handle going back to standby if necessary.
-      logger.dbg("Kobo standby: tripped rtc wake alarm")
-    end
-    --]]
-    self.wakeup_mgr:removeTasks(nil, standby_alarm)
-  end
-
-  -- And restore the standard CPU scheduler once we're done dealing with the wakeup event.
-  UIManager:tickAfterNext(self.defaultCPUGovernor, self)
+  logger.err(
+    "Kobo suspend: putting device back to sleep after",
+    self.unexpected_wakeup_count,
+    "unexpected wakeups."
+  )
+  self:suspend()
 end
 
 function Kobo:suspend()
@@ -1439,7 +1276,7 @@ function Kobo:suspend()
       "Kobo suspend: skipping the suspend request for now: device is plugged in and would otherwise crash!"
     )
 
-    -- Do the usual scheduling dance, so we get a chance to fire the UnexpectedWakeupLimit event...
+    -- Schedule the wakeup guard to retry suspending later if the device is unplugged.
     UIManager:unschedule(self.checkUnexpectedWakeup)
     self:scheduleUnexpectedWakeupGuard()
     return
@@ -1599,9 +1436,6 @@ function Kobo:saveSettings()
 end
 
 function Kobo:powerOff()
-  -- Much like Nickel itself, disable the RTC alarm before powering down.
-  self.wakeup_mgr:unsetWakeupAlarm()
-
   --- @todo: Check on MTK
   if self:isSunxi() or self:isMTK() then
     -- On sunxi, apparently, we *do* go through init

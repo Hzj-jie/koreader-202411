@@ -1,7 +1,6 @@
 local BasePowerD = require("device/generic/powerd")
 local LibLipcs = require("liblipcs")
 local UIManager
-local WakeupMgr = require("device/wakeupmgr")
 local ffiUtil = require("ffi/util")
 local logger = require("logger")
 -- liblipclua, see require below
@@ -19,8 +18,6 @@ function KindlePowerD:init()
   if not self.device:canTurnFrontlightOff() then
     self.fl_max = self.fl_max + 1
   end
-
-  self:initWakeupMgr()
 end
 
 function KindlePowerD:frontlightIntensityHW()
@@ -204,34 +201,9 @@ function KindlePowerD:toggleSuspend()
   end
 end
 
--- Kindle only allows setting the RTC via lipc during the ReadyToSuspend state
-function KindlePowerD:setRtcWakeup(seconds_from_now)
-  LibLipcs:accessor()
-    :set_int_property("com.lab126.powerd", "rtcWakeup", seconds_from_now)
-end
-
 -- Check the powerd state: are we still in screensaver mode.
 function KindlePowerD:getPowerdState()
   return LibLipcs:accessor():get_string_property("com.lab126.powerd", "state")
-end
-
-function KindlePowerD:checkUnexpectedWakeup()
-  local state = self:getPowerdState()
-  logger.dbg("Powerd resume state:", state)
-  -- If we moved on to the active state,
-  -- then we were woken by user input not our alarm.
-  if state ~= "screenSaver" and state ~= "suspended" then
-    return
-  end
-
-  if
-    self.device.wakeup_mgr:isWakeupAlarmScheduled()
-    and self.device.wakeup_mgr:wakeupAction(90)
-  then
-    logger.info("Kindle scheduled wakeup")
-  else
-    logger.warn("Kindle unscheduled wakeup")
-  end
 end
 
 function KindlePowerD:wakeupFromSuspend(_ts)
@@ -245,43 +217,6 @@ function KindlePowerD:wakeupFromSuspend(_ts)
       self:_setIntensity(self.fl_min)
     end
     self.device:sysfsSuspend()
-  end
-  if self.device.wakeup_mgr then
-    -- Give the device a few seconds to settle.
-    -- This filters out user input resumes -> device will resume to active
-    -- Also the Kindle stays in Ready to suspend for 10 seconds
-    -- so the alarm may fire 10 seconds early
-    UIManager:scheduleIn(15, self.checkUnexpectedWakeup, self)
-  end
-end
-
--- Dummy function. It will be defined in initWakeupMgr
-function KindlePowerD:readyToSuspend() end
-
--- Support WakeupMgr on Lipc & supportsScreensaver devices.
-function KindlePowerD:initWakeupMgr()
-  if LibLipcs:isFake(LibLipcs:accessor()) then
-    return
-  end
-  if not self.device:supportsScreensaver() then
-    return
-  end
-
-  self.device.wakeup_mgr =
-    WakeupMgr:new({ rtc = require("device/kindle/mockrtc") })
-
-  function KindlePowerD:readyToSuspend(_delay)
-    if self.device.wakeup_mgr:isWakeupAlarmScheduled() then
-      local now = os.time()
-      local alarm = self.device.wakeup_mgr:getWakeupAlarmEpoch()
-      if alarm > now then
-        -- Powerd / Lipc need seconds_from_now not epoch
-        self:setRtcWakeup(alarm - now)
-      else
-        -- wakeup time is in the past
-        self.device.wakeup_mgr:removeTasks(alarm)
-      end
-    end
   end
 end
 

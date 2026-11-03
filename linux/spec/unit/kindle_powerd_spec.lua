@@ -1,7 +1,6 @@
 local BasePowerD = require("device/generic/powerd")
 local Device = require("device/generic/device")
 local LibLipcs = require("liblipcs")
-local WakeupMgr = require("device/wakeupmgr")
 local ffiUtil = require("ffi/util")
 local lfs = require("libs/libkoreader-lfs")
 
@@ -270,7 +269,7 @@ describe("KindlePowerD", function()
     end)
   end)
 
-  describe("Suspend and RTC wakeup management", function()
+  describe("Suspend and powerd state", function()
     it("should trigger power button suspend and query powerd state", function()
       mock_powerd:toggleSuspend()
       assert.are.equal(1, mock_lipc.props["com.lab126.powerd:powerButton"])
@@ -278,57 +277,9 @@ describe("KindlePowerD", function()
       mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
       assert.are.equal("screenSaver", mock_powerd:getPowerdState())
     end)
-
-    it("should schedule RTC wakeup when alarm is in the future", function()
-      local now = 1700000000
-      local orig_time = os.time
-      os.time = function()
-        return now
-      end
-      finally(function()
-        os.time = orig_time
-      end)
-
-      mock_powerd.device.wakeup_mgr:addTask(60, function() end)
-      mock_powerd:readyToSuspend()
-
-      assert.are.equal(60, mock_lipc.props["com.lab126.powerd:rtcWakeup"])
-    end)
-  end)
-
-  describe("Suspend alarm cleanup", function()
-    it(
-      "readyToSuspend removes expired alarm task when alarm time is past",
-      function()
-        local current_time = 1700000000
-        local orig_time = os.time
-        os.time = function()
-          return current_time
-        end
-        finally(function()
-          os.time = orig_time
-        end)
-
-        mock_powerd.device.wakeup_mgr:addTask(10, function() end)
-        current_time = 1700000015
-
-        mock_powerd:readyToSuspend()
-        assert.is_false(mock_powerd.device.wakeup_mgr:isWakeupAlarmScheduled())
-      end
-    )
   end)
 
   describe("Disabled Hall sensor wakeup handling", function()
-    local function count_scheduled(fn)
-      local count = 0
-      for _, item in ipairs(mock_uimgr.scheduled) do
-        if item.fn == fn then
-          count = count + 1
-        end
-      end
-      return count
-    end
-
     local function flush_ticks()
       while #mock_uimgr.ticks > 0 do
         table.remove(mock_uimgr.ticks, 1)()
@@ -363,10 +314,6 @@ describe("KindlePowerD", function()
         assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
         assert.is_true(mock_powerd:isFrontlightOn())
         assert.are.equal(10, mock_powerd.fl_intensity)
-        assert.are.equal(
-          1,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({
           { op = "lipc", prop = "flIntensity", val = 0 },
           { op = "sysfs", path = "/sys/power/state", val = "mem" },
@@ -388,10 +335,6 @@ describe("KindlePowerD", function()
         assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
         assert.is_true(powerd_no_off:isFrontlightOn())
         assert.are.equal(11, powerd_no_off.fl_intensity)
-        assert.are.equal(
-          1,
-          count_scheduled(powerd_no_off.checkUnexpectedWakeup)
-        )
         assert.are.same({
           { op = "lipc", prop = "flIntensity", val = 0 },
           { op = "sysfs", path = powerd_no_off.fl_intensity_file, val = 0 },
@@ -414,10 +357,6 @@ describe("KindlePowerD", function()
         mock_powerd:wakeupFromSuspend()
 
         assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.equal(
-          1,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({
           { op = "sysfs", path = "/sys/power/state", val = "mem" },
         }, sys_ops)
@@ -435,10 +374,6 @@ describe("KindlePowerD", function()
         mock_powerd:wakeupFromSuspend()
 
         assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.equal(
-          1,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({}, sys_ops)
       end
     )
@@ -454,10 +389,6 @@ describe("KindlePowerD", function()
         mock_powerd:wakeupFromSuspend()
 
         assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.equal(
-          1,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({}, sys_ops)
       end
     )
@@ -473,10 +404,6 @@ describe("KindlePowerD", function()
         mock_powerd:wakeupFromSuspend()
 
         assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.equal(
-          1,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({}, sys_ops)
 
         mock_lipc.props["com.lab126.powerd:state"] = "suspended"
@@ -485,10 +412,6 @@ describe("KindlePowerD", function()
         mock_powerd:wakeupFromSuspend()
 
         assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.equal(
-          2,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({}, sys_ops)
       end
     )
@@ -503,10 +426,6 @@ describe("KindlePowerD", function()
         mock_powerd:wakeupFromSuspend()
 
         assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.equal(
-          1,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({}, sys_ops)
       end
     )
@@ -522,21 +441,16 @@ describe("KindlePowerD", function()
         mock_powerd:wakeupFromSuspend()
 
         assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.equal(
-          1,
-          count_scheduled(mock_powerd.checkUnexpectedWakeup)
-        )
         assert.are.same({}, sys_ops)
       end
     )
 
     it(
-      "turns off frontlight and writes mem without scheduling checkUnexpectedWakeup on Special Offers devices",
+      "turns off frontlight and writes mem on Special Offers devices",
       function()
         mock_device.supportsScreensaver = function()
           return false
         end
-        mock_device.wakeup_mgr = nil
         local powerd_so = KindlePowerD:new({
           device = mock_device,
           fl_intensity_file = create_temp_file("10"),
@@ -555,10 +469,6 @@ describe("KindlePowerD", function()
 
         assert.are.equal(0, mock_lipc.props["com.lab126.powerd:flIntensity"])
         assert.is_true(powerd_so:isFrontlightOn())
-        assert.are.equal(
-          0,
-          count_scheduled(powerd_so.checkUnexpectedWakeup)
-        )
         assert.are.same({
           { op = "lipc", prop = "flIntensity", val = 0 },
           { op = "sysfs", path = "/sys/power/state", val = "mem" },
