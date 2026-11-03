@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -5809,6 +5809,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "待機中"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10709,9 +10715,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader クイックスタートガイド"
 
-msgid "Sleeping"
-msgstr "待機中"
-
 msgid "(Press F2 to resume)"
 msgstr "(F2を押して復帰)"
 
@@ -12251,57 +12254,6 @@ msgstr "自動サスペンドのタイムアウト"
 msgid "Enter time in hours and minutes."
 msgstr "時と分で時間を入力する 。"
 
-msgid "Autoshutdown timeout: %1"
-msgstr "自動シャットダウン タイムアウト: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "自動シャットダウン タイムアウト"
-
-msgid "Timeout for autoshutdown"
-msgstr "自動シャットダウンのタイムアウト"
-
-msgid "Enter time in days and hours."
-msgstr "日と時で時間を入力する 。"
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"スタンバイは、画面は表示され、ユーザー入力は可能な省電力状態です。\n"
-"\n"
-"Wi-Fiがオンの場合は、スタンバイに入ることができません。\n"
-"\n"
-"ユーザー入力後、デバイスが起動するのに一定の時間が必要です。一般に、新しいデ"
-"バイスほどこの遅延は目立ちませんが、低速のデバイスではかなり煩わしくなりま"
-"す。"
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"あなたのデバイスは非常に信頼性が低いことが知られており、そのため、省電力状態"
-"への移行に失敗すると、カーネルがハングアップし、デバイスが完全にハングアップ"
-"するか、デバイスが再起動する可能性が*あります*。"
-
-msgid "Autostandby timeout: %1"
-msgstr "自動スタンバイ タイムアウト: %1"
-
-msgid "Autostandby timeout"
-msgstr "自動スタンバイ タイムアウト"
-
-msgid "Timeout for autostandby"
-msgstr "自動スタンバイのタイムアウト"
-
-msgid "Enter time in minutes and seconds."
-msgstr "分と秒で時間を入力する 。"
-
 msgid "Auto power save"
 msgstr "自動省電力"
 
@@ -12330,6 +12282,9 @@ msgstr "自動ページめくり"
 
 msgid "Autoturn time"
 msgstr "自動ページめくり時間"
+
+msgid "Enter time in minutes and seconds."
+msgstr "分と秒で時間を入力する 。"
 
 msgid "Set distance"
 msgstr "距離を設定"
@@ -16434,9 +16389,6 @@ msgstr "起床時間"
 msgid "Time in suspend"
 msgstr "サスペンド時間"
 
-msgid "Time in standby"
-msgstr "スタンバイ時間"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17507,6 +17459,57 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "回転"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "自動シャットダウン タイムアウト: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "自動シャットダウン タイムアウト"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "自動シャットダウンのタイムアウト"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "日と時で時間を入力する 。"
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "スタンバイは、画面は表示され、ユーザー入力は可能な省電力状態です。\n"
+#~ "\n"
+#~ "Wi-Fiがオンの場合は、スタンバイに入ることができません。\n"
+#~ "\n"
+#~ "ユーザー入力後、デバイスが起動するのに一定の時間が必要です。一般に、新しい"
+#~ "デバイスほどこの遅延は目立ちませんが、低速のデバイスではかなり煩わしくなり"
+#~ "ます。"
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "あなたのデバイスは非常に信頼性が低いことが知られており、そのため、省電力状"
+#~ "態への移行に失敗すると、カーネルがハングアップし、デバイスが完全にハング"
+#~ "アップするか、デバイスが再起動する可能性が*あります*。"
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "自動スタンバイ タイムアウト: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "自動スタンバイ タイムアウト"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "自動スタンバイのタイムアウト"
+
+#~ msgid "Time in standby"
+#~ msgstr "スタンバイ時間"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "登録時にエラーが発生しました:"

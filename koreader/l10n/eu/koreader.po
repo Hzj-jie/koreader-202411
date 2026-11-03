@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -5558,6 +5558,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Lotan"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -9919,9 +9925,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader Hasiera-azkar Gida"
 
-msgid "Sleeping"
-msgstr "Lotan"
-
 msgid "(Press F2 to resume)"
 msgstr ""
 
@@ -11430,52 +11433,6 @@ msgid "Enter time in hours and minutes."
 msgstr "Denbora-muga minututan"
 
 #, fuzzy
-msgid "Autoshutdown timeout: %1"
-msgstr "Auto eseki denbora-muga"
-
-msgid "Autoshutdown timeout"
-msgstr ""
-
-msgid "Timeout for autoshutdown"
-msgstr ""
-
-msgid "Enter time in days and hours."
-msgstr ""
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-
-#, fuzzy
-msgid "Autostandby timeout: %1"
-msgstr "Auto eseki denbora-muga"
-
-#, fuzzy
-msgid "Autostandby timeout"
-msgstr "Auto eseki denbora-muga"
-
-#, fuzzy
-msgid "Timeout for autostandby"
-msgstr "Auto eseki"
-
-#, fuzzy
-msgid "Enter time in minutes and seconds."
-msgstr "Denbora-muga minututan"
-
-#, fuzzy
 msgid "Auto power save"
 msgstr "Ez gorde"
 
@@ -11502,6 +11459,10 @@ msgstr ""
 #, fuzzy
 msgid "Autoturn time"
 msgstr "Auto eseki denbora-muga"
+
+#, fuzzy
+msgid "Enter time in minutes and seconds."
+msgstr "Denbora-muga minututan"
 
 msgid "Set distance"
 msgstr ""
@@ -15572,10 +15533,6 @@ msgstr "Ordua eta data"
 msgid "Time in suspend"
 msgstr "Auto eseki"
 
-#, fuzzy
-msgid "Time in standby"
-msgstr "Auto eseki"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -16602,6 +16559,26 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Kokapena"
+
+#, fuzzy
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Auto eseki denbora-muga"
+
+#, fuzzy
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Auto eseki denbora-muga"
+
+#, fuzzy
+#~ msgid "Autostandby timeout"
+#~ msgstr "Auto eseki denbora-muga"
+
+#, fuzzy
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Auto eseki"
+
+#, fuzzy
+#~ msgid "Time in standby"
+#~ msgstr "Auto eseki"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Errore bat gertatu da erregistratzean:"

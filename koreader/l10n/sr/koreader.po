@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-13 19:39+0000\n"
 "Last-Translator: eevan78 <ivan.pesic@gmail.com>\n"
 "Language-Team: Serbian <https://hosted.weblate.org/projects/koreader/"
@@ -5888,6 +5888,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Спавање"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10838,9 +10844,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader водич за брзи почетак"
 
-msgid "Sleeping"
-msgstr "Спавање"
-
 msgid "(Press F2 to resume)"
 msgstr "(Притисните F2 да наставите)"
 
@@ -12372,58 +12375,6 @@ msgstr "Тајмаут за ауто-суспензију"
 msgid "Enter time in hours and minutes."
 msgstr "Унесите време у сатима и минутима."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Тајмаут ауто-искључивања: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Тајмаут ауто-искључивања"
-
-msgid "Timeout for autoshutdown"
-msgstr "Тајмаут за ауто-искључивање"
-
-msgid "Enter time in days and hours."
-msgstr "Унесите време у данима и сатима."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Стање приправности уводи уређај у стање чувања енергије у којем је екран "
-"искључен, али корисник може да се изврши унос.\n"
-"\n"
-"У стање приправности не може да се уђе ако је активан Wi-Fi.\n"
-"\n"
-"Након корисниковог уноса, уређају је потребно неко време да се пробуди. "
-"Обично, што је новији уређај, то ће кашњење бити мање приметно, али може "
-"прилично да смета на споријим уређајима."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Познато је да је ваш уређај изузетно непоуздан, па је могуће да неуспели "
-"прелазак у стање чувања енергије блокира кернел, услед чега долази до "
-"комплетног замрзавања уређаја или поновног покретања."
-
-msgid "Autostandby timeout: %1"
-msgstr "Тајмаут ауто-стања приправности: %1"
-
-msgid "Autostandby timeout"
-msgstr "Тајмаут ауто-стања приправности"
-
-msgid "Timeout for autostandby"
-msgstr "Тајмаут за ауто-стање приправности"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Унесите време у минутима и секундама."
-
 msgid "Auto power save"
 msgstr "Аутоматско чување енергије"
 
@@ -12454,6 +12405,9 @@ msgstr "Аутоматско окретање"
 
 msgid "Autoturn time"
 msgstr "Време аутоматског окретања"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Унесите време у минутима и секундама."
 
 msgid "Set distance"
 msgstr "Постави даљину"
@@ -16586,9 +16540,6 @@ msgstr "Време будног стања"
 msgid "Time in suspend"
 msgstr "Време у стању суспензије"
 
-msgid "Time in standby"
-msgstr "Време у стању приправности"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17671,6 +17622,58 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "коментари"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Тајмаут ауто-искључивања: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Тајмаут ауто-искључивања"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Тајмаут за ауто-искључивање"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Унесите време у данима и сатима."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Стање приправности уводи уређај у стање чувања енергије у којем је екран "
+#~ "искључен, али корисник може да се изврши унос.\n"
+#~ "\n"
+#~ "У стање приправности не може да се уђе ако је активан Wi-Fi.\n"
+#~ "\n"
+#~ "Након корисниковог уноса, уређају је потребно неко време да се пробуди. "
+#~ "Обично, што је новији уређај, то ће кашњење бити мање приметно, али може "
+#~ "прилично да смета на споријим уређајима."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Познато је да је ваш уређај изузетно непоуздан, па је могуће да неуспели "
+#~ "прелазак у стање чувања енергије блокира кернел, услед чега долази до "
+#~ "комплетног замрзавања уређаја или поновног покретања."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Тајмаут ауто-стања приправности: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Тајмаут ауто-стања приправности"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Тајмаут за ауто-стање приправности"
+
+#~ msgid "Time in standby"
+#~ msgstr "Време у стању приправности"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Дошло је до грешке током регистрације:"

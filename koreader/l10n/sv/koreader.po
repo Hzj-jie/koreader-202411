@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -5804,6 +5804,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Sover"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10388,9 +10394,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader-snabbstartshandbok"
 
-msgid "Sleeping"
-msgstr "Sover"
-
 msgid "(Press F2 to resume)"
 msgstr ""
 
@@ -11930,53 +11933,6 @@ msgid "Enter time in hours and minutes."
 msgstr "Ställ in läsenhetens tidtagare från nu (timmar:minuter)"
 
 #, fuzzy
-msgid "Autoshutdown timeout: %1"
-msgstr "Tidsgräns för viloläge"
-
-msgid "Autoshutdown timeout"
-msgstr ""
-
-msgid "Timeout for autoshutdown"
-msgstr ""
-
-#, fuzzy
-msgid "Enter time in days and hours."
-msgstr "Ställ in läsenhetens tidtagare från nu (timmar:minuter)"
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-
-#, fuzzy
-msgid "Autostandby timeout: %1"
-msgstr "Tidsgräns för viloläge"
-
-#, fuzzy
-msgid "Autostandby timeout"
-msgstr "Tidsgräns för viloläge"
-
-#, fuzzy
-msgid "Timeout for autostandby"
-msgstr "Automatiskt viloläge"
-
-#, fuzzy
-msgid "Enter time in minutes and seconds."
-msgstr "Ställ in läsenhetens tidtagare från nu (timmar:minuter)"
-
-#, fuzzy
 msgid "Auto power save"
 msgstr "Spara inte"
 
@@ -12004,6 +11960,10 @@ msgstr ""
 #, fuzzy
 msgid "Autoturn time"
 msgstr "Tidsgräns för viloläge"
+
+#, fuzzy
+msgid "Enter time in minutes and seconds."
+msgstr "Ställ in läsenhetens tidtagare från nu (timmar:minuter)"
 
 msgid "Set distance"
 msgstr ""
@@ -16198,10 +16158,6 @@ msgstr "Tid och datum"
 msgid "Time in suspend"
 msgstr "Automatiskt viloläge"
 
-#, fuzzy
-msgid "Time in standby"
-msgstr "Automatiskt viloläge"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17297,6 +17253,30 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plats"
+
+#, fuzzy
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Tidsgräns för viloläge"
+
+#, fuzzy
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Ställ in läsenhetens tidtagare från nu (timmar:minuter)"
+
+#, fuzzy
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Tidsgräns för viloläge"
+
+#, fuzzy
+#~ msgid "Autostandby timeout"
+#~ msgstr "Tidsgräns för viloläge"
+
+#, fuzzy
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Automatiskt viloläge"
+
+#, fuzzy
+#~ msgid "Time in standby"
+#~ msgstr "Automatiskt viloläge"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Ett fel uppstod vid registrering:"

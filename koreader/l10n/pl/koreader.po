@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Matthaiks <kitynska@gmail.com>\n"
 "Language-Team: Polish <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -5949,6 +5949,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Uśpienie"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10902,9 +10908,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Podręcznik szybkiego startu KOReader"
 
-msgid "Sleeping"
-msgstr "Uśpienie"
-
 msgid "(Press F2 to resume)"
 msgstr "(Naciśnij F2, aby wznowić)"
 
@@ -12458,59 +12461,6 @@ msgstr "Limit czasu automatycznego wstrzymania"
 msgid "Enter time in hours and minutes."
 msgstr "Podaj czas w godzinach i minutach."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Limit czasu automatycznego zamknięcia: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Limit czasu automatycznego zamknięcia"
-
-msgid "Timeout for autoshutdown"
-msgstr "Limit czasu automatycznego zamknięcia"
-
-msgid "Enter time in days and hours."
-msgstr "Podaj czas w dniach i godzinach."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Stan czuwania wprowadza urządzenie w stan oszczędzania energii, w którym "
-"ekran jest włączony i można wykonywać polecenia użytkownika.\n"
-"\n"
-"Nie można przejść w stan czuwania, jeśli Wi-Fi jest włączone.\n"
-"\n"
-"Po wykonaniu polecenia użytkownika urządzenie potrzebuje pewnego czasu, aby "
-"się wybudzić. Ogólnie rzecz biorąc, im nowsze urządzenie, tym mniej "
-"zauważalne będzie to opóźnienie, ale może być dość uciążliwe na wolniejszych "
-"urządzeniach."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Wiadomo, że to urządzenie jest wyjątkowo zawodne, ponieważ brak przejścia w "
-"stan oszczędzania energii *może* zawiesić jądro, co spowoduje całkowite "
-"zawieszenie urządzenia lub ponowne uruchomienie urządzenia."
-
-msgid "Autostandby timeout: %1"
-msgstr "Limit czasu automatycznego czuwania: %1"
-
-msgid "Autostandby timeout"
-msgstr "Limit czasu automatycznego czuwania"
-
-msgid "Timeout for autostandby"
-msgstr "Limit czasu automatycznego czuwania"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Podaj czas w minutach i sekundach."
-
 msgid "Auto power save"
 msgstr "Automatyczne oszczędzanie energii"
 
@@ -12539,6 +12489,9 @@ msgstr "Automatyczna zmiana stron"
 
 msgid "Autoturn time"
 msgstr "Czas automatycznej zmiany stron"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Podaj czas w minutach i sekundach."
 
 msgid "Set distance"
 msgstr "Ustaw odległość"
@@ -16691,9 +16644,6 @@ msgstr "Czas spędzony na wybudzeniu"
 msgid "Time in suspend"
 msgstr "Czas stanu wstrzymania"
 
-msgid "Time in standby"
-msgstr "Czas stanu czuwania"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17773,6 +17723,59 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "adnotacje"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Limit czasu automatycznego zamknięcia: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Limit czasu automatycznego zamknięcia"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Limit czasu automatycznego zamknięcia"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Podaj czas w dniach i godzinach."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Stan czuwania wprowadza urządzenie w stan oszczędzania energii, w którym "
+#~ "ekran jest włączony i można wykonywać polecenia użytkownika.\n"
+#~ "\n"
+#~ "Nie można przejść w stan czuwania, jeśli Wi-Fi jest włączone.\n"
+#~ "\n"
+#~ "Po wykonaniu polecenia użytkownika urządzenie potrzebuje pewnego czasu, "
+#~ "aby się wybudzić. Ogólnie rzecz biorąc, im nowsze urządzenie, tym mniej "
+#~ "zauważalne będzie to opóźnienie, ale może być dość uciążliwe na "
+#~ "wolniejszych urządzeniach."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Wiadomo, że to urządzenie jest wyjątkowo zawodne, ponieważ brak przejścia "
+#~ "w stan oszczędzania energii *może* zawiesić jądro, co spowoduje całkowite "
+#~ "zawieszenie urządzenia lub ponowne uruchomienie urządzenia."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Limit czasu automatycznego czuwania: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Limit czasu automatycznego czuwania"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Limit czasu automatycznego czuwania"
+
+#~ msgid "Time in standby"
+#~ msgstr "Czas stanu czuwania"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Wystąpił błąd podczas rejestracji:"
