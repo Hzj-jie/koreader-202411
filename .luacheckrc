@@ -29,6 +29,7 @@ globals = {
   "package.unloadAll",
   "readerui",
   "requireBackgroundRunner",
+  "shiftScheduledTasksBy",
   "stopBackgroundRunner",
   "table.pack",
   "table.unpack",

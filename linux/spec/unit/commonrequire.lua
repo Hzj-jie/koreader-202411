@@ -175,4 +175,11 @@ notifyBackgroundJobsUpdated = function()
   end
 end
 
+shiftScheduledTasksBy = function(shift_time)
+  local UIManager = require("ui/uimanager")
+  for _, v in ipairs(UIManager._task_queue) do
+    v.time = v.time + shift_time
+  end
+end
+
 math.randomseed(os.time() + os.clock() * 1000)

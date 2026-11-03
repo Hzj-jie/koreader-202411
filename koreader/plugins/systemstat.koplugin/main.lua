@@ -191,11 +191,7 @@ function SystemStat:_koreaderUptime()
   if Device:canSuspend() then
     suspend = Device.total_suspend_time
   end
-  local standby = 0
-  if Device:canStandby() then
-    standby = Device.total_standby_time
-  end
-  return uptime, suspend, standby
+  return uptime, suspend
 end
 
 function SystemStat:appendCounters()
@@ -215,13 +211,13 @@ function SystemStat:appendCounters()
       datetime.secondsToDateTime(time.to_s(Device.last_resume_at), nil, true),
     })
   end
-  local uptime, suspend, standby = self:_koreaderUptime()
+  local uptime, suspend = self:_koreaderUptime()
   self:put({
     "  " .. gettext("Up time"),
     datetime.secondsToClockDuration("", time.to_s(uptime), false, true),
   })
-  if Device:canSuspend() or Device:canStandby() then
-    local awake = uptime - suspend - standby
+  if Device:canSuspend() then
+    local awake = uptime - suspend
     self:put({
       "  " .. gettext("Time spent awake"),
       datetime.secondsToClockDuration("", time.to_s(awake), false, true)
@@ -229,22 +225,11 @@ function SystemStat:appendCounters()
         .. Math.round((awake / uptime) * 100)
         .. "%)",
     })
-  end
-  if Device:canSuspend() then
     self:put({
       "  " .. gettext("Time in suspend"),
       datetime.secondsToClockDuration("", time.to_s(suspend), false, true)
         .. " ("
         .. Math.round((suspend / uptime) * 100)
-        .. "%)",
-    })
-  end
-  if Device:canStandby() then
-    self:put({
-      "  " .. gettext("Time in standby"),
-      datetime.secondsToClockDuration("", time.to_s(standby), false, true)
-        .. " ("
-        .. Math.round((standby / uptime) * 100)
         .. "%)",
     })
   end
@@ -373,7 +358,7 @@ function SystemStat:appendSystemInfo()
     datetime.secondsToClockDuration("", self.sys_stat.uptime.sec, false, true),
   })
   local uptime = self.sys_stat.uptime.sec
-  if Device:canSuspend() or Device:canStandby() then
+  if Device:canSuspend() then
     local awake = self:awakeSec()
     self:put({
       "  " .. gettext("Time spent awake"),
@@ -485,8 +470,8 @@ function SystemStat:appendProcessInfo()
     self:put({ "  " .. gettext("Total ticks"), n1 })
     if self.sys_stat.cpu ~= nil and self.sys_stat.cpu.total ~= nil then
       assert(self.sys_stat.cpu.total > 0) -- Impossible to be 0.
-      local uptime, suspend, standby = self:_koreaderUptime()
-      local koreader_awake = uptime - suspend - standby
+      local uptime, suspend = self:_koreaderUptime()
+      local koreader_awake = uptime - suspend
       assert(koreader_awake > 0 and self.sys_stat.uptime.monotonic > 0)
       self:put({
         gettext("  Processor usage %"),

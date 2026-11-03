@@ -408,10 +408,6 @@ describe("device module", function()
       stub(Device, "initNetworkManager")
       stub(Device, "suspend")
       Device:init()
-      -- Don't poke the RTC
-      Device.wakeup_mgr = require("device/wakeupmgr"):new({
-        rtc = require("device/kindle/mockrtc"),
-      })
       -- Don't poke the fl
       Device.powerd.fl = nil
       package.loaded.device = Device

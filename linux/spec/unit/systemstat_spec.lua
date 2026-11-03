@@ -268,9 +268,7 @@ describe("systemstat", function()
     local orig_boottime = time.boottime_or_realtime_coarse
     local orig_monotonic = time.monotonic
     local orig_can_suspend = Device.canSuspend
-    local orig_can_standby = Device.canStandby
     local orig_total_suspend = Device.total_suspend_time
-    local orig_total_standby = Device.total_standby_time
 
     finally(function()
       io.open = orig_io_open
@@ -279,9 +277,7 @@ describe("systemstat", function()
       time.boottime_or_realtime_coarse = orig_boottime
       time.monotonic = orig_monotonic
       Device.canSuspend = orig_can_suspend
-      Device.canStandby = orig_can_standby
       Device.total_suspend_time = orig_total_suspend
-      Device.total_standby_time = orig_total_standby
     end)
 
     local mock_files = {
@@ -339,7 +335,7 @@ describe("systemstat", function()
     end
     local fresh_widget_cls = dofile("plugins/systemstat.koplugin/main.lua")
 
-    -- 500s KOReader uptime, 200s suspend, 50s standby -> 250s KOReader awake
+    -- 500s KOReader uptime, 250s suspend -> 250s KOReader awake
     -- 400s OS monotonic awake -> koreader_awake / monotonic = 0.625
     -- Process ticks: 200 + 100 + 30 + 20 = 350; cpu.total = 7000
     -- Normalized usage: 350 / (7000 * 0.625) * 100 = 8.00%
@@ -352,11 +348,7 @@ describe("systemstat", function()
     Device.canSuspend = function()
       return true
     end
-    Device.canStandby = function()
-      return true
-    end
-    Device.total_suspend_time = time.s(200)
-    Device.total_standby_time = time.s(50)
+    Device.total_suspend_time = time.s(250)
 
     fresh_widget_cls
       :new({

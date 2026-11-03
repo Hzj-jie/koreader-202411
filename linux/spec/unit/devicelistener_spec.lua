@@ -181,12 +181,6 @@ describe("devicelistener", function()
       end,
     }
 
-    package.loaded["device/wakeupmgr"] = {
-      new = function()
-        return {}
-      end,
-    }
-
     mock_mass_storage = {
       start = spy.new(function() end),
     }

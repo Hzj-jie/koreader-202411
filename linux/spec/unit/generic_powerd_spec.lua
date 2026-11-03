@@ -35,7 +35,6 @@ describe("device/generic/powerd", function()
       hasNaturalLight = stub().returns(true),
       _beforeSuspend = stub(),
       _afterResume = stub(),
-      total_standby_time = 10,
       total_suspend_time = 20,
     }
 
