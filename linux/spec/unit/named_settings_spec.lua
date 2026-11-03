@@ -39,7 +39,6 @@ describe("named_settings", function()
       "home_dir",
       "lastdir",
       "activate_menu",
-      "auto_standby_timeout_seconds",
       "back_in_filemanager",
       "back_in_reader",
       "back_to_exit",
@@ -92,15 +91,6 @@ describe("named_settings", function()
       named_settings.set.activate_menu("double_tap")
       assert.are.same("double_tap", named_settings.activate_menu())
     end)
-
-    it(
-      "should return default or saved value for auto_standby_timeout_seconds",
-      function()
-        assert.are.same(-1, named_settings.auto_standby_timeout_seconds())
-        G_reader_settings:save("auto_standby_timeout_seconds", 300)
-        assert.are.same(300, named_settings.auto_standby_timeout_seconds())
-      end
-    )
 
     it(
       "should return default or saved value for back_in_filemanager",

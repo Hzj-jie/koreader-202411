@@ -81,10 +81,6 @@ local Device = {
   canUseWAL = util.yes, -- requires mmap'ed I/O on the target FS
   canRestart = util.yes,
   canSuspend = util.no,
-  canStandby = util.no,
-  canPowerSaveWhileCharging = util.no,
-  total_standby_time = 0, -- total time spent in standby
-  last_standby_time = 0, -- time spent during the last standby
   total_suspend_time = 0, -- total time spent in suspend
   -- Note, these two can be nil to indicate the last resume / suspend times were
   -- unknown.
@@ -501,6 +497,10 @@ function Device:usbPlugOut() end
 -- Hardware specific method to suspend the device
 function Device:suspend() end
 
+function Device:sysfsSuspend()
+  return ffiUtil.writeToSysfs("mem", "/sys/power/state")
+end
+
 -- Hardware specific method to resume the device
 function Device:resume() end
 
@@ -533,9 +533,6 @@ function Device:toggleFullscreen() end
 -- Simulates suspend/resume
 function Device:simulateSuspend() end
 function Device:simulateResume() end
-
--- Put device into standby, input devices (buttons, touchscreen ...) stay enabled
-function Device:standby(_max_duration) end
 
 -- Returns a string, used to determine the platform to fetch OTA updates
 function Device:otaModel()

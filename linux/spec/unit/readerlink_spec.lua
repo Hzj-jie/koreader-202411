@@ -18,7 +18,7 @@ describe("ReaderLink module", function()
 
   local function fastforward_ui_events()
     -- Fast forward all scheduled tasks.
-    UIManager:shiftScheduledTasksBy(-1e9)
+    shiftScheduledTasksBy(-1e9)
     UIManager:handleInput()
   end
 

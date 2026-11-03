@@ -1828,7 +1828,7 @@ describe("Readerhighlight module", function()
         local highlight = readerui.highlight
         local ReaderAnnotation = require("apps/reader/modules/readerannotation")
         local fastforward = function()
-          UIManager:shiftScheduledTasksBy(-1e9)
+          shiftScheduledTasksBy(-1e9)
           UIManager:_checkTasks()
         end
 

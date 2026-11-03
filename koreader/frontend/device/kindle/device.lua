@@ -808,11 +808,6 @@ function Kindle:wakeupFromSuspend(ts)
   self.powerd:wakeupFromSuspend(ts)
 end
 
-function Kindle:readyToSuspend(delay)
-  logger.dbg("Kindle:readyToSuspend", delay)
-  self.powerd:readyToSuspend(delay)
-end
-
 function Kindle:UIManagerReady(uimgr)
   UIManager = uimgr
 end
@@ -822,7 +817,6 @@ function Kindle:setEventHandlers(_uimgr)
   self.input.fake_event_args.IntoSS = {}
   self.input.fake_event_args.OutOfSS = {}
   self.input.fake_event_args.WakeupFromSuspend = {}
-  self.input.fake_event_args.ReadyToSuspend = {}
 
   UIManager.event_handlers.Suspend = function()
     self.powerd:toggleSuspend()
@@ -898,10 +892,6 @@ function Kindle:setEventHandlers(_uimgr)
   UIManager.event_handlers.WakeupFromSuspend = function(input_event)
     local arg = table.remove(self.input.fake_event_args[input_event])
     self:wakeupFromSuspend(arg)
-  end
-  UIManager.event_handlers.ReadyToSuspend = function(input_event)
-    local arg = table.remove(self.input.fake_event_args[input_event])
-    self:readyToSuspend(arg)
   end
 end
 

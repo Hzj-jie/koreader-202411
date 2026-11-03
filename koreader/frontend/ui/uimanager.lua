@@ -457,16 +457,6 @@ function UIManager:closeIfNotNil(widget)
   end
 end
 
---- Shift the execution times of all scheduled tasks.
--- UIManager uses CLOCK_MONOTONIC (which doesn't tick during standby), so shifting the execution
--- time by a negative value will lead to an execution at the expected time.
--- @param time if positive execute the tasks later, if negative they should be executed earlier
-function UIManager:shiftScheduledTasksBy(shift_time)
-  for i, v in ipairs(self._task_queue) do
-    v.time = v.time + shift_time
-  end
-end
-
 -- Schedule an execution task; task queue is in descending order
 function UIManager:schedule(sched_time, action, ...)
   local lo, hi = 1, #self._task_queue
@@ -921,24 +911,6 @@ function UIManager:broadcastEvent(event)
   end
 end
 
---[[
-function UIManager:getNextTaskTimes(count)
-  count = math.min(count or 1, #self._task_queue)
-  local times = {}
-  for i = 1, count do
-    times[i] = self._task_queue[i].time - time.monotonic()
-  end
-  return times
-end
---]]
-
-function UIManager:getNextTaskTime()
-  local next_task = self._task_queue[#self._task_queue]
-  if next_task then
-    return next_task.time - time.monotonic()
-  end
-end
-
 function UIManager:_checkTasks()
   local _now = time.monotonic()
   local wait_until = nil
@@ -967,12 +939,10 @@ function UIManager:_checkTasks()
 end
 
 --[[--
-Returns a time (fts) corresponding to the last UI tick plus the time in standby.
+Returns a time (fts) corresponding to the last UI tick plus the time in suspend.
 ]]
 function UIManager:getElapsedTimeSinceBoot()
-  return time.monotonic()
-    + Device.total_standby_time
-    + Device.total_suspend_time
+  return time.monotonic() + Device.total_suspend_time
 end
 
 function UIManager:lastUserActionTime()
@@ -1579,12 +1549,6 @@ function UIManager:handleInput()
   -- this function emits (plugin), or within waitEvent() right after (hardware).
   -- Anywhere else breaks preventStandby/allowStandby invariants used by background jobs while UI is left running.
   self:_standbyTransition()
-  if self._pm_consume_input_early then
-    -- If the PM state transition requires an early return from input polling, honor that.
-    -- c.f., UIManager:setPMInputTimeout (and AutoSuspend:AllowStandbyHandler).
-    deadline = now
-    self._pm_consume_input_early = false
-  end
 
   -- wait for next batch of events
   local input_events = Input:waitEvent(now, deadline)
@@ -1816,12 +1780,6 @@ function UIManager:_standbyTransition()
     self:broadcastEvent(Event:new("PreventStandby"))
   end
   self._prev_prevent_standby_count = self._prevent_standby_count
-end
-
--- Used by a PM transition event handler to request an early return from input polling.
--- NOTE: We can't reuse setInputTimeout to avoid interactions with ZMQ...
-function UIManager:consumeInputEarlyAfterPM(toggle)
-  self._pm_consume_input_early = toggle
 end
 
 --- Broadcasts a `FlushSettings` Event to *all* widgets.

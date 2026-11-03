@@ -13,7 +13,6 @@ local function mergeWith(b)
       "charging_led", -- if Device:canToggleChargingLED()
       "autostandby",
       "autosuspend",
-      "autoshutdown",
       "battery_statistics",
       "ignore_sleepcover",
       "ignore_open_sleepcover",

@@ -84,7 +84,6 @@ local Device = Generic:extend({
   hasEinkScreen = util.no,
   hasSystemFonts = util.yes,
   canSuspend = util.no,
-  canStandby = util.no,
   startTextInput = SDL.startTextInput,
   stopTextInput = SDL.stopTextInput,
   canOpenLink = getLinkOpener,
@@ -151,7 +150,6 @@ local Emulator = Device:extend({
   canReboot = util.yes,
   -- NOTE: Via simulateSuspend
   canSuspend = util.yes,
-  canStandby = util.no,
 })
 
 local UbuntuTouch = Device:extend({

@@ -962,19 +962,7 @@ describe("UIManager spec", function()
       end
     )
 
-    it("should handle shiftScheduledTasksBy and task time queries", function()
-      UIManager:quit()
-      local now_time = time.monotonic()
-      UIManager:scheduleIn(10, "task10")
-      UIManager:scheduleIn(20, "task20")
-
-      local next_time = UIManager:getNextTaskTime()
-      assert.is_not_nil(next_time)
-
-      UIManager:shiftScheduledTasksBy(5)
-      assert.is_true(UIManager:getNextTaskTime() > next_time)
-
-      -- User action timing
+    it("should handle user action timing queries", function()
       UIManager:updateLastUserActionTime()
       assert.is_number(UIManager:lastUserActionTime())
       assert.is_number(UIManager:timeSinceLastUserAction())
