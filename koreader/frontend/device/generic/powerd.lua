@@ -304,10 +304,8 @@ function BasePowerD:getCapacity()
   if UIManager then
     now = UIManager:getElapsedTimeSinceBoot()
   else
-    -- Add time the device was in standby and suspend
-    now = time.monotonic()
-      + self.device.total_standby_time
-      + self.device.total_suspend_time
+    -- Add time the device was in suspend
+    now = time.monotonic() + self.device.total_suspend_time
   end
 
   if now - self.last_capacity_pull_time >= time.s(60) then
@@ -331,10 +329,8 @@ function BasePowerD:getAuxCapacity()
   if UIManager then
     now = UIManager:getElapsedTimeSinceBoot()
   else
-    -- Add time the device was in standby and suspend
-    now = time.monotonic()
-      + self.device.total_standby_time
-      + self.device.total_suspend_time
+    -- Add time the device was in suspend
+    now = time.monotonic() + self.device.total_suspend_time
   end
 
   if now - self.last_aux_capacity_pull_time >= time.s(60) then

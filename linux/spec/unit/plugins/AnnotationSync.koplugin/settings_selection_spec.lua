@@ -382,18 +382,19 @@ describe("AnnotationSync Settings Selection", function()
       end
       finally(function()
         utils_mod.show_msg = old_show_msg
-        G_reader_settings:delete("auto_standby_timeout_seconds")
+        G_reader_settings:save("autodim_duration_seconds", 5)
+        G_reader_settings:flush()
       end)
 
       -- Change setting and select it
-      G_reader_settings:save("auto_standby_timeout_seconds", 777)
+      G_reader_settings:save("autodim_duration_seconds", 777)
       G_reader_settings:flush()
-      sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"] =
+      sync_instance.settings.selected_settings["reader:autodim_duration_seconds"] =
         true
       sync_instance:saveSettings()
 
-      -- Revert setting back to default (-1)
-      G_reader_settings:save("auto_standby_timeout_seconds", -1)
+      -- Revert setting back to default (5)
+      G_reader_settings:save("autodim_duration_seconds", 5)
       G_reader_settings:flush()
 
       local old_push = remote_mod.push_settings
@@ -409,7 +410,7 @@ describe("AnnotationSync Settings Selection", function()
 
       assert.is_false(pushed)
       assert.is_nil(
-        sync_instance.settings.selected_settings["reader:auto_standby_timeout_seconds"]
+        sync_instance.settings.selected_settings["reader:autodim_duration_seconds"]
       )
       assert.is_not_nil(msg_shown)
       assert.are.equal(
