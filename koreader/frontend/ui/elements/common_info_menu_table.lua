@@ -4,7 +4,6 @@ local DataStorage = require("datastorage")
 local Device = require("device")
 local Event = require("ui/event")
 local FfiUtil = require("ffi/util")
-local InfoMessage = require("ui/widget/infomessage")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
@@ -173,7 +172,7 @@ common_info.about = {
     .. T(gettext("Version: %1"), Version:getShortVersion()),
   keep_menu_open = true,
   callback = function()
-    UIManager:show(InfoMessage:new({
+    UIManager:show(ConfirmBox:new({
       text = T(
         gettext(
           "KOReader %1\n\nA document viewer for E Ink devices.\n\n"
@@ -196,6 +195,21 @@ common_info.about = {
             )
         ),
       icon = "koreader",
+      no_ok_button = true,
+      other_buttons_first = true,
+      other_buttons = {
+        {
+          {
+            text = gettext("Binary versions"),
+            callback = function()
+              UIManager:show(KeyValuePage:new({
+                title = gettext("Binary versions"),
+                kv_pairs = require("binary_versions"):getKeyValuePairs(),
+              }))
+            end,
+          },
+        },
+      },
     }))
   end,
 }

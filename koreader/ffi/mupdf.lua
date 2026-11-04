@@ -34,6 +34,7 @@ local mupdf = {
 -- this cannot get adapted by the cdecl file because it is a
 -- string constant. Must match the actual mupdf API:
 local FZ_VERSION = "1.27.2"
+mupdf.version = FZ_VERSION
 
 local document_mt = { __index = {} }
 local page_mt = { __index = {} }

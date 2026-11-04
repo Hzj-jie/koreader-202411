@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 14:39-0800\n"
+"POT-Creation-Date: 2026-11-03 22:03-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Chris Heywood <cheywood@users.noreply.hosted.weblate.org>\n"
 "Language-Team: English (United Kingdom) <https://hosted.weblate.org/projects/"
@@ -8651,6 +8651,12 @@ msgstr ""
 msgid "Advanced settings"
 msgstr "Advanced settings"
 
+msgid "Switch to Lua"
+msgstr ""
+
+msgid "Switch to LuaJIT"
+msgstr ""
+
 msgid "Help"
 msgstr "Help"
 
@@ -8736,6 +8742,9 @@ msgid ""
 msgstr ""
 "Running version may not match source code version %1.\n"
 "Please consider restarting KOReader at the ealiest convenience."
+
+msgid "Binary versions"
+msgstr ""
 
 msgid "Start %1 reader app"
 msgstr "Start %1 reader app"
@@ -16411,6 +16420,9 @@ msgstr "Time in suspend"
 
 msgid "Start discharging at"
 msgstr "Start discharging at"
+
+msgid "Runtime"
+msgstr ""
 
 msgid "Device model"
 msgstr "Device model"
