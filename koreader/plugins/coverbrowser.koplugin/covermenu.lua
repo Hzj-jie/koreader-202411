@@ -243,16 +243,13 @@ function CoverMenu:updateItems(select_number, no_recalculate_dimen)
   -- we replace it by ours.
   -- (FileManager may replace file_chooser.showFileDialog after we've been called once, so we need
   -- to replace it again if it is not ours)
-  if
-    self.path -- FileManager only
-    and (
-      not self.showFileDialog_ours -- never replaced
-      or self.showFileDialog ~= self.showFileDialog_ours
-    )
-  then -- it is no more ours
+  if self.path then
     -- We need to do it at nextTick, once FileManager has instantiated
     -- its FileChooser completely
     UIManager:nextTick(function()
+      if self.showFileDialog == self.showFileDialog_ours then
+        return
+      end
       -- Store original function, so we can call it
       self.showFileDialog_orig = self.showFileDialog
 
