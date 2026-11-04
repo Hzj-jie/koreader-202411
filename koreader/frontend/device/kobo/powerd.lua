@@ -548,10 +548,7 @@ function KoboPowerD:_suspendFrontlight()
 end
 
 -- Turn off front light before suspend.
-function KoboPowerD:beforeSuspend()
-  -- Inhibit user input and emit the Suspend event.
-  self.device:_beforeSuspend()
-
+function KoboPowerD:beforeSuspendHW()
   -- Handle the frontlight last,
   -- to prevent as many things as we can from interfering with the smoothness of the ramp
   if self.fl then
@@ -593,14 +590,9 @@ function KoboPowerD:_resumeFrontlight()
 end
 
 -- Restore front light state after resume.
-function KoboPowerD:afterResume()
+function KoboPowerD:afterResumeHW()
   -- Set the system clock to the hardware clock's time.
   RTC:HCToSys()
-
-  self:invalidateCapacityCache()
-
-  -- Restore user input and emit the Resume event.
-  self.device:_afterResume()
 
   -- There's a whole bunch of stuff happening before us in Generic:handlePowerEvent,
   -- so we'll delay this ever so slightly so as to appear as smooth as possible...

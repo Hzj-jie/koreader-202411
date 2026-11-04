@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Chris Heywood <cheywood@users.noreply.hosted.weblate.org>\n"
 "Language-Team: English (United Kingdom) <https://hosted.weblate.org/projects/"
@@ -5835,6 +5835,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Sleeping"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10751,9 +10757,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader Quickstart Guide"
 
-msgid "Sleeping"
-msgstr "Sleeping"
-
 msgid "(Press F2 to resume)"
 msgstr "(Press F2 to resume)"
 
@@ -12270,58 +12273,6 @@ msgstr "Timeout for autosuspend"
 msgid "Enter time in hours and minutes."
 msgstr "Enter time in hours and minutes."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Autoshutdown timeout: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Autoshutdown timeout"
-
-msgid "Timeout for autoshutdown"
-msgstr "Timeout for autoshutdown"
-
-msgid "Enter time in days and hours."
-msgstr "Enter time in days and hours."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-
-msgid "Autostandby timeout: %1"
-msgstr "Autostandby timeout: %1"
-
-msgid "Autostandby timeout"
-msgstr "Autostandby timeout"
-
-msgid "Timeout for autostandby"
-msgstr "Timeout for autostandby"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Enter time in minutes and seconds."
-
 msgid "Auto power save"
 msgstr "Auto power save"
 
@@ -12350,6 +12301,9 @@ msgstr "Autoturn"
 
 msgid "Autoturn time"
 msgstr "Autoturn time"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Enter time in minutes and seconds."
 
 msgid "Set distance"
 msgstr "Set distance"
@@ -16455,9 +16409,6 @@ msgstr "Time spent awake"
 msgid "Time in suspend"
 msgstr "Time in suspend"
 
-msgid "Time in standby"
-msgstr "Time in standby"
-
 msgid "Start discharging at"
 msgstr "Start discharging at"
 
@@ -17531,6 +17482,58 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "annotations"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Autoshutdown timeout: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Autoshutdown timeout"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Timeout for autoshutdown"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Enter time in days and hours."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Autostandby timeout: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Autostandby timeout"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Timeout for autostandby"
+
+#~ msgid "Time in standby"
+#~ msgstr "Time in standby"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "An error occurred while registering:"

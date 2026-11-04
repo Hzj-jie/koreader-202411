@@ -82,16 +82,4 @@ function PocketBookPowerD:isChargingHW()
   end
 end
 
-function PocketBookPowerD:beforeSuspend()
-  -- Inhibit user input and emit the Suspend event.
-  self.device:_beforeSuspend()
-end
-
-function PocketBookPowerD:afterResume()
-  self:invalidateCapacityCache()
-
-  -- Restore user input and emit the Resume event.
-  self.device:_afterResume()
-end
-
 return PocketBookPowerD

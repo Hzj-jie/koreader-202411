@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2023-04-24 07:37+0000\n"
 "Last-Translator: Einars Sprugis <einars8@gmail.com>\n"
 "Language-Team: Latvian <https://hosted.weblate.org/projects/koreader/"
@@ -5929,6 +5929,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Guļu"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10583,9 +10589,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader Ātrais Gids"
 
-msgid "Sleeping"
-msgstr "Guļu"
-
 msgid "(Press F2 to resume)"
 msgstr ""
 
@@ -12186,53 +12189,6 @@ msgid "Enter time in hours and minutes."
 msgstr "Uzstādīt lasīšanas taimeri (stundas:minūtes)"
 
 #, fuzzy
-msgid "Autoshutdown timeout: %1"
-msgstr "Automātiskās izslēgšanās taimauts"
-
-msgid "Autoshutdown timeout"
-msgstr "Automātiskās izslēgšanās taimauts"
-
-msgid "Timeout for autoshutdown"
-msgstr ""
-
-#, fuzzy
-msgid "Enter time in days and hours."
-msgstr "Uzstādīt lasīšanas taimeri (stundas:minūtes)"
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-
-#, fuzzy
-msgid "Autostandby timeout: %1"
-msgstr "Automātiskās aizmigšanas taimouts"
-
-#, fuzzy
-msgid "Autostandby timeout"
-msgstr "Automātiskās aizmigšanas taimouts"
-
-#, fuzzy
-msgid "Timeout for autostandby"
-msgstr "Taimauts sekundēs"
-
-#, fuzzy
-msgid "Enter time in minutes and seconds."
-msgstr "Uzstādīt lasīšanas taimeri (stundas:minūtes)"
-
-#, fuzzy
 msgid "Auto power save"
 msgstr "Nesaglabāt"
 
@@ -12265,6 +12221,10 @@ msgstr "Automātiskā lappušu pāršķiršana"
 #, fuzzy
 msgid "Autoturn time"
 msgstr "Automātiskā lappušu pāršķiršana"
+
+#, fuzzy
+msgid "Enter time in minutes and seconds."
+msgstr "Uzstādīt lasīšanas taimeri (stundas:minūtes)"
 
 msgid "Set distance"
 msgstr "Uzstādīt distanci"
@@ -16516,10 +16476,6 @@ msgstr "Šodien pavadītais laiks lasot"
 msgid "Time in suspend"
 msgstr "Taimauts sekundēs"
 
-#, fuzzy
-msgid "Time in standby"
-msgstr "Taimauts sekundēs"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17617,6 +17573,33 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Rotācija"
+
+#, fuzzy
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Automātiskās izslēgšanās taimauts"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Automātiskās izslēgšanās taimauts"
+
+#, fuzzy
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Uzstādīt lasīšanas taimeri (stundas:minūtes)"
+
+#, fuzzy
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Automātiskās aizmigšanas taimouts"
+
+#, fuzzy
+#~ msgid "Autostandby timeout"
+#~ msgstr "Automātiskās aizmigšanas taimouts"
+
+#, fuzzy
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Taimauts sekundēs"
+
+#, fuzzy
+#~ msgid "Time in standby"
+#~ msgstr "Taimauts sekundēs"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Notika kļūda reģistrācijas procesā:"

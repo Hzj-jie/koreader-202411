@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Denilson Sousa <deni.sousa09@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
@@ -5916,6 +5916,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Suspenso"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10894,9 +10900,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Guia de Início Rápido do KOReader"
 
-msgid "Sleeping"
-msgstr "Suspenso"
-
 msgid "(Press F2 to resume)"
 msgstr "(Pressione F2 para continuar)"
 
@@ -12423,59 +12426,6 @@ msgstr "Tempo de espera para autossuspensão"
 msgid "Enter time in hours and minutes."
 msgstr "Insira o tempo em horas e minutos."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Tempo de espera para autodesligamento: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Tempo de espera para autodesligamento"
-
-msgid "Timeout for autoshutdown"
-msgstr "Tempo de espera para autodesligamento"
-
-msgid "Enter time in days and hours."
-msgstr "Insira o tempo em dias e horas."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"O modo de espera coloca o dispositivo em um estado de economia de energia no "
-"qual a tela está ligada e a entrada do usuário pode ser executada.\n"
-"\n"
-"O modo de espera não pode ser inserido se o Wi-Fi estiver ligado.\n"
-"\n"
-"Após a entrada do usuário, o dispositivo precisa de um certo tempo para "
-"acordar. Geralmente, quanto mais novo o dispositivo , menos perceptível esse "
-"atraso será, mas pode ser bastante agravante em dispositivos mais lentos."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Seu dispositivo é conhecido por ser extremamente não confiável, como tal, a "
-"falha ao entrar em um estado de economia de energia *pode* travar o kernel, "
-"resultando em um travamento total do dispositivo ou na reinicialização do "
-"dispositivo ."
-
-msgid "Autostandby timeout: %1"
-msgstr "Tempo limite para suspensão automática: %1"
-
-msgid "Autostandby timeout"
-msgstr "Tempo limite para suspensão automática"
-
-msgid "Timeout for autostandby"
-msgstr "Tempo limite para autossuspensão"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Insira o tempo em minutos e segundos."
-
 msgid "Auto power save"
 msgstr "Economia automática de energia"
 
@@ -12505,6 +12455,9 @@ msgstr "Virada automática de página"
 
 msgid "Autoturn time"
 msgstr "Tempo de virada automática"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Insira o tempo em minutos e segundos."
 
 msgid "Set distance"
 msgstr "Definir distância"
@@ -16630,9 +16583,6 @@ msgstr "Tempo gasto ligado"
 msgid "Time in suspend"
 msgstr "Tempo em suspensão"
 
-msgid "Time in standby"
-msgstr "Tempo em espera"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17719,6 +17669,60 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "anotações"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Tempo de espera para autodesligamento: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Tempo de espera para autodesligamento"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Tempo de espera para autodesligamento"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Insira o tempo em dias e horas."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "O modo de espera coloca o dispositivo em um estado de economia de energia "
+#~ "no qual a tela está ligada e a entrada do usuário pode ser executada.\n"
+#~ "\n"
+#~ "O modo de espera não pode ser inserido se o Wi-Fi estiver ligado.\n"
+#~ "\n"
+#~ "Após a entrada do usuário, o dispositivo precisa de um certo tempo para "
+#~ "acordar. Geralmente, quanto mais novo o dispositivo , menos perceptível "
+#~ "esse atraso será, mas pode ser bastante agravante em dispositivos mais "
+#~ "lentos."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Seu dispositivo é conhecido por ser extremamente não confiável, como tal, "
+#~ "a falha ao entrar em um estado de economia de energia *pode* travar o "
+#~ "kernel, resultando em um travamento total do dispositivo ou na "
+#~ "reinicialização do dispositivo ."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Tempo limite para suspensão automática: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Tempo limite para suspensão automática"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Tempo limite para autossuspensão"
+
+#~ msgid "Time in standby"
+#~ msgstr "Tempo em espera"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Ocorreu um erro ao registrar:"

@@ -744,6 +744,7 @@ function Kindle:_intoScreenSaver(source)
 
   if self:supportsScreensaver() then
     -- NOTE: Meaning this is not a SO device ;)
+    self.powerd:initSuspend()
     local Screensaver = require("ui/screensaver")
     Screensaver:setup()
     Screensaver:show()
@@ -786,6 +787,7 @@ function Kindle:_outofScreenSaver(source)
     self.screen_saver_mode = false
     return
   end
+  self.powerd:initWakeup()
   local Screensaver = require("ui/screensaver")
   if Screensaver:close() then
     -- And redraw everything in case the framework managed to screw us over...
@@ -822,10 +824,10 @@ function Kindle:setEventHandlers(_uimgr)
     self.powerd:toggleSuspend()
   end
   UIManager.event_handlers.IntoSS = function(input_event)
-    self.powerd:beforeSuspend()
     -- Retrieve the argument set by Input:handleKeyBoardEv
     local arg = table.remove(self.input.fake_event_args[input_event])
     self:_intoScreenSaver(arg)
+    self.powerd:beforeSuspend()
   end
   UIManager.event_handlers.OutOfSS = function(input_event)
     local arg = table.remove(self.input.fake_event_args[input_event])

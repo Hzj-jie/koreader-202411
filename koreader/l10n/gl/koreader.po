@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-14 04:33+0000\n"
 "Last-Translator: Juan Comesaña Fernández <xan.comesana@gmail.com>\n"
 "Language-Team: Galician <https://hosted.weblate.org/projects/koreader/"
@@ -5910,6 +5910,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "A durmir"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10857,9 +10863,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Guía Rápida de KOReader"
 
-msgid "Sleeping"
-msgstr "A durmir"
-
 msgid "(Press F2 to resume)"
 msgstr "(Pulsa F2 para continuar)"
 
@@ -12393,59 +12396,6 @@ msgstr "Tempo de espera para a suspensión automática"
 msgid "Enter time in hours and minutes."
 msgstr "Insire un tempo en horas e minutos."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Tempo de espera para apagado automático: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Tempo de espera para apagado automático"
-
-msgid "Timeout for autoshutdown"
-msgstr "Tempo de espera para o apagado automático"
-
-msgid "Enter time in days and hours."
-msgstr "Insire un tempo en días e horas."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"O modo en espera pon o dispositivo un estado de aforro de enerxía no que a "
-"pantalla está acendida e a entrada de accións é posible.\n"
-"\n"
-"Non se pode entrar no modo en espera se a wifi está activada.\n"
-"\n"
-"Despois dunha acción de entrada, o dispositivo precisa dalgún tempo para "
-"espertar. En xeral, canto máis novo é un dispositivo, máis imperceptible é o "
-"retardo, pero pode chegar a ser molesto en aparellos máis lentos."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"O teu dispositivo é coñecido por ser extremadamente pouco fiable, de xeito "
-"que, se falla ao entrar no modo de aforro de enerxía *pode* facer que o "
-"kernel se colgue, resultando nun bloqueo total do dispositivo ou nun "
-"reinicio."
-
-msgid "Autostandby timeout: %1"
-msgstr "Tempo de inactividade para entrar no modo de espera: %1"
-
-msgid "Autostandby timeout"
-msgstr "Tempo de inactividade para entrar no modo de espera automaticamente"
-
-msgid "Timeout for autostandby"
-msgstr "Tempo de inactividade para entrar no modo de espera automaticamente"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Insire un tempo en minutos e segundos."
-
 msgid "Auto power save"
 msgstr "Aforro de enerxía automático"
 
@@ -12474,6 +12424,9 @@ msgstr "Pase automático"
 
 msgid "Autoturn time"
 msgstr "Tempo de pase automático de páxina"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Insire un tempo en minutos e segundos."
 
 msgid "Set distance"
 msgstr "Axustar distancia"
@@ -16598,9 +16551,6 @@ msgstr "Tempo de actividade"
 msgid "Time in suspend"
 msgstr "Tempo en suspensión"
 
-msgid "Time in standby"
-msgstr "Tempo en espera"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17687,6 +17637,59 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "anotacións"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Tempo de espera para apagado automático: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Tempo de espera para apagado automático"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Tempo de espera para o apagado automático"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Insire un tempo en días e horas."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "O modo en espera pon o dispositivo un estado de aforro de enerxía no que "
+#~ "a pantalla está acendida e a entrada de accións é posible.\n"
+#~ "\n"
+#~ "Non se pode entrar no modo en espera se a wifi está activada.\n"
+#~ "\n"
+#~ "Despois dunha acción de entrada, o dispositivo precisa dalgún tempo para "
+#~ "espertar. En xeral, canto máis novo é un dispositivo, máis imperceptible "
+#~ "é o retardo, pero pode chegar a ser molesto en aparellos máis lentos."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "O teu dispositivo é coñecido por ser extremadamente pouco fiable, de "
+#~ "xeito que, se falla ao entrar no modo de aforro de enerxía *pode* facer "
+#~ "que o kernel se colgue, resultando nun bloqueo total do dispositivo ou "
+#~ "nun reinicio."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Tempo de inactividade para entrar no modo de espera: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Tempo de inactividade para entrar no modo de espera automaticamente"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Tempo de inactividade para entrar no modo de espera automaticamente"
+
+#~ msgid "Time in standby"
+#~ msgstr "Tempo en espera"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Ocorreu un erro rexistrando:"

@@ -26,7 +26,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-11 14:00+0000\n"
 "Last-Translator: Ghassen <ghassen-dhokkar@hotmail.fr>\n"
 "Language-Team: French <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -5896,6 +5896,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "En veille"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10905,9 +10911,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Guide de démarrage rapide de KOReader"
 
-msgid "Sleeping"
-msgstr "En veille"
-
 msgid "(Press F2 to resume)"
 msgstr "(Appuyez sur F2 pour reprendre)"
 
@@ -12449,59 +12452,6 @@ msgstr "Délai avant la mise en veille"
 msgid "Enter time in hours and minutes."
 msgstr "Entrez la durée en heures et minutes."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Délai pour l'extinction automatique : %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Délai d’extinction automatique"
-
-msgid "Timeout for autoshutdown"
-msgstr "Délai avec arrêt automatique"
-
-msgid "Enter time in days and hours."
-msgstr "Entrez la durée en jours et heures."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"LLa mise en veille place l'appareil dans un état d'économie d'énergie dans "
-"lequel l'écran est allumé et l'utilisateur peut effectuer des entrées.\n"
-"\n"
-"La mise en veille ne peut pas être activée si le Wi-Fi est activé.\n"
-"\n"
-"Lorsqu'une entrée utilisateur est effectuée, l'appareil a besoin d'un "
-"certain temps pour se réveiller. En général, plus l'appareil est récent, "
-"moins cette latence sera perceptible, mais elle peut être assez agaçante sur "
-"les appareils plus lents."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Votre appareil est connu pour être extrêmement instable, de ce fait, un "
-"échec pour entrer dans un état d'économie d'énergie peut bloquer le noyau, "
-"entraînant un blocage complet de l'appareil ou un redémarrage de l'appareil."
-
-msgid "Autostandby timeout: %1"
-msgstr "Délai d'inactivité pour la mise en veille automatique : %1"
-
-msgid "Autostandby timeout"
-msgstr "Temps de mise en veille automatique"
-
-msgid "Timeout for autostandby"
-msgstr "Délai avant la mise en veille"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Entrez l'heure en minutes et secondes."
-
 msgid "Auto power save"
 msgstr "Veille automatique"
 
@@ -12532,6 +12482,9 @@ msgstr "Changement de page automatique"
 
 msgid "Autoturn time"
 msgstr "Temps du tourne-page auto"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Entrez l'heure en minutes et secondes."
 
 msgid "Set distance"
 msgstr "Définir la distance"
@@ -16716,9 +16669,6 @@ msgstr "Temps passé éveillé"
 msgid "Time in suspend"
 msgstr "Temps en pause"
 
-msgid "Time in standby"
-msgstr "Temps en veille"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17812,6 +17762,61 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "annotations"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Délai pour l'extinction automatique : %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Délai d’extinction automatique"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Délai avec arrêt automatique"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Entrez la durée en jours et heures."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "LLa mise en veille place l'appareil dans un état d'économie d'énergie "
+#~ "dans lequel l'écran est allumé et l'utilisateur peut effectuer des "
+#~ "entrées.\n"
+#~ "\n"
+#~ "La mise en veille ne peut pas être activée si le Wi-Fi est activé.\n"
+#~ "\n"
+#~ "Lorsqu'une entrée utilisateur est effectuée, l'appareil a besoin d'un "
+#~ "certain temps pour se réveiller. En général, plus l'appareil est récent, "
+#~ "moins cette latence sera perceptible, mais elle peut être assez agaçante "
+#~ "sur les appareils plus lents."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Votre appareil est connu pour être extrêmement instable, de ce fait, un "
+#~ "échec pour entrer dans un état d'économie d'énergie peut bloquer le "
+#~ "noyau, entraînant un blocage complet de l'appareil ou un redémarrage de "
+#~ "l'appareil."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Délai d'inactivité pour la mise en veille automatique : %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Temps de mise en veille automatique"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Délai avant la mise en veille"
+
+#~ msgid "Time in standby"
+#~ msgstr "Temps en veille"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Une erreur s’est produite au cours de l’inscription :"

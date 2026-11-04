@@ -33,13 +33,20 @@ describe("device/generic/powerd", function()
     mock_device = {
       hasFrontlight = stub().returns(true),
       hasNaturalLight = stub().returns(true),
-      _beforeSuspend = stub(),
-      _afterResume = stub(),
+      disableKeyRepeat = stub(),
+      restoreKeyRepeat = stub(),
+      last_suspend_at = 0,
+      last_resume_at = 0,
       total_suspend_time = 20,
     }
 
     mock_uimgr = {
+      show = stub(),
+      close = stub(),
+      forceRepaint = stub(),
+      flushSettings = stub(),
       broadcastEvent = stub(),
+      updateLastUserActionTime = stub(),
       getElapsedTimeSinceBoot = stub().returns(100),
     }
 
@@ -277,19 +284,182 @@ describe("device/generic/powerd", function()
 
   describe("suspend and resume lifecycle", function()
     it(
-      "triggers device hooks and invalidates caches on suspend/resume",
+      "triggers device hooks, broadcasts events, and invalidates caches on suspend/resume",
       function()
         powerd:UIManagerReady(mock_uimgr)
+        powerd.beforeSuspendHW = stub()
+        local last_resume_at_in_hw = nil
+        local broadcast_count_in_hw = nil
+        powerd.afterResumeHW = spy.new(function()
+          last_resume_at_in_hw = mock_device.last_resume_at
+          broadcast_count_in_hw = #mock_uimgr.broadcastEvent.calls
+        end)
+        mock_device.total_suspend_time = 0
 
         powerd:beforeSuspend()
-        assert.spy(mock_device._beforeSuspend).was.called()
+        assert.spy(mock_uimgr.flushSettings).was.called()
+        assert.spy(mock_uimgr.broadcastEvent).was.called_with(
+          mock_uimgr,
+          match.is_table()
+        )
+        assert.are.equal(
+          "Suspend",
+          mock_uimgr.broadcastEvent.calls[1].vals[2].name
+        )
+        assert.is_true(mock_device.last_suspend_at > 0)
+        assert.spy(mock_device.disableKeyRepeat).was.called()
+        assert.spy(powerd.beforeSuspendHW).was.called()
 
         powerd:afterResume()
-        assert.spy(mock_device._afterResume).was.called()
+        assert.spy(powerd.afterResumeHW).was.called()
+        assert.are.equal(0, last_resume_at_in_hw)
+        assert.are.equal(1, broadcast_count_in_hw)
+        assert.spy(mock_device.restoreKeyRepeat).was.called()
+        assert.is_true(mock_device.last_resume_at >= mock_device.last_suspend_at)
+        assert.is_true(mock_device.total_suspend_time >= 0)
+        assert.spy(mock_uimgr.updateLastUserActionTime).was.called()
+        assert.are.equal(
+          "Resume",
+          mock_uimgr.broadcastEvent.calls[2].vals[2].name
+        )
         -- Capacity caches should be invalidated (set to -61)
         local time = require("ui/time")
         assert.are.equal(time.s(-61), powerd.last_capacity_pull_time)
         assert.are.equal(time.s(-61), powerd.last_aux_capacity_pull_time)
+      end
+    )
+
+    it(
+      "skips restoreKeyRepeat on afterResume when input_no_key_repeat is true",
+      function()
+        local orig_no_key_repeat = G_reader_settings:read("input_no_key_repeat")
+        G_reader_settings:save("input_no_key_repeat", true)
+        finally(function()
+          G_reader_settings:save("input_no_key_repeat", orig_no_key_repeat)
+        end)
+
+        powerd:UIManagerReady(mock_uimgr)
+        powerd:afterResume()
+        assert.spy(mock_device.restoreKeyRepeat).was_not.called()
+      end
+    )
+
+    it(
+      "shows Sleeping notification in initSuspend and closes it in beforeSuspend",
+      function()
+        local gettext = require("gettext")
+        local orig_notification = package.loaded["ui/widget/notification"]
+        local created_args = nil
+        local fake_notif = { id = "sleeping" }
+        package.loaded["ui/widget/notification"] = {
+          new = function(_self, args)
+            created_args = args
+            return fake_notif
+          end,
+        }
+        finally(function()
+          package.loaded["ui/widget/notification"] = orig_notification
+        end)
+
+        powerd:UIManagerReady(mock_uimgr)
+        powerd:initSuspend()
+        assert.are.same({ text = gettext("Sleeping") }, created_args)
+        assert.spy(mock_uimgr.show).was.called_with(mock_uimgr, fake_notif)
+        assert.spy(mock_uimgr.forceRepaint).was.called(1)
+
+        local calls = {}
+        stub(mock_uimgr, "close", function(_self, widget)
+          if widget == fake_notif then
+            table.insert(calls, "close")
+          end
+        end)
+        stub(mock_uimgr, "forceRepaint", function()
+          table.insert(calls, "forceRepaint")
+        end)
+        stub(mock_uimgr, "flushSettings", function()
+          table.insert(calls, "flushSettings")
+        end)
+        stub(mock_uimgr, "broadcastEvent", function(_self, ev)
+          table.insert(calls, ev.name)
+        end)
+        powerd.beforeSuspendHW = spy.new(function()
+          table.insert(calls, "beforeSuspendHW")
+        end)
+
+        powerd:beforeSuspend()
+        assert.are.same({
+          "close",
+          "forceRepaint",
+          "flushSettings",
+          "Suspend",
+          "beforeSuspendHW",
+        }, calls)
+
+        -- Safe no-op when sleeping_notification is nil
+        calls = {}
+        powerd:beforeSuspend()
+        assert.are.same({
+          "flushSettings",
+          "Suspend",
+          "beforeSuspendHW",
+        }, calls)
+      end
+    )
+
+    it(
+      "shows Waking up notification in initWakeup and closes it in afterResume",
+      function()
+        local gettext = require("gettext")
+        local orig_notification = package.loaded["ui/widget/notification"]
+        local created_args = nil
+        local fake_notif = { id = "wakeup" }
+        package.loaded["ui/widget/notification"] = {
+          new = function(_self, args)
+            created_args = args
+            return fake_notif
+          end,
+        }
+        finally(function()
+          package.loaded["ui/widget/notification"] = orig_notification
+        end)
+
+        powerd:UIManagerReady(mock_uimgr)
+        powerd:initWakeup()
+        assert.are.same({ text = gettext("Waking up") }, created_args)
+        assert.spy(mock_uimgr.show).was.called_with(mock_uimgr, fake_notif)
+        assert.spy(mock_uimgr.forceRepaint).was.called(1)
+
+        local calls = {}
+        stub(mock_uimgr, "close", function(_self, widget)
+          if widget == fake_notif then
+            table.insert(calls, "close")
+          end
+        end)
+        stub(mock_uimgr, "forceRepaint", function()
+          table.insert(calls, "forceRepaint")
+        end)
+        stub(mock_uimgr, "broadcastEvent", function(_self, ev)
+          table.insert(calls, ev.name)
+        end)
+        powerd.afterResumeHW = spy.new(function()
+          table.insert(calls, "afterResumeHW")
+        end)
+
+        powerd:afterResume()
+        assert.are.same({
+          "close",
+          "forceRepaint",
+          "afterResumeHW",
+          "Resume",
+        }, calls)
+
+        -- Safe no-op when wakeup_notification is nil
+        calls = {}
+        powerd:afterResume()
+        assert.are.same({
+          "afterResumeHW",
+          "Resume",
+        }, calls)
       end
     )
   end)

@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: kr <harum@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -5739,6 +5739,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "잠들었어요"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10547,9 +10553,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader 처음 사용자 안내서"
 
-msgid "Sleeping"
-msgstr "잠들었어요"
-
 msgid "(Press F2 to resume)"
 msgstr "(다시 시작하려면 F2를 누르세요)"
 
@@ -12043,58 +12046,6 @@ msgstr "자동 정지 시간 제한"
 msgid "Enter time in hours and minutes."
 msgstr "시간과 분으로 시간을 입력합니다."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "자동 끝내기 시간 제한: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "자동 끝내기 시간 제한"
-
-msgid "Timeout for autoshutdown"
-msgstr "자동 끝내기 시간 제한"
-
-msgid "Enter time in days and hours."
-msgstr "며칠 몇 시간으로 시간을 입력합니다."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"대기 모드는 화면이 켜져 있고 사용자 입력을 수행할 수 있는 절전 상태로 장치를 "
-"전환합니다.\n"
-"\n"
-"Wi-Fi가 켜져 있으면 대기 모드로 들어갈 수 없습니다.\n"
-"\n"
-"사용자 입력 시 기기가 깨어나기까지 약간의 시간이 필요합니다. 일반적으로 장치"
-"가 최신일수록 이 지연이 덜 눈에 띄지만 느린 장치에서는 더 오래 걸릴 수 있습니"
-"다."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"사용자의 장치는 매우 신뢰할 수 없는 것으로 보입니다. 따라서 절전 상태에 들어"
-"가지 못하면 커널이 *정지될 수* 있으며, 결과적으로 전체 장치가 정지되거나 장치"
-"가 다시 시작될 수 있습니다."
-
-msgid "Autostandby timeout: %1"
-msgstr "자동 대기 시간 간격: %1"
-
-msgid "Autostandby timeout"
-msgstr "자동 대기 시간 간격"
-
-msgid "Timeout for autostandby"
-msgstr "자동 대기를 위한 시간 간격"
-
-msgid "Enter time in minutes and seconds."
-msgstr "분과 초로 시간을 입력하세요."
-
 msgid "Auto power save"
 msgstr "자동 절전"
 
@@ -12122,6 +12073,9 @@ msgstr "자동 넘기기"
 
 msgid "Autoturn time"
 msgstr "자동 넘김 시간"
+
+msgid "Enter time in minutes and seconds."
+msgstr "분과 초로 시간을 입력하세요."
 
 msgid "Set distance"
 msgstr "거리 설정"
@@ -16147,9 +16101,6 @@ msgstr "깨어 있는 시간"
 msgid "Time in suspend"
 msgstr "일시 중단 시간"
 
-msgid "Time in standby"
-msgstr "대기 시간"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17215,6 +17166,58 @@ msgstr "왈라백"
 
 msgid "annotations"
 msgstr "주석"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "자동 끝내기 시간 제한: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "자동 끝내기 시간 제한"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "자동 끝내기 시간 제한"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "며칠 몇 시간으로 시간을 입력합니다."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "대기 모드는 화면이 켜져 있고 사용자 입력을 수행할 수 있는 절전 상태로 장치"
+#~ "를 전환합니다.\n"
+#~ "\n"
+#~ "Wi-Fi가 켜져 있으면 대기 모드로 들어갈 수 없습니다.\n"
+#~ "\n"
+#~ "사용자 입력 시 기기가 깨어나기까지 약간의 시간이 필요합니다. 일반적으로 장"
+#~ "치가 최신일수록 이 지연이 덜 눈에 띄지만 느린 장치에서는 더 오래 걸릴 수 "
+#~ "있습니다."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "사용자의 장치는 매우 신뢰할 수 없는 것으로 보입니다. 따라서 절전 상태에 들"
+#~ "어가지 못하면 커널이 *정지될 수* 있으며, 결과적으로 전체 장치가 정지되거"
+#~ "나 장치가 다시 시작될 수 있습니다."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "자동 대기 시간 간격: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "자동 대기 시간 간격"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "자동 대기를 위한 시간 간격"
+
+#~ msgid "Time in standby"
+#~ msgstr "대기 시간"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "가입하는 도중에 오류가 생겼습니다:"

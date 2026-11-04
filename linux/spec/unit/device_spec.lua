@@ -539,6 +539,7 @@ describe("device module", function()
       package.loaded.device = Device
 
       local UIManager = require("ui/uimanager")
+      stub(UIManager, "forceRepaint")
       UIManager:init()
 
       local sample_pdf = "spec/front/unit/data/tall.pdf"
@@ -553,6 +554,7 @@ describe("device module", function()
       UIManager.event_handlers.PowerRelease()
       assert.is.same(1, onFlushSettings_called)
 
+      UIManager.forceRepaint:revert()
       Device.initNetworkManager:revert()
       Device.suspend:revert()
       Device.screen_saver_mode = false
@@ -616,6 +618,8 @@ describe("device module", function()
 
       test_dev.powerd = {
         UIManagerReady = spy(function() end),
+        initSuspend = spy(function() end),
+        initWakeup = spy(function() end),
         beforeSuspend = spy(function() end),
         afterResume = spy(function() end),
         invalidateCapacityCache = spy(function() end),
@@ -747,28 +751,6 @@ describe("device module", function()
         assert.spy(test_dev.powerd.afterResume).was_called()
       end)
 
-      it("executes _beforeSuspend and _afterResume", function()
-        local UIManager = require("ui/uimanager")
-        local flushed = false
-        stub(UIManager, "flushSettings", function()
-          flushed = true
-        end)
-        stub(UIManager, "broadcastEvent")
-
-        test_dev.total_suspend_time = 0
-        test_dev:_beforeSuspend()
-        assert.is_true(flushed)
-        assert.spy(test_dev.disableKeyRepeat).was_called()
-        assert.stub(UIManager.broadcastEvent).was_called()
-
-        test_dev:_afterResume()
-        assert.spy(test_dev.restoreKeyRepeat).was_called()
-        assert.is_true(test_dev.total_suspend_time >= 0)
-
-        UIManager.flushSettings:revert()
-        UIManager.broadcastEvent:revert()
-      end)
-
       it("executes _beforeCharging and _afterNotCharging", function()
         local UIManager = require("ui/uimanager")
         stub(UIManager, "broadcastEvent")
@@ -802,35 +784,120 @@ describe("device module", function()
           test_dev.screen_saver_mode = true
           test_dev.is_cover_closed = false
           local Screensaver = require("ui/screensaver")
-          stub(Screensaver, "close").returns(true)
+          local calls = {}
+          stub(test_dev, "resume", function()
+            table.insert(calls, "resume")
+          end)
+          stub(test_dev.powerd, "initWakeup", function()
+            table.insert(calls, "powerd:initWakeup")
+          end)
+          stub(Screensaver, "close", function()
+            table.insert(calls, "Screensaver:close")
+            return true
+          end)
+          stub(test_dev.powerd, "afterResume", function()
+            table.insert(calls, "powerd:afterResume")
+          end)
+          finally(function()
+            Screensaver.close:revert()
+          end)
 
           test_dev:handlePowerEvent("Power")
-          assert.spy(test_dev.resume).was_called()
-          assert.spy(test_dev.powerd.afterResume).was_called()
-
-          Screensaver.close:revert()
+          assert.are.same({
+            "resume",
+            "powerd:initWakeup",
+            "Screensaver:close",
+            "powerd:afterResume",
+          }, calls)
         end
       )
 
       it("handles handlePowerEvent suspending when awake", function()
         test_dev.screen_saver_mode = false
         local Screensaver = require("ui/screensaver")
-        local UIManager = require("ui/uimanager")
-        stub(Screensaver, "setup")
-        stub(Screensaver, "show")
-        stub(UIManager, "forceRepaint")
-        test_dev.rescheduleSuspend = spy(function() end)
+        local NetworkMgr = require("ui/network/manager")
+        local calls = {}
+        test_dev.hasWifiToggle = function()
+          return true
+        end
+        test_dev.needsScreenRefreshAfterResume = function()
+          return true
+        end
+        stub(test_dev.powerd, "initSuspend", function()
+          table.insert(calls, "powerd:initSuspend")
+        end)
+        stub(Screensaver, "setup", function()
+          table.insert(calls, "Screensaver:setup")
+        end)
+        stub(NetworkMgr, "toggleWifiOff", function()
+          table.insert(calls, "NetworkMgr:toggleWifiOff")
+        end)
+        stub(Screensaver, "show", function()
+          table.insert(calls, "Screensaver:show")
+        end)
+        stub(test_dev.screen, "refreshFull", function()
+          table.insert(calls, "screen:refreshFull")
+        end)
+        stub(test_dev.powerd, "beforeSuspend", function()
+          table.insert(calls, "powerd:beforeSuspend")
+        end)
+        test_dev.rescheduleSuspend = spy(function()
+          table.insert(calls, "rescheduleSuspend")
+        end)
+        finally(function()
+          Screensaver.setup:revert()
+          NetworkMgr.toggleWifiOff:revert()
+          Screensaver.show:revert()
+          test_dev.screen.refreshFull:revert()
+        end)
 
         test_dev:handlePowerEvent("Power")
-        assert.spy(Screensaver.setup).was_called()
-        assert.spy(Screensaver.show).was_called()
-        assert.spy(test_dev.powerd.beforeSuspend).was_called()
-        assert.spy(test_dev.rescheduleSuspend).was_called()
-
-        Screensaver.setup:revert()
-        Screensaver.show:revert()
-        UIManager.forceRepaint:revert()
+        assert.are.same({
+          "powerd:initSuspend",
+          "Screensaver:setup",
+          "NetworkMgr:toggleWifiOff",
+          "Screensaver:show",
+          "screen:refreshFull",
+          "powerd:beforeSuspend",
+          "rescheduleSuspend",
+        }, calls)
       end)
+
+      it(
+        "handles handlePowerEvent re-suspending with screen_saver_lock",
+        function()
+          test_dev.screen_saver_mode = true
+          test_dev.screen_saver_lock = true
+          local NetworkMgr = require("ui/network/manager")
+          local calls = {}
+          test_dev.hasWifiToggle = function()
+            return true
+          end
+          stub(test_dev.powerd, "initSuspend", function()
+            table.insert(calls, "powerd:initSuspend")
+          end)
+          stub(NetworkMgr, "toggleWifiOff", function()
+            table.insert(calls, "NetworkMgr:toggleWifiOff")
+          end)
+          stub(test_dev.powerd, "beforeSuspend", function()
+            table.insert(calls, "powerd:beforeSuspend")
+          end)
+          test_dev.rescheduleSuspend = spy(function()
+            table.insert(calls, "rescheduleSuspend")
+          end)
+          finally(function()
+            NetworkMgr.toggleWifiOff:revert()
+          end)
+
+          test_dev:handlePowerEvent("Suspend")
+          assert.are.same({
+            "powerd:initSuspend",
+            "powerd:beforeSuspend",
+            "NetworkMgr:toggleWifiOff",
+            "rescheduleSuspend",
+          }, calls)
+        end
+      )
     end)
 
     describe("helper methods", function()

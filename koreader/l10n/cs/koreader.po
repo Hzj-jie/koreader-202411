@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-09-11 05:09+0000\n"
 "Last-Translator: Marek <marek@pavelka.xyz>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -5781,6 +5781,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Usnula jsem"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10670,9 +10676,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader - Rychlý průvodce"
 
-msgid "Sleeping"
-msgstr "Usnula jsem"
-
 msgid "(Press F2 to resume)"
 msgstr "(Stiskněte F2 pro pokračování)"
 
@@ -12187,55 +12190,6 @@ msgstr "Časový interval pro automatické usnutí"
 msgid "Enter time in hours and minutes."
 msgstr "Vložte čas v hodinách a minutách."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Časový interval pro automatické vypnutí: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Časový interval pro automatické vypnutí"
-
-msgid "Timeout for autoshutdown"
-msgstr "Časový interval pro automatické vypnutí"
-
-msgid "Enter time in days and hours."
-msgstr "Vložte čas ve dnech a hodinách."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Pohotovostní režim uvede zařízení do úsporného stavu, ve kterém je obrazovka "
-"zapnutá a lze provádět uživatelské vstupy.\n"
-"\n"
-"Pohotovostní režim nelze spustit, pokud je zapnutá Wi-Fi.\n"
-"\n"
-"Po interakci uživatele potřebuje zařízení nějaký čas na své probuzení. "
-"Obecně, čím novější zařízení, tím méně znatelné bude zpoždění, ale na "
-"pomalejších zařízeních to může být docela otravné."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-
-msgid "Autostandby timeout: %1"
-msgstr "Časový interval pro automatický pohotovostní režim: %1"
-
-msgid "Autostandby timeout"
-msgstr "Časový interval pro automatický pohotovostní režim"
-
-msgid "Timeout for autostandby"
-msgstr "Časový interval pro automatický pohotovostní režim"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Vložte čas v minutách a sekundách."
-
 msgid "Auto power save"
 msgstr "Automatická úspora energie"
 
@@ -12266,6 +12220,9 @@ msgstr "Automatické otáčení stránek"
 
 msgid "Autoturn time"
 msgstr "Čas automatického otáčení stránek"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Vložte čas v minutách a sekundách."
 
 msgid "Set distance"
 msgstr "Nastavit vzdálenost"
@@ -16374,9 +16331,6 @@ msgstr "Čas strávený vzhůru"
 msgid "Time in suspend"
 msgstr "Doba spánku"
 
-msgid "Time in standby"
-msgstr "Čas v pohotovostním režimu"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17444,6 +17398,49 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "anotace"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Časový interval pro automatické vypnutí: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Časový interval pro automatické vypnutí"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Časový interval pro automatické vypnutí"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Vložte čas ve dnech a hodinách."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Pohotovostní režim uvede zařízení do úsporného stavu, ve kterém je "
+#~ "obrazovka zapnutá a lze provádět uživatelské vstupy.\n"
+#~ "\n"
+#~ "Pohotovostní režim nelze spustit, pokud je zapnutá Wi-Fi.\n"
+#~ "\n"
+#~ "Po interakci uživatele potřebuje zařízení nějaký čas na své probuzení. "
+#~ "Obecně, čím novější zařízení, tím méně znatelné bude zpoždění, ale na "
+#~ "pomalejších zařízeních to může být docela otravné."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Časový interval pro automatický pohotovostní režim: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Časový interval pro automatický pohotovostní režim"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Časový interval pro automatický pohotovostní režim"
+
+#~ msgid "Time in standby"
+#~ msgstr "Čas v pohotovostním režimu"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Během registrace došlo k chybě:"
