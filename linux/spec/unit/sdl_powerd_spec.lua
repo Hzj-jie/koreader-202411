@@ -36,13 +36,21 @@ describe("SDL PowerD", function()
       hasNaturalLight = spy.new(function()
         return true
       end),
-      _beforeSuspend = spy.new(function() end),
-      _afterResume = spy.new(function() end),
+      disableKeyRepeat = spy.new(function() end),
+      restoreKeyRepeat = spy.new(function() end),
+      last_suspend_at = 0,
+      last_resume_at = 0,
+      total_suspend_time = 0,
     }
 
     package.loaded["device/sdl/powerd"] = nil
     SDLPowerD = require("device/sdl/powerd")
     SDLPowerD.device = mock_device
+    SDLPowerD:UIManagerReady({
+      flushSettings = spy.new(function() end),
+      broadcastEvent = spy.new(function() end),
+      updateLastUserActionTime = spy.new(function() end),
+    })
     SDLPowerD.fl_intensity = SDLPowerD:frontlightIntensityHW()
     SDLPowerD.fl_warmth = SDLPowerD:frontlightWarmthHW()
   end)
@@ -124,16 +132,16 @@ describe("SDL PowerD", function()
   end)
 
   describe("suspend and resume lifecycle", function()
-    it("should call device:_beforeSuspend on beforeSuspend", function()
+    it("should disable key repeat on beforeSuspend", function()
       SDLPowerD:beforeSuspend()
-      assert.spy(mock_device._beforeSuspend).was.called()
+      assert.spy(mock_device.disableKeyRepeat).was.called()
     end)
 
     it(
-      "should call device:_afterResume and invalidate capacity cache on afterResume",
+      "should restore key repeat and invalidate capacity cache on afterResume",
       function()
         SDLPowerD:afterResume()
-        assert.spy(mock_device._afterResume).was.called()
+        assert.spy(mock_device.restoreKeyRepeat).was.called()
         local time = require("ui/time")
         assert.are.equal(time.s(-61), SDLPowerD.last_capacity_pull_time)
         assert.are.equal(time.s(-61), SDLPowerD.last_aux_capacity_pull_time)

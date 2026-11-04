@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-20 17:30+0000\n"
 "Last-Translator: Frans de Jonge <fransdejonge@gmail.com>\n"
 "Language-Team: Dutch <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -5905,6 +5905,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Slaapstand"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10918,9 +10924,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader snelstartgids"
 
-msgid "Sleeping"
-msgstr "Slaapstand"
-
 msgid "(Press F2 to resume)"
 msgstr "(Druk op F2 om verder te gaan)"
 
@@ -12457,59 +12460,6 @@ msgstr "Uitsteltijd voor automatisch slapen"
 msgid "Enter time in hours and minutes."
 msgstr "Voer een tijd in uren en minuten in."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Auto-uit uitstel: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Auto-uit uitstel"
-
-msgid "Timeout for autoshutdown"
-msgstr "Uitsteltijd voor automatisch uitschakelen"
-
-msgid "Enter time in days and hours."
-msgstr "Voer een tijd in dagen en uren in."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Stand-by plaatst het toestel in een energiebesparende toestand waarin het "
-"scherm aanstaat en gebruikersinvoer kan worden uitgevoerd.\n"
-"\n"
-"Stand-by kan niet in werking treden als wifi is ingeschakeld.\n"
-"\n"
-"Als de gebruiker iets invoert, heeft het toestel wat tijd nodig om wakker te "
-"worden. Bij nieuwere toestellen is deze tijd gewoonlijk niet merkbaar, maar "
-"bij andere of tragere toestellen kan dit hinderlijk zijn."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Het is bekend dat dit apparaat extreem onbetrouwbaar is, als zodanig *kan* "
-"de kernel vastlopen als het apparaat niet in een energiebesparende stand "
-"komt, wat resulteert in een volledig vastlopen van het apparaat of het "
-"opnieuw opstarten van het apparaat."
-
-msgid "Autostandby timeout: %1"
-msgstr "Autoslaap-timeout: %1"
-
-msgid "Autostandby timeout"
-msgstr "Autoslaap-timeout"
-
-msgid "Timeout for autostandby"
-msgstr "Timeout voor automatisch slapen"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Voer een tijd in minuten en seconden in."
-
 msgid "Auto power save"
 msgstr "Automatische energiebesparing"
 
@@ -12539,6 +12489,9 @@ msgstr "Auto-omslaan"
 
 msgid "Autoturn time"
 msgstr "Auto-omslaantijd"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Voer een tijd in minuten en seconden in."
 
 msgid "Set distance"
 msgstr "Afstand instellen"
@@ -16689,9 +16642,6 @@ msgstr "Tijd actief"
 msgid "Time in suspend"
 msgstr "Tijd in rust"
 
-msgid "Time in standby"
-msgstr "Tijd in standby"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17774,6 +17724,59 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "aantekeningen"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Auto-uit uitstel: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Auto-uit uitstel"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Uitsteltijd voor automatisch uitschakelen"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Voer een tijd in dagen en uren in."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Stand-by plaatst het toestel in een energiebesparende toestand waarin het "
+#~ "scherm aanstaat en gebruikersinvoer kan worden uitgevoerd.\n"
+#~ "\n"
+#~ "Stand-by kan niet in werking treden als wifi is ingeschakeld.\n"
+#~ "\n"
+#~ "Als de gebruiker iets invoert, heeft het toestel wat tijd nodig om wakker "
+#~ "te worden. Bij nieuwere toestellen is deze tijd gewoonlijk niet merkbaar, "
+#~ "maar bij andere of tragere toestellen kan dit hinderlijk zijn."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Het is bekend dat dit apparaat extreem onbetrouwbaar is, als zodanig "
+#~ "*kan* de kernel vastlopen als het apparaat niet in een energiebesparende "
+#~ "stand komt, wat resulteert in een volledig vastlopen van het apparaat of "
+#~ "het opnieuw opstarten van het apparaat."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Autoslaap-timeout: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Autoslaap-timeout"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Timeout voor automatisch slapen"
+
+#~ msgid "Time in standby"
+#~ msgstr "Tijd in standby"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Fout bij het registreren:"

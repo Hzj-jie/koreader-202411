@@ -7,15 +7,13 @@ describe("Remarkable_PowerD", function()
   local powerd
   local status_content = "Discharging"
   local capacity_content = 80
-  local before_suspend_called = false
-  local after_resume_called = false
+  local events_broadcast = {}
   local orig_open = io.open
 
   before_each(function()
     status_content = "Discharging"
     capacity_content = 80
-    before_suspend_called = false
-    after_resume_called = false
+    events_broadcast = {}
 
     mock_device = {
       hasFrontlight = function()
@@ -24,12 +22,11 @@ describe("Remarkable_PowerD", function()
       hasNaturalLight = function()
         return false
       end,
-      _beforeSuspend = function()
-        before_suspend_called = true
-      end,
-      _afterResume = function()
-        after_resume_called = true
-      end,
+      disableKeyRepeat = function() end,
+      restoreKeyRepeat = function() end,
+      last_suspend_at = 0,
+      last_resume_at = 0,
+      total_suspend_time = 0,
     }
 
     io.open = function(path, mode)
@@ -56,6 +53,13 @@ describe("Remarkable_PowerD", function()
       capacity_file = "/tmp/mock_capacity",
       status_file = "/tmp/mock_status",
     })
+    powerd:UIManagerReady({
+      flushSettings = function() end,
+      broadcastEvent = function(_self, ev)
+        table.insert(events_broadcast, ev.handler)
+      end,
+      updateLastUserActionTime = function() end,
+    })
   end)
 
   after_each(function()
@@ -72,12 +76,12 @@ describe("Remarkable_PowerD", function()
       assert.are.equal(0, powerd:frontlightIntensityHW())
     end)
 
-    it("delegates suspend and resume notifications to device", function()
+    it("broadcasts Suspend and Resume events on suspend/resume", function()
       powerd:beforeSuspend()
-      assert.is_true(before_suspend_called)
+      assert.are.same({ "onSuspend" }, events_broadcast)
 
       powerd:afterResume()
-      assert.is_true(after_resume_called)
+      assert.are.same({ "onSuspend", "onResume" }, events_broadcast)
     end)
   end)
 

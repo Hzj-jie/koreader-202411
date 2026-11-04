@@ -615,6 +615,59 @@ describe("SDL device", function()
       )
     end)
   end)
+
+  describe("simulateSuspend and simulateResume", function()
+    it(
+      "calls initSuspend and initWakeup around Screensaver and beforeSuspend/afterResume",
+      function()
+        local Screensaver = require("ui/screensaver")
+        local calls = {}
+        stub(Screensaver, "setup", function()
+          table.insert(calls, "Screensaver:setup")
+        end)
+        stub(Screensaver, "show", function()
+          table.insert(calls, "Screensaver:show")
+        end)
+        stub(Screensaver, "close", function()
+          table.insert(calls, "Screensaver:close")
+        end)
+        finally(function()
+          Screensaver.setup:revert()
+          Screensaver.show:revert()
+          Screensaver.close:revert()
+        end)
+
+        local dev = SDLDevice:extend({
+          powerd = {
+            initSuspend = function()
+              table.insert(calls, "powerd:initSuspend")
+            end,
+            beforeSuspend = function()
+              table.insert(calls, "powerd:beforeSuspend")
+            end,
+            initWakeup = function()
+              table.insert(calls, "powerd:initWakeup")
+            end,
+            afterResume = function()
+              table.insert(calls, "powerd:afterResume")
+            end,
+          },
+        })
+
+        dev:simulateSuspend()
+        dev:simulateResume()
+        assert.are.same({
+          "powerd:initSuspend",
+          "Screensaver:setup",
+          "Screensaver:show",
+          "powerd:beforeSuspend",
+          "powerd:initWakeup",
+          "Screensaver:close",
+          "powerd:afterResume",
+        }, calls)
+      end
+    )
+  end)
 end)
 
 -- luacheck: pop

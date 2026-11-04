@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -5910,6 +5910,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Uyuyor"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10842,9 +10848,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader hızlı başlangıç rehberi"
 
-msgid "Sleeping"
-msgstr "Uyuyor"
-
 msgid "(Press F2 to resume)"
 msgstr "(İlerlemek için F2 tuşuna basın)"
 
@@ -12373,58 +12376,6 @@ msgstr "Otomatik beklemeye geçme zaman aşımı"
 msgid "Enter time in hours and minutes."
 msgstr "Zamanı saat ve dakika olarak yazın."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Otomatik kapanma zaman aşımı: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Otomatik kapanma zaman aşımı"
-
-msgid "Timeout for autoshutdown"
-msgstr "Otomatik kapanma zaman aşımı"
-
-msgid "Enter time in days and hours."
-msgstr "Zamanı saat ve dakika olarak yazın."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Hazırda bekleme, aygıtı ekran açık ve kullanıcı girişi yapılabilecek şekilde "
-"güç koruma kipine geçirir.\n"
-"\n"
-"Ağ açık ise hazırda bekleme kipine geçilemez.\n"
-"\n"
-"Kullanıcı girişi olduğunda, aygıtın uyanması için belirli bir süre geçmesi "
-"gerekir. Bu süre daha yeni aygıtlarda farkedilemeyecek kadar kısayken bazı "
-"aygıtlarda can sıkacak kadar uzun olabilir."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Aygıtınızın son derece güvenilmez olduğu biliniyor. Bu nedenle güç "
-"tasarrufuna geçilmemesi *çekirdeği kilitleyebilir*. Bu durum da tam bir "
-"aygıt kilitlenmesine ya da aygıtın yeniden başlatılmasına neden olabilir."
-
-msgid "Autostandby timeout: %1"
-msgstr "Otomatik hazırda bekleme süresi: %1"
-
-msgid "Autostandby timeout"
-msgstr "Otomatik hazırda bekleme süresi"
-
-msgid "Timeout for autostandby"
-msgstr "Otomatik hazırda bekleme zaman aşımı"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Zamanı dakika ve saniye olarak yazın."
-
 msgid "Auto power save"
 msgstr "Otomatik güç koruması"
 
@@ -12454,6 +12405,9 @@ msgstr "Otomatik sayfa çevirme"
 
 msgid "Autoturn time"
 msgstr "Otomatik sayfa çevirme süresi"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Zamanı dakika ve saniye olarak yazın."
 
 msgid "Set distance"
 msgstr "Sayfa sayısını ayarla"
@@ -16580,9 +16534,6 @@ msgstr "Uyanık olarak geçirilen zaman"
 msgid "Time in suspend"
 msgstr "Beklemeye geçme süresi"
 
-msgid "Time in standby"
-msgstr "Hazırda bekleme süresi"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17667,6 +17618,58 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "ek açıklamalar"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Otomatik kapanma zaman aşımı: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Otomatik kapanma zaman aşımı"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Otomatik kapanma zaman aşımı"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Zamanı saat ve dakika olarak yazın."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Hazırda bekleme, aygıtı ekran açık ve kullanıcı girişi yapılabilecek "
+#~ "şekilde güç koruma kipine geçirir.\n"
+#~ "\n"
+#~ "Ağ açık ise hazırda bekleme kipine geçilemez.\n"
+#~ "\n"
+#~ "Kullanıcı girişi olduğunda, aygıtın uyanması için belirli bir süre "
+#~ "geçmesi gerekir. Bu süre daha yeni aygıtlarda farkedilemeyecek kadar "
+#~ "kısayken bazı aygıtlarda can sıkacak kadar uzun olabilir."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Aygıtınızın son derece güvenilmez olduğu biliniyor. Bu nedenle güç "
+#~ "tasarrufuna geçilmemesi *çekirdeği kilitleyebilir*. Bu durum da tam bir "
+#~ "aygıt kilitlenmesine ya da aygıtın yeniden başlatılmasına neden olabilir."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Otomatik hazırda bekleme süresi: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Otomatik hazırda bekleme süresi"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Otomatik hazırda bekleme zaman aşımı"
+
+#~ msgid "Time in standby"
+#~ msgstr "Hazırda bekleme süresi"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Hesap açılırken bir sorun çıktı:"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Mihai Vasiliu <mihai.vasiliu.93@gmail.com>\n"
 "Language-Team: Romanian <https://hosted.weblate.org/projects/koreader/"
@@ -5925,6 +5925,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "În repaus"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10869,9 +10875,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Ghid de pornire rapidă KOReader"
 
-msgid "Sleeping"
-msgstr "În repaus"
-
 msgid "(Press F2 to resume)"
 msgstr "(Apasă F2 pentru a continua)"
 
@@ -12413,59 +12416,6 @@ msgstr "Interval pentru autosuspendare"
 msgid "Enter time in hours and minutes."
 msgstr "Introdu timpul în ore și minute."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Interval oprire automată: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Timp oprire automată"
-
-msgid "Timeout for autoshutdown"
-msgstr "Interval pentru autoînchidere"
-
-msgid "Enter time in days and hours."
-msgstr "Introdu un timp în zile și ore."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Modul standby pune dispozitivul într-o stare de salvare a energiei în care "
-"ecranul este pornit și răspunde la acțiuni.\n"
-"\n"
-"Modul standby nu se poate activa dacă Wi-Fi-ul este pornit.\n"
-"\n"
-"La detectarea acțiunilor utilizatorului, dispozitivul va necesita un timp "
-"mai mare pentru a se trezi. În general, cu cât dispozitivul este mai nou, cu "
-"atât timpul de așteptare va fi mai scurt, dar poate fi foarte mare pentru "
-"dispozitivele mai vechi."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Dispozitivul tău este cunoscut a fi foarte instabil, astfel că dacă intrarea "
-"în modul de economisire energie eșuează, acest lucru poate bloca kernelul, "
-"necesitând repornirea întregului dispozitiv."
-
-msgid "Autostandby timeout: %1"
-msgstr "Interval autostandby: %1"
-
-msgid "Autostandby timeout"
-msgstr "Interval autostandby"
-
-msgid "Timeout for autostandby"
-msgstr "Interval pentru autostandby"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Introdu timpul în minute și secunde."
-
 msgid "Auto power save"
 msgstr "Economisire consum automată"
 
@@ -12496,6 +12446,9 @@ msgstr "Întoarce pagina automat"
 
 msgid "Autoturn time"
 msgstr "Timp întoarcere automată pagină"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Introdu timpul în minute și secunde."
 
 msgid "Set distance"
 msgstr "Setează distanță"
@@ -16633,9 +16586,6 @@ msgstr "Timp activ"
 msgid "Time in suspend"
 msgstr "Timp suspendat"
 
-msgid "Time in standby"
-msgstr "Timp standby"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17719,6 +17669,59 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "adnotări"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Interval oprire automată: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Timp oprire automată"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Interval pentru autoînchidere"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Introdu un timp în zile și ore."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Modul standby pune dispozitivul într-o stare de salvare a energiei în "
+#~ "care ecranul este pornit și răspunde la acțiuni.\n"
+#~ "\n"
+#~ "Modul standby nu se poate activa dacă Wi-Fi-ul este pornit.\n"
+#~ "\n"
+#~ "La detectarea acțiunilor utilizatorului, dispozitivul va necesita un timp "
+#~ "mai mare pentru a se trezi. În general, cu cât dispozitivul este mai nou, "
+#~ "cu atât timpul de așteptare va fi mai scurt, dar poate fi foarte mare "
+#~ "pentru dispozitivele mai vechi."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Dispozitivul tău este cunoscut a fi foarte instabil, astfel că dacă "
+#~ "intrarea în modul de economisire energie eșuează, acest lucru poate bloca "
+#~ "kernelul, necesitând repornirea întregului dispozitiv."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Interval autostandby: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Interval autostandby"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Interval pentru autostandby"
+
+#~ msgid "Time in standby"
+#~ msgstr "Timp standby"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "A apărut o eroare în timpul înregistrării:"

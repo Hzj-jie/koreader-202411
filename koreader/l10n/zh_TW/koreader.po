@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -5665,13 +5665,19 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "休眠中"
+
+msgid "Waking up"
+msgstr "喚醒中"
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
 "crash loop. Please try starting KOReader again afterward."
 msgstr ""
-"無法獨佔輸入裝置。KOReader 將嘗試終止衝突處理程序並在 10 秒後退出，且不會自"
-"動重啟以避免崩潰循環。請稍後重新啟動 KOReader。"
+"無法獨佔輸入裝置。KOReader 將嘗試終止衝突處理程序並在 10 秒後退出，且不會自動"
+"重啟以避免崩潰循環。請稍後重新啟動 KOReader。"
 
 msgid "Cannot find any Wi-Fi, please try again later."
 msgstr "找不到任何 Wi-Fi，請稍後重試。"
@@ -10393,9 +10399,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader 快速入門指南"
 
-msgid "Sleeping"
-msgstr "休眠中"
-
 msgid "(Press F2 to resume)"
 msgstr "(按 F2 繼續)"
 
@@ -11897,55 +11900,6 @@ msgstr "自動休眠逾時"
 msgid "Enter time in hours and minutes."
 msgstr "以小時和分鐘為單位輸入時間。"
 
-msgid "Autoshutdown timeout: %1"
-msgstr "自動關機逾時：%1"
-
-msgid "Autoshutdown timeout"
-msgstr "自動關機逾時"
-
-msgid "Timeout for autoshutdown"
-msgstr "自動關機逾時"
-
-msgid "Enter time in days and hours."
-msgstr "以天數和小時為單位輸入時間。"
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"待機狀態是指裝置處於節電狀態，此時螢幕開啟，可以進行使用者輸入操作。\n"
-"\n"
-"Wi-Fi 啟用時無法進入待機狀態。\n"
-"\n"
-"在使用者輸入後，需要一定的時間來喚醒裝置。通常情況下，裝置越新，這種延遲就越"
-"不明顯，但在速度較慢的裝置上，這種情況會相當嚴重。"
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"據我們所知，您的裝置非常不可靠。因此，進入節電狀態失敗時可能會導致核心掛起，"
-"進而造成整個裝置宕機或重啟。"
-
-msgid "Autostandby timeout: %1"
-msgstr "自動待機超時：%1"
-
-msgid "Autostandby timeout"
-msgstr "自動待機超時"
-
-msgid "Timeout for autostandby"
-msgstr "自動待機超時時間"
-
-msgid "Enter time in minutes and seconds."
-msgstr "以分鐘和秒數為單位輸入時間。"
-
 msgid "Auto power save"
 msgstr "自動節電"
 
@@ -11970,6 +11924,9 @@ msgstr "自動翻頁"
 
 msgid "Autoturn time"
 msgstr "自動翻頁時間"
+
+msgid "Enter time in minutes and seconds."
+msgstr "以分鐘和秒數為單位輸入時間。"
 
 msgid "Set distance"
 msgstr "設定距離"
@@ -15973,9 +15930,6 @@ msgstr "亮屏時長"
 msgid "Time in suspend"
 msgstr "休眠時間"
 
-msgid "Time in standby"
-msgstr "待機時間"
-
 msgid "Start discharging at"
 msgstr "開始放電於"
 
@@ -17033,6 +16987,55 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "註釋"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "自動關機逾時：%1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "自動關機逾時"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "自動關機逾時"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "以天數和小時為單位輸入時間。"
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "待機狀態是指裝置處於節電狀態，此時螢幕開啟，可以進行使用者輸入操作。\n"
+#~ "\n"
+#~ "Wi-Fi 啟用時無法進入待機狀態。\n"
+#~ "\n"
+#~ "在使用者輸入後，需要一定的時間來喚醒裝置。通常情況下，裝置越新，這種延遲就"
+#~ "越不明顯，但在速度較慢的裝置上，這種情況會相當嚴重。"
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "據我們所知，您的裝置非常不可靠。因此，進入節電狀態失敗時可能會導致核心掛"
+#~ "起，進而造成整個裝置宕機或重啟。"
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "自動待機超時：%1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "自動待機超時"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "自動待機超時時間"
+
+#~ msgid "Time in standby"
+#~ msgstr "待機時間"
 
 #~ msgid "Syncing book statistics. This may take a while."
 #~ msgstr "正在同步閱讀統計。這可能需要一段時間。"

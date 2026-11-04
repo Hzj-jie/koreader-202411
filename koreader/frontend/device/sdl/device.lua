@@ -425,6 +425,7 @@ function Emulator:supportsScreensaver()
 end
 
 function Emulator:simulateSuspend()
+  self.powerd:initSuspend()
   local Screensaver = require("ui/screensaver")
   Screensaver:setup()
   Screensaver:show()
@@ -433,6 +434,7 @@ function Emulator:simulateSuspend()
 end
 
 function Emulator:simulateResume()
+  self.powerd:initWakeup()
   local Screensaver = require("ui/screensaver")
   Screensaver:close()
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-05-24 07:40+0000\n"
 "Last-Translator: Monirzadeh <Monirzadeh@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/koreader/"
@@ -5513,6 +5513,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "خوابیدن"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10129,9 +10135,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "راهنمای سریع کوریدر"
 
-msgid "Sleeping"
-msgstr "خوابیدن"
-
 msgid "(Press F2 to resume)"
 msgstr "(برای ادامه F2 را فشار دهید)"
 
@@ -11647,58 +11650,6 @@ msgstr "مهلت زمانی برای تعلیق خودکار"
 msgid "Enter time in hours and minutes."
 msgstr "زمان را به شکل ساعت و دقیقه وارد کنید."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "مهلت زمانی خاموش کردن خودکار: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "مهلت زمانی خاموش کردن خودکار"
-
-msgid "Timeout for autoshutdown"
-msgstr "مهلت زمانی برای خاموش کردن خودکار"
-
-msgid "Enter time in days and hours."
-msgstr "زمان را به شکل روز و ساعت وارد کنید."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"آماده به کار دستگاه را در حالت صرفه‌جویی انرژی قرار داده که صفحه روشن باقی "
-"مانده و ورودی‌های کاربر قابل اجراست.\n"
-"\n"
-"در حالت آماده به کار وای‌فای در صورت روشن بودن قابل استفاده نیست.\n"
-"\n"
-"با ورودی کاربر دستگاه نیازمند مدت زمان مشخصی برای بیدار شدن است. به طور کلی "
-"دستگاه‌های جدید‌تر این تاخیر قابل توجه نیست، اما در دستگاه‌های کندتر این موضوع "
-"می‌تواند شدید‌تر باشد."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"دستگاه شما به شدت غیرقابل اتکا شناسایی شده است، برای مثال ناتوانی در ورود به "
-"حالت صرفه‌جویی انرژی «می‌تواند» باعث هنگ کرنل، در نتیجه هنگ کامل دستگاه یا "
-"شروع به کار مجدد دستگاه شود."
-
-msgid "Autostandby timeout: %1"
-msgstr "مهلت زمانی آماده به کار خودکار: %1"
-
-msgid "Autostandby timeout"
-msgstr "مهلت زمانی آماده به کار خودکار"
-
-msgid "Timeout for autostandby"
-msgstr "مهلت زمانی برای آماده به کار خودکار"
-
-msgid "Enter time in minutes and seconds."
-msgstr "زمان را به شکل دقیقه و ثانیه وارد کنید."
-
 msgid "Auto power save"
 msgstr "ذخیره خودکار نیرو"
 
@@ -11726,6 +11677,9 @@ msgstr "ورق زدن خودکار"
 
 msgid "Autoturn time"
 msgstr "زمان ورق زدن خودکار"
+
+msgid "Enter time in minutes and seconds."
+msgstr "زمان را به شکل دقیقه و ثانیه وارد کنید."
 
 msgid "Set distance"
 msgstr "تنظیم فاصله"
@@ -15702,9 +15656,6 @@ msgstr "مدت زمان بیدار بودن"
 msgid "Time in suspend"
 msgstr "مدت زمان در تعلیق"
 
-msgid "Time in standby"
-msgstr "زمان در حالت آماده به کار"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -16702,6 +16653,58 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "چرخش"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "مهلت زمانی خاموش کردن خودکار: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "مهلت زمانی خاموش کردن خودکار"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "مهلت زمانی برای خاموش کردن خودکار"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "زمان را به شکل روز و ساعت وارد کنید."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "آماده به کار دستگاه را در حالت صرفه‌جویی انرژی قرار داده که صفحه روشن باقی "
+#~ "مانده و ورودی‌های کاربر قابل اجراست.\n"
+#~ "\n"
+#~ "در حالت آماده به کار وای‌فای در صورت روشن بودن قابل استفاده نیست.\n"
+#~ "\n"
+#~ "با ورودی کاربر دستگاه نیازمند مدت زمان مشخصی برای بیدار شدن است. به طور "
+#~ "کلی دستگاه‌های جدید‌تر این تاخیر قابل توجه نیست، اما در دستگاه‌های کندتر این "
+#~ "موضوع می‌تواند شدید‌تر باشد."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "دستگاه شما به شدت غیرقابل اتکا شناسایی شده است، برای مثال ناتوانی در ورود "
+#~ "به حالت صرفه‌جویی انرژی «می‌تواند» باعث هنگ کرنل، در نتیجه هنگ کامل دستگاه "
+#~ "یا شروع به کار مجدد دستگاه شود."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "مهلت زمانی آماده به کار خودکار: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "مهلت زمانی آماده به کار خودکار"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "مهلت زمانی برای آماده به کار خودکار"
+
+#~ msgid "Time in standby"
+#~ msgstr "زمان در حالت آماده به کار"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "خطایی در حال عضویت پیش‌ آمد:"

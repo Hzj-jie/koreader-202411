@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: gallegonovato <fran-carro@hotmail.es>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/koreader/"
@@ -5968,6 +5968,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "En suspensión"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -11015,9 +11021,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Guía de inicio rápido de KOReader"
 
-msgid "Sleeping"
-msgstr "En suspensión"
-
 msgid "(Press F2 to resume)"
 msgstr "(Pulsar F2 para reanudar)"
 
@@ -12562,61 +12565,6 @@ msgstr "Tiempo de inactividad para entrar en modo de suspensión automática"
 msgid "Enter time in hours and minutes."
 msgstr "Introducir una hora en horas y minutos."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Tiempo de inactividad para apagado automático: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Tiempo de inactividad para apagado automático"
-
-msgid "Timeout for autoshutdown"
-msgstr "Tiempo de inactividad para apagado automático"
-
-msgid "Enter time in days and hours."
-msgstr "Introducir una hora en días y horas."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"El modo de espera hace que el dispositivo entre en un estado de ahorro de "
-"energía en el que la pantalla está encendida y el usuario puede realizar "
-"acciones.\n"
-"\n"
-"No se puede entrar en modo de espera si la wifi está activada.\n"
-"\n"
-"Tras realizar una acción, el dispositivo necesita cierto tiempo para "
-"activarse. En los dispositivos más modernos, generalmente, este periodo de "
-"tiempo es imperceptible, pero puede ser bastante notorio en los dispositivos "
-"más lentos."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Este dispositivo es conocido por ser muy poco predecible, por lo que si no "
-"entra en un estado de ahorro de energía *puede* hacer que el kernel se "
-"cuelgue, dando lugar a un bloqueo total del dispositivo o a un reinicio del "
-"mismo."
-
-msgid "Autostandby timeout: %1"
-msgstr "Tiempo de inactividad antes de entrar en modo de espera: %1"
-
-msgid "Autostandby timeout"
-msgstr "Tiempo de inactividad antes de entrar en modo de espera automático"
-
-msgid "Timeout for autostandby"
-msgstr "Tiempo de inactividad para entrar en modo de espera automático"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Introducir intervalo de tiempo en minutos y segundos."
-
 msgid "Auto power save"
 msgstr "Ahorro de energía automático"
 
@@ -12647,6 +12595,9 @@ msgstr "Pasar página automáticamente"
 
 msgid "Autoturn time"
 msgstr "Tiempo de cambio de página"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Introducir intervalo de tiempo en minutos y segundos."
 
 msgid "Set distance"
 msgstr "Configurar distancia"
@@ -16806,9 +16757,6 @@ msgstr "Tiempo de actividad"
 msgid "Time in suspend"
 msgstr "Tiempo en suspensión"
 
-msgid "Time in standby"
-msgstr "Tiempo en espera"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17898,6 +17846,61 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "anotaciones"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Tiempo de inactividad para apagado automático: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Tiempo de inactividad para apagado automático"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Tiempo de inactividad para apagado automático"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Introducir una hora en días y horas."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "El modo de espera hace que el dispositivo entre en un estado de ahorro de "
+#~ "energía en el que la pantalla está encendida y el usuario puede realizar "
+#~ "acciones.\n"
+#~ "\n"
+#~ "No se puede entrar en modo de espera si la wifi está activada.\n"
+#~ "\n"
+#~ "Tras realizar una acción, el dispositivo necesita cierto tiempo para "
+#~ "activarse. En los dispositivos más modernos, generalmente, este periodo "
+#~ "de tiempo es imperceptible, pero puede ser bastante notorio en los "
+#~ "dispositivos más lentos."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Este dispositivo es conocido por ser muy poco predecible, por lo que si "
+#~ "no entra en un estado de ahorro de energía *puede* hacer que el kernel se "
+#~ "cuelgue, dando lugar a un bloqueo total del dispositivo o a un reinicio "
+#~ "del mismo."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Tiempo de inactividad antes de entrar en modo de espera: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Tiempo de inactividad antes de entrar en modo de espera automático"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Tiempo de inactividad para entrar en modo de espera automático"
+
+#~ msgid "Time in standby"
+#~ msgstr "Tiempo en espera"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Ha ocurrido un error al registrarse:"

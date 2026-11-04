@@ -140,17 +140,14 @@ function CervantesPowerD:isChargingHW()
   return self:read_str_file(self.status_file) == "Charging"
 end
 
-function CervantesPowerD:beforeSuspend()
-  -- Inhibit user input and emit the Suspend event.
-  self.device:_beforeSuspend()
-
+function CervantesPowerD:beforeSuspendHW()
   if self.fl then
     -- just turn off frontlight without remembering its state
     self.fl:setBrightness(0)
   end
 end
 
-function CervantesPowerD:afterResume()
+function CervantesPowerD:afterResumeHW()
   if self.fl then
     -- just re-set it to self.hw_intensity that we haven't changed on Suspend
     if not self.device:hasNaturalLight() then
@@ -159,11 +156,6 @@ function CervantesPowerD:afterResume()
       self.fl:setNaturalBrightness(self.hw_intensity, self.fl_warmth)
     end
   end
-
-  self:invalidateCapacityCache()
-
-  -- Restore user input and emit the Resume event.
-  self.device:_afterResume()
 end
 
 return CervantesPowerD

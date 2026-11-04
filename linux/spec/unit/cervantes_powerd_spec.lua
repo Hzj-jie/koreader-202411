@@ -8,8 +8,7 @@ describe("CervantesPowerD", function()
   local powerd
   local status_content = "Discharging"
   local capacity_content = 80
-  local before_suspend_called = false
-  local after_resume_called = false
+  local events_broadcast = {}
   local brightness_set = nil
   local natural_brightness_set = nil
   local orig_open = io.open
@@ -17,8 +16,7 @@ describe("CervantesPowerD", function()
   before_each(function()
     status_content = "Discharging"
     capacity_content = 80
-    before_suspend_called = false
-    after_resume_called = false
+    events_broadcast = {}
     brightness_set = nil
     natural_brightness_set = nil
 
@@ -42,12 +40,11 @@ describe("CervantesPowerD", function()
       hasNaturalLightMixer = function()
         return false
       end,
-      _beforeSuspend = function()
-        before_suspend_called = true
-      end,
-      _afterResume = function()
-        after_resume_called = true
-      end,
+      disableKeyRepeat = function() end,
+      restoreKeyRepeat = function() end,
+      last_suspend_at = 0,
+      last_resume_at = 0,
+      total_suspend_time = 0,
       frontlight_settings = {},
     }
 
@@ -76,6 +73,13 @@ describe("CervantesPowerD", function()
       status_file = "/tmp/mock_cervantes_status",
     })
     powerd.fl = mock_fl
+    powerd:UIManagerReady({
+      flushSettings = function() end,
+      broadcastEvent = function(_self, ev)
+        table.insert(events_broadcast, ev.handler)
+      end,
+      updateLastUserActionTime = function() end,
+    })
   end)
 
   after_each(function()
@@ -101,19 +105,19 @@ describe("CervantesPowerD", function()
   end)
 
   describe("suspend and resume lifecycle", function()
-    it("zeros brightness and notifies device before suspend", function()
+    it("zeros brightness and broadcasts Suspend before suspend", function()
       powerd.hw_intensity = 45
       powerd:beforeSuspend()
-      assert.is_true(before_suspend_called)
+      assert.are.same({ "onSuspend" }, events_broadcast)
       assert.are.equal(0, brightness_set)
     end)
 
     it(
-      "restores hardware intensity and notifies device after resume",
+      "restores hardware intensity and broadcasts Resume after resume",
       function()
         powerd.hw_intensity = 45
         powerd:afterResume()
-        assert.is_true(after_resume_called)
+        assert.are.same({ "onResume" }, events_broadcast)
         assert.are.equal(45, brightness_set)
       end
     )
@@ -125,7 +129,7 @@ describe("CervantesPowerD", function()
       powerd.hw_intensity = 60
       powerd.fl_warmth = 35
       powerd:afterResume()
-      assert.is_true(after_resume_called)
+      assert.are.same({ "onResume" }, events_broadcast)
       assert.are.equal(60, natural_brightness_set.intensity)
       assert.are.equal(35, natural_brightness_set.warmth)
     end)
@@ -135,7 +139,7 @@ describe("CervantesPowerD", function()
       powerd.hw_intensity = 30
       brightness_set = nil
       powerd:afterResume()
-      assert.is_true(after_resume_called)
+      assert.are.same({ "onResume" }, events_broadcast)
       assert.are.equal(30, brightness_set)
     end)
   end)
