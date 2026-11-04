@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-10-02 07:35+0000\n"
 "Last-Translator: Sari Gabor <sarigaborj@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/koreader/"
@@ -5815,6 +5815,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Alvó üzemmód"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10754,9 +10760,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "KOReader Quickstart kézikönyv"
 
-msgid "Sleeping"
-msgstr "Alvó üzemmód"
-
 msgid "(Press F2 to resume)"
 msgstr "(Folytatás F2 billentyűre)"
 
@@ -12288,58 +12291,6 @@ msgstr "Automatikus altatás időtúllépése"
 msgid "Enter time in hours and minutes."
 msgstr "Idő óra és perc formátumban."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Automatikus kikapcsolás időtúllépése: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Automatikus kikapcsolás időtúllépése"
-
-msgid "Timeout for autoshutdown"
-msgstr "Automatikus kikapcsolás időtúllépése"
-
-msgid "Enter time in days and hours."
-msgstr "Idő nap és óra formátumban."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"A készenléti mód energiatakarékos állapotba helyezi az eszközt, amikor a "
-"képernyő be van kapcsolva, és végrehajtható felhasználói adatbevitel.\n"
-"\n"
-"Nem lehet készenléti állapotba lépni, ha a WiFi be van kapcsolva.\n"
-"\n"
-"Felhasználói bevitel esetén az eszköznek bizonyos időre van szüksége, hogy "
-"felébredjen. Egyes újabb készülékeknél ez az idő észre sem vehető, míg más "
-"eszközöknél bosszantó is lehet."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Az Ön eszköze köztudottan rendkívül megbízhatatlan, ezért az "
-"energiatakarékos állapotba való belépés sikertelen *lehet*, emiatt a kernel "
-"leáll, ami az eszköz teljes leállását vagy újraindulását eredményezi."
-
-msgid "Autostandby timeout: %1"
-msgstr "Automatikus készenlét időtúllépése: %1"
-
-msgid "Autostandby timeout"
-msgstr "Automatikus készenlét időtúllépése"
-
-msgid "Timeout for autostandby"
-msgstr "Automatikus készenlét időtúllépése"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Idő perc és másodperc formátumban."
-
 msgid "Auto power save"
 msgstr "Automatikus energiatakarékosság"
 
@@ -12368,6 +12319,9 @@ msgstr "Automatikus lapozás"
 
 msgid "Autoturn time"
 msgstr "Automatikus lapozás ideje"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Idő perc és másodperc formátumban."
 
 msgid "Set distance"
 msgstr "Távolság beállítása"
@@ -16524,9 +16478,6 @@ msgstr "Ébren töltött idő"
 msgid "Time in suspend"
 msgstr "Felfüggesztés ideje"
 
-msgid "Time in standby"
-msgstr "Készenléti idő"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17610,6 +17561,59 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "megjegyzések"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Automatikus kikapcsolás időtúllépése: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Automatikus kikapcsolás időtúllépése"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Automatikus kikapcsolás időtúllépése"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Idő nap és óra formátumban."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "A készenléti mód energiatakarékos állapotba helyezi az eszközt, amikor a "
+#~ "képernyő be van kapcsolva, és végrehajtható felhasználói adatbevitel.\n"
+#~ "\n"
+#~ "Nem lehet készenléti állapotba lépni, ha a WiFi be van kapcsolva.\n"
+#~ "\n"
+#~ "Felhasználói bevitel esetén az eszköznek bizonyos időre van szüksége, "
+#~ "hogy felébredjen. Egyes újabb készülékeknél ez az idő észre sem vehető, "
+#~ "míg más eszközöknél bosszantó is lehet."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Az Ön eszköze köztudottan rendkívül megbízhatatlan, ezért az "
+#~ "energiatakarékos állapotba való belépés sikertelen *lehet*, emiatt a "
+#~ "kernel leáll, ami az eszköz teljes leállását vagy újraindulását "
+#~ "eredményezi."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Automatikus készenlét időtúllépése: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Automatikus készenlét időtúllépése"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Automatikus készenlét időtúllépése"
+
+#~ msgid "Time in standby"
+#~ msgstr "Készenléti idő"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Hiba történt a regisztráláskor:"

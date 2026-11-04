@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-19 16:36+0000\n"
 "Last-Translator: Vitalii <stopchan@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/koreader/"
@@ -5917,6 +5917,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Спить"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10869,9 +10875,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Короткий посібник KOReader"
 
-msgid "Sleeping"
-msgstr "Спить"
-
 msgid "(Press F2 to resume)"
 msgstr "(Натисніть F2, щоб продовжити)"
 
@@ -12417,58 +12420,6 @@ msgstr "Час очікування до автоматичного призуп
 msgid "Enter time in hours and minutes."
 msgstr "Введіть час у годинах і хвилинах."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Час до автовимкнення: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Час до автовимкнення"
-
-msgid "Timeout for autoshutdown"
-msgstr "Час очікування для автовимкнення"
-
-msgid "Enter time in days and hours."
-msgstr "Введіть час у днях і годинах."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Режим очікування переводить пристрій в енергоощадний стан, в якому екран "
-"увімкнений і можливе введення даних користувачем.\n"
-"\n"
-"У режим очікування не можна перейти, якщо увімкнено Wi-Fi.\n"
-"\n"
-"Після введення даних користувачем пристрою потрібен певний час для "
-"пробудження. Як правило, чим новіший пристрій, тим менш помітною буде ця "
-"затримка, але на повільних пристроях вона може бути досить відчутною."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Відомо, що ваш пристрій вкрай ненадійний, тому невдалий перехід у стан "
-"енергоощадження *може* призвести до зависання ядра, що призведе до повного "
-"зависання пристрою або його перезапуску."
-
-msgid "Autostandby timeout: %1"
-msgstr "Час до автопереходу в режим очікування: %1"
-
-msgid "Autostandby timeout"
-msgstr "Час до автопереходу в режим очікування"
-
-msgid "Timeout for autostandby"
-msgstr "Час до автопереходу в режим очікування"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Введіть час у хвилинах і секундах."
-
 msgid "Auto power save"
 msgstr "Авторежим енергоощадження"
 
@@ -12498,6 +12449,9 @@ msgstr "Автогортання"
 
 msgid "Autoturn time"
 msgstr "Час автогортання"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Введіть час у хвилинах і секундах."
 
 msgid "Set distance"
 msgstr "Вказати відстань"
@@ -16636,9 +16590,6 @@ msgstr "Час активності"
 msgid "Time in suspend"
 msgstr "Час призупинення"
 
-msgid "Time in standby"
-msgstr "Час у режимі очікування"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17718,6 +17669,58 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "анотації"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Час до автовимкнення: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Час до автовимкнення"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Час очікування для автовимкнення"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Введіть час у днях і годинах."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Режим очікування переводить пристрій в енергоощадний стан, в якому екран "
+#~ "увімкнений і можливе введення даних користувачем.\n"
+#~ "\n"
+#~ "У режим очікування не можна перейти, якщо увімкнено Wi-Fi.\n"
+#~ "\n"
+#~ "Після введення даних користувачем пристрою потрібен певний час для "
+#~ "пробудження. Як правило, чим новіший пристрій, тим менш помітною буде ця "
+#~ "затримка, але на повільних пристроях вона може бути досить відчутною."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Відомо, що ваш пристрій вкрай ненадійний, тому невдалий перехід у стан "
+#~ "енергоощадження *може* призвести до зависання ядра, що призведе до "
+#~ "повного зависання пристрою або його перезапуску."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Час до автопереходу в режим очікування: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Час до автопереходу в режим очікування"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Час до автопереходу в режим очікування"
+
+#~ msgid "Time in standby"
+#~ msgstr "Час у режимі очікування"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Стався збій при реєстрації:"

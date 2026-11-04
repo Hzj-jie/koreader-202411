@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -5651,6 +5651,12 @@ msgid ""
 "%1"
 msgstr ""
 
+msgid "Sleeping"
+msgstr "Sover"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -9964,9 +9970,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr ""
 
-msgid "Sleeping"
-msgstr "Sover"
-
 msgid "(Press F2 to resume)"
 msgstr ""
 
@@ -11461,49 +11464,6 @@ msgstr ""
 msgid "Enter time in hours and minutes."
 msgstr ""
 
-msgid "Autoshutdown timeout: %1"
-msgstr ""
-
-msgid "Autoshutdown timeout"
-msgstr ""
-
-msgid "Timeout for autoshutdown"
-msgstr ""
-
-msgid "Enter time in days and hours."
-msgstr ""
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-
-#, fuzzy
-msgid "Autostandby timeout: %1"
-msgstr "Avanserte innstillinger"
-
-#, fuzzy
-msgid "Autostandby timeout"
-msgstr "Avanserte innstillinger"
-
-msgid "Timeout for autostandby"
-msgstr ""
-
-msgid "Enter time in minutes and seconds."
-msgstr ""
-
 msgid "Auto power save"
 msgstr ""
 
@@ -11530,6 +11490,9 @@ msgstr ""
 #, fuzzy
 msgid "Autoturn time"
 msgstr "Avanserte innstillinger"
+
+msgid "Enter time in minutes and seconds."
+msgstr ""
 
 msgid "Set distance"
 msgstr ""
@@ -15530,9 +15493,6 @@ msgstr ""
 msgid "Time in suspend"
 msgstr ""
 
-msgid "Time in standby"
-msgstr ""
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -16514,6 +16474,14 @@ msgstr "Legg til i Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plassering"
+
+#, fuzzy
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Avanserte innstillinger"
+
+#, fuzzy
+#~ msgid "Autostandby timeout"
+#~ msgstr "Avanserte innstillinger"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "En feil inntraff under registrering:"

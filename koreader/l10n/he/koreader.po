@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -5783,6 +5783,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "מושע"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10590,9 +10596,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "מדריך מהיר להפעלת KOReader"
 
-msgid "Sleeping"
-msgstr "מושע"
-
 msgid "(Press F2 to resume)"
 msgstr "(נא ללחוץ על F2 כדי להמשיך)"
 
@@ -12110,58 +12113,6 @@ msgstr "פסק זמן להשהיה אוטומטית"
 msgid "Enter time in hours and minutes."
 msgstr "הזן זמן בשעות ודקות."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "זמן קצוב לכיבוי אוטומטי: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "זמן קצוב לכיבוי אוטומטי"
-
-msgid "Timeout for autoshutdown"
-msgstr "זמן קצוב לכיבוי אוטומטי"
-
-msgid "Enter time in days and hours."
-msgstr "נא למלא זמן בימים ושעות."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"ההמתנה מכניסה את המכשיר למצב חיסכון בחשמל בו המסך פועל וניתן לבצע קלט "
-"משתמש.\n"
-"\n"
-"לא ניתן להיכנס למצב המתנה אם הרשת האלחוטית פעילה.\n"
-"\n"
-"עם קלט משתמש, המכשיר צריך פרק זמן מסוים כדי להתעורר. בדרך כלל, ככל שהמכשיר "
-"חדיש יותר, העיכוב הזה פחות מורגש, אבל זה יכול להחמיר למדי במכשירים אטיים "
-"יותר."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"המכשיר שלך ידוע בכך שהוא לא אמין במיוחד, כיוון שהוא כזה, כשל במעבר למצב "
-"חיסכון בחשמל *עשוי* להקפיא את הליבה, מה שיכול לגרום להשבתה מלאה של המכשיר או "
-"הפעלה מחדש."
-
-msgid "Autostandby timeout: %1"
-msgstr "זמן קצוב לפני השהיה אוטומטית: %1"
-
-msgid "Autostandby timeout"
-msgstr "זמן קצוב לפני השהיה אוטומטית"
-
-msgid "Timeout for autostandby"
-msgstr "פסק זמן להשהיה אוטומטית"
-
-msgid "Enter time in minutes and seconds."
-msgstr "נא למלא זמן בדקות ושניות."
-
 msgid "Auto power save"
 msgstr "חיסכון אוטומטי בחשמל"
 
@@ -12188,6 +12139,9 @@ msgstr "דפדוף אוטומטי"
 
 msgid "Autoturn time"
 msgstr "זמן דפדוף אוטומטי"
+
+msgid "Enter time in minutes and seconds."
+msgstr "נא למלא זמן בדקות ושניות."
 
 msgid "Set distance"
 msgstr "הגדרת מרחק"
@@ -16271,9 +16225,6 @@ msgstr "זמן ערות"
 msgid "Time in suspend"
 msgstr "זמן בהשהיה"
 
-msgid "Time in standby"
-msgstr "זמן בהמתנה"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17333,6 +17284,58 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "הסברים"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "זמן קצוב לכיבוי אוטומטי: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "זמן קצוב לכיבוי אוטומטי"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "זמן קצוב לכיבוי אוטומטי"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "נא למלא זמן בימים ושעות."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "ההמתנה מכניסה את המכשיר למצב חיסכון בחשמל בו המסך פועל וניתן לבצע קלט "
+#~ "משתמש.\n"
+#~ "\n"
+#~ "לא ניתן להיכנס למצב המתנה אם הרשת האלחוטית פעילה.\n"
+#~ "\n"
+#~ "עם קלט משתמש, המכשיר צריך פרק זמן מסוים כדי להתעורר. בדרך כלל, ככל "
+#~ "שהמכשיר חדיש יותר, העיכוב הזה פחות מורגש, אבל זה יכול להחמיר למדי "
+#~ "במכשירים אטיים יותר."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "המכשיר שלך ידוע בכך שהוא לא אמין במיוחד, כיוון שהוא כזה, כשל במעבר למצב "
+#~ "חיסכון בחשמל *עשוי* להקפיא את הליבה, מה שיכול לגרום להשבתה מלאה של המכשיר "
+#~ "או הפעלה מחדש."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "זמן קצוב לפני השהיה אוטומטית: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "זמן קצוב לפני השהיה אוטומטית"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "פסק זמן להשהיה אוטומטית"
+
+#~ msgid "Time in standby"
+#~ msgstr "זמן בהמתנה"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "אירעה שגיאה במהלך הרישום:"

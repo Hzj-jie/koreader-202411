@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-11-18 15:26+0000\n"
 "Last-Translator: Ichnilatis <sophronios.sp@gmail.com>\n"
 "Language-Team: Greek <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -6024,6 +6024,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "Κατάσταση νάρκης"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -11058,9 +11064,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Σύντομος οδηγός χρήσης του KOReader"
 
-msgid "Sleeping"
-msgstr "Κατάσταση νάρκης"
-
 msgid "(Press F2 to resume)"
 msgstr "(Πατήστε F2 για να συνεχίσετε)"
 
@@ -12603,62 +12606,6 @@ msgstr "Χρονικό όριο για αυτόματη αναστολή λει�
 msgid "Enter time in hours and minutes."
 msgstr "Εισαγάγετε τον χρόνο σε ώρες και λεπτά."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Χρονικό όριο αυτόματης απενεργοποίησης: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Χρονικό όριο αυτόματης απενεργοποίησης"
-
-msgid "Timeout for autoshutdown"
-msgstr "Χρονικό όριο για αυτόματη απενεργοποίηση"
-
-msgid "Enter time in days and hours."
-msgstr "Εισαγάγετε τον χρόνο σε ημέρες και ώρες."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"Η κατάσταση αναμονής θέτει τη συσκευή σε κατάσταση εξοικονόμησης ενέργειας, "
-"στην οποία η οθόνη είναι αναμμένη και ο χρήστης μπορεί να εκτελέσει "
-"ενέργειες.\n"
-"\n"
-"Η είσοδος στην κατάσταση αναμονής δεν είναι δυνατή εάν το Wi-Fi είναι "
-"ενεργοποιημένο.\n"
-"\n"
-"Μετά την εκτέλεση μίας ενέργειας από τον χρήστη, η συσκευή χρειάζεται ένα "
-"συγκεκριμένο χρονικό διάστημα για να ξυπνήσει. Γενικά, όσο πιο καινούργια "
-"είναι η συσκευή, τόσο λιγότερο αισθητή είναι αυτή η καθυστέρηση, αλλά μπορεί "
-"να είναι αρκετά ενοχλητική σε πιο αργές συσκευές."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Η συσκευή σας είναι γνωστό ότι είναι εξαιρετικά αναξιόπιστη, και ως εκ "
-"τούτου, η αποτυχία εισόδου σε κατάσταση εξοικονόμησης ενέργειας *μπορεί* να "
-"κολλήσει τον πυρήνα, με αποτέλεσμα την πλήρη παύση λειτουργίας της συσκευής "
-"ή την επανεκκίνηση της συσκευής."
-
-msgid "Autostandby timeout: %1"
-msgstr "Χρονικό όριο αυτόματης κατάστασης αναμονής: %1"
-
-msgid "Autostandby timeout"
-msgstr "Χρονικό όριο αυτόματης κατάστασης αναμονής"
-
-msgid "Timeout for autostandby"
-msgstr "Χρονικό όριο για αυτόματη κατάσταση αναμονής"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Εισαγάγετε τον χρόνο σε λεπτά και δευτερόλεπτα."
-
 msgid "Auto power save"
 msgstr "Αυτόματη εξοικονόμηση ενέργειας"
 
@@ -12689,6 +12636,9 @@ msgstr "Αυτόματη αλλαγή σελίδων"
 
 msgid "Autoturn time"
 msgstr "Χρόνος αυτόματης αλλαγής σελίδων"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Εισαγάγετε τον χρόνο σε λεπτά και δευτερόλεπτα."
 
 msgid "Set distance"
 msgstr "Καθορισμός απόστασης"
@@ -16851,9 +16801,6 @@ msgstr "Χρόνος παραμονής σε εγρήγορση"
 msgid "Time in suspend"
 msgstr "Χρόνος σε αναστολή λειτουργίας"
 
-msgid "Time in standby"
-msgstr "Χρόνος σε κατάσταση αναμονής"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17949,6 +17896,62 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "επισημειώσεις"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Χρονικό όριο αυτόματης απενεργοποίησης: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Χρονικό όριο αυτόματης απενεργοποίησης"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Χρονικό όριο για αυτόματη απενεργοποίηση"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Εισαγάγετε τον χρόνο σε ημέρες και ώρες."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "Η κατάσταση αναμονής θέτει τη συσκευή σε κατάσταση εξοικονόμησης "
+#~ "ενέργειας, στην οποία η οθόνη είναι αναμμένη και ο χρήστης μπορεί να "
+#~ "εκτελέσει ενέργειες.\n"
+#~ "\n"
+#~ "Η είσοδος στην κατάσταση αναμονής δεν είναι δυνατή εάν το Wi-Fi είναι "
+#~ "ενεργοποιημένο.\n"
+#~ "\n"
+#~ "Μετά την εκτέλεση μίας ενέργειας από τον χρήστη, η συσκευή χρειάζεται ένα "
+#~ "συγκεκριμένο χρονικό διάστημα για να ξυπνήσει. Γενικά, όσο πιο καινούργια "
+#~ "είναι η συσκευή, τόσο λιγότερο αισθητή είναι αυτή η καθυστέρηση, αλλά "
+#~ "μπορεί να είναι αρκετά ενοχλητική σε πιο αργές συσκευές."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Η συσκευή σας είναι γνωστό ότι είναι εξαιρετικά αναξιόπιστη, και ως εκ "
+#~ "τούτου, η αποτυχία εισόδου σε κατάσταση εξοικονόμησης ενέργειας *μπορεί* "
+#~ "να κολλήσει τον πυρήνα, με αποτέλεσμα την πλήρη παύση λειτουργίας της "
+#~ "συσκευής ή την επανεκκίνηση της συσκευής."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Χρονικό όριο αυτόματης κατάστασης αναμονής: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Χρονικό όριο αυτόματης κατάστασης αναμονής"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Χρονικό όριο για αυτόματη κατάσταση αναμονής"
+
+#~ msgid "Time in standby"
+#~ msgstr "Χρόνος σε κατάσταση αναμονής"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Παρουσιάστηκε σφάλμα κατά την εγγραφή:"

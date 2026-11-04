@@ -1,8 +1,13 @@
 local Event = require("ui/event")
 local Math = require("optmath")
-local UIManager
+local gettext = require("gettext")
 local logger = require("logger")
 local time = require("ui/time")
+
+local UIManager
+local sleeping_notification
+local wakeup_notification
+
 local BasePowerD = {
   fl_min = 0, -- min frontlight intensity
   fl_max = 10, -- max frontlight intensity
@@ -102,19 +107,69 @@ function BasePowerD:frontlightWarmthHW()
 end
 -- Anything that needs to be done before doing a real hardware suspend.
 -- (Such as turning the front light off).
--- Do *not* omit calling Device's _beforeSuspend method! This default implementation passes `false` so as *not* to disable input events during PM.
-function BasePowerD:beforeSuspend()
-  self.device:_beforeSuspend()
-end
+function BasePowerD:beforeSuspendHW() end
 -- Anything that needs to be done after doing a real hardware resume.
 -- (Such as restoring front light state).
--- Do *not* omit calling Device's _afterResume method!
+function BasePowerD:afterResumeHW() end
+
+function BasePowerD:initSuspend()
+  local Notification = require("ui/widget/notification")
+  sleeping_notification = Notification:new({
+    text = gettext("Sleeping"),
+  })
+  UIManager:show(sleeping_notification)
+  UIManager:forceRepaint()
+end
+
+function BasePowerD:initWakeup()
+  local Notification = require("ui/widget/notification")
+  wakeup_notification = Notification:new({
+    text = gettext("Waking up"),
+  })
+  UIManager:show(wakeup_notification)
+  UIManager:forceRepaint()
+end
+
+-- The common operations that should be performed before suspending the device.
+function BasePowerD:beforeSuspend()
+  if sleeping_notification then
+    UIManager:close(sleeping_notification)
+    sleeping_notification = nil
+    UIManager:forceRepaint()
+  end
+  UIManager:flushSettings()
+  UIManager:broadcastEvent(Event:new("Suspend"))
+  self.device.last_suspend_at = time.realtime()
+  -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
+  self.device:disableKeyRepeat()
+  self:beforeSuspendHW()
+end
+
+-- The common operations that should be performed after resuming the device.
 function BasePowerD:afterResume()
+  if wakeup_notification then
+    UIManager:close(wakeup_notification)
+    wakeup_notification = nil
+    UIManager:forceRepaint()
+  end
   -- MONOTONIC doesn't tick during suspend,
   -- invalidate the last battery capacity pull time so that we get up to date data immediately.
   self:invalidateCapacityCache()
+  self:afterResumeHW()
 
-  self.device:_afterResume()
+  -- Restore key repeat if it's not disabled
+  if G_reader_settings:nilOrFalse("input_no_key_repeat") then
+    self.device:restoreKeyRepeat()
+  end
+
+  self.device.last_resume_at = time.realtime()
+  self.device.total_suspend_time = self.device.total_suspend_time
+    + (self.device.last_resume_at - self.device.last_suspend_at)
+  -- This is a hacky way to ensure the resume can be treated as an input.
+  -- Ideally UIManager should understand the Resume event, but it needs to check every single
+  -- event being processed.
+  UIManager:updateLastUserActionTime()
+  UIManager:broadcastEvent(Event:new("Resume"))
 end
 
 -- Update our UIManager reference once it's ready

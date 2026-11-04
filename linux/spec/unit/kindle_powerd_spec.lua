@@ -101,13 +101,19 @@ describe("KindlePowerD", function()
         return true
       end,
       sysfsSuspend = Device.sysfsSuspend,
-      _beforeSuspend = function() end,
-      _afterResume = function() end,
+      disableKeyRepeat = function() end,
+      restoreKeyRepeat = function() end,
+      last_suspend_at = 0,
+      last_resume_at = 0,
+      total_suspend_time = 0,
     }
 
     mock_uimgr = {
       scheduled = {},
       ticks = {},
+      flushSettings = function() end,
+      broadcastEvent = function() end,
+      updateLastUserActionTime = function() end,
       scheduleIn = function(self_u, delay, fn, arg)
         table.insert(self_u.scheduled, { delay = delay, fn = fn, arg = arg })
       end,

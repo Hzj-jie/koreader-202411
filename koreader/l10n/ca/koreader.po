@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-30 23:48-0700\n"
+"POT-Creation-Date: 2026-11-03 14:39-0800\n"
 "PO-Revision-Date: 2024-10-31 18:39+0000\n"
 "Last-Translator: \"Joan O.\" <ccumwusl@sharklasers.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/koreader/"
@@ -5801,6 +5801,12 @@ msgstr ""
 "\n"
 "%1"
 
+msgid "Sleeping"
+msgstr "En suspensió"
+
+msgid "Waking up"
+msgstr ""
+
 msgid ""
 "Failed to grab input device. KOReader will try to terminate conflicting "
 "processes and exit in 10 seconds without restarting automatically to avoid a "
@@ -10789,9 +10795,6 @@ msgstr ""
 msgid "KOReader Quickstart Guide"
 msgstr "Guia d'inici ràpid de KOReader"
 
-msgid "Sleeping"
-msgstr "En suspensió"
-
 msgid "(Press F2 to resume)"
 msgstr "(Prémer F2 per a reprendre)"
 
@@ -12331,60 +12334,6 @@ msgstr "Temps d'inactivitat per a entrar en mode de suspensió automàtica"
 msgid "Enter time in hours and minutes."
 msgstr "Introduir una hora en hores i minuts."
 
-msgid "Autoshutdown timeout: %1"
-msgstr "Temps d'inactivitat per a apagat automàtic: %1"
-
-msgid "Autoshutdown timeout"
-msgstr "Temps d'inactivitat per a apagat automàtic"
-
-msgid "Timeout for autoshutdown"
-msgstr "Temps d'inactivitat per a apagat automàtic"
-
-msgid "Enter time in days and hours."
-msgstr "Introduir una hora en dies i hores."
-
-msgid ""
-"Standby puts the device into a power-saving state in which the screen is on "
-"and user input can be performed.\n"
-"\n"
-"Standby can not be entered if Wi-Fi is on.\n"
-"\n"
-"Upon user input, the device needs a certain amount of time to wake up. "
-"Generally, the newer the device, the less noticeable this delay will be, but "
-"it can be fairly aggravating on slower devices."
-msgstr ""
-"La mode d'espera fa que el dispositiu entre en un estat d'estalvi d'energia "
-"en el qual la pantalla està encesa i l'usuari pot realitzar accions.\n"
-"\n"
-"No es pot entrar en mode d'espera si la Wi-Fi està activada.\n"
-"\n"
-"Després de realitzar una acció, el dispositiu necessita cert temps per a "
-"activar-se. En els dispositius més moderns, generalment, aquest període de "
-"temps és imperceptible, però pot ser bastant notori en els dispositius més "
-"lents."
-
-msgid ""
-"Your device is known to be extremely unreliable, as such, failure to enter a "
-"power-saving state *may* hang the kernel, resulting in a full device hang or "
-"a device restart."
-msgstr ""
-"Aquest dispositiu és conegut per ser molt poc predictible, per la qual cosa "
-"si no entra en un estat d'estalvi d'energia *pot* fer que el kernel es "
-"penge, donant lloc a un bloqueig total del dispositiu o a un reinici "
-"d'aquest."
-
-msgid "Autostandby timeout: %1"
-msgstr "Temps d'inactivitat abans d'entrar en mode d'espera: %1"
-
-msgid "Autostandby timeout"
-msgstr "Temps d'inactivitat abans d'entrar en mode d'espera automàtic"
-
-msgid "Timeout for autostandby"
-msgstr "Temps d'inactivitat per a entrar en mode d'espera automàtic"
-
-msgid "Enter time in minutes and seconds."
-msgstr "Introduir interval de temps en minuts i segons."
-
 msgid "Auto power save"
 msgstr "Estalvi d'energia automàtic"
 
@@ -12415,6 +12364,9 @@ msgstr "Passar de pàgina automàticament"
 
 msgid "Autoturn time"
 msgstr "Temps de canvi de pàgina"
+
+msgid "Enter time in minutes and seconds."
+msgstr "Introduir interval de temps en minuts i segons."
 
 msgid "Set distance"
 msgstr "Configurar distància"
@@ -16573,9 +16525,6 @@ msgstr "Temps d'activitat"
 msgid "Time in suspend"
 msgstr "Temps en suspensió"
 
-msgid "Time in standby"
-msgstr "Temps en espera"
-
 msgid "Start discharging at"
 msgstr ""
 
@@ -17661,6 +17610,61 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "anotacions"
+
+#~ msgid "Autoshutdown timeout: %1"
+#~ msgstr "Temps d'inactivitat per a apagat automàtic: %1"
+
+#~ msgid "Autoshutdown timeout"
+#~ msgstr "Temps d'inactivitat per a apagat automàtic"
+
+#~ msgid "Timeout for autoshutdown"
+#~ msgstr "Temps d'inactivitat per a apagat automàtic"
+
+#~ msgid "Enter time in days and hours."
+#~ msgstr "Introduir una hora en dies i hores."
+
+#~ msgid ""
+#~ "Standby puts the device into a power-saving state in which the screen is "
+#~ "on and user input can be performed.\n"
+#~ "\n"
+#~ "Standby can not be entered if Wi-Fi is on.\n"
+#~ "\n"
+#~ "Upon user input, the device needs a certain amount of time to wake up. "
+#~ "Generally, the newer the device, the less noticeable this delay will be, "
+#~ "but it can be fairly aggravating on slower devices."
+#~ msgstr ""
+#~ "La mode d'espera fa que el dispositiu entre en un estat d'estalvi "
+#~ "d'energia en el qual la pantalla està encesa i l'usuari pot realitzar "
+#~ "accions.\n"
+#~ "\n"
+#~ "No es pot entrar en mode d'espera si la Wi-Fi està activada.\n"
+#~ "\n"
+#~ "Després de realitzar una acció, el dispositiu necessita cert temps per a "
+#~ "activar-se. En els dispositius més moderns, generalment, aquest període "
+#~ "de temps és imperceptible, però pot ser bastant notori en els dispositius "
+#~ "més lents."
+
+#~ msgid ""
+#~ "Your device is known to be extremely unreliable, as such, failure to "
+#~ "enter a power-saving state *may* hang the kernel, resulting in a full "
+#~ "device hang or a device restart."
+#~ msgstr ""
+#~ "Aquest dispositiu és conegut per ser molt poc predictible, per la qual "
+#~ "cosa si no entra en un estat d'estalvi d'energia *pot* fer que el kernel "
+#~ "es penge, donant lloc a un bloqueig total del dispositiu o a un reinici "
+#~ "d'aquest."
+
+#~ msgid "Autostandby timeout: %1"
+#~ msgstr "Temps d'inactivitat abans d'entrar en mode d'espera: %1"
+
+#~ msgid "Autostandby timeout"
+#~ msgstr "Temps d'inactivitat abans d'entrar en mode d'espera automàtic"
+
+#~ msgid "Timeout for autostandby"
+#~ msgstr "Temps d'inactivitat per a entrar en mode d'espera automàtic"
+
+#~ msgid "Time in standby"
+#~ msgstr "Temps en espera"
 
 #~ msgid "An error occurred while registering:"
 #~ msgstr "Ha ocorregut un error en registrar-se:"
