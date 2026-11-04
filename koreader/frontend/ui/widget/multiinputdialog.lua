@@ -240,7 +240,7 @@ function MultiInputDialog:init()
     end
   end
 
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     return "ui", self.dialog_frame.dimen
   end)
 end

@@ -493,7 +493,7 @@ function SortWidget:_populateItems()
     self.show_page < self.pages
       or (self.marked > 0 and self.marked < #self.item_table)
   )
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     return "ui", self.dimen
   end)
 end
