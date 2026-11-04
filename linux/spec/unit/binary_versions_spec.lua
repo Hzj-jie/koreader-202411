@@ -8,9 +8,9 @@ describe("BinaryVersions", function()
     gettext = require("gettext")
   end)
 
-  it("enumerates all 42 ELF binaries in order", function()
+  it("enumerates all 43 ELF binaries in order", function()
     local kv_pairs = BinaryVersions:getKeyValuePairs()
-    assert.are.equal(42, #kv_pairs)
+    assert.are.equal(43, #kv_pairs)
 
     local section = 1
     local prev_path = ""
@@ -33,9 +33,9 @@ describe("BinaryVersions", function()
       ["libs/libgif.so.7"] = true,
       ["libs/libk2pdfopt.so.2"] = true,
       ["libs/libkoreader-cre.so"] = true,
+      ["libs/libkoreader-djvu.so"] = true,
       ["libs/libkoreader-nnsvg.so"] = true,
       ["libs/libkoreader-xtext.so"] = true,
-      ["libs/liblunasvg.so"] = true,
     }
 
     local by_path = {}
@@ -56,8 +56,11 @@ describe("BinaryVersions", function()
     assert.is_truthy(by_path["common/lpeg.so"]:match("%d+%.%d+"))
     assert.is_truthy(by_path["libs/libfreetype.so.6"]:match("^%d+%.%d+%.%d+$"))
     assert.is_truthy(by_path["libs/libfribidi.so.0"]:match("%d+%.%d+"))
-    assert.is_truthy(by_path["libs/libunibreak.so.6"]:match("^%d+%.%d+$"))
+    assert.is_truthy(by_path["libs/libunibreak.so.8"]:match("^%d+%.%d+$"))
     assert.is_truthy(by_path["libs/liblodepng.so"]:match("%d+"))
+    assert.are.equal("3.5.0", by_path["libs/liblunasvg.so"])
+    assert.is_truthy(by_path["libs/libarchive.so.13"]:match("^libarchive "))
+    assert.is_truthy(by_path["libs/libxxhash.so.0"]:match("^%d+%.%d+%.%d+$"))
     assert.are.equal(require("ffi/mupdf").version, by_path["libs/libwrap-mupdf.so"])
     assert.is_truthy(by_path["libs/libjpeg.so.8"]:match("^libjpeg%-turbo version "))
   end)
@@ -82,7 +85,7 @@ describe("BinaryVersions", function()
     assert.are.equal(2, #shown)
     local kv_page = shown[2]
     assert.are.equal(gettext("Binary versions"), kv_page.title)
-    assert.are.equal(42, #kv_page.kv_pairs)
+    assert.are.equal(43, #kv_page.kv_pairs)
   end)
 
   it("scans version banners straddling a 64 KiB read boundary", function()

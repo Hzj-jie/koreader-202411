@@ -7,6 +7,7 @@ require("ffi/freetype_h")
 require("ffi/utf8proc_h")
 
 ffi.cdef([[
+const char *archive_version_string(void);
 const char *OpenSSL_version(int);
 void zsys_version(int *, int *, int *);
 void FT_Library_Version(FT_Library, FT_Int *, FT_Int *, FT_Int *);
@@ -16,6 +17,7 @@ const char *hb_version_string(void);
 char *getLeptonicaVersion(void);
 void lept_free(void *);
 extern const char *LODEPNG_VERSION_STRING;
+const char *lunasvg_version_string(void);
 const char *png_get_libpng_ver(void *);
 int SharpYuvGetVersion(void);
 const char *sqlite3_libversion(void);
@@ -23,6 +25,7 @@ unsigned long http_parser_version(void);
 extern const int unibreak_version;
 int WebPGetDecoderVersion(void);
 int WebPGetDemuxVersion(void);
+unsigned int XXH_versionNumber(void);
 const char *zlibVersion(void);
 void zmq_version(int *, int *, int *);
 const char *ZSTD_versionString(void);
@@ -159,6 +162,9 @@ local resolvers = {
   { "^ssl%.so$", function()
     return "LuaSec " .. require("ssl")._VERSION
   end },
+  { "^libarchive%.so", function(path)
+    return ffi.string(ffi.load(path).archive_version_string())
+  end },
   { "^libcrypto%.so", function(path)
     return ffi.string(ffi.load(path).OpenSSL_version(0))
   end },
@@ -208,6 +214,9 @@ local resolvers = {
   { "^liblodepng%.so$", function(path)
     return ffi.string(ffi.load(path).LODEPNG_VERSION_STRING)
   end },
+  { "^liblunasvg%.so$", function(path)
+    return ffi.string(ffi.load(path).lunasvg_version_string())
+  end },
   { "^libpng16%.so", function(path)
     return ffi.string(ffi.load(path).png_get_libpng_ver(nil))
   end },
@@ -244,6 +253,10 @@ local resolvers = {
   { "^libwebpdemux%.so", function(path)
     local v = ffi.load(path).WebPGetDemuxVersion()
     return string.format("%d.%d.%d", bit.band(bit.rshift(v, 16), 0xff), bit.band(bit.rshift(v, 8), 0xff), bit.band(v, 0xff))
+  end },
+  { "^libxxhash%.so", function(path)
+    local v = ffi.load(path).XXH_versionNumber()
+    return string.format("%d.%d.%d", math.floor(v / 10000), math.floor(v / 100) % 100, v % 100)
   end },
   { "^libwrap%-mupdf%.so$", function()
     return require("ffi/mupdf").version
