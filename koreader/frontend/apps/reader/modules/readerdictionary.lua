@@ -1093,7 +1093,9 @@ function ReaderDictionary:showLookupMsg(text)
 end
 
 function ReaderDictionary:showDict(word, results, boxes, link)
-  UIManager:close(self.lookup_progress_msg)
+  -- lookup_progress_msg is nil when stardictLookup calls showDict directly
+  -- without showLookupMsg (e.g. when all dictionaries are disabled).
+  UIManager:closeIfNotNil(self.lookup_progress_msg)
   self.lookup_progress_msg = nil
 
   if results == nil or results[1] == nil then
