@@ -19,7 +19,7 @@
 // Users of this library can request the old behaviour by setting
 // gDOMVersionRequested to an older version to request the old (possibly
 // buggy) behaviour.
-#define DOM_VERSION_CURRENT 20240114
+#define DOM_VERSION_CURRENT 20260812
 
 // Also defined in include/lvtinydom.h
 #define DOM_VERSION_WITH_NORMALIZED_XPOINTERS 20200223
@@ -88,14 +88,22 @@
 // EPUB <spine>, and not only those with media-type="application/xhtml+xml".
 // This means we can insert <DocFragment> in the DOM that wouldn't be here
 // before, and risk DocFragment[index] in xpointers to get the index shifted.
+//
+// 20260812: XPointers serialized by toStringV2() now always emit an
+// explicit [1] for the first sibling element of its kind. This avoids
+// costly forward sibling scans.
+// Also allows MOBI documents to inject a standalone <a> marker inside text
+// for resolving 'filepos' links (which may split a text node).
+
+#include "crsetup.h"
 
 extern const int gDOMVersionCurrent = DOM_VERSION_CURRENT;
 
 /// change in case of incompatible changes in swap/cache file format to avoid using incompatible swap file
 // increment to force complete reload/reparsing of old file
-#define CACHE_FILE_FORMAT_VERSION "3.05.75k"
+#define CACHE_FILE_FORMAT_VERSION "3.05.84k"
 /// increment following value to force re-formatting of old book after load
-#define FORMATTING_VERSION_ID 0x0033
+#define FORMATTING_VERSION_ID 0x0036
 
 #ifndef DOC_DATA_COMPRESSION_LEVEL
 /// data compression level (0=no compression, 1=fast compressions, 3=normal compression)
@@ -219,7 +227,6 @@ enum CacheFileBlockType {
 
 #include <stdlib.h>
 #include <string.h>
-#include "../include/crsetup.h"
 #include "../include/lvstring.h"
 #include "../include/lvtinydom.h"
 #include "../include/fb2def.h"
@@ -238,10 +245,14 @@ enum CacheFileBlockType {
 #define PACK_BUF_SIZE 0x10000
 #define UNPACK_BUF_SIZE 0x40000
 #endif
-#define XXH_INLINE_ALL
 #include <xxhash.h>
 #include <lvtextfm.h>
 #include "../include/lvdocviewprops.h"
+#include "../include/renderutil.h"
+#if USE_UTF8PROC == 1
+#include <utf8proc.h>
+#endif
+
 
 // define to store new text nodes as persistent text, instead of mutable
 #define USE_PERSISTENT_TEXT 1
@@ -394,6 +405,9 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
     // if ( fontMan->getKerning() )
     //     hash += 127365;
     hash = hash * 31 + (int)fontMan->GetKerningMode();
+    // All enabled strengths preserve fractional layout; only enabling or
+    // disabling it changes measurements.
+    hash = hash * 31 + (fontMan->GetFractionalGlyphPositioning() != 0);
     hash = hash * 31 + fontMan->GetMonospaceSizeScale();
     hash = hash * 31 + (int)fontMan->GetFallbackFontSizesAdjusted();
     hash = hash * 31 + fontMan->GetFontListHash(documentId);
@@ -423,6 +437,21 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
         hash = hash * 31 + HyphMan::getTrustSoftHyphens();
         hash = hash * 31 + UserHyphDict::getHash();
     }
+    /*
+    printf("  %d %d %d %d %d %d %d %d %d %d %d %d\n",
+        (int)fontMan->GetKerningMode(),
+        fontMan->GetFractionalGlyphPositioning(),
+        fontMan->GetMonospaceSizeScale(),
+        (int)fontMan->GetFallbackFontSizesAdjusted(),
+        fontMan->GetFontListHash(documentId),
+        LVRendGetBaseFontWeight(),
+        gRenderDPI,
+        TextLangMan::getHash(),
+        HyphMan::getLeftHyphenMin(),
+        HyphMan::getRightHyphenMin(),
+        HyphMan::getTrustSoftHyphens(),
+        UserHyphDict::getHash());
+    */
     return hash;
 }
 
@@ -1741,7 +1770,6 @@ LVStreamRef ldomBlobCache::getBlob( lString32 name )
     return LVStreamRef();
 }
 
-#if BUILD_LITE!=1
 //#define DEBUG_RENDER_RECT_ACCESS
 #ifdef DEBUG_RENDER_RECT_ACCESS
   static signed char render_rect_flags[200000]={0};
@@ -2157,6 +2185,33 @@ int RenderRectAccessor::getLangNodeIndex()
     }
     return _lang_node_idx;
 }
+
+int RenderRectAccessor::getPercentHeightBase()
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    return _percent_height_base;
+}
+
+void RenderRectAccessor::setPercentHeightBase( int height )
+{
+    if ( _dirty ) {
+        _dirty = false;
+        _node->getRenderData(*this);
+#ifdef DEBUG_RENDER_RECT_ACCESS
+        rr_lock( _node );
+#endif
+    }
+    if ( _percent_height_base != height ) {
+        _percent_height_base = height;
+        _modified = true;
+    }
+}
 void RenderRectAccessor::setLangNodeIndex( int idx )
 {
     if ( _dirty ) {
@@ -2269,7 +2324,7 @@ void RenderRectAccessor::getInvolvedFloatIds( int & float_count, lUInt32 * float
     if (float_count > 3) float_ids[3] = _extra4;
     if (float_count > 4) float_ids[4] = _extra5;
 }
-void RenderRectAccessor::setInvolvedFloatIds( int float_count, lUInt32 * float_ids )
+void RenderRectAccessor::setInvolvedFloatIds( int float_count, const lUInt32 * float_ids )
 {
     if ( _dirty ) {
         _dirty = false;
@@ -2286,8 +2341,6 @@ void RenderRectAccessor::setInvolvedFloatIds( int float_count, lUInt32 * float_i
     if (float_count > 4) _extra5 = float_ids[4];
     _modified = true;
 }
-
-#endif
 
 
 class ldomPersistentText;
@@ -3791,6 +3844,8 @@ lxmlDocBase::lxmlDocBase( int /*dataBufSize*/ )
 {
     // create and add one data buffer
     _ua_stylesheet.setDocument( this );
+    // Style tweaks may contain @font-face rule, be sure we notice any change
+    _ua_stylesheet.enableFontFaceDeclTracking();
     _stylesheet.setDocument( this );
 }
 
@@ -3920,6 +3975,7 @@ ldomDocument::ldomDocument()
 , _doc_pages(NULL)
 #endif
 , lists(100)
+, _parsingDocFragmentIdx(-1)
 {
     _docIndex = ldomNode::registerDocument(this);
     ldomNode* node = allocTinyElement(NULL, 0, 0);
@@ -3972,6 +4028,7 @@ ldomDocument::ldomDocument( ldomDocument & doc )
 #endif
 , _container(doc._container)
 , lists(100)
+, _parsingDocFragmentIdx(-1)
 {
     _docIndex = ldomNode::registerDocument(this);
 }
@@ -4175,19 +4232,15 @@ static void writeSVGNode( LVStream * stream, ldomNode * node, bool forward_node_
                 lString8 s;
                 if ( style->font_weight != css_fw_normal ) {
                     switch ( style->font_weight ) {
-                        case css_fw_bold:      s << "bold";    break;
-                        case css_fw_bolder:    s << "bolder";  break;
-                        case css_fw_lighter:   s << "lighter"; break;
-                        case css_fw_100:       s << "100";     break;
-                        case css_fw_200:       s << "200";     break;
-                        case css_fw_300:       s << "300";     break;
-                        case css_fw_400:       s << "400";     break;
-                        case css_fw_500:       s << "500";     break;
-                        case css_fw_600:       s << "600";     break;
-                        case css_fw_700:       s << "700";     break;
-                        case css_fw_800:       s << "800";     break;
-                        case css_fw_900:       s << "900";     break;
-                        default:               s << "normal";  break;
+                        case css_fw_bold:    s << "bold";    break;
+                        case css_fw_bolder:  s << "bolder";  break;
+                        case css_fw_lighter: s << "lighter"; break;
+                        default:
+                            if ( style->font_weight >= 1 && style->font_weight <= 1000 )
+                                s << lString8::itoa((int)style->font_weight);
+                            else
+                                s << "normal";
+                            break;
                     }
                 }
                 else if ( !is_top_node || style->isImportant(imp_bit_font_weight) )
@@ -4198,6 +4251,18 @@ static void writeSVGNode( LVStream * stream, ldomNode * node, bool forward_node_
                         svalue << " !important";
                     svalue << ";";
                 }
+            }
+            // font-width (stored in tenths of a percent)
+            if ( (is_top_node ? style->font_width != css_fwd_normal : style->font_width != pstyle->font_width)
+                    || style->isImportant(imp_bit_font_width) ) {
+                int tenths = style->font_width ? style->font_width : css_fwd_normal;
+                svalue << "font-width: " << lString8::itoa(tenths / 10);
+                if ( tenths % 10 )
+                    svalue << "." << lString8::itoa(tenths % 10);
+                svalue << "%";
+                if ( style->isImportant(imp_bit_font_width) )
+                    svalue << " !important";
+                svalue << ";";
             }
             // color
             if ( is_top_node || !(style->color == pstyle->color) || style->isImportant(imp_bit_color) ) {
@@ -4335,7 +4400,8 @@ static void writeSVGNode( LVStream * stream, ldomNode * node, bool forward_node_
 static void addAtImportCssFiles(ldomDocument * document, lString32 cssFile, lString32Collection & cssFiles); // defined just below writeNodeEx()
 
 static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection & cssFiles, LVStream * extra_stream, int wflags=0,
-    ldomXPointerEx startXP=ldomXPointerEx(), ldomXPointerEx endXP=ldomXPointerEx(), int indentBaseLevel=-1)
+    ldomXPointerEx startXP=ldomXPointerEx(), ldomXPointerEx endXP=ldomXPointerEx(), int indentBaseLevel=-1,
+    ldomXPointerEx * currentXP=NULL, const ldomXPointerEx * startNodeXP=NULL, const ldomXPointerEx * endNodeXP=NULL)
 {
     bool isStartNode = false;
     bool isEndNode = false;
@@ -4343,48 +4409,46 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
     bool isBeforeEnd = false;
     bool containsStart = false;
     bool containsEnd = false;
+    // We used to recompute ldomXPointerEx(node, 0) at each recursive
+    // step, but that can be expensive on huge flat DOMs because it has
+    // to rebuild the node path from parent/sibling indexes. It is
+    // cheaper to compute the initial xpointer once, then update it
+    // while descending/ascending recursion. These locals back the
+    // optional XPointer parameters during that recursion.
+    ldomXPointerEx currentXPBacking;
+    ldomXPointerEx startNodeXPBacking;
+    ldomXPointerEx endNodeXPBacking;
 
     if ( !startXP.isNull() && !endXP.isNull() ) {
-        ldomXPointerEx currentEXP = ldomXPointerEx(node, 0);
-        // Use start (offset=0) of text node for comparisons, but keep original XPointers
-        ldomXPointerEx startEXP = ldomXPointerEx( startXP );
-        startEXP.setOffset(0);
-        ldomXPointerEx endEXP = ldomXPointerEx( endXP );
-        endEXP.setOffset(0);
-        if (currentEXP == startEXP)
-            isStartNode = true;
-        if (currentEXP == endEXP)
-            isEndNode = true;
-        if ( currentEXP.compare( startEXP ) >= 0 ) {
-            isAfterStart = true;
+        if ( !currentXP ) {
+            // Initial call: compute these once
+            currentXPBacking = ldomXPointerEx(node, 0);
+            currentXP = &currentXPBacking;
+            // Use start/end with offset=0 for node comparisons, but keep the
+            // original XPointers for text slicing below.
+            startNodeXPBacking = ldomXPointerEx( startXP );
+            startNodeXPBacking.setOffset(0);
+            startNodeXP = &startNodeXPBacking;
+            endNodeXPBacking = ldomXPointerEx( endXP );
+            endNodeXPBacking.setOffset(0);
+            endNodeXP = &endNodeXPBacking;
         }
-        if ( currentEXP.compare( endEXP ) <= 0 ) {
-            isBeforeEnd = true;
-        }
-        ldomNode *tmp;
-        tmp = startXP.getNode();
-        while (tmp) {
-            if (tmp == node) {
-                containsStart = true;
-                break;
-            }
-            tmp = tmp->getParentNode();
-        }
-        tmp = endXP.getNode();
-        while (tmp) {
-            if (tmp == node) {
-                containsEnd = true;
-                break;
-            }
-            tmp = tmp->getParentNode();
-        }
+        int cmpStart = currentXP->compare( *startNodeXP );
+        int cmpEnd = currentXP->compare( *endNodeXP );
+        isStartNode = cmpStart == 0;
+        isEndNode = cmpEnd == 0;
+        isAfterStart = cmpStart >= 0;
+        isBeforeEnd = cmpEnd <= 0;
+        containsStart = currentXP->isPathPrefixOf( *startNodeXP );
+        containsEnd = currentXP->isPathPrefixOf( *endNodeXP );
     }
     else {
+        // Whole subtree: no comparison and no XPointer maintenance needed
         containsStart = true;
         containsEnd = true;
         isAfterStart = true;
         isBeforeEnd = true;
-        // but not isStartNode nor isEndNode, as these use startXP and endXP
+        // but not isStartNode nor isEndNode: no actual start/end boundary node
     }
 
     bool isInitialNode = false;
@@ -4746,6 +4810,10 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
             }
         }
         if ( WNEFLAG(SHOW_REND_METHOD) ) {
+            // For cloneNode, also show the element name of the source node
+            if ( node->getNodeId() == el_cloneNode && !node->hasAttribute(attr_T) ) {
+                *stream << " " << UnicodeToUtf8(node->getCloneNodeSource()->getNodeName());
+            }
             *stream << " ~";
             switch ( node->getRendMethod() ) {
                 case erm_invisible:          *stream << "X";     break;
@@ -4778,7 +4846,11 @@ static void writeNodeEx( LVStream * stream, ldomNode * node, lString32Collection
                 *stream << "\n";
             if ( ! isStylesheetTag ) {
                 for ( int i=0; i<(int)node->getChildCount(); i++ ) {
-                    writeNodeEx( stream, node->getChildNode(i), cssFiles, extra_stream, wflags, startXP, endXP, indentBaseLevel );
+                    bool moved = currentXP ? currentXP->child(i) : false;
+                    writeNodeEx( stream, node->getChildNode(i), cssFiles, extra_stream, wflags, startXP, endXP, indentBaseLevel,
+                        currentXP, startNodeXP, endNodeXP );
+                    if ( moved )
+                        currentXP->parent();
                 }
             }
             else {
@@ -4958,6 +5030,10 @@ ldomDocument::~ldomDocument()
 {
 #if BUILD_LITE!=1
     updateMap(); // NOLINT: Call to virtual function during destruction
+    // Our cache of LFormattedTextRefs may have some with a non-null LVFontRef
+    // keeping alive some font instances (eg. for initial-letter).
+    // Drop them before unregistering document fonts.
+    clearRendBlockCache();
 #endif
     _def_font.Clear();
     _fonts.clear();
@@ -4990,10 +5066,22 @@ public:
         LVStyleSheet *cached = cache.get(cssFile);
         if (cached) {
             dest.merge(*cached);
+            // Replay @font-face registrations with the current DocFragment's index.
+            // On a cache miss the registrations happened directly during parsing;
+            // on a cache hit we must re-register so each DocFragment that links
+            // the same CSS file gets its own scoped copy of the font.
+            const LVArray<LVStyleSheet::LVFontFaceDecl> & decls = cached->getFontFaceDecls();
+            for (int i = 0; i < decls.length(); i++) {
+                _document->registerFontFace(decls[i].url, decls[i].face, decls[i].weight, decls[i].width, decls[i].italic, decls[i].isLocal);
+            }
             return true;
         }
 
         LVStyleSheet *styleSheet = new LVStyleSheet(_document);
+        // This is the object that will be stored in StyleSheetCache below, so
+        // it (and anything merged into it from its own @import chain) needs
+        // to remember its @font-face decls for replay on future cache hits.
+        styleSheet->enableFontFaceDeclTracking();
         lString32 codeBase = cssFile;
         LVExtractLastPathElement(codeBase);
         LVContainerRef container = _document->getContainer();
@@ -5126,9 +5214,11 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
     s->font_family = def_font->getFontFamily();
     s->font_size = css_length_t(css_val_screen_px, def_font->getSize()); // we use screen_px, as we got the real font size from FontManager
     s->font_name = def_font->getTypeFace();
-    s->font_weight = css_fw_400;
+    s->font_weight = 400;
+    s->font_width = css_fwd_normal;
     s->font_style = css_fs_normal;
     s->font_features = css_length_t(css_val_unspecified, 0);
+    s->font_optical_sizing = css_fos_auto; // CSS initial value; enables opsz auto-injection
     s->text_indent = css_length_t(css_val_screen_px, 0);
     s->line_height = css_length_t(css_val_unspecified, css_generic_normal); // line-height: normal
     s->letter_spacing = css_length_t(css_val_unspecified, css_generic_normal); // letter-spacing: normal
@@ -5142,6 +5232,7 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
     s->line_break = css_lb_auto;
     s->word_break = css_wb_normal;
     s->caption_side = css_cs_top;
+    s->ruby_position = css_rp_alternate;
     s->cr_hint = css_length_t(css_val_unspecified, CSS_CR_HINT_NONE);
 
     //lUInt32 defStyleHash = (((_ua_stylesheet.getHash() * 31) + calcHash(_def_style))*31 + calcHash(_def_font));
@@ -5936,12 +6027,25 @@ bool lxmlDocBase::deserializeMaps( SerialBuf & buf )
 }
 #endif
 
-bool IsEmptySpace( const lChar32 * text, int len )
+static bool IsEmptySpace( const lChar32 * text, int len )
 {
    for (int i=0; i<len; i++)
       if ( text[i]!=' ' && text[i]!='\r' && text[i]!='\n' && text[i]!='\t')
          return false;
    return true;
+}
+
+bool ldomNode::isWhitespaceText() const
+{
+    if ( !isText() )
+        return false;
+    const lString8 s8(getText8());
+    const lChar8 * text = s8.c_str();
+    int len = s8.length();
+    for ( int i=0; i<len; i++ )
+        if ( text[i]!=' ' && text[i]!='\r' && text[i]!='\n' && text[i]!='\t' )
+            return false;
+    return true;
 }
 
 
@@ -5959,13 +6063,17 @@ ldomElementWriter::ldomElementWriter(ldomDocument * document, lUInt16 nsid, lUIn
     _flags = 0;
     if ( (_typeDef && _typeDef->white_space >= css_ws_pre_line) || (_parent && _parent->getFlags()&TXTFLG_PRE) )
         _flags |= TXTFLG_PRE; // Parse as PRE: pre-line, pre, pre-wrap and break-spaces
-        // This will be updated in ldomElementWriter::onBodyEnter() after we have
-        // set styles to this node, so we'll get the real white_space value to use.
+    if ( _typeDef )
+        _isBlock = _typeDef->display > css_d_inline && _typeDef->display != css_d_none;
+        // These will be updated in ldomElementWriter::onBodyEnter() after we have
+        // set styles to this node, so we'll get the real white_space and display
+        // values to use for parsing any children text node.
 
     _isSection = (id==el_section);
 
     #if MATHML_SUPPORT==1
-        _insideMathML = (_parent && _parent->_insideMathML) || (id==el_math);
+        _insideMathML = (_parent && _parent->_insideMathML) || (id==el_math && _document->isDefStyleSet());
+            // (Don't handle any MathML stuff when no default style set, ie. when called from getBalancedHTML())
     #endif
 
     // Default (for elements not specified in fb2def.h) is to allow text
@@ -6157,7 +6265,7 @@ void ldomElementWriter::onBodyEnter()
             // The only possibility for this element being built to have children
             // is if the above initNodeStyle() has applied to this node some
             // matching selectors that had ::before or ::after, which have then
-            // created one or two pseudoElem children. But let's be sure of that.
+            // created one or more pseudoElem children. But let's be sure of that.
             for ( int i=0; i<nb_children; i++ ) {
                 ldomNode * child = _element->getChildNode(i);
                 if ( child->getNodeId() == el_pseudoElem ) {
@@ -6212,23 +6320,36 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
         // (and using pseudo elements on them feels hackish): ignore them.
         return;
     }
-    // This node should have that pseudoElement, but it might already be there,
+    // This node should get that pseudoElement, but it might already be there,
     // so check if there is already one, and if not, create it.
-    // This happens usually in the initial loading phase, but it might in
-    // a re-rendering if the pseudo element is introduced by a change in
-    // styles (we won't be able to create a node if there's a cache file).
+    // This happens usually in the initial loading phase, but it might in a
+    // re-rendering if the pseudo element is introduced by a change in styles.
     int insertChildIndex = -1;
     int nb_children = getChildCount();
     if ( is_before ) { // ::before
-        insertChildIndex = 0; // always to be inserted first, if not already there
+        // ::before should be at position 0, or at position 1 if FirstLine is at position 0.
+        insertChildIndex = 0; // default: insert first
         if ( nb_children > 0 ) {
-            ldomNode * child = getChildNode(0); // should always be found as the first node
+            ldomNode * child = getChildNode(0);
             // pseudoElem might have been wrapped by a inlineBox, autoBoxing, floatBox...
             while ( child && child->isBoxingNode() && child->getChildCount()>0 )
                 child = child->getChildNode(0);
             if ( child && child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_Before) ) {
-                // Already there, no need to create it
+                // Already there at position 0, no need to create it
                 insertChildIndex = -1;
+            }
+            else if ( child && child->getNodeId() == el_pseudoElem && child->hasAttribute(attr_FirstLine) ) {
+                // FirstLine is at position 0; ::before belongs at position 1
+                insertChildIndex = 1;
+                if ( nb_children > 1 ) {
+                    ldomNode * child1 = getChildNode(1);
+                    while ( child1 && child1->isBoxingNode() && child1->getChildCount()>0 )
+                        child1 = child1->getChildNode(0);
+                    if ( child1 && child1->getNodeId() == el_pseudoElem && child1->hasAttribute(attr_Before) ) {
+                        // Already there at position 1, no need to create it
+                        insertChildIndex = -1;
+                    }
+                }
             }
         }
     }
@@ -6276,6 +6397,426 @@ void ldomNode::ensurePseudoElement( bool is_before ) {
 #endif
 }
 
+void ldomNode::ensureFirstLetter(bool initStyle) {
+#if BUILD_LITE!=1
+    // This method handles ::first-letter pseudo element creation in 3 contexts:
+    // 1. Initial DOM building (setNodeStyle context): sets attr_HasFirstLetter,
+    //    but doesn't create pseudoElem yet; there are no children, we would not
+    //    find any text node that could provide a first letter.
+    // 2. Initial DOM building (onBodyExit context): now that children have been
+    //    added to the DOM, finds first text node having text, and creates
+    //    the pseudoElem[FirstLetter]
+    // 3. Stylesheet re-application (setNodeStyle context after re-rendering):
+    //    if element has children and needs ::first-letter, finds first text node
+    //    and creates pseudoElem
+    // initStyle parameter:
+    //   - true: call initNodeStyle() on newly created pseudoElem (during DOM building from onBodyExit)
+    //   - false: skip initNodeStyle() as it will be called during recursive style pass (during stylesheet re-application)
+
+    // Do nothing on a cloneNode, this will have been done on its source
+    if ( getNodeId() == el_cloneNode ) {
+        return;
+    }
+
+    // First, ensure the HasFirstLetter attribute is set
+    if ( !hasAttribute(attr_HasFirstLetter) ) {
+        setAttributeValue(LXML_NS_NONE, attr_HasFirstLetter, U"");
+    }
+
+    // If there are no children yet, we're in context 1 (setNodeStyle during initial DOM building)
+    // (we made sure any ::before pseudoElem is added *after* this is called).
+    // We'll be called again from onBodyExit, so just return
+    if ( getChildCount() == 0 ) {
+        return;
+    }
+
+    // Now, find the first visible non-empty text node and create the actual ::first-letter element
+    // Use our usual non-recursive depth-first node walker code to walk
+    // this element's children (excluding pseudo elements)
+    ldomNode * firstTextNode = NULL;
+    int firstLetterEndIndex = 0;
+    ldomNode * topNode = this;
+    ldomNode * n = topNode;
+    if ( n && n->getChildCount() > 0 ) {
+        int index = 0;
+        n = n->getChildNode(index);
+        while ( true ) {
+            // Check the node only the first time we meet it (index == 0)
+            if ( index == 0 ) {
+                if ( n->isText() ) {
+                    lString32 text = n->getText();
+                    if ( text.length() > 0 ) {
+                        // Found a non-empty text node, now find where the first letter ends, if any
+                        int len = text.length();
+                        int i = 0;
+                        // Specs: https://drafts.csswg.org/css-pseudo/#first-letter-pattern
+                        // (we do as we can with what we have easily)
+                        // Skip leading non-letter characters (spaces, punctuation, etc.)
+                        // until we find the first actual letter
+                        bool foundFirstLetter = false;
+                        int foundNonLetterIndex = -1;
+                        while ( i < len ) {
+                            lUInt16 props = lGetCharProps(text[i]);
+                            if ( props & (CH_PROP_UPPER | CH_PROP_LOWER | CH_PROP_DIGIT | CH_PROP_SIGN) ) {
+                                // Found the start of the first letter
+                                foundFirstLetter = true;
+                                break;
+                            }
+                            else if ( !(props & CH_PROP_SPACE) ) {
+                                // Found another kind of char that is visible
+                                // if we happen to not get foundFirstLetter in this text node,
+                                // we will have to use it as first letter, even if some letters
+                                // are found in a sibling element (ie. <p>(<em>Letter</em>) as
+                                // we can't wrap across text nodes.
+                                // This is as Firefox and Edge do.
+                                foundNonLetterIndex = i;
+                                // We could either add or not "&& foundNonLetterIndex < 0" to the check
+                                // above to start grabbing below from the first non-space or the last one,
+                                // which would give different results.
+                                // Not adding it does as Firefox.
+                                // Adding it would do more as Edge (except that Edge would stop
+                                // depending on other conditions).
+                                // Let's do simple, as Firefox.
+                            }
+                            i++;
+                        }
+                        if ( !foundFirstLetter && foundNonLetterIndex >= 0 ) {
+                            // This first non-letter non-space should act as our first letter.
+                            foundFirstLetter = true;
+                            i = foundNonLetterIndex;
+                        }
+                        // Now grab any trailing modifiers/punctuation that are part of the first letter
+                        if ( foundFirstLetter ) {
+                            i++;
+                            while ( i < len ) {
+                                lUInt16 props = lGetCharProps(text[i]);
+                                // Our CH_PROP_PUNCT being both the 2 PUNCT_OPEN and _CLOSE bits set,
+                                // we have to go with this to exclude opening punct, by specs.
+                                // Firefox properly exclude a '(', but Chrome/Edge do not.
+                                // We can't easily exclude dashes, as the specs requires.
+                                if ( (props & (CH_PROP_MODIFIER | CH_PROP_PUNCT)) &&
+                                        ((props&CH_PROP_PUNCT) != CH_PROP_PUNCT_OPEN)) {
+                                    i++;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            firstTextNode = n;
+                            firstLetterEndIndex = i;
+                            break;
+                        }
+                    }
+                }
+                else if ( n->getNodeId() == el_pseudoElem ) {
+                    // Skip pseudo elements: jump to next sibling
+                    index = n->getNodeIndex() + 1;
+                    n = n->getParentNode();
+                    if ( n == topNode && index >= n->getChildCount() )
+                        break;
+                    continue;
+                }
+                else if ( !n->getStyle().isNull() && n->getStyle()->display == css_d_none ) {
+                    // Skip display:none elements
+                    index = n->getNodeIndex() + 1;
+                    n = n->getParentNode();
+                    if ( n == topNode && index >= n->getChildCount() )
+                        break;
+                    continue;
+                }
+                else if ( n->getNodeId() == el_br ) {
+                    // A <br> before any text makes no first-letter
+                    break;
+                }
+            }
+            // Process next child
+            if ( index < n->getChildCount() ) {
+                n = n->getChildNode(index);
+                index = 0;
+                continue;
+            }
+            // No more child, get back to parent and have it process our sibling
+            index = n->getNodeIndex() + 1;
+            n = n->getParentNode();
+            if ( n == topNode && index >= n->getChildCount() )
+                break; // back to top node and all its children visited
+        }
+    }
+
+    // If we found a first letter, create the ::first-letter pseudo
+    // element if it is not already there
+    if ( firstTextNode && firstLetterEndIndex > 0 ) {
+        // We will always find or create the pseudoElem FirstLetter as
+        // an immediate preceeding sibling of this firstTextNode
+        // Note: textNodeIndex can be any value >= 0, not just 0, 1, or 2
+        // (e.g., with <p><b> </b><em> </em>text, text node would be at index 2 or more)
+        ldomNode * textNodeParent = firstTextNode->getParentNode();
+        int textNodeIndex = firstTextNode->getNodeIndex();
+        bool alreadyExists = false;
+        if ( textNodeIndex >= 1 ) { // (if 0, we are sure to not find it)
+            ldomNode * prevSibling = textNodeParent->getChildNode(textNodeIndex - 1);
+            if ( prevSibling && prevSibling->isElement() ) {
+                if ( prevSibling->getNodeId() == el_pseudoElem && prevSibling->hasAttribute(attr_FirstLetter) ) {
+                    alreadyExists = true;
+                }
+                else if ( prevSibling->isBoxingNode() ) {
+                    ldomNode * unboxed = prevSibling->getUnboxedFirstChild(true, el_pseudoElem);
+                    if ( unboxed && unboxed->getNodeId() == el_pseudoElem && unboxed->hasAttribute(attr_FirstLetter) ) {
+                        alreadyExists = true;
+                    }
+                }
+            }
+        }
+        if ( !alreadyExists ) {
+            // Insert FirstLetter at the text node's position (text node will shift forward)
+            int insertPosition = textNodeIndex;
+            ldomNode * firstLetterElem = textNodeParent->insertChildElement( insertPosition, LXML_NS_NONE, el_pseudoElem );
+            // Store the first letter end index (= its length) in the attribute value as a string
+            lString32 indexStr;
+            indexStr << fmt::decimal(firstLetterEndIndex);
+            firstLetterElem->setAttributeValue(LXML_NS_NONE, attr_FirstLetter, indexStr.c_str());
+            // Init style and rend method only if requested (during DOM building by onBodyExit)
+            // (after a re-rendering and stylesheet re-application, initNodeStyleRecursive()
+            // will meet this new element again and will do that itself)
+            if ( initStyle ) {
+                firstLetterElem->initNodeStyle();
+                firstLetterElem->initNodeRendMethod();
+            }
+        }
+    }
+#endif
+}
+
+// Find FirstLetter pseudoElem from a text node, returns NULL if not found or display:none
+// (if textOffset is provided, sets it to the FirstLetter character count)
+ldomNode * ldomNode::getFirstLetterPseudoElem(int * textOffset) const
+{
+    if ( !isText() ) // should be called on a text node
+        return NULL;
+    int nodeIndex = getNodeIndex();
+    if ( nodeIndex == 0 ) // no previous sibling, so no pseudo-element before it
+        return NULL;
+    ldomNode * parent = getParentNode();
+    if ( !parent )
+        return NULL;
+
+    // We made sure the FirstLetter pseudoElemn is just before its text node.
+    // It may be as-is, or wrapped by a boxin element (most often a floatBBox)
+    ldomNode * prevSibling = parent->getChildNode(nodeIndex - 1);
+    if ( !prevSibling || !prevSibling->isElement() )
+        return NULL;
+    ldomNode * pseudoElem = NULL;
+    if ( prevSibling->getNodeId() == el_pseudoElem && prevSibling->hasAttribute(attr_FirstLetter) ) {
+        pseudoElem = prevSibling;
+    }
+    else if ( prevSibling->isBoxingNode() ) {
+        ldomNode * unboxed = prevSibling->getUnboxedFirstChild(true, el_pseudoElem);
+        if ( unboxed && unboxed->getNodeId() == el_pseudoElem && unboxed->hasAttribute(attr_FirstLetter) ) {
+            pseudoElem = unboxed;
+        }
+    }
+    if ( !pseudoElem )
+        return NULL;
+    // If existing but display:none, it should have no effect
+    if ( pseudoElem->getStyle()->display == css_d_none ) {
+        return NULL;
+    }
+
+    // If caller wants the textOffset, extract it from the attribute
+    if ( textOffset ) {
+        *textOffset = pseudoElem->getAttributeValue(attr_FirstLetter).atoi();
+    }
+    return pseudoElem;
+}
+
+// Find the text node following a FirstLetter pseudoElem, returns NULL if not found
+ldomNode * ldomNode::getFirstLetterTextNode() const
+{
+    // This method should be called on a FirstLetter pseudoElem
+    if ( !isElement() || getNodeId() != el_pseudoElem || !hasAttribute(attr_FirstLetter) )
+        return NULL;
+    // Find the next sibling text node
+    ldomNode * nextSibling = getUnboxedNextSibling(false); // false = don't skip text nodes
+    if ( nextSibling && nextSibling->isText() ) {
+        return nextSibling;
+    }
+    return NULL;
+}
+
+// Helper function for ::first-line, to recursively clone a node and its children.
+// Clones only store a reference (SrcId) to the original node.
+// Queries (element name, attributes, text content...) can be delegated to the original
+// node by using the ldomNode::*Effective*() variants of the existing methods.
+static ldomNode * cloneNodeRecursively(ldomNode * source, ldomNode * parent) {
+#if BUILD_LITE!=1
+    if ( !source || !parent )
+        return NULL;
+
+    // Create a cloneNode element for both text and element nodes
+    ldomNode * clone = parent->insertChildElement( parent->getChildCount(), LXML_NS_NONE, el_cloneNode );
+    // Store a reference to the original node
+    lString32 nodeIdStr;
+    nodeIdStr << fmt::decimal(source->getDataIndex());
+    clone->setAttributeValue(LXML_NS_NONE, attr_SrcId, nodeIdStr.c_str());
+
+    if ( source->isText() ) {
+        // For text node clones, mark with empty attr_T so that setNodeStyle()
+        // can quickly set a dummy style, and for debugging visibility
+        clone->setAttributeValue(LXML_NS_NONE, attr_T, U"");
+        // These shouldn't need a style, but safer to have one to pass checks
+        // of style in various odd places without crashing
+        clone->initNodeStyle();
+    }
+    else if ( source->isElement() ) {
+        clone->initNodeStyle();
+        // Recursively clone children (including pseudoElem[Before/FirstLetter/After],
+        // which get to be styled with the ::first-line style)
+        for ( int i = 0; i < source->getChildCount(); i++ ) {
+            ldomNode * childSource = source->getChildNode(i);
+            cloneNodeRecursively(childSource, clone);
+        }
+    }
+    return clone;
+#else
+    return NULL;
+#endif
+}
+
+// Helper function for ::first-line, to recursively copy rendMethod from source nodes to cloneNodes
+static void copyRendMethodFromSources(ldomNode * node) {
+#if BUILD_LITE!=1
+    if ( !node || !node->isElement() )
+        return;
+    if ( node->getNodeId() == el_cloneNode ) {
+        ldomNode * source = node->getCloneNodeSource();
+        if ( source ) {
+            if ( source->isElement() ) {
+                node->setRendMethod( source->getRendMethod() );
+                lUInt16 source_node_id = source->getNodeId();
+                if ( source_node_id == el_floatBox || source_node_id == el_inlineBox ) {
+                    // On these elements, initNodeRendMethod() has reported on them
+                    // a few specific styles from their child. But it skips cloneNodes,
+                    // and these styles are required for rendering floats and inlineboxes
+                    // part of the first line sequence. Let's do the same here.
+                    css_style_ref_t source_style = source->getStyle();
+                    css_style_ref_t node_style = node->getStyle();
+                    css_style_ref_t style( new css_style_rec_t );
+                    copystyle(node_style, style);
+                    bool style_changed = false;
+                    if ( node_style->display != source_style->display ) {
+                        style->display = source_style->display;
+                        style_changed = true;
+                    }
+                    if ( source_node_id == el_floatBox && node_style->float_ != source_style->float_ ) {
+                        style->float_ = source_style->float_;
+                        style_changed = true;
+                    }
+                    if ( source_node_id == el_inlineBox && !(node_style->vertical_align == source_style->vertical_align) ) {
+                        style->vertical_align = source_style->vertical_align;
+                        style_changed = true;
+                    }
+                    if ( style_changed ) {
+                        node->setStyle(style);
+                    }
+                }
+            }
+            else {
+                // Not really needed, but safer, and let's have ~i (inline)
+                // rather than ~X (invisible) in writeNodeEx() HTML output.
+                node->setRendMethod( erm_inline );
+            }
+        }
+    }
+    for ( int i = 0; i < node->getChildCount(); i++ ) {
+        copyRendMethodFromSources( node->getChildNode(i) );
+    }
+#endif
+}
+
+/// Get the original node from a cloneNode element (for ::first-line)
+/// Returns NULL if this is not a cloneNode or if the original node cannot be found
+ldomNode * ldomNode::getCloneNodeSource() const {
+#if BUILD_LITE!=1
+    if ( !isElement() || getNodeId() != el_cloneNode )
+        return NULL;
+    lString32 srcId = getAttributeValue(attr_SrcId);
+    if ( srcId.empty() )
+        return NULL;
+    int nodeDataIndex = srcId.atoi();
+    if ( nodeDataIndex <= 0 )
+        return NULL;
+    ldomDocument * doc = getDocument();
+    if ( !doc )
+        return NULL;
+    ldomNode * sourceNode = doc->getTinyNode(nodeDataIndex);
+    return sourceNode;
+#else
+    return NULL;
+#endif
+}
+
+void ldomNode::ensureFirstLine() {
+#if BUILD_LITE!=1
+    // This method handles ::first-line pseudo element creation by cloning
+    // the paragraph's inner DOM subtree into the pseudoElem[FirstLine].
+    // The clones naturally inherit from the ::first-line style, solving
+    // the measurement/layout issue.
+    //
+    // Called at the end of initNodeRendMethod() for erm_final nodes with
+    // attr_HasFirstLine, so all boxing (inlineBox, autoBox, etc.) is already
+    // done and children have their final rendMethods.
+        // Note (but a bit uncertain about this): as this is called at initRendMethod() time,
+        // in case of a re-rendering where it happens after the full DOM is styled (unlike
+        // in the initial DOM building), we may have set HasFirstLine, which will cause
+        // the pseudoElem[FirstLine] to be created below, but its initNodeStyle() won't
+        // meet the publisher stylesheets, but only the user-agent stylesheet: if we are
+        // unmasking ::first-line (ie. removing "::first-line {display: none}" from style
+        // tweaks), we may not meet the original publisher styles, so we won't see
+        // them immediately. But as an element was added, the style display hash will change,
+        // and we will be proposed to reload the document, which should make things right.
+
+    // Check if we already have a FirstLine pseudoElem child
+    // Use getUnboxedFirstChild to find it even if it's been boxed (e.g., in an inlineBox)
+    ldomNode * firstLineElem = getUnboxedFirstChild(true, el_pseudoElem);
+    if ( firstLineElem && !firstLineElem->hasAttribute(attr_FirstLine) ) {
+        firstLineElem = NULL; // Found a pseudoElem, but not FirstLine (e.g., ::before)
+    }
+    if ( !firstLineElem ) {
+        // Create the FirstLine pseudo element as the first child of this element.
+        firstLineElem = insertChildElement( 0, LXML_NS_NONE, el_pseudoElem );
+        firstLineElem->setAttributeValue(LXML_NS_NONE, attr_FirstLine, U"");
+        firstLineElem->initNodeStyle();
+    }
+
+    if ( firstLineElem->getStyle()->display == css_d_none ) {
+        firstLineElem->setRendMethod(erm_invisible);
+        // Don't create cloneNodes
+        return;
+    }
+
+    // Clone children if the pseudoElem has no cloneNodes yet.
+    // If some pseudoElem[Before] is introduced later, we won't get it among
+    // our original cloneNode, but as a new element has been added, we will
+    // get proposed to reload the document, which should make things right.
+    if ( firstLineElem->getChildCount() == 0 ) {
+        // Clone all children of this element into firstLineElem
+        // Skip the first child (i=1) since it's the firstLineElem itself (possibly boxed)
+        for ( int i = 1; i < (int)getChildCount(); i++ ) {
+            ldomNode * child = getChildNode(i);
+            cloneNodeRecursively(child, firstLineElem);
+        }
+    }
+
+    // Whether created or already existing, set it erm_inline as not display:none
+    firstLineElem->setRendMethod(erm_inline);
+    // Copy rendMethods from the original (source) nodes to their clones.
+    // Since we're called from initNodeRendMethod() after all boxing is done,
+    // the originals have their final rendMethods.
+    copyRendMethodFromSources(firstLineElem);
+#endif
+}
+
+
 #if BUILD_LITE!=1
 static void resetRendMethodToInline( ldomNode * node )
 {
@@ -6318,14 +6859,12 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
     // (Note: did not check how floats inside <PRE> are supposed to work)
     if ( !pre ) {
         while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
-            lString32 s = getChildNode(firstNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !getChildNode(firstNonEmpty)->isWhitespaceText() )
                 break;
             firstNonEmpty++;
         }
         while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
-            lString32 s = getChildNode(lastNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !getChildNode(lastNonEmpty)->isWhitespaceText() )
                 break;
             lastNonEmpty--;
         }
@@ -6336,8 +6875,7 @@ void ldomNode::autoboxChildren( int startIndex, int endIndex, bool handleFloatin
                 hasInline = true;
                 if ( !hasNonEmptyInline ) {
                     if (node->isText()) {
-                        lString32 s = node->getText();
-                        if ( !IsEmptySpace(s.c_str(), s.length() ) ) {
+                        if ( !node->isWhitespaceText() ) {
                             hasNonEmptyInline = true;
                         }
                     }
@@ -6468,8 +7006,7 @@ bool ldomNode::cleanIfOnlyEmptyTextInline( bool handleFloating )
     for ( ; i>=0; i-- ) {
         ldomNode * node = getChildNode(i);
         if ( node->isText() ) {
-            lString32 s = node->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) ) {
+            if ( !node->isWhitespaceText() ) {
                 return false;
             }
         }
@@ -6507,8 +7044,7 @@ bool ldomNode::hasNonEmptyInlineContent( bool ignoreFloats )
     // padding top/bottom (and height if check ENSURE_STYLE_HEIGHT)
     // if these will introduce some content.
     if ( isText() ) {
-        lString32 s = getText();
-        return !IsEmptySpace(s.c_str(), s.length() );
+        return !isWhitespaceText();
     }
     if (getNodeId() == el_br) {
         return true;
@@ -6581,14 +7117,12 @@ ldomNode * ldomNode::boxWrapChildren( int startIndex, int endIndex, lUInt16 elem
     int lastNonEmpty = endIndex;
     if (!pre) {
         while ( firstNonEmpty<=endIndex && getChildNode(firstNonEmpty)->isText() ) {
-            lString32 s = getChildNode(firstNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !getChildNode(firstNonEmpty)->isWhitespaceText() )
                 break;
             firstNonEmpty++;
         }
         while ( lastNonEmpty>=endIndex && getChildNode(lastNonEmpty)->isText() ) {
-            lString32 s = getChildNode(lastNonEmpty)->getText();
-            if ( !IsEmptySpace(s.c_str(), s.length() ) )
+            if ( !getChildNode(lastNonEmpty)->isWhitespaceText() )
                 break;
             lastNonEmpty--;
         }
@@ -6655,8 +7189,7 @@ int initTableRendMethods( ldomNode * enode, int state )
             if ( child->getNodeId() == el_autoBoxing && child->getChildCount() == 1 && child->getChildNode(0)->isText()) {
                 // A text node wrapped in an <autoBoxing> because it was surrounded
                 // by non-inline elements (the other table subelements)
-                lString32 s = child->getChildNode(0)->getText();
-                if ( IsEmptySpace(s.c_str(), s.length()) ) {
+                if ( child->getChildNode(0)->isWhitespaceText() ) {
                     is_whitespace = true;
                 }
             }
@@ -6667,8 +7200,7 @@ int initTableRendMethods( ldomNode * enode, int state )
             // by the XML parsers, but we may see some when completing
             // incomplete tables or when white-space:pre, or in case of
             // style changes (inline > table) after a book has been loaded.
-            lString32 s = child->getText();
-            if ( IsEmptySpace(s.c_str(), s.length()) ) {
+            if ( child->isWhitespaceText() ) {
                 is_whitespace = true;
             }
         }
@@ -7045,6 +7577,12 @@ void ldomNode::initNodeRendMethod()
         setRendMethod(erm_block);
         return;
     }
+    if ( getNodeId()==el_cloneNode ) {
+        // Invisible for now, these will be later updated with the value from source
+        // when we meet/create the pseudoElem[FirstLine] that contains them.
+        setRendMethod(erm_invisible);
+        return;
+    }
 
     // DEBUG TEST
     // if ( getParentNode()->getChildIndex( getDataIndex() )<0 ) {
@@ -7162,8 +7700,7 @@ void ldomNode::initNodeRendMethod()
                     // are all empty text.
                     for ( int i=0; i < getChildCount(); i++ ) {
                         if ( getChildNode(i)->isText() ) {
-                            lString32 s = getChildNode(i)->getText();
-                            if ( !IsEmptySpace(s.c_str(), s.length() ) ) {
+                            if ( !getChildNode(i)->isWhitespaceText() ) {
                                 has_non_empty_text_nodes = true;
                                 break;
                             }
@@ -7207,14 +7744,12 @@ void ldomNode::initNodeRendMethod()
                             // Remove any preceeding or following empty text nodes (there can't
                             // be consecutive text nodes) so we don't get spurious empty lines.
                             if ( i < getChildCount()-1 && getChildNode(i+1)->isText() ) {
-                                lString32 s = getChildNode(i+1)->getText();
-                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                if ( getChildNode(i+1)->isWhitespaceText() ) {
                                     removeChildren(i+1, i+1);
                                 }
                             }
                             if ( i > 0 && getChildNode(i-1)->isText() ) {
-                                lString32 s = getChildNode(i-1)->getText();
-                                if ( IsEmptySpace(s.c_str(), s.length() ) ) {
+                                if ( getChildNode(i-1)->isWhitespaceText() ) {
                                     removeChildren(i-1, i-1);
                                     i--; // update our position
                                 }
@@ -7401,8 +7936,22 @@ void ldomNode::initNodeRendMethod()
                 // a cache file is used, and we'll end up being erm_final anyway).
                 // But let's keep it, in case it handles some edge cases.
             } else {
+                bool skipAutoboxLoop = false;
+                // Most mixed-content HTML nodes only have block children plus
+                // formatting whitespace text nodes. Drop these ignorable text
+                // runs in one compaction pass before the older autobox loop,
+                // so we don't pay for thousands of middle-of-array removals.
+                if ( removeStandaloneWhitespaceTextChildrenInMixedContent(handleFloating) ) {
+                    detectChildTypes( this, hasBlockItems, hasInline, hasInternalTableItems, hasFloating, handleFloating );
+                    if ( !hasInline ) {
+                        // If only block-ish children remain after that cleanup,
+                        // we can avoid the autobox pass entirely.
+                        setRendMethod( erm_block );
+                        skipAutoboxLoop = true;
+                    }
+                }
                 // cleanup or autobox
-                int i=getChildCount()-1;
+                int i = skipAutoboxLoop ? -1 : getChildCount()-1;
                 for ( ; i>=0; i-- ) {
                     ldomNode * node = getChildNode(i);
 
@@ -7467,8 +8016,7 @@ void ldomNode::initNodeRendMethod()
                             int run_in_idx = inBetweenTextNode ? i-2 : i-1;
                             int block_idx = i;
                             if ( inBetweenTextNode ) {
-                                lString32 text = inBetweenTextNode->getText();
-                                if ( IsEmptySpace(text.c_str(), text.length() ) ) {
+                                if ( inBetweenTextNode->isWhitespaceText() ) {
                                     removeChildren(i-1, i-1);
                                     block_idx = i-1;
                                 }
@@ -7557,8 +8105,7 @@ void ldomNode::initNodeRendMethod()
                 int cm = child->getRendMethod();
                 int is_whitespace = false;
                 if ( child->getNodeId() == el_autoBoxing && child->getChildCount() == 1 && child->getChildNode(0)->isText() ) {
-                    lString32 s = child->getChildNode(0)->getText();
-                    if ( IsEmptySpace(s.c_str(), s.length()) )
+                    if ( child->getChildNode(0)->isWhitespaceText() )
                         is_whitespace = true;
                 }
                 if ( cd == css_d_table_cell ) {
@@ -7649,8 +8196,7 @@ void ldomNode::initNodeRendMethod()
             int cm = child->getRendMethod();
             int is_whitespace = false;
             if ( child->getNodeId() == el_autoBoxing && child->getChildCount() == 1 && child->getChildNode(0)->isText() ) {
-                lString32 s = child->getChildNode(0)->getText();
-                if ( IsEmptySpace(s.c_str(), s.length()) )
+                if ( child->getChildNode(0)->isWhitespaceText() )
                     is_whitespace = true;
             }
             bool is_misparented = false;
@@ -7890,8 +8436,7 @@ void ldomNode::initNodeRendMethod()
                         elemId = child->getNodeId();
                     }
                     else {
-                        lString32 s = child->getText();
-                        elemId = IsEmptySpace(s.c_str(), s.length()) ? -2 : -1;
+                        elemId = child->isWhitespaceText() ? -2 : -1;
                         // When meeting an empty space (elemId==-2), we'll delay wrapping
                         // decision to when we process the next node.
                         // We'll also not start a wrap with it.
@@ -7971,7 +8516,7 @@ void ldomNode::initNodeRendMethod()
                 bool ruby_base_present = false;
                 for ( int i1=0; i1<=len1; i1++ ) {
                     ldomNode * child;
-                    lInt16 elemId;
+                    lInt16 elemId = 0; // (should always get updated, but avoid "used but uninitialized" warning)
                     bool eoc = i1 == len1; // end of children
                     if ( !eoc ) {
                         child = rbox1->getChildNode(i1);
@@ -7979,8 +8524,7 @@ void ldomNode::initNodeRendMethod()
                             elemId = child->getNodeId();
                         }
                         else {
-                            lString32 s = child->getText();
-                            elemId = IsEmptySpace(s.c_str(), s.length()) ? -2 : -1;
+                            elemId = child->isWhitespaceText() ? -2 : -1;
                             // When meeting an empty space (elemId==-2), we'll delay wrapping
                             // decision to when we process the next node.
                             // We'll also not start a wrap with it.
@@ -8439,6 +8983,14 @@ void ldomNode::initNodeRendMethod()
         }
     #endif
 
+    // If this node is erm_final and has ::first-line CSS rules, create the
+    // pseudoElem[FirstLine] and clone the children now that all boxing is done.
+    // Children have their final rendMethods, so clones will reflect the correct
+    // post-boxing DOM structure.
+    if ( getRendMethod() == erm_final && hasAttribute(attr_HasFirstLine) ) {
+        ensureFirstLine();
+    }
+
     persist();
 }
 #endif
@@ -8474,6 +9026,17 @@ void ldomElementWriter::onBodyExit()
         child->initNodeStyle();
         child->initNodeRendMethod();
     }
+
+    // If this element has the HasFirstLetter attribute flag, now that it has gotten
+    // all its children, we can find the child text node that provides the first letter
+    // and create a pseudoElem FirstLetter as the previous sibling of that text node
+    if ( _element->hasAttribute(attr_HasFirstLetter) ) {
+        _element->ensureFirstLetter(true); // true = init style during DOM building
+    }
+
+    // pseudoElem[FirstLine] creation is deferred to initNodeRendMethod()
+    // which runs after all boxing is complete (inlineBox, autoBox, etc.).
+
 //    if ( _element->getStyle().isNull() ) {
 //        lString32 path;
 //        ldomNode * p = _element->getParentNode();
@@ -8548,6 +9111,11 @@ bool ldomNode::applyNodeStylesheet()
 
     bool stylesheetChanged = false;
 
+    // Remember this DocFragment's index for the duration of CSS
+    // parsing, so registerFontFace() can scope @font-face rules to this DocFragment.
+    if ( getNodeId() == el_DocFragment )
+        getDocument()->setParsingDocFragmentIdx((int)getNodeIndex());
+
     if ( getNodeId() == el_DocFragment && hasAttribute(attr_StyleSheet) ) {
         getDocument()->_stylesheet.push();
         stylesheetChanged = getDocument()->parseStyleSheet(getAttributeValue(attr_StyleSheet));
@@ -8569,6 +9137,10 @@ bool ldomNode::applyNodeStylesheet()
             }
         }
     }
+
+    if ( getNodeId() == el_DocFragment )
+        getDocument()->setParsingDocFragmentIdx(-1);
+
     return stylesheetChanged;
 #endif
     return false;
@@ -8817,7 +9389,7 @@ ldomNode * ldomDocumentWriter::OnTagOpen( const lChar32 * nsname, const lChar32 
     lUInt16 nsid = (nsname && nsname[0]) ? _document->getNsNameIndex(nsname) : 0;
 
     #if MATHML_SUPPORT==1
-        if ( (_currNode && _currNode->_insideMathML) || (id == el_math) ) {
+        if ( (_currNode && _currNode->_insideMathML) || (id == el_math && _document->isDefStyleSet()) ) {
             // This may create a wrapping mathBox around this new element
             _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, id);
         }
@@ -8925,6 +9497,9 @@ void ldomDocumentWriter::OnTagClose( const lChar32 *, const lChar32 * tagname, b
     // but it looks like we may get an upper closing tag, that pop() below might
     // handle. So, here below, we check that both id and curNodeId match the
     // element id we check for.
+
+    if ( id == el_style && curNodeId == el_style )
+        _inHeadStyle = false;
 
     // Parse <link rel="stylesheet">, put the css file link in _stylesheetLinks.
     // They will be added to <body><stylesheet> when we meet <BODY>
@@ -9037,7 +9612,6 @@ void ldomDocumentWriter::OnText( const lChar32 * text, int len, lUInt32 flags )
     // Accumulate <HEAD><STYLE> content
     if (_inHeadStyle) {
         _headStyleText << lString32(text, len);
-        _inHeadStyle = false;
         return;
     }
 
@@ -9544,7 +10118,63 @@ bool ldomXPointer::isFinalNode() const
     return false;
 }
 
+static ldomNode * findCloneNodeBySource(ldomNode * root, ldomNode * source)
+{
+    if ( !root || !source )
+        return NULL;
+    ldomNode * n = root;
+    int index = 0;
+    while ( true ) {
+        if ( index == 0 && n->getNodeId() == el_cloneNode && n->getCloneNodeSource() == source ) {
+            return n;
+        }
+        if ( index < n->getChildCount() ) {
+            n = n->getChildNode(index);
+            index = 0;
+            continue;
+        }
+        index = n->getNodeIndex() + 1;
+        if ( n == root ) {
+            break;
+        }
+        n = n->getParentNode();
+    }
+    return NULL;
+}
+
+static ldomNode * findFirstLineCloneForNode(ldomNode * node)
+{
+    if ( !node )
+        return NULL;
+    ldomNode * current = node;
+    ldomNode * ancestor = node;
+    while ( ancestor ) {
+        if ( !ancestor->hasAttribute(attr_HasFirstLine) ) {
+            ancestor = ancestor->getParentNode();
+            continue;
+        }
+        ldomNode * firstLineElem = ancestor->getUnboxedFirstChild(true, el_pseudoElem);
+        if ( !firstLineElem || !firstLineElem->hasAttribute(attr_FirstLine) ) {
+            ancestor = ancestor->getParentNode();
+            continue;
+        }
+        ldomNode * clone = findCloneNodeBySource(firstLineElem, current);
+        if ( !clone ) {
+            ancestor = ancestor->getParentNode();
+            continue;
+        }
+        // Continue from the clone we just found so outer ::first-line ancestors
+        // can resolve clone-of-clone chains for nested first-line content.
+        current = clone;
+        ancestor = current->getParentNode();
+    }
+    return current != node ? current : NULL;
+}
+
 /// create xpointer from doc point
+// (This should always returns a xpointer to the source node: when around a ::first-line,
+// whether we are on the first line and actually on a cloneNode or a second line and on
+// the original source node, it would return the source node.)
 ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool strictBounds, ldomNode * fromNode )
 {
     //
@@ -9641,6 +10271,12 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
         finalNode->renderFinalBlock( txtform, &fmt, inner_width );
     }
 
+    // Note: pt may be on the first-line of a ::first-line paragraph,
+    // the word we will find may have as ->object a cloneNode.
+    // The xpointer we will return will reference the effective source node
+    // (too early to guarantee that, but it feels we won't ever return
+    // a xpointer to a cloneNode).
+
     // First, look if pt happens to be in some float
     // (this may not work with floats with negative margins)
     int fcount = txtform->GetFloatCount();
@@ -9651,6 +10287,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
             continue;
         if (pt.x >= flt->x && pt.x < flt->x + flt->width && pt.y >= flt->y && pt.y < flt->y + (int)flt->height ) {
             // pt is inside this float.
+            // (For floats in ::first-line, srctext->object references the original float element,
+            // and never the cloneNode, so no need to use getEffectiveNode() here.)
             ldomNode * node = (ldomNode *) flt->srctext->object; // floatBox node
             ldomXPointer inside_ptr = createXPointer( orig_pt, direction, strictBounds, node );
             if ( !inside_ptr.isNull() ) {
@@ -9661,6 +10299,30 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
             // (Or should we let just go on looking only at the text in the original final node?)
         }
         // If no containing float, go on looking at the text of the original final node
+    }
+
+    // Then, look in oversized inlineBoxes (such as an initial-letter), which can extend
+    // over later line boxes (no need to do this when !PT_DIR_EXACT).
+    if ( direction == PT_DIR_EXACT ) {
+        int icount = txtform->GetOversizedInlineBoxCount();
+        for ( int i = 0; i < icount; i++ ) {
+            const src_text_fragment_t * src = txtform->GetSrcInfo(txtform->GetOversizedInlineBoxSrcIndex(i));
+            ldomNode * node = src ? (ldomNode *)src->object : NULL;
+            if ( !node ) {
+                continue;
+            }
+            lvRect boxRect;
+            if ( !getInitialLetterInlineBoxInkRect(node, boxRect) ) {
+                node->getAbsRect( boxRect );
+            }
+            if ( boxRect.isPointInside(orig_pt) ) {
+                ldomXPointer inside_ptr = createXPointer( orig_pt, direction, strictBounds, node );
+                if ( !inside_ptr.isNull() ) {
+                    return inside_ptr;
+                }
+                return ldomXPointer(node->getEffectiveNode(), 0);
+            }
+        }
     }
 
     // Look at words in the rendered final node (whether it's the original
@@ -9739,16 +10401,33 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                     return inside_ptr;
                 }
                 // Otherwise, return xpointer to the inlineBox itself
-                return ldomXPointer(node, 0);
+                return ldomXPointer(node->getEffectiveNode(), 0);
             }
             if ( word->flags & LTEXT_WORD_IS_IMAGE ) {
-                return ldomXPointer(node, 0);
+                // (We don't pass images as cloneNode, but be consistent)
+                return ldomXPointer(node->getEffectiveNode(), 0);
             }
             // It is a word
-            if ( find_first ) // return xpointer to logical start of word
-                return ldomXPointer( node, src->t.offset + word->t.start );
-            else // return xpointer to logical end of word
-                return ldomXPointer( node, src->t.offset + word->t.start + word->t.len );
+            // If it happens to be a pseudoElem[FirstLetter], we will want to return a xpointer
+            // to the original source text node (as if there was no ::first-letter)
+            ldomNode * firstLetterTextNode = NULL;
+            if ( node->getEffectiveNodeId() == el_pseudoElem && node->hasEffectiveAttribute(attr_FirstLetter) ) {
+                firstLetterTextNode = node->getEffectiveFirstLetterTextNode();
+            }
+            if ( find_first ) { // return xpointer to logical start of word
+                if ( firstLetterTextNode )
+                    return ldomXPointer( firstLetterTextNode->getEffectiveNode(), word->t.start );
+                if ( node->isEffectiveElement() ) // (see comment about <br/><br/> below)
+                    return ldomXPointer(node->getEffectiveNode(), 0);
+                return ldomXPointer( node->getEffectiveNode(), word->t.start );
+            }
+            else { // return xpointer to logical end of word
+                if ( firstLetterTextNode )
+                    return ldomXPointer( firstLetterTextNode->getEffectiveNode(), word->t.start + word->t.len );
+                if ( node->isEffectiveElement() )
+                    return ldomXPointer(node->getEffectiveNode(), 0);
+                return ldomXPointer( node->getEffectiveNode(), word->t.start + word->t.len );
+            }
         }
 
         // Found line, searching for word (words are in visual order)
@@ -9763,9 +10442,18 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
 
         for ( int w=0; w<wc; w++ ) {
             const formatted_word_t * word = &frmline->words[w];
+            /* Previously, we had:
             if ( ( !line_is_bidi && x < word->x + word->width ) ||
                  ( line_is_bidi && x >= word->x && x < word->x + word->width ) ||
-                 ( w == wc-1 ) ) {
+                 ( w == wc-1 ) )
+            */
+            // Words are in visual order, we don't need at this point to care about bidi.
+            // Also with text justification, words may have blank between them that are not part
+            // of any word: we now check x against next word start (instead of word->width) so a
+            // blank will be handled as part of the previous word (like the real space char
+            // following a word is).
+            int next_word_x = w<wc-1 ? frmline->words[w+1].x : frmline->width;
+            if ( x < next_word_x || w == wc-1 ) {
                 const src_text_fragment_t * src = txtform->GetSrcInfo(word->src_text_index);
                 // CRLog::debug(" word found [%d]: x=%d..%d, start=%d, len=%d  %08X",
                 //      w, word->x, word->x + word->width, word->t.start, word->t.len, src->object);
@@ -9777,6 +10465,8 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                 if ( word->flags & LTEXT_WORD_IS_PAD ) {
                     continue;
                 }
+                // (For inline-boxes and images in ::first-line, srctext->object references the original
+                // element or image, and never the cloneNode, so no need to use getEffectiveNode() here.)
                 if ( word->flags & LTEXT_WORD_IS_INLINE_BOX ) {
                     // pt is inside this inline-block inlineBox node
                     ldomXPointer inside_ptr = createXPointer( orig_pt, direction, strictBounds, node );
@@ -9784,17 +10474,24 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                         return inside_ptr;
                     }
                     // Otherwise, return xpointer to the inlineBox itself
-                    return ldomXPointer(node, 0);
+                    return ldomXPointer(node->getEffectiveNode(), 0);
                 }
                 if ( word->flags & LTEXT_WORD_IS_IMAGE ) {
                     // Object (image)
                     #if 1
                     // return image object itself
-                    return ldomXPointer(node, 0);
+                    return ldomXPointer(node->getEffectiveNode(), 0);
                     #else
                     return ldomXPointer( node->getParentNode(),
                         node->getNodeIndex() + (( x < word->x + word->width/2 ) ? 0 : 1) );
                     #endif
+                }
+
+                // If it happens to be a pseudoElem[FirstLetter], we will want to return a xpointer
+                // to the original source text node (as if there was no ::first-letter)
+                ldomNode * firstLetterTextNode = NULL;
+                if ( node->getEffectiveNodeId() == el_pseudoElem && node->hasEffectiveAttribute(attr_FirstLetter) ) {
+                    firstLetterTextNode = node->getEffectiveFirstLetterTextNode();
                 }
 
                 // Found word, searching for letters
@@ -9802,51 +10499,112 @@ ldomXPointer ldomDocument::createXPointer( lvPoint pt, int direction, bool stric
                 lUInt16 width[512];
                 lUInt8 flg[512];
 
-                lString32 str = node->getText();
-                // We need to transform the node text as it had been when
-                // rendered (the transform may change chars widths) for the
-                // XPointer offset to be correct
-                switch ( node->getParentNode()->getStyle()->text_transform ) {
-                    case css_tt_uppercase:
-                        str.uppercase();
-                        break;
-                    case css_tt_lowercase:
-                        str.lowercase();
-                        break;
-                    case css_tt_capitalize:
-                        str.capitalize();
-                        break;
-                    case css_tt_full_width:
-                        // str.fullWidthChars(); // disabled for now in lvrend.cpp
-                        break;
-                    default:
-                        break;
-                }
+                // (We measure the exact text fragment that was handed to AddSourceLine(),
+                // it already reflects text-transform and any ::first-letter split/substringing
+                // performed at renderFinalBlock time.)
+                lString32 str = src->t.text ? lString32(src->t.text, src->t.len) : lString32();
 
                 lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
                 font->measureText( str.c_str()+word->t.start, word->t.len, width, flg, word->width+50, '?',
                             src->lang_cfg, src->letter_spacing + word->added_letter_spacing, false, hints);
 
+                // In some special cases, node may be an element and not a text node (ie. on a blank
+                // line caused by <br/><br/> where our word is a space generated by lvrend): below,
+                // we must return node with an offset of 0 (to avoid getting xpointer like p[2]/br[3].1
+                // which may fail being resolved back to the br node).
                 bool word_is_rtl = word->flags & LTEXT_WORD_DIRECTION_IS_RTL;
+                if ( word_is_rtl ) {
+                    // See below (for LTR words) for the general idea, here adapted to RTL words
+                    int pos = word->t.len; // default to after this word if we don't find better
+                    if ( x >= word->x + word->width - (w==wc-1 ? 1 : 0) ) { // on the visual right of word
+                        pos = 0; // logical start of RTL word
+                    }
+                    else { // x in inside that word
+                        for ( int i=0; i<word->t.len; i++ ) {
+                            // Words (RTL as LTR) indices are in logical orders, but RTL words
+                            // get their measured cumulative widths from right to left
+                            if ( x > word->x + word->width - width[i] ) {
+                                pos = i; // We are inside that glyph
+                                break;
+                            }
+                            // Otherwise (not sure if can happen): use the default of word->t.len:
+                            // after the logical end of that RTL word
+                        }
+                    }
+                    if ( firstLetterTextNode )
+                        return ldomXPointer( firstLetterTextNode->getEffectiveNode(), word->t.start + pos );
+                    if ( node->isEffectiveElement() ) // possibly some <br> or generated text not part of a text node
+                        return ldomXPointer(node->getEffectiveNode(), 0);
+                    // printf("word %d/%d, len=%d indice=%d (%d > %d + %d - %d)\n", w+1, wc, word->t.len,
+                    //              pos, x, word->x, word->width, pos<word->t.len?width[pos]:-1);
+                    return ldomXPointer( node->getEffectiveNode(), word->t.start + pos );
+                }
+                else {
+                    int pos = word->t.len; // default to after this word if we don't find better
+                    if ( x >= word->x + word->width - (w==wc-1 ? 1 : 0) ) {
+                        // If x is after word->width (which may be smaller than the width[]
+                        // we just measured, because of space reduction by text justification,
+                        // or because it's the last word on a line whose wrapping space is
+                        // removed from its width), consider we are after that word (so,
+                        // pointing at the first char after that word).
+                        // For the last word of the line (w==wc-1), word->width may align on the right
+                        // margin, and because frontend may use windowToDocPoint(pullInPageArea=true)
+                        // and get a 'x' originally in the right margin pulled on that last word right
+                        // most pixel (at word->width), consider 'x' on that last pixel to be as
+                        // if outside.
+                        // Use the default of word->t.len
+                    }
+                    else { // x in inside that word
+                        for ( int i=0; i<word->t.len; i++ ) {
+                            if ( x < word->x + width[i] ) {
+                                pos = i; // We are inside that glyph
+                                break;
+                                // (Note: if the word has diacritics, we have the choice to return
+                                // the indice of the base char, or of the last diacritic. But we
+                                // don't know if the caller wants to use that xpointer as the start
+                                // or as the end. Be simple and return the base char.)
+                            }
+                            // Otherwise (not sure if can happen): use the default of word->t.len
+                        }
+                    }
+                    if ( firstLetterTextNode ) {
+                        return ldomXPointer( firstLetterTextNode->getEffectiveNode(), word->t.start + pos );
+                    }
+                    if ( node->isEffectiveElement() ) // possibly some <br> or generated text not part of a text node
+                        return ldomXPointer(node->getEffectiveNode(), 0);
+                    // printf("word %d/%d, len=%d indice=%d (%d < %d + %d)\n", w+1, wc, word->t.len,
+                    //              pos, x, word->x, pos<word->t.len?width[pos]:-1);
+                    return ldomXPointer( node->getEffectiveNode(), word->t.start + pos );
+                }
+                /* Previously, we returned differently whether x was in the left or in the right half of a glyph:
                 if ( word_is_rtl ) {
                     for ( int i=word->t.len-1; i>=0; i-- ) {
                         int xx = ( i>0 ) ? (width[i-1] + width[i])/2 : width[i]/2;
                         xx = word->width - xx;
                         if ( x < word->x + xx ) {
-                            return ldomXPointer( node, src->t.offset + word->t.start + i );
+                            if ( node->isElement() )
+                                return ldomXPointer(node, 0);
+                            return ldomXPointer( node, word->t.start + i );
                         }
                     }
-                    return ldomXPointer( node, src->t.offset + word->t.start );
+                    if ( node->isElement() )
+                        return ldomXPointer(node, 0);
+                    return ldomXPointer( node, word->t.start );
                 }
                 else {
                     for ( int i=0; i<word->t.len; i++ ) {
                         int xx = ( i>0 ) ? (width[i-1] + width[i])/2 : width[i]/2;
                         if ( x < word->x + xx ) {
-                            return ldomXPointer( node, src->t.offset + word->t.start + i );
+                            if ( node->isElement() )
+                                return ldomXPointer(node, 0);
+                            return ldomXPointer( node, word->t.start + i );
                         }
                     }
-                    return ldomXPointer( node, src->t.offset + word->t.start + word->t.len );
+                    if ( node->isElement() )
+                        return ldomXPointer( node, 0 );
+                    return ldomXPointer( node, word->t.start + word->t.len );
                 }
+                */
             }
         }
     }
@@ -9875,12 +10633,21 @@ lvPoint ldomXPointer::toPoint(bool extended) const
 // So we return the char width (and no more the word width) of the char
 // pointed to by this XPointer (unlike ldomXRange::getRectEx() which deals
 // with a range between 2 XPointers).
-bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
+bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted, int * ctxFlags) const
 {
     //CRLog::trace("ldomXPointer::getRect()");
+    // Initialize ctxFlags if provided
+    if ( ctxFlags )
+        *ctxFlags = RECT_CTX_NONE;
+
     if ( isNull() )
         return false;
-    ldomNode * p = isElement() ? getNode() : getNode()->getParentNode();
+    ldomNode * node = getNode();
+    // If provided a cloneNode, we should return the same rect as if call on its source.
+    // So, get the source node: we will jump to the cloneNode if it happens to be the one
+    // renderered and we should return its rect.
+    node = node->getEffectiveNode();
+    ldomNode * p = node->isText() ? node->getParentNode() : node;
     ldomNode * p0 = p;
     ldomNode * finalNode = NULL;
     if ( !p ) {
@@ -9894,7 +10661,23 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
         return false;
     }
     ldomNode * mainNode = doc->getRootNode();
-    for ( ; p; p = p->getParentNode() ) {
+    while ( p ) {
+        if ( p->isEffectiveBoxingInlineBox() || p->isEffectiveFloatingBox() ) {
+            RenderRectAccessor fmt( p );
+            if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_DISCARDED) ) {
+                // Our inlineBox/floatBox got a clone, and it is that clone that ended up
+                // being rendered (because ::first-line and actually on the first line)
+                // and flagged our source with BOX_IS_DISCARDED.
+                // Jump to that clone, and go on looking for its parent erm_final.
+                ldomNode * cloneNode = findFirstLineCloneForNode(node);
+                if ( cloneNode && cloneNode != p ) {
+                    p = cloneNode->isEffectiveText() ? cloneNode->getParentNode() : cloneNode;
+                    p0 = p;
+                    finalNode = NULL;
+                    continue;
+                }
+            }
+        }
         int rm = p->getRendMethod();
         if ( rm == erm_final ) {
             if ( doc->getDOMVersionRequested() < 20180524 && p->getStyle()->display == css_d_list_item_legacy ) {
@@ -9919,6 +10702,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
         }
         if ( p==mainNode )
             break;
+        p = p->getParentNode();
     }
 
     if ( finalNode==NULL ) {
@@ -9966,7 +10750,6 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
         LFormattedTextRef txtform;
         finalNode->renderFinalBlock( txtform, &fmt, inner_width );
 
-        ldomNode *node = getNode();
         int offset = getOffset();
 ////        ldomXPointerEx xp(node, offset);
 ////        if ( !node->isText() ) {
@@ -10008,22 +10791,83 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
         int lastIndex = -1;
         int lastLen = -1;
         int lastOffset = -1;
+        // If txtform contains srclines from the cloned nodes (styled from ::first-line),
+        // we'll find two srclines, one to use when scanning the 1st line, the other when
+        // scanning the next lines
+        int firstLineSrcIndex = -1;
+        int laterLineSrcIndex = -1;
         ldomXPointerEx xp(node, offset);
+        // printf("getRect(%s)\n", LCSTR(xp.toStringV1()));
         for ( int i=0; i<txtform->GetSrcCount(); i++ ) {
             const src_text_fragment_t * src = txtform->GetSrcInfo(i);
             bool isObject = (src->flags&LTEXT_SRC_IS_OBJECT)!=0;
             if ( isObject && src->o.objflags & LTEXT_OBJECT_IS_FLOAT ) // skip floats
                 continue;
-            if ( src->object == node ) {
-                srcIndex = i;
-                srcLen = isObject ? 0 : src->t.len;
-                break;
+            bool is_first_line_clone = src->flags & LTEXT_IS_FIRST_LINE_CLONE;
+            if ( src->object && ((ldomNode*)(src->object))->getEffectiveNode() == node ) {
+                /*
+                printf(" if (%x==%x || %x==%x)\n", src->object, node , ((ldomNode*)(src->object))->getEffectiveNode(), node);
+                printf(" %d %s %s vs. %d\n", i, LCSTR(ldomXPointer((ldomNode*)(src->object),src->t.offset).toStringV1()),
+                                    LCSTR(ldomXPointer(((ldomNode*)(src->object))->getEffectiveNode() ,src->t.offset).toStringV1()), offset); */
+                // Check and handle the case of ::first-letter
+                if ( src->t.offset > 0 && offset < src->t.offset) {
+                    // Currently, we can only get a non-0 src->t.offset if that text
+                    // node gets its first char(s) rendered as ::first-letter and
+                    // only the remainig chars are to be rendered normally.
+                    // (If we happen to need non-0 t.offset in other contexts, we'll
+                    // have to use a src->flag bit to let it be known.)
+                    // If offset < src->t.offset, we are in the first-letter part and
+                    // we won't find it in this src.
+                    // (It may be the src_text_fragment_t just before us, and we
+                    // could use: srcIndex=i-1 , but this does not handle all
+                    // cases, especially when the first-letter is a float.)
+                    // So, find the pseudoElem that carries that first-letter
+                    ldomNode * pseudoElem = node->getEffectiveFirstLetterPseudoElem();
+                    if ( pseudoElem ) {
+                        // Call us again on that pseudoElem with the same offset as provided
+                        ldomXPointer xpFirstLetter(pseudoElem, offset);
+                        return xpFirstLetter.getRect(rect, extended, adjusted, ctxFlags);
+                        // This needs the trick in the next branch to be able to process the original text
+                    }
+                    // otherwise fallback to work on that node
+                }
+                else if ( node->getEffectiveNodeId() == el_pseudoElem && node->hasEffectiveAttribute(attr_FirstLetter) ) {
+                    // We were called (by the xpFirstLetter.getRect() just above) on
+                    // a pseudoElem FirstLetter. For it to get access to the text,
+                    // we can just (for the code that follows) have our "node"
+                    // masquerade as the original node (we are called with the
+                    // original offset that will work on that text node).
+                    ldomNode * textNode = node->getFirstLetterTextNode();
+                    if ( textNode ) {
+                        node = textNode;
+                        srcIndex = i;
+                        srcLen = isObject ? 0 : src->t.len;
+                        // If we were on a ::first-line, we did resolve above the cloneNode to
+                        // its pseudoElem: no need for the first/later LineSrcIndex gathering below.
+                        break;
+                    }
+                }
+                // Generic text node case: we found the src that came from our node
+                if ( is_first_line_clone ) {
+                    firstLineSrcIndex = i;
+                    // srcLen should be valid for both srcIndex
+                    // Don't break, we want to find the non-first-line srcIndex
+                }
+                else {
+                    srcIndex = i;
+                    if ( firstLineSrcIndex >= 0)
+                        laterLineSrcIndex = i;
+                    srcLen = isObject ? 0 : src->t.len;
+                    break;
+                }
             }
             lastIndex = i;
             lastLen =  isObject ? 0 : src->t.len;
             lastOffset = isObject ? 0 : src->t.offset;
             ldomXPointerEx xp2((ldomNode*)src->object, lastOffset);
-            if ( xp2.compare(xp)>0 ) {
+            if ( !is_first_line_clone && xp2.compare(xp)>0 ) {
+                // (Not if we are still in the first line clones segment,
+                // we want to use the one from the normal segment.)
                 srcIndex = i;
                 srcLen = lastLen;
                 offset = lastOffset;
@@ -10042,11 +10886,21 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
         int nearestForwardSrcIndex = -1;
         int nearestForwardSrcOffset = -1;
         lvRect bestBidiRect = lvRect();
+        int bestBidiRectCtxFlags = RECT_CTX_NONE;
         bool hasBestBidiRect = false;
 
         for ( int l = 0; l<txtform->GetLineCount(); l++ ) {
+            if ( firstLineSrcIndex >= 0) {
+                if ( l == 0 )
+                    srcIndex = firstLineSrcIndex;
+                else if ( laterLineSrcIndex >= 0 )
+                    srcIndex = laterLineSrcIndex;
+                // 'node' is the original text node - below when measuring/transforming,
+                // we should be careful using the srcIndex's ->font and ->object node styles.
+            }
             const formatted_line_t * frmline = txtform->GetLineInfo(l);
             bool line_is_bidi = frmline->flags & LTEXT_LINE_IS_BIDI;
+            bool para_is_rtl = frmline->flags & LTEXT_LINE_PARA_IS_RTL;
             for ( int w=0; w<(int)frmline->word_count; w++ ) {
                 const formatted_word_t * word = &frmline->words[w];
                 if (word->flags & LTEXT_WORD_IS_PAD ) {
@@ -10059,6 +10913,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                  && w == frmline->word_count - 1);
 
                 if ( line_is_bidi ) {
+                    int ctxFlagsBase = RECT_CTX_IN_BIDI_LINE | (para_is_rtl ? RECT_CTX_IN_RTL_PARA : 0);
                     // When line is bidi, src text nodes may be shuffled, so we can't
                     // just be done when meeting a forward src in logical order.
                     // We'd better have a dedicated searching code to not mess with
@@ -10077,9 +10932,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             // get its start as a possible best result.
                             bestBidiRect.top = rc.top + frmline->y;
                             bestBidiRect.bottom = bestBidiRect.top + frmline->height;
+                            bestBidiRectCtxFlags = ctxFlagsBase;
                             if ( word_is_rtl ) {
                                 bestBidiRect.right = word->x + word->width + rc.left + frmline->x;
                                 bestBidiRect.left = bestBidiRect.right - 1;
+                                bestBidiRectCtxFlags |= RECT_CTX_IS_RTL;
                             }
                             else {
                                 bestBidiRect.left = word->x + rc.left + frmline->x;
@@ -10100,7 +10957,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                         else if (word->src_text_index == srcIndex) {
                             // Found word in that exact source text node
                             if ( word->flags & (LTEXT_WORD_IS_IMAGE|LTEXT_WORD_IS_INLINE_BOX) ) {
-                                // An image is the single thing in its srcIndex
+                                // An image or inline-box is the single thing in its srcIndex
                                 rect.top = rc.top + frmline->y;
                                 rect.bottom = rect.top + frmline->height;
                                 rect.left = word->x + rc.left + frmline->x;
@@ -10108,6 +10965,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                     rect.right = rect.left + word->width; // width of image
                                 else
                                     rect.right = rect.left + 1;
+                                if ( ctxFlags ) {
+                                    *ctxFlags |= ctxFlagsBase;
+                                    if ( word_is_rtl )
+                                        *ctxFlags |= RECT_CTX_IS_RTL;
+                                }
                                 return true;
                             }
                             // Target is in this text node. We may not find it part
@@ -10118,9 +10980,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                           word->t.start <= nearestForwardSrcOffset ) {
                                     bestBidiRect.top = rc.top + frmline->y;
                                     bestBidiRect.bottom = bestBidiRect.top + frmline->height;
+                                    bestBidiRectCtxFlags = ctxFlagsBase;
                                     if ( word_is_rtl ) { // right edge of next logical word, as it is drawn on the left
                                         bestBidiRect.right = word->x + word->width + rc.left + frmline->x;
                                         bestBidiRect.left = bestBidiRect.right - 1;
+                                        bestBidiRectCtxFlags |= RECT_CTX_IS_RTL;
                                     }
                                     else { // left edge of next logical word, as it is drawn on the right
                                         bestBidiRect.left = word->x + rc.left + frmline->x;
@@ -10139,9 +11003,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                           word->t.start+word->t.len > nearestForwardSrcOffset ) ) {
                                     bestBidiRect.top = rc.top + frmline->y;
                                     bestBidiRect.bottom = bestBidiRect.top + frmline->height;
+                                    bestBidiRectCtxFlags = ctxFlagsBase;
                                     if ( word_is_rtl ) { // left edge of previous logical word, as it is drawn on the right
                                         bestBidiRect.left = word->x + rc.left + frmline->x;
                                         bestBidiRect.right = bestBidiRect.left + 1;
+                                        bestBidiRectCtxFlags |= RECT_CTX_IS_RTL;
                                     }
                                     else { // right edge of previous logical word, as it is drawn on the left
                                         bestBidiRect.right = word->x + word->width + rc.left + frmline->x;
@@ -10154,35 +11020,22 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             }
                             else { // exact word found
                                 // Measure word
-                                LVFont *font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
+                                const src_text_fragment_t * src = txtform->GetSrcInfo(srcIndex);
+                                LVFont *font = (LVFont *)src->t.font;
                                 lUInt16 w[512];
                                 lUInt8 flg[512];
-                                lString32 str = node->getText();
+                                lString32 str = src->t.text ? lString32(src->t.text, src->t.len) : lString32();
                                 if (offset == word->t.start && str.empty()) {
                                     rect.left = word->x + rc.left + frmline->x;
                                     rect.top = rc.top + frmline->y;
                                     rect.right = rect.left + 1;
                                     rect.bottom = rect.top + frmline->height;
+                                    if ( ctxFlags ) {
+                                        *ctxFlags |= ctxFlagsBase;
+                                        if ( word_is_rtl )
+                                            *ctxFlags |= RECT_CTX_IS_RTL;
+                                    }
                                     return true;
-                                }
-                                // We need to transform the node text as it had been when
-                                // rendered (the transform may change chars widths) for the
-                                // rect to be correct
-                                switch ( node->getParentNode()->getStyle()->text_transform ) {
-                                    case css_tt_uppercase:
-                                        str.uppercase();
-                                        break;
-                                    case css_tt_lowercase:
-                                        str.lowercase();
-                                        break;
-                                    case css_tt_capitalize:
-                                        str.capitalize();
-                                        break;
-                                    case css_tt_full_width:
-                                        // str.fullWidthChars(); // disabled for now in lvrend.cpp
-                                        break;
-                                    default:
-                                        break;
                                 }
                                 lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
                                 font->measureText(
@@ -10192,8 +11045,8 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                     flg,
                                     word->width+50,
                                     '?',
-                                    txtform->GetSrcInfo(srcIndex)->lang_cfg,
-                                    txtform->GetSrcInfo(srcIndex)->letter_spacing + word->added_letter_spacing,
+                                    src->lang_cfg,
+                                    src->letter_spacing + word->added_letter_spacing,
                                     false,
                                     hints);
                                 rect.top = rc.top + frmline->y;
@@ -10209,58 +11062,49 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                     rect.right = rect.left + 1;
                                 }
                                 if (extended) { // get width of char at offset
-                                    if (offset == word->t.start && word->t.len == 1) {
-                                        // With CJK chars, the measured width seems
-                                        // less correct than the one measured while
-                                        // making words. So use the calculated word
-                                        // width for one-char-long words instead
-                                        if ( word_is_rtl )
-                                            rect.left = rect.right - word->width;
-                                        else
-                                            rect.right = rect.left + word->width;
+                                    // With one-char-long words, the measured width seems less correct than the one
+                                    // measured while making words (noticed with CJK words). Use it instead.
+                                    int chw = word->t.len == 1 ? word->width : w[ offset - word->t.start ] - chx;
+                                    bool hyphen_added = false;
+                                    if ( offset == word->t.start + word->t.len - 1
+                                            && (word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER)
+                                            && !src->lang_cfg->hideHyphenationMark() ) {
+                                        // if offset is the end of word, and this word has
+                                        // been hyphenated, includes the hyphen width
+                                        chw += font->getHyphenWidth();
+                                        // We then should not account for the right side
+                                        // bearing below
+                                        hyphen_added = true;
+                                    }
+                                    if ( word_is_rtl ) {
+                                        rect.left = rect.right - chw;
+                                        if ( !hyphen_added ) {
+                                            // Also remove our added letter spacing for justification
+                                            // from the left, to have cleaner highlights.
+                                            rect.left += word->added_letter_spacing;
+                                        }
                                     }
                                     else {
-                                        int chw = w[ offset - word->t.start ] - chx;
-                                        bool hyphen_added = false;
-                                        if ( offset == word->t.start + word->t.len - 1
-                                                && (word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) ) {
-                                            // if offset is the end of word, and this word has
-                                            // been hyphenated, includes the hyphen width
-                                            chw += font->getHyphenWidth();
-                                            // We then should not account for the right side
-                                            // bearing below
-                                            hyphen_added = true;
+                                        rect.right = rect.left + chw;
+                                        if ( !hyphen_added ) {
+                                            // Also remove our added letter spacing for justification
+                                            // from the right, to have cleaner highlights.
+                                            rect.right -= word->added_letter_spacing;
                                         }
-                                        if ( word_is_rtl ) {
-                                            rect.left = rect.right - chw;
-                                            if ( !hyphen_added ) {
-                                                // Also remove our added letter spacing for justification
-                                                // from the left, to have cleaner highlights.
-                                                rect.left += word->added_letter_spacing;
-                                            }
-                                        }
-                                        else {
-                                            rect.right = rect.left + chw;
-                                            if ( !hyphen_added ) {
-                                                // Also remove our added letter spacing for justification
-                                                // from the right, to have cleaner highlights.
-                                                rect.right -= word->added_letter_spacing;
-                                            }
-                                        }
-                                        if (adjusted) {
-                                            // Extend left or right if this glyph overflows its
-                                            // origin/advance box (can happen with an italic font,
-                                            // or with a regular font on the right of the letter 'f'
-                                            // or on the left of the letter 'J').
-                                            // Only when negative (overflow) and not when positive
-                                            // (which are more frequent), mostly to keep some good
-                                            // looking rectangles on the sides when highlighting
-                                            // multiple lines.
-                                            rect.left += font->getLeftSideBearing(str[offset], true);
-                                            if ( !hyphen_added )
-                                                rect.right -= font->getRightSideBearing(str[offset], true);
-                                            // Should work wheter rtl or ltr
-                                        }
+                                    }
+                                    if (adjusted) {
+                                        // Extend left or right if this glyph overflows its
+                                        // origin/advance box (can happen with an italic font,
+                                        // or with a regular font on the right of the letter 'f'
+                                        // or on the left of the letter 'J').
+                                        // Only when negative (overflow) and not when positive
+                                        // (which are more frequent), mostly to keep some good
+                                        // looking rectangles on the sides when highlighting
+                                        // multiple lines.
+                                        rect.left += font->getLeftSideBearing(str[offset], true);
+                                        if ( !hyphen_added )
+                                            rect.right -= font->getRightSideBearing(str[offset], true);
+                                        // Should work whether rtl or ltr
                                     }
                                     // Ensure we always return a non-zero width, even for zero-width
                                     // chars or collapsed spaces (to avoid isEmpty() returning true
@@ -10272,6 +11116,11 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                                             rect.right = rect.left + 1;
                                     }
                                 }
+                                if ( ctxFlags ) {
+                                    *ctxFlags |= ctxFlagsBase;
+                                    if ( word_is_rtl )
+                                        *ctxFlags |= RECT_CTX_IS_RTL;
+                                }
                                 return true;
                             }
                         }
@@ -10279,6 +11128,8 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             // If no exact word found, return best candidate
                             if (hasBestBidiRect) {
                                 rect = bestBidiRect;
+                                if ( ctxFlags )
+                                    *ctxFlags = bestBidiRectCtxFlags;
                                 return true;
                             }
                             // Otherwise, return end of last word (?)
@@ -10286,6 +11137,13 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             rect.bottom = rect.top + frmline->height;
                             rect.left = word->x + rc.left + frmline->x + word->width;
                             rect.right = rect.left + 1;
+                            if ( ctxFlags ) {
+                                *ctxFlags |= ctxFlagsBase;
+                                if ( word_is_rtl )
+                                    *ctxFlags |= RECT_CTX_IS_RTL;
+                                // (Not sure if RECT_CTX_IS_RTL should really come
+                                // from word_is_rtl and not from para_is_rtl)
+                            }
                             return true;
                         }
                     }
@@ -10317,15 +11175,17 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             rect.right = rect.left + 1;
                         }
                         rect.bottom = rect.top + frmline->height;
+                        // No ctxFlags to set
                         return true;
                     } else if ( (word->src_text_index == srcIndex) &&
                                 ( (offset < word->t.start+word->t.len) ||
                                   (offset==srcLen && offset == word->t.start+word->t.len) ) ) {
                         // pointer inside this word
-                        LVFont *font = (LVFont *) txtform->GetSrcInfo(srcIndex)->t.font;
+                        const src_text_fragment_t * src = txtform->GetSrcInfo(srcIndex);
+                        LVFont *font = (LVFont *)src->t.font;
                         lUInt16 w[512];
                         lUInt8 flg[512];
-                        lString32 str = node->getText();
+                        lString32 str = src->t.text ? lString32(src->t.text, src->t.len) : lString32();
                         // With "|| (extended && offset < word->t.start)" added to the first if
                         // above, we may now be here with: offset = word->t.start = 0
                         // and a node->getText() returning THE lString32::empty_str:
@@ -10340,26 +11200,8 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             rect.top = rc.top + frmline->y;
                             rect.right = rect.left + 1;
                             rect.bottom = rect.top + frmline->height;
+                            // No ctxFlags to set
                             return true;
-                        }
-                        // We need to transform the node text as it had been when
-                        // rendered (the transform may change chars widths) for the
-                        // rect to be correct
-                        switch ( node->getParentNode()->getStyle()->text_transform ) {
-                            case css_tt_uppercase:
-                                str.uppercase();
-                                break;
-                            case css_tt_lowercase:
-                                str.lowercase();
-                                break;
-                            case css_tt_capitalize:
-                                str.capitalize();
-                                break;
-                            case css_tt_full_width:
-                                // str.fullWidthChars(); // disabled for now in lvrend.cpp
-                                break;
-                            default:
-                                break;
                         }
                         lUInt32 hints = WORD_FLAGS_TO_FNT_FLAGS(word->flags);
                         font->measureText(
@@ -10369,8 +11211,8 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                             flg,
                             word->width+50,
                             '?',
-                            txtform->GetSrcInfo(srcIndex)->lang_cfg,
-                            txtform->GetSrcInfo(srcIndex)->letter_spacing + word->added_letter_spacing,
+                            src->lang_cfg,
+                            src->letter_spacing + word->added_letter_spacing,
                             false,
                             hints );
                         // chx is the width of previous chars in the word
@@ -10379,44 +11221,38 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                         //rect.top = word->y + rc.top + frmline->y + frmline->baseline;
                         rect.top = rc.top + frmline->y;
                         if (extended) { // get width of char at offset
-                            if (offset == word->t.start && word->t.len == 1) {
-                                // With CJK chars, the measured width seems
-                                // less correct than the one measured while
-                                // making words. So use the calculated word
-                                // width for one-char-long words instead
-                                rect.right = rect.left + word->width;
+                            // With one-char-long words, the measured width seems less correct than the one
+                            // measured while making words (noticed with CJK words). Use it instead.
+                            int chw = word->t.len == 1 ? word->width : w[ offset - word->t.start ] - chx;
+                            bool hyphen_added = false;
+                            if ( offset == word->t.start + word->t.len - 1
+                                    && (word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER)
+                                    && !src->lang_cfg->hideHyphenationMark() ) {
+                                // if offset is the end of word, and this word has
+                                // been hyphenated, includes the hyphen width
+                                chw += font->getHyphenWidth();
+                                // We then should not account for the right side
+                                // bearing below
+                                hyphen_added = true;
                             }
-                            else {
-                                int chw = w[ offset - word->t.start ] - chx;
-                                bool hyphen_added = false;
-                                if ( offset == word->t.start + word->t.len - 1
-                                        && (word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) ) {
-                                    // if offset is the end of word, and this word has
-                                    // been hyphenated, includes the hyphen width
-                                    chw += font->getHyphenWidth();
-                                    // We then should not account for the right side
-                                    // bearing below
-                                    hyphen_added = true;
-                                }
-                                rect.right = rect.left + chw;
-                                if ( !hyphen_added ) {
-                                    // Also remove our added letter spacing for justification
-                                    // from the right, to have cleaner highlights.
-                                    rect.right -= word->added_letter_spacing;
-                                }
-                                if (adjusted) {
-                                    // Extend left or right if this glyph overflows its
-                                    // origin/advance box (can happen with an italic font,
-                                    // or with a regular font on the right of the letter 'f'
-                                    // or on the left of the letter 'J').
-                                    // Only when negative (overflow) and not when positive
-                                    // (which are more frequent), mostly to keep some good
-                                    // looking rectangles on the sides when highlighting
-                                    // multiple lines.
-                                    rect.left += font->getLeftSideBearing(str[offset], true);
-                                    if ( !hyphen_added )
-                                        rect.right -= font->getRightSideBearing(str[offset], true);
-                                }
+                            rect.right = rect.left + chw;
+                            if ( !hyphen_added ) {
+                                // Also remove our added letter spacing for justification
+                                // from the right, to have cleaner highlights.
+                                rect.right -= word->added_letter_spacing;
+                            }
+                            if (adjusted) {
+                                // Extend left or right if this glyph overflows its
+                                // origin/advance box (can happen with an italic font,
+                                // or with a regular font on the right of the letter 'f'
+                                // or on the left of the letter 'J').
+                                // Only when negative (overflow) and not when positive
+                                // (which are more frequent), mostly to keep some good
+                                // looking rectangles on the sides when highlighting
+                                // multiple lines.
+                                rect.left += font->getLeftSideBearing(str[offset], true);
+                                if ( !hyphen_added )
+                                    rect.right -= font->getRightSideBearing(str[offset], true);
                             }
                             // Ensure we always return a non-zero width, even for zero-width
                             // chars or collapsed spaces (to avoid isEmpty() returning true
@@ -10427,6 +11263,7 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                         else
                             rect.right = rect.left + 1;
                         rect.bottom = rect.top + frmline->height;
+                        // No ctxFlags to set
                         return true;
                     } else if (lastWord) {
                         // after last word
@@ -10438,9 +11275,21 @@ bool ldomXPointer::getRect(lvRect & rect, bool extended, bool adjusted) const
                         else
                             rect.right = rect.left + 1;
                         rect.bottom = rect.top + frmline->height;
+                        // No ctxFlags to set
                         return true;
                     }
                 }
+            }
+            if ( frmline->word_count == 0 && l == txtform->GetLineCount() - 1 && frmline->height == 0 ) {
+                // Handle a special case: we may end up setting the last added line a height of
+                // zero when we realize no word would be added. We don't want to return the full
+                // final node.
+                rect.left = rc.left;
+                rect.top = rc.top + frmline->y;
+                rect.right = rect.left + 1; // not the right word: no char width
+                rect.bottom = rect.top + frmline->height + 1;
+                // No ctxFlags to set
+                return true;
             }
         }
         // return false;
@@ -10843,10 +11692,15 @@ lString32 ldomXPointer::toStringV2()
             lString32 name = p->getNodeName();
             if ( !parent )
                 return "/" + name + path;
+            // The following "cosmetic" xpointer string tweak could be costly
+            // in some cases. Do it only when an older dom_version is requested
+            // (= previously opened books, as frontend may rely on raw string
+            // equality with saved annotations).
+            bool explicitFirstIndex = getDocument()->getDOMVersionRequested() >= 20260812;
             int count = 0;
             ldomNodeIdPredicate predicat(p->getNodeId());
             int index = getElementIndex(parent, p, predicat, count);
-            if ( count == 1 ) {
+            if ( !explicitFirstIndex && count == 1 ) {
                 // We're first, but see if we have following siblings with the
                 // same element name, so we can have "div[1]" instead of "div"
                 // when parent has more than one of it (as toStringV1 does).
@@ -10858,7 +11712,7 @@ lString32 ldomXPointer::toStringV2()
                     }
                 }
             }
-            if ( count>1 )
+            if ( explicitFirstIndex || count>1 )
                 path = cs32("/") + name + "[" + fmt::decimal(index) + "]" + path;
             else
                 path = cs32("/") + name + path;
@@ -10866,9 +11720,10 @@ lString32 ldomXPointer::toStringV2()
             // text
             if ( !parent )
                 return cs32("/text()") + path;
+            bool explicitFirstIndex = getDocument()->getDOMVersionRequested() >= 20260812;
             int count = 0;
             int index = getElementIndex(parent, p, isTextNode, count);
-            if ( count == 1 ) {
+            if ( !explicitFirstIndex && count == 1 ) {
                 // We're first, but see if we have following text siblings,
                 // so we can have "text()[1]" instead of "text()" when
                 // parent has more than one text node (as toStringV1 does).
@@ -10880,7 +11735,7 @@ lString32 ldomXPointer::toStringV2()
                     }
                 }
             }
-            if ( count>1 )
+            if ( explicitFirstIndex || count>1 )
                 path = cs32("/text()") + "[" + fmt::decimal(index) + "]" + path;
             else
                 path = "/text()" + path;
@@ -10921,6 +11776,275 @@ lString32 ldomXPointer::toStringV2AsIndexes()
         p = parent;
     }
     return path;
+}
+
+// EPUB CFI (Canonical Fragment Identifier)
+// https://w3c.github.io/epub-specs/epub33/epubcfi/
+//
+// A path of steps indexing an element's children: 2, 4, 6... for elements,
+// 1, 3, 5... for the text chunks between them (adjacent text nodes make a
+// single chunk; comments and PIs take no index). A location inside a chunk
+// is a ":charOffset" terminating step. Steps may carry a "[assertion]": we
+// only emit element ids.
+//
+// crengine merges all spine items into one DOM, each wrapped in a <DocFragment>
+// (standing for the <html> of a content document), and drops the package
+// document (OPF). We therefore assume the usual OPF layout to build the part
+// before the "!" indirection step: <spine> as 3rd element child of <package>
+// ("/6"), and the Nth <DocFragment> made from the Nth <itemref> ("/(2*(N+1))").
+
+// CFI offsets are offsets into DOM strings, which are UTF-16 encoded
+static int getCFITextLength( const lString32 & text )
+{
+    int length = 0;
+    for ( int i=0; i<text.length(); i++ )
+        length += text[i] > 0xFFFF ? 2 : 1; // non-BMP chars are a surrogate pair
+    return length;
+}
+
+// "^" escapes the characters that are special in a CFI
+static lString32 escapeCFIAssertion( const lString32 & value )
+{
+    lString32 escaped;
+    escaped.reserve(value.length());
+    for ( int i=0; i<value.length(); i++ ) {
+        lChar32 c = value[i];
+        if ( c=='^' || c=='[' || c==']' || c=='(' || c==')' || c==',' || c==';' || c=='=' )
+            escaped << '^';
+        escaped << c;
+    }
+    return escaped;
+}
+
+// Makes a "/index" step, with the element id as an assertion when it has one
+static lString32 getCFIElementStep( int index, ldomNode * node )
+{
+    lString32 step;
+    step << "/" << fmt::decimal(index);
+    if ( node->hasAttribute(attr_id) ) {
+        lString32 id = node->getAttributeValue(attr_id);
+        // ldomDocumentFragmentWriter prefixed it with "_doc_fragment_N_ " to keep
+        // ids unique across the merged sub-documents: recover the original.
+        if ( id.startsWith(U"_doc_fragment_") )
+            id = id.substr(id.pos(lString32(" ")) + 1);
+        if ( !id.empty() )
+            step << "[" << escapeCFIAssertion(id) << "]";
+    }
+    return step;
+}
+
+struct cfiChildScanState {
+    ldomNode * target;
+    int elementCount; // nb of element children before target
+    int textLength;   // length of the text chunk right before target
+    bool found;
+    cfiChildScanState( ldomNode * node ) : target(node), elementCount(0), textLength(0), found(false) { }
+};
+
+// Walks the children of parent (boxing elements being transparent, as they
+// don't exist in the source document) to index target as a CFI step.
+static void scanCFIChildren( ldomNode * parent, cfiChildScanState & scan )
+{
+    int count = parent->getChildCount();
+    for ( int i=0; i<count; i++ ) {
+        ldomNode * child = parent->getChildNode(i);
+        if ( child == scan.target ) {
+            scan.found = true;
+            return;
+        }
+        if ( child->isBoxingNode() ) { // autoBoxing, floatBox, inlineBox, tabularBox
+            scanCFIChildren(child, scan);
+            if ( scan.found )
+                return;
+        }
+        else if ( child->isBoxingNode(true) ) {
+            continue; // pseudoElem: generated content, not in the source document
+        }
+        else if ( child->isElement() ) {
+            scan.elementCount++;
+            scan.textLength = 0; // this element ends any preceding text chunk
+        }
+        else if ( child->isText() ) {
+            scan.textLength += getCFITextLength(child->getText());
+        }
+    }
+}
+
+// Builds the CFI steps for the pointed location, from the package document down
+// to the target. The indirection step ("!") is glued to the step it introduces,
+// as a path may neither start nor end on it.
+// Returns false if the location can't be expressed as a CFI.
+static bool getCFIPathSteps( const ldomXPointer & pointer, lString32Collection & steps )
+{
+    steps.clear();
+    if ( pointer.isNull() )
+        return false;
+    ldomNode * node = pointer.getNode();
+    int offset = pointer.getOffset();
+    ldomNode * p = node;
+    if ( node->isBoxingNode(true) ) { // (or pseudoElem)
+        // Get a node that exists in the source document (as toStringV2() does)
+        if ( offset >= 0 && offset < p->getChildCount() ) {
+            p = p->getChildNode(offset);
+            if ( p->isBoxingNode(true) ) {
+                p = p->getUnboxedFirstChild();
+                if ( !p )
+                    p = node->getUnboxedParent();
+            }
+        }
+        else {
+            p = node->getUnboxedParent();
+        }
+        offset = -1;
+    }
+    else if ( p->isElement() && offset >= 0 ) {
+        // An offset on an element indexes its children, which a CFI can't
+        // express: point at the start of that child instead.
+        ldomNode * child = offset < p->getChildCount() ? p->getChildNode(offset) : NULL;
+        while ( child && child->isBoxingNode(true) )
+            child = child->getUnboxedFirstChild();
+        if ( child ) {
+            p = child;
+            offset = p->isText() ? 0 : -1;
+        }
+        else { // no such child: point at the element
+            offset = -1;
+        }
+    }
+    if ( !p )
+        return false;
+
+    lString32Collection reversed; // steps are gathered from the target upwards
+    ldomNode * docFragment = NULL;
+    ldomNode * rootNode = node->getDocument()->getRootNode();
+    while ( p && p != rootNode ) {
+        if ( p->getNodeId() == el_DocFragment ) {
+            // The pointer targets a whole content document: point at its <body>
+            docFragment = p;
+            if ( reversed.length() == 0 ) {
+                ldomNode * body = NULL;
+                for ( int i=0; i<p->getChildCount() && !body; i++ ) {
+                    ldomNode * child = p->getChildNode(i);
+                    if ( child->isElement() && child->getNodeId() == el_body )
+                        body = child;
+                }
+                reversed.add( body ? getCFIElementStep(4, body) : cs32("/4") );
+            }
+            break;
+        }
+        ldomNode * parent = p->getParentNode();
+        while ( parent && isBoxingNode(parent) )
+            parent = parent->getParentNode();
+        if ( !parent )
+            break;
+        if ( parent->getNodeId() == el_DocFragment ) {
+            // Only <body> has a counterpart in the source document (the other
+            // possible child, <stylesheet>, is a crengine internal element).
+            if ( p->getNodeId() != el_body )
+                return false;
+            reversed.add( getCFIElementStep(4, p) );
+            docFragment = parent;
+            break;
+        }
+        if ( parent == rootNode )
+            break; // root element: makes no CFI step
+        cfiChildScanState scan(p);
+        scanCFIChildren(parent, scan);
+        if ( !scan.found )
+            return false;
+        if ( p->isElement() ) {
+            reversed.add( getCFIElementStep(2*(scan.elementCount+1), p) );
+        }
+        else { // text node, which can only be the node we started from
+            lString32 step;
+            step << "/" << fmt::decimal(2*scan.elementCount + 1);
+            if ( offset >= 0 ) {
+                // Offsets are relative to the whole text chunk
+                lString32 text = p->getText();
+                int o = offset <= text.length() ? offset : text.length();
+                step << ":" << fmt::decimal(scan.textLength + getCFITextLength(text.substr(0, o)));
+            }
+            reversed.add( step );
+        }
+        p = parent;
+    }
+
+    if ( docFragment ) {
+        // Index of the <itemref> in the spine this <DocFragment> was made from
+        int index = 0;
+        ldomNode * parent = docFragment->getParentNode();
+        if ( parent ) {
+            for ( int i=0; i<parent->getChildCount(); i++ ) {
+                ldomNode * sibling = parent->getChildNode(i);
+                if ( sibling == docFragment )
+                    break;
+                if ( sibling->getNodeId() == el_DocFragment )
+                    index++;
+            }
+        }
+
+        // because the OPF DOM is discarded we derive the cfi root by convention
+        steps.add( cs32("/6") );
+        steps.add( cs32("/") + fmt::decimal(2*(index+1)) );
+        // The <body> step, gathered last, is the one reached through the indirection
+        reversed[reversed.length()-1] = cs32("!") + reversed[reversed.length()-1];
+    }
+    for ( int i=reversed.length()-1; i>=0; i-- )
+        steps.add( reversed[i] );
+    return steps.length() > 0;
+}
+
+lString32 ldomEPubCFI::toString()
+{
+    lString32Collection steps;
+    if ( !getCFIPathSteps(_pointer, steps) )
+        return lString32::empty_str;
+    lString32 cfi;
+    for ( int i=0; i<steps.length(); i++ )
+        cfi << steps[i];
+    return cs32("epubcfi(") + cfi + ")";
+}
+
+lString32 ldomEPubCFI::toRangeString( const ldomXPointer & to )
+{
+    if ( _pointer.isNull() || to.isNull() )
+        return lString32::empty_str;
+    if ( _pointer.getNode()->getDocument() != to.getNode()->getDocument() )
+        return lString32::empty_str;
+    // A range is expressed in document order
+    ldomXPointer start = _pointer;
+    ldomXPointer end = to;
+    if ( ldomXPointerEx(start).compare( ldomXPointerEx(end) ) > 0 ) {
+        start = to;
+        end = _pointer;
+    }
+    lString32Collection startSteps;
+    lString32Collection endSteps;
+    if ( !getCFIPathSteps(start, startSteps) || !getCFIPathSteps(end, endSteps) )
+        return lString32::empty_str;
+
+    // The parent path takes the deepest common path. It must not be empty, and
+    // neither may the end subpath; the start subpath may, when the end location
+    // lies within the subtree rooted at the start location.
+    int limit = endSteps.length() - 1;
+    if ( limit > startSteps.length() )
+        limit = startSteps.length();
+    int common = 0;
+    while ( common < limit && startSteps[common] == endSteps[common] )
+        common++;
+    if ( common == 0 )
+        return lString32::empty_str; // no common parent path: no range
+
+    lString32 cfi;
+    for ( int i=0; i<common; i++ )
+        cfi << startSteps[i];
+    cfi << ",";
+    for ( int i=common; i<startSteps.length(); i++ )
+        cfi << startSteps[i];
+    cfi << ",";
+    for ( int i=common; i<endSteps.length(); i++ )
+        cfi << endSteps[i];
+    return cs32("epubcfi(") + cfi + ")";
 }
 
 #if BUILD_LITE!=1
@@ -11230,6 +12354,17 @@ void ldomXPointerEx::initIndex()
     for ( int i=0; i<_level; i++ ) {
         _indexes[ i ] = m[ _level - i - 1 ];
     }
+}
+
+bool ldomXPointerEx::isPathPrefixOf( const ldomXPointerEx & v ) const
+{
+    if ( _level > v._level )
+        return false;
+    for ( int i=0; i<_level; i++ ) {
+        if ( _indexes[i] != v._indexes[i] )
+            return false;
+    }
+    return true;
 }
 
 /// move to sibling #
@@ -11608,7 +12743,7 @@ void ldomXRangeList::split( ldomXRange * r )
 
 #if BUILD_LITE!=1
 
-bool ldomDocument::findText( lString32 pattern, bool caseInsensitive, bool reverse, int minY, int maxY, LVArray<ldomWord> & words, int maxCount, int maxHeight, int maxHeightCheckStartY, bool patternIsRegex )
+bool ldomDocument::findText( lString32 pattern, bool caseInsensitive, bool reverse, int minY, int maxY, ldomXRangeList & ranges, int maxCount, int maxHeight, int maxHeightCheckStartY, bool patternIsRegex, lUInt32 searchFlags )
 {
     if ( minY<0 )
         minY = 0;
@@ -11676,7 +12811,7 @@ bool ldomDocument::findText( lString32 pattern, bool caseInsensitive, bool rever
         CRLog::debug("No text found: Range is empty");
         return false;
     }
-    return range.findText( pattern, caseInsensitive, reverse, words, maxCount, maxHeight, maxHeightCheckStartY, false, patternIsRegex );
+    return range.findText( pattern, caseInsensitive, reverse, ranges, maxCount, maxHeight, maxHeightCheckStartY, false, patternIsRegex, searchFlags );
 }
 
 #if USE_SRELL_REGEX ==1
@@ -12047,10 +13182,674 @@ static bool findTextRev( const lString32 & str, int & pos, int & endpos, const l
     return false;
 }
 
-/// searches for specified text inside range
-bool ldomXRange::findText( lString32 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight, int maxHeightCheckStartY, bool checkMaxFromStart, bool patternIsRegex )
+inline bool IsWordBoundary( lChar32 ch );
+
+// findTextEnhanced() helpers
+static inline bool isSearchSpaceFoldChar(lChar32 ch)
 {
-    if ( caseInsensitive ) {
+    switch (ch) {
+        case 0x0009: // CHARACTER TABULATION
+        case 0x0020: // SPACE
+        case 0x00A0: // NO-BREAK SPACE
+        case 0x1680: // OGHAM SPACE MARK
+        case 0x2000: // EN QUAD
+        case 0x2001: // EM QUAD
+        case 0x2002: // EN SPACE
+        case 0x2003: // EM SPACE
+        case 0x2004: // THREE-PER-EM SPACE
+        case 0x2005: // FOUR-PER-EM SPACE
+        case 0x2006: // SIX-PER-EM SPACE
+        case 0x2007: // FIGURE SPACE
+        case 0x2008: // PUNCTUATION SPACE
+        case 0x2009: // THIN SPACE
+        case 0x200A: // HAIR SPACE
+        case 0x202F: // NARROW NO-BREAK SPACE
+        case 0x205F: // MEDIUM MATHEMATICAL SPACE
+        case 0x3000: // IDEOGRAPHIC SPACE
+            return true;
+    }
+    return false;
+}
+
+static inline bool isSearchApostropheFoldChar(lChar32 ch)
+{
+    switch (ch) {
+        case 0x0027: // APOSTROPHE
+        case 0x02BC: // MODIFIER LETTER APOSTROPHE
+        case 0x055A: // ARMENIAN APOSTROPHE
+        case 0x05F3: // HEBREW PUNCTUATION GERESH
+        case 0x2018: // LEFT SINGLE QUOTATION MARK
+        case 0x2019: // RIGHT SINGLE QUOTATION MARK
+        case 0xFF07: // FULLWIDTH APOSTROPHE
+            return true;
+    }
+    return false;
+}
+
+static inline bool isSearchHyphenFoldChar(lChar32 ch)
+{
+    if (ch == 0x2212) // MINUS SIGN
+        return true;
+#if USE_UTF8PROC == 1
+    return utf8proc_category((utf8proc_int32_t)ch) == UTF8PROC_CATEGORY_PD;
+#else
+    switch (ch) {
+        case 0x002D: // HYPHEN-MINUS
+        case 0x058A: // ARMENIAN HYPHEN
+        case 0x05BE: // HEBREW PUNCTUATION MAQAF
+        case 0x1400: // CANADIAN SYLLABICS HYPHEN
+        case 0x1806: // MONGOLIAN TODO SOFT HYPHEN
+        case 0x2010: // HYPHEN
+        case 0x2011: // NON-BREAKING HYPHEN
+        case 0x2012: // FIGURE DASH
+        case 0x2013: // EN DASH
+        case 0x2014: // EM DASH
+        case 0x2015: // HORIZONTAL BAR
+        case 0x2E17: // DOUBLE OBLIQUE HYPHEN
+        case 0x2E1A: // HYPHEN WITH DIAERESIS
+        case 0x2E3A: // TWO-EM DASH
+        case 0x2E3B: // THREE-EM DASH
+        case 0x2E40: // DOUBLE HYPHEN
+        case 0x2E5D: // OBLIQUE HYPHEN
+        case 0x301C: // WAVE DASH
+        case 0x3030: // WAVY DASH
+        case 0x30A0: // KATAKANA-HIRAGANA DOUBLE HYPHEN
+        case 0xFE31: // PRESENTATION FORM FOR VERTICAL EM DASH
+        case 0xFE32: // PRESENTATION FORM FOR VERTICAL EN DASH
+        case 0xFE58: // SMALL EM DASH
+        case 0xFE63: // SMALL HYPHEN-MINUS
+        case 0xFF0D: // FULLWIDTH HYPHEN-MINUS
+            return true;
+    }
+    return false;
+#endif
+}
+
+static inline bool isSearchIgnorableFormatControlChar(lChar32 ch)
+{
+    switch (ch) {
+        case 0x061C: // ARABIC LETTER MARK
+        case 0x0640: // ARABIC TATWEEL
+        case 0x1806: // MONGOLIAN TODO SOFT HYPHEN
+        case 0x200B: // ZERO WIDTH SPACE
+        case 0x200C: // ZERO WIDTH NON-JOINER
+        case 0x200D: // ZERO WIDTH JOINER
+        case 0x200E: // LEFT-TO-RIGHT MARK
+        case 0x200F: // RIGHT-TO-LEFT MARK
+        case 0x202A: // LEFT-TO-RIGHT EMBEDDING
+        case 0x202B: // RIGHT-TO-LEFT EMBEDDING
+        case 0x202C: // POP DIRECTIONAL FORMATTING
+        case 0x202D: // LEFT-TO-RIGHT OVERRIDE
+        case 0x202E: // RIGHT-TO-LEFT OVERRIDE
+        case 0x2060: // WORD JOINER
+        case 0x2066: // LEFT-TO-RIGHT ISOLATE
+        case 0x2067: // RIGHT-TO-LEFT ISOLATE
+        case 0x2068: // FIRST STRONG ISOLATE
+        case 0x2069: // POP DIRECTIONAL ISOLATE
+        case 0xFEFF: // ZERO WIDTH NO-BREAK SPACE
+            return true;
+    }
+    return false;
+}
+
+static inline lChar32 foldFindTextChar(lChar32 ch, lUInt32 searchFlags)
+{
+    // Handle explicit punctuation/space folds and optional format/control chars.
+    // These have a narrower notion of equivalence than a general Unicode normalizer.
+    // (We intentionally fold only a small, explicit set of characters that are common
+    // in book text search and cheap to map back to original DOM offsets. Web browsers
+    // often go further thanks to larger search buffers or ICU-powered matchers)
+    //
+    // Also note that punctuation folding is not Unicode canonical normalization:
+    // canonical equivalence is about different encodings of the same text
+    // (for example precomposed U+00E9 "é" versus "e" + COMBINING ACUTE ACCENT).
+    // That work, when enabled with its own flag, happens in the decomposition
+    // helpers below; keep this helper limited to one-codepoint folds.
+    //
+    // Soft hyphen stays unconditionally ignored for historical search behavior.
+    // IGNORE_FORMAT_CONTROL_CHARS extends that idea to other discretionary format
+    // characters (tatweel, zero-width spaces/word joiners, BiDi controls). This
+    // also includes ZWNJ/ZWJ, which is intentionally more aggressive and may hide
+    // orthographic distinctions in some scripts.
+    if (ch == UNICODE_SOFT_HYPHEN_CODE)
+        return 0;
+    if ((searchFlags & LDOM_FIND_TEXT_IGNORE_FORMAT_CONTROL_CHARS)
+            && isSearchIgnorableFormatControlChar(ch))
+        return 0;
+    if ((searchFlags & (LDOM_FIND_TEXT_FOLD_SPACES | LDOM_FIND_TEXT_COLLAPSE_CONSECUTIVE_SPACES)) && isSearchSpaceFoldChar(ch))
+        return U' ';
+    if ((searchFlags & LDOM_FIND_TEXT_FOLD_APOSTROPHES) && isSearchApostropheFoldChar(ch))
+        return U'\'';
+    if ((searchFlags & LDOM_FIND_TEXT_FOLD_HYPHENS) && isSearchHyphenFoldChar(ch))
+        return U'-';
+    return ch;
+}
+
+static inline int getFindTextCombiningClass(lChar32 ch)
+{
+#if USE_UTF8PROC == 1
+    const utf8proc_property_t * prop = utf8proc_get_property(ch);
+    return prop ? prop->combining_class : 0;
+#else
+    (void)ch;
+    return 0;
+#endif
+}
+
+static inline bool isFindTextDiacriticMark(lChar32 ch)
+{
+#if USE_UTF8PROC == 1
+    utf8proc_category_t category = utf8proc_category((utf8proc_int32_t)ch);
+    return category == UTF8PROC_CATEGORY_MN
+        || category == UTF8PROC_CATEGORY_MC
+        || category == UTF8PROC_CATEGORY_ME;
+#else
+    (void)ch;
+    return false;
+#endif
+}
+
+// Current worst-case compatibility decomposition with utf8proc is U+FDFA,
+// which expands to 18 codepoints. Keep enough room for the full expanded form
+// so normalization does not silently fall back to the original character.
+static const int FIND_TEXT_MAX_DECOMPOSED_CODEPOINTS = 18;
+
+static int decomposeFindTextChar(lChar32 ch, lUInt32 searchFlags, lChar32 * decomposed, int capacity)
+{
+#if USE_UTF8PROC == 1
+    utf8proc_int32_t codepoints[FIND_TEXT_MAX_DECOMPOSED_CODEPOINTS];
+    utf8proc_option_t options = UTF8PROC_DECOMPOSE;
+    if ((searchFlags & LDOM_FIND_TEXT_NORMALIZE_COMPATIBILITY) != 0)
+        options = (utf8proc_option_t)(options | UTF8PROC_COMPAT);
+    utf8proc_ssize_t count = utf8proc_decompose_char((utf8proc_int32_t)ch, codepoints,
+            FIND_TEXT_MAX_DECOMPOSED_CODEPOINTS, options, NULL);
+    if (count > 0 && count <= capacity) {
+        for (int i = 0; i < count; i++)
+            decomposed[i] = (lChar32)codepoints[i];
+        return (int)count;
+    }
+#else
+    (void)searchFlags;
+#endif
+    decomposed[0] = ch;
+    return 1;
+}
+
+// Enhanced search works on a transient per-block buffer rather than matching
+// directly on DOM text nodes. These tiny structs keep the transformed search
+// text tied back to original node/offset pairs so a match can still become a
+// precise ldomXRange afterwards.
+struct EnhancedSearchCharOrigin {
+    ldomNode * node;
+    int offset;
+
+    EnhancedSearchCharOrigin()
+        : node(NULL), offset(0) {}
+    EnhancedSearchCharOrigin(ldomNode * node_, int offset_)
+        : node(node_), offset(offset_) {}
+};
+
+// One normalized search unit waiting to be flushed to the folded buffer.
+// When canonical/compatibility normalization is enabled, one source codepoint
+// may become multiple output codepoints, and combining marks may need to be
+// reordered before they are appended to the searchable text buffer.
+struct EnhancedSearchCanonicalUnit {
+    lChar32 ch;
+    EnhancedSearchCharOrigin origin;
+    int combiningClass;
+
+    EnhancedSearchCanonicalUnit()
+        : ch(0), origin(), combiningClass(0) {}
+    EnhancedSearchCanonicalUnit(lChar32 ch_, const EnhancedSearchCharOrigin & origin_, int combiningClass_)
+        : ch(ch_), origin(origin_), combiningClass(combiningClass_) {}
+};
+
+// Folded text for one rendered block, plus enough bookkeeping to map match
+// indices in that folded text back to DOM node/offset pairs.
+struct EnhancedSearchBlockBuffer {
+    lString32 text;
+    LVArray<EnhancedSearchCharOrigin> origins;
+    ldomXPointerEx firstNode;
+    ldomXPointerEx lastNode;
+    bool hasNodes;
+    LVArray<EnhancedSearchCanonicalUnit> pendingCanonicalUnits;
+
+    EnhancedSearchBlockBuffer()
+        : hasNodes(false) {}
+
+    void clear() {
+        text.clear();
+        origins.clear();
+        firstNode.clear();
+        lastNode.clear();
+        hasNodes = false;
+        pendingCanonicalUnits.clear();
+    }
+};
+
+static void appendFindTextOutputChar(lChar32 ch, const EnhancedSearchCharOrigin & origin, lUInt32 searchFlags, lString32 & output, LVArray<EnhancedSearchCharOrigin> * origins)
+{
+    // Collapse runs of spaces in the folded output when requested.
+    if ((searchFlags & LDOM_FIND_TEXT_COLLAPSE_CONSECUTIVE_SPACES)
+            && ch == U' '
+            && !output.empty()
+            && output[output.length() - 1] == U' ')
+        return;
+    output += ch;
+    if (origins)
+        origins->add(origin);
+}
+
+// Canonical equivalence is about Unicode strings that should compare equal
+// after canonical normalization, such as precomposed U+00E9 "é" and the
+// decomposed sequence "e" + COMBINING ACUTE ACCENT. We decompose each source
+// codepoint, then order the following combining marks by canonical combining
+// class so canonically equivalent sequences build the same search buffer.
+//
+// Doing this on a small pending segment keeps every normalized output unit tied
+// back to its original DOM node/offset. Browser find-in-page implementations
+// often work on larger flattened buffers and can postpone that mapping problem;
+// here we keep it explicit so one match can still become a precise ldomXRange.
+//
+// Compatibility normalization is a broader, more permissive decomposition layer:
+// it also accepts matches like ligatures or fullwidth forms. Ignore-diacritics
+// is intentionally separate because it drops mark characters after
+// decomposition, while canonical/compatibility normalization keep them
+// significant.
+static void sortFindTextCanonicalUnits(LVArray<EnhancedSearchCanonicalUnit> & units, int start)
+{
+    for (int i = start + 1; i < units.length(); i++) {
+        EnhancedSearchCanonicalUnit current = units[i];
+        int j = i - 1;
+        while (j >= start && units[j].combiningClass > current.combiningClass) {
+            units[j + 1] = units[j];
+            j--;
+        }
+        units[j + 1] = current;
+    }
+}
+
+static void flushFindTextCanonicalUnits(LVArray<EnhancedSearchCanonicalUnit> & units, lUInt32 searchFlags, lString32 & output, LVArray<EnhancedSearchCharOrigin> * origins)
+{
+    if (units.empty())
+        return;
+    int markStart = units[0].combiningClass == 0 ? 1 : 0;
+    sortFindTextCanonicalUnits(units, markStart);
+    for (int i = 0; i < units.length(); i++)
+        appendFindTextOutputChar(units[i].ch, units[i].origin, searchFlags, output, origins);
+    units.clear();
+}
+
+class FindTextFoldContext {
+private:
+    bool _caseInsensitive;
+    lUInt32 _searchFlags;
+    bool _decompose;
+    bool _ignoreDiacritics;
+    bool _reorderCanonicalUnits;
+public:
+    FindTextFoldContext(bool caseInsensitive, lUInt32 searchFlags)
+        : _caseInsensitive(caseInsensitive),
+          _searchFlags(searchFlags),
+          _decompose((searchFlags & (LDOM_FIND_TEXT_NORMALIZE_CANONICAL | LDOM_FIND_TEXT_NORMALIZE_COMPATIBILITY | LDOM_FIND_TEXT_IGNORE_DIACRITICS)) != 0),
+          _ignoreDiacritics((searchFlags & LDOM_FIND_TEXT_IGNORE_DIACRITICS) != 0),
+          // Decomposition may emit multiple starter/base codepoints (for example
+          // ligatures or Hangul Jamo), but canonical reordering only affects the
+          // following combining marks, never the starter/base characters.
+          // So, we don't need _reorderCanonicalUnits when ignoring diacritics.
+          _reorderCanonicalUnits((searchFlags & (LDOM_FIND_TEXT_NORMALIZE_CANONICAL | LDOM_FIND_TEXT_NORMALIZE_COMPATIBILITY)) != 0
+                  && (searchFlags & LDOM_FIND_TEXT_IGNORE_DIACRITICS) == 0) {}
+
+    // Apply the enabled search transforms for one source codepoint and append
+    // the resulting searchable units either directly to the folded buffer or
+    // temporarily to pendingCanonicalUnits when canonical reordering is needed.
+    // 'origin' is the DOM/pattern location of that one input codepoint; 'origins'
+    // is the parallel array for the whole folded output buffer, with one entry
+    // per emitted output codepoint. One input codepoint may emit 0, 1 or many
+    // output codepoints after folding/decomposition, all inheriting that origin.
+    void appendSourceChar(lChar32 sourceChar, const EnhancedSearchCharOrigin & origin, lString32 & output,
+            LVArray<EnhancedSearchCharOrigin> * origins, LVArray<EnhancedSearchCanonicalUnit> & pendingCanonicalUnits) const
+    {
+        lChar32 decomposed[FIND_TEXT_MAX_DECOMPOSED_CODEPOINTS];
+        int count;
+        if ( _decompose ) {
+            count = decomposeFindTextChar(sourceChar, _searchFlags, decomposed, FIND_TEXT_MAX_DECOMPOSED_CODEPOINTS);
+        }
+        else {
+            decomposed[0] = sourceChar;
+            count = 1;
+        }
+        for (int i = 0; i < count; i++) {
+            lChar32 ch = decomposed[i];
+            if (_caseInsensitive)
+                lStr_lowercase(&ch, 1);
+            ch = foldFindTextChar(ch, _searchFlags); // explicit space/apostrophe/hyphen 1->1 folding
+            if (ch == 0) // soft-hyphens
+                continue;
+            if (_ignoreDiacritics && isFindTextDiacriticMark(ch))
+                continue;
+            if (_reorderCanonicalUnits) {
+                int combiningClass = getFindTextCombiningClass(ch);
+                if (combiningClass == 0 && !pendingCanonicalUnits.empty()) {
+                    // A new starter/base char ends the previous canonical segment:
+                    // reorder its pending combining marks and flush that segment.
+                    flushFindTextCanonicalUnits(pendingCanonicalUnits, _searchFlags, output, origins);
+                }
+                pendingCanonicalUnits.add(EnhancedSearchCanonicalUnit(ch, origin, combiningClass));
+            }
+            else { // no reordering needed, append as they come
+                appendFindTextOutputChar(ch, origin, _searchFlags, output, origins);
+            }
+        }
+    }
+
+};
+
+static lString32 buildFoldedFindTextPattern(const lString32 & pattern, bool caseInsensitive, lUInt32 searchFlags)
+{
+    lString32 folded;
+    folded.reserve(pattern.length());
+    FindTextFoldContext foldContext(caseInsensitive, searchFlags);
+    LVArray<EnhancedSearchCanonicalUnit> pendingCanonicalUnits;
+    for (int i = 0; i < pattern.length(); i++) {
+        // Pattern folding needs the same text transform pipeline, but not the
+        // DOM back-mapping array used for document text, so origins is NULL.
+        EnhancedSearchCharOrigin origin(NULL, i);
+        foldContext.appendSourceChar(pattern[i], origin, folded, NULL, pendingCanonicalUnits);
+    }
+    // appendSourceChar() only queues canonical units when reordering is actually
+    // enabled, so this unconditional flush is just a final no-op otherwise.
+    flushFindTextCanonicalUnits(pendingCanonicalUnits, searchFlags, folded, NULL);
+    return folded;
+}
+
+static void appendFoldedNodeTextToSearchBuffer(ldomNode * node, int from, int to, bool caseInsensitive, lUInt32 searchFlags, EnhancedSearchBlockBuffer & buffer)
+{
+    lString32 text = node->getText();
+    FindTextFoldContext foldContext(caseInsensitive, searchFlags);
+    if (from < 0)
+        from = 0;
+    if (to > text.length())
+        to = text.length();
+    for (int i = from; i < to; i++) {
+        EnhancedSearchCharOrigin origin(node, i);
+        foldContext.appendSourceChar(text[i], origin, buffer.text, &buffer.origins, buffer.pendingCanonicalUnits);
+    }
+}
+
+static void appendFindTextMatchRange(const EnhancedSearchBlockBuffer & buffer, int start, int end, ldomXRangeList & ranges)
+{
+    if (start < 0 || end > buffer.origins.length() || start >= end)
+        return;
+    // The folded buffer may cover multiple text nodes, but a search result is one
+    // logical DOM range delimited by the first and last character that survived
+    // folding and took part in the match.
+    EnhancedSearchCharOrigin first = buffer.origins[start];
+    EnhancedSearchCharOrigin last = buffer.origins[end - 1];
+    ranges.add(new ldomXRange(ldomXPointer(first.node, first.offset), ldomXPointer(last.node, last.offset + 1), 1) );
+}
+
+static bool buildForwardEnhancedSearchBlock(const ldomXPointerEx & start, const ldomXPointerEx & rangeEnd, bool caseInsensitive, lUInt32 searchFlags, EnhancedSearchBlockBuffer & buffer)
+{
+    buffer.clear();
+    if (start.isNull() || !start.isText())
+        return false;
+
+    ldomXPointerEx pos(start);
+    ldomNode * block = pos.getThisBlockNode();
+    bool allowAcrossTextNodes = (searchFlags & LDOM_FIND_TEXT_MATCH_ACROSS_TEXT_NODES) != 0;
+    bool firstNode = true;
+    // Buffer only the current rendered block. Even when callers search the whole
+    // document (minY=maxY=-1 in ldomDocument::findText()), the enhanced path walks
+    // block by block: it never concatenates the full book into one giant buffer.
+    while (!pos.isNull() && pos.isText() && pos.getThisBlockNode() == block) {
+        if (pos.compare(rangeEnd) > 0 && pos.getNode() != rangeEnd.getNode())
+            break;
+        if (!buffer.hasNodes)
+            buffer.firstNode = pos;
+        buffer.lastNode = pos;
+        buffer.hasNodes = true;
+        int from = firstNode ? start.getOffset() : 0;
+        int to = pos.getNode() == rangeEnd.getNode() ? rangeEnd.getOffset() : pos.getNode()->getText().length();
+        appendFoldedNodeTextToSearchBuffer(pos.getNode(), from, to, caseInsensitive, searchFlags, buffer);
+        firstNode = false;
+        if (pos.getNode() == rangeEnd.getNode())
+            break;
+        if (!allowAcrossTextNodes)
+            break;
+        ldomXPointerEx next(pos);
+        if (!next.nextVisibleText(true))
+            break;
+        pos = next;
+    }
+    flushFindTextCanonicalUnits(buffer.pendingCanonicalUnits, searchFlags, buffer.text, &buffer.origins);
+    return buffer.hasNodes;
+}
+
+static bool buildReverseEnhancedSearchBlock(const ldomXPointerEx & end, const ldomXPointerEx & rangeStart, bool caseInsensitive, lUInt32 searchFlags, EnhancedSearchBlockBuffer & buffer)
+{
+    buffer.clear();
+    if (end.isNull() || !end.isText())
+        return false;
+
+    ldomXPointerEx first(end);
+    ldomXPointerEx endBlockPos(end);
+    ldomNode * block = endBlockPos.getThisBlockNode();
+    if ((searchFlags & LDOM_FIND_TEXT_MATCH_ACROSS_TEXT_NODES) != 0) {
+        // Reverse search needs the same block-sized folded buffer as forward search,
+        // but it starts from the block tail and first rewinds to the earliest visible
+        // text node in that block that still belongs to the caller-provided range.
+        while (true) {
+            ldomXPointerEx prev(first);
+            if (!prev.prevVisibleText(true))
+                break;
+            if (prev.getThisBlockNode() != block)
+                break;
+            if (prev.getNode() == rangeStart.getNode()) {
+                first = prev;
+                break;
+            }
+            if (prev.compare(rangeStart) < 0)
+                break;
+            first = prev;
+        }
+    }
+
+    ldomXPointerEx pos(first);
+    bool firstNode = true;
+    while (!pos.isNull() && pos.isText() && pos.getThisBlockNode() == block) {
+        if (!buffer.hasNodes)
+            buffer.firstNode = pos;
+        buffer.lastNode = pos;
+        buffer.hasNodes = true;
+        int from = firstNode && pos.getNode() == rangeStart.getNode() ? rangeStart.getOffset() : 0;
+        int to = pos.getNode() == end.getNode() ? end.getOffset() : pos.getNode()->getText().length();
+        appendFoldedNodeTextToSearchBuffer(pos.getNode(), from, to, caseInsensitive, searchFlags, buffer);
+        firstNode = false;
+        if (pos.getNode() == end.getNode())
+            break;
+        if (!pos.nextVisibleText(true))
+            break;
+    }
+    flushFindTextCanonicalUnits(buffer.pendingCanonicalUnits, searchFlags, buffer.text, &buffer.origins);
+    return buffer.hasNodes;
+}
+
+static bool findTextEnhanced(const lString32 & pattern, bool caseInsensitive, bool reverse, ldomXPointerEx & start, ldomXPointerEx & end, ldomXRangeList & ranges, int maxCount, int maxHeight, int maxHeightCheckStartY, bool checkMaxFromStart, bool patternIsRegex, lUInt32 searchFlags)
+{
+    ranges.clear();
+    if (pattern.empty())
+        return false;
+    bool wholeWordsOnly = (searchFlags & LDOM_FIND_TEXT_MATCH_WHOLE_WORDS) != 0;
+
+    if (reverse) {
+        if (!end.isText()) {
+            end.prevVisibleText();
+            lString32 txt = end.getNode()->getText();
+            end.setOffset(txt.length());
+        }
+        int firstFoundTextY = -1;
+        while (!start.isNull() && !end.isNull() && start.compare(end) <= 0) {
+            if (firstFoundTextY != -1 && maxHeight > 0) {
+                ldomXPointer p(end.getNode(), end.getOffset());
+                int currentTextY = p.toPoint().y;
+                if (currentTextY < firstFoundTextY - maxHeight)
+                    return ranges.length() > 0;
+            }
+
+            EnhancedSearchBlockBuffer block;
+            if (!buildReverseEnhancedSearchBlock(end, start, caseInsensitive, searchFlags, block))
+                break;
+
+            if (!block.text.empty()) {
+                int offs = block.text.length();
+                int endpos;
+                while (::findTextRev(block.text, offs, endpos, pattern, patternIsRegex)) {
+                    if (wholeWordsOnly) {
+                        // We reuse the existing word-boundary helpers so whole-word search
+                        // stays consistent with word navigation; but unlike then, we treat
+                        // hyphens as boundaries so "operate" can match in "co-operate".
+                        bool leftBoundary = offs <= 0
+                                            || IsWordBoundary(block.text[offs - 1])
+                                            || (lGetCharProps(block.text[offs - 1]) & CH_PROP_HYPHEN) != 0;
+                        bool rightBoundary = endpos >= block.text.length()
+                                            || IsWordBoundary(block.text[endpos])
+                                            || (lGetCharProps(block.text[endpos]) & CH_PROP_HYPHEN) != 0;
+                        if (!leftBoundary || !rightBoundary) {
+                            offs--;
+                            continue;
+                        }
+                    }
+                    appendFindTextMatchRange(block, offs, endpos, ranges);
+                    if (firstFoundTextY == -1 && maxHeight > 0 && ranges.length() > 0) {
+                        ldomXRange * firstRange = ranges[ranges.length() - 1];
+                        ldomXPointer p(firstRange->getStart().getNode(), firstRange->getStart().getOffset());
+                        int currentTextY = p.toPoint().y;
+                        if (maxHeightCheckStartY == -1 || currentTextY <= maxHeightCheckStartY)
+                            firstFoundTextY = currentTextY;
+                    }
+                    offs--;
+                    if (ranges.length() >= maxCount)
+                        return true;
+                }
+            }
+
+            end = block.firstNode;
+            if (!end.prevVisibleText())
+                break;
+            lString32 txt = end.getNode()->getText();
+            end.setOffset(txt.length());
+        }
+    } else {
+        if (!start.isText())
+            start.nextVisibleText();
+        int firstFoundTextY = -1;
+        if (checkMaxFromStart) {
+            ldomXPointer p(start.getNode(), start.getOffset());
+            firstFoundTextY = p.toPoint().y;
+        }
+        while (!start.isNull() && !end.isNull() && start.compare(end) <= 0) {
+            if (firstFoundTextY != -1 && maxHeight > 0) {
+                ldomXPointer p(start.getNode(), start.getOffset());
+                int currentTextY = p.toPoint().y;
+                if ((checkMaxFromStart && currentTextY >= firstFoundTextY + maxHeight) ||
+                        currentTextY > firstFoundTextY + maxHeight)
+                    return ranges.length() > 0;
+            }
+
+            // We work block by block: build a searchable buffer for the current
+            // rendered block, pre-processed according to searchFlags, then run
+            // the existing matcher on that buffer. For plain search, pattern has
+            // already been pre-processed the same way and it will be a plain exact
+            // string search (::findText() below); for regex search, the buffer
+            // stays raw apart from cross-text-node concatenation.
+            EnhancedSearchBlockBuffer block;
+            if (!buildForwardEnhancedSearchBlock(start, end, caseInsensitive, searchFlags, block))
+                break;
+
+            if (!block.text.empty()) {
+                int offs = 0;
+                int endpos;
+                while (::findText(block.text, offs, endpos, pattern, patternIsRegex)) {
+                    if (wholeWordsOnly) {
+                        // We reuse the existing word-boundary helpers so whole-word search
+                        // stays consistent with word navigation; but unlike them, we treat
+                        // hyphens as boundaries so "operate" can match in "co-operate".
+                        bool leftBoundary = offs <= 0
+                                            || IsWordBoundary(block.text[offs - 1])
+                                            || (lGetCharProps(block.text[offs - 1]) & CH_PROP_HYPHEN) != 0;
+                        bool rightBoundary = endpos >= block.text.length()
+                                            || IsWordBoundary(block.text[endpos])
+                                            || (lGetCharProps(block.text[endpos]) & CH_PROP_HYPHEN) != 0;
+                        if (!leftBoundary || !rightBoundary) {
+                            offs++;
+                            continue;
+                        }
+                    }
+                    // Convert match indices in the transient block buffer back to
+                    // a DOM range using the per-codepoint origin mapping.
+                    appendFindTextMatchRange(block, offs, endpos, ranges);
+                    if (firstFoundTextY == -1 && maxHeight > 0 && ranges.length() > 0) {
+                        ldomXRange * firstRange = ranges[ranges.length() - 1];
+                        ldomXPointer p(firstRange->getStart().getNode(), firstRange->getStart().getOffset());
+                        int currentTextY = p.toPoint().y;
+                        if (checkMaxFromStart) {
+                            if (currentTextY >= firstFoundTextY + maxHeight)
+                                return ranges.length() > 0;
+                        } else if (maxHeightCheckStartY == -1 || currentTextY >= maxHeightCheckStartY) {
+                            firstFoundTextY = currentTextY;
+                        }
+                    }
+                    offs++;
+                    if (ranges.length() >= maxCount)
+                        return true;
+                }
+            }
+
+            start = block.lastNode;
+            if (!start.nextVisibleText())
+                break;
+        }
+    }
+    return ranges.length() > 0;
+}
+// findTextEnhanced() helpers end
+
+/// searches for specified text inside range
+bool ldomXRange::findText( lString32 pattern, bool caseInsensitive, bool reverse, ldomXRangeList & ranges, int maxCount, int maxHeight, int maxHeightCheckStartY, bool checkMaxFromStart, bool patternIsRegex, lUInt32 searchFlags )
+{
+    #if USE_UTF8PROC != 1
+        // In non-utf8proc builds, some flags can't be used: strip them out.
+        searchFlags &= ~(LDOM_FIND_TEXT_NORMALIZE_CANONICAL | LDOM_FIND_TEXT_NORMALIZE_COMPATIBILITY | LDOM_FIND_TEXT_IGNORE_DIACRITICS);
+    #endif
+    bool useEnhancedPlainSearch = !patternIsRegex && searchFlags != LDOM_FIND_TEXT_NONE;
+    bool useEnhancedRegexSearch = patternIsRegex && (searchFlags & LDOM_FIND_TEXT_MATCH_ACROSS_TEXT_NODES) != 0;
+    if (useEnhancedPlainSearch) {
+        // This enhanced path stays deliberately narrower than a generic Unicode
+        // search engine. It supports only the equivalences we can map back to
+        // exact DOM offsets at low cost: cross-text-node matching inside one
+        // rendered block, a few explicit punctuation/space folds, and optional
+        // canonical or compatibility decomposition/reordering so differently
+        // encoded Unicode text can compare equal. Optional ignore-diacritics
+        // remains a separate flag because it deliberately drops Unicode mark
+        // characters after decomposition: it changes which marks are treated as
+        // significant, not just how the same text can be encoded.
+        // Process pattern the same way block text will be processed later so
+        // the plain matcher can compare two strings that went through the same
+        // folding/normalization pipeline.
+        pattern = buildFoldedFindTextPattern(pattern, caseInsensitive, searchFlags);
+    } else if (useEnhancedRegexSearch) {
+        // Regex can also search across visible text nodes when explicitly asked
+        // to do so with MATCH_ACROSS_TEXT_NODES, but it always runs on the raw
+        // per-block text buffer. We intentionally ignore the other enhancement
+        // flags here so regexp syntax still means exactly what the regexp user
+        // wrote, instead of acting on a folded/normalized shadow string.
+        searchFlags = LDOM_FIND_TEXT_MATCH_ACROSS_TEXT_NODES;
+        #if USE_SRELL_REGEX == 1
+            if ( caseInsensitive )
+                lowercasePattern( pattern );
+        #endif
+    } else if ( caseInsensitive ) {
         #if USE_SRELL_REGEX != 1
             pattern.lowercase();
         #else
@@ -12060,9 +13859,13 @@ bool ldomXRange::findText( lString32 pattern, bool caseInsensitive, bool reverse
                 lowercasePattern( pattern );
         #endif
     }
-    words.clear();
+    ranges.clear();
     if ( pattern.empty() )
         return false;
+    if ( useEnhancedPlainSearch || useEnhancedRegexSearch ) {
+        // Enhanced search needs the block buffer/origin mapping path.
+        return findTextEnhanced(pattern, caseInsensitive, reverse, _start, _end, ranges, maxCount, maxHeight, maxHeightCheckStartY, checkMaxFromStart, patternIsRegex, searchFlags);
+    }
     if ( reverse ) {
         // reverse search
         if ( !_end.isText() ) {
@@ -12081,7 +13884,7 @@ bool ldomXRange::findText( lString32 pattern, bool caseInsensitive, bool reverse
                 ldomXPointer p( _end.getNode(), offs );
                 int currentTextY = p.toPoint().y;
                 if ( currentTextY<firstFoundTextY-maxHeight )
-                    return words.length()>0;
+                    return ranges.length()>0;
             }
 
             if ( caseInsensitive )
@@ -12094,14 +13897,14 @@ bool ldomXRange::findText( lString32 pattern, bool caseInsensitive, bool reverse
                     if (maxHeightCheckStartY == -1 || currentTextY <= maxHeightCheckStartY)
                         firstFoundTextY = currentTextY;
                 }
-                words.add( ldomWord(_end.getNode(), offs, endpos ) );
+                ranges.add( new ldomXRange(ldomXPointerEx(_end.getNode(), offs), ldomXPointerEx(_end.getNode(), endpos), 1) );
                 offs--;
             }
             if ( !_end.prevVisibleText() )
                 break;
             txt = _end.getNode()->getText();
             _end.setOffset(txt.length());
-            if ( words.length() >= maxCount )
+            if ( ranges.length() >= maxCount )
                 break;
         }
     } else {
@@ -12122,7 +13925,7 @@ bool ldomXRange::findText( lString32 pattern, bool caseInsensitive, bool reverse
                 int currentTextY = p.toPoint().y;
                 if ( (checkMaxFromStart && currentTextY>=firstFoundTextY+maxHeight) ||
 					currentTextY>firstFoundTextY+maxHeight )
-                    return words.length()>0;
+                    return ranges.length()>0;
             }
 
             lString32 txt = _start.getNode()->getText();
@@ -12135,22 +13938,22 @@ bool ldomXRange::findText( lString32 pattern, bool caseInsensitive, bool reverse
                     int currentTextY = p.toPoint().y;
                     if (checkMaxFromStart) {
                         if ( currentTextY>=firstFoundTextY+maxHeight )
-                            return words.length()>0;
+                            return ranges.length()>0;
                     } else {
                         if (maxHeightCheckStartY == -1 || currentTextY >= maxHeightCheckStartY)
                             firstFoundTextY = currentTextY;
                     }
                 }
-                words.add( ldomWord(_start.getNode(), offs, endpos ) );
+                ranges.add( new ldomXRange(ldomXPointerEx(_start.getNode(), offs), ldomXPointerEx(_start.getNode(), endpos), 1) );
                 offs++;
             }
             if ( !_start.nextVisibleText() )
                 break;
-            if ( words.length() >= maxCount )
+            if ( ranges.length() >= maxCount )
                 break;
         }
     }
-    return words.length() > 0;
+    return ranges.length() > 0;
 }
 
 /// fill marked ranges list
@@ -12318,11 +14121,23 @@ bool ldomXRange::getRectEx( lvRect & rect, bool & isSingleLine )
 void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
 {
     bool go_on = true;
+    ldomNode *prevFinalNode = NULL; // to add rect when we cross final nodes
     lvRect lineStartRect = lvRect();
     lvRect nodeStartRect = lvRect();
-    lvRect curCharRect = lvRect();
-    lvRect prevCharRect = lvRect();
-    ldomNode *prevFinalNode = NULL; // to add rect when we cross final nodes
+
+    // There is some needed complexity to properly handle BiDi text
+    // where segments may not always get continuous and contiguous.
+    // (To appreciate the simpler logic, skip the lineIsBidi sections
+    // when reading and ignore the use/set of the following variables.
+    // Some comments may still relate to that simpler logic, and
+    // may have not been updated for the BiDi complexity.)
+    bool lineIsBidi = false;
+    bool lineStartRectIsRTL = false;
+    int nodeStartRectCtx = RECT_CTX_NONE;
+    // See the code handling check_start_bidi_segment below for why this pendingBidiSegment
+    lvRect pendingBidiSegment;
+    bool hasBidiPendingSegment = false;
+    bool forceAddBidiSegment = false;
 
     // We process range text node by text node (I thought rects' y-coordinates
     // comparisons were valid only for a same text node, but it seems all
@@ -12332,6 +14147,9 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
     // Note: this has been updated to also grab inline images (the comments
     // may all still mention "text nodes", which should read ok as we
     // masquerade an image as a single char text node in this processing).
+    // Note: with the added support for initial-letter, whose rect can extend
+    // below the current line height (and that we want as an individual segments),
+    // all .top comparisons below have been updated to also compare .bottom.
 
     // Note: someRect.extend(someOtherRect) and !someRect.isEmpty() expect
     // a rect to have both width and height non-zero. So, make sure
@@ -12345,6 +14163,9 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
     if (!curPos.isText() && !(includeImages && curPos.isImage()))
         // we only deal with text nodes (and optionally images): get the first
         go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText();
+
+    bool is_whitespace_pre = false;
+    bool check_start_bidi_segment = true; // special care for the first directional segment
 
     while (go_on) { // new line or new/continued text node
         // We may have (empty or not if not yet pushed) from previous iteration:
@@ -12373,9 +14194,21 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
             // Force a new segment if we're crossing final nodes, that is, when
             // we're no more in the same inline context (so we get a new segment
             // for each table cells that may happen to be rendered on the same line)
+            if ( lineIsBidi ) {
+                if ( hasBidiPendingSegment ) {
+                    // If the selection spans multiple paragraphs, we can merge any
+                    // pending segment on the last line of a previous paragraph as
+                    // the selection does not end there.
+                    lineStartRect.extend(pendingBidiSegment);
+                    hasBidiPendingSegment = false;
+                }
+            }
             if (! lineStartRect.isEmpty()) {
                 rects.add( lineStartRect );
+                forceAddBidiSegment = false; // no longer at play
                 lineStartRect = lvRect(); // reset
+                lineStartRectIsRTL = false;
+                lineIsBidi = false;
             }
             prevFinalNode = curFinalNode;
         }
@@ -12386,6 +14219,7 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
 
         if (startOffset == 0) { // new text node
             nodeStartRect = lvRect(); // reset
+            nodeStartRectCtx = RECT_CTX_NONE;
             if (textLen == 0) { // empty text node (not sure that can happen)
                 // But it can happen when the node is an image
                 if ( includeImages && curPos.getNode()->isImage() ) {
@@ -12400,17 +14234,21 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
                     continue;
                 }
             }
+            ldomNode * parent = curPos.getNode()->getParentNode();
+            is_whitespace_pre = !parent->getStyle().isNull() && parent->getStyle()->white_space >= css_ws_pre_line;
         }
         // Skip space at start of node or at start of new line
         // (the XML parser made sure we always have a single space
         // at boundaries)
-        if (nodeText[startOffset] == ' ') {
+        if (nodeText[startOffset] == ' ' && !is_whitespace_pre) {
             startOffset += 1;
             nodeStartRect = lvRect(); // reset
+            nodeStartRectCtx = RECT_CTX_NONE;
         }
         if (startOffset >= textLen) { // no more text in this node (or single space node)
             go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText();
             nodeStartRect = lvRect(); // reset
+            nodeStartRectCtx = RECT_CTX_NONE;
             continue;
         }
         curPos.setOffset(startOffset);
@@ -12418,14 +14256,15 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
             // getRectEx() seems to fail on a single no-break-space, but we
             // are not supposed to see a no-br space at start of line.
             // Anyway, try next chars if first one(s) fails
-            while (startOffset <= textLen-2 && !curPos.getRectEx(nodeStartRect, true)) {
+            while (startOffset <= textLen-2 && !curPos.getRectEx(nodeStartRect, true, &nodeStartRectCtx)) {
                 // printf("#### curPos.getRectEx(nodeStartRect:%d) failed\n", startOffset);
                 startOffset++;
                 curPos.setOffset(startOffset);
                 nodeStartRect = lvRect(); // reset
+                nodeStartRectCtx = RECT_CTX_NONE;
             }
             // last try with the last char (startOffset = textLen-1):
-            if (!curPos.getRectEx(nodeStartRect, true)) {
+            if (nodeStartRect.isEmpty() && !curPos.getRectEx(nodeStartRect, true, &nodeStartRectCtx)) {
                 // printf("#### curPos.getRectEx(nodeStartRect) failed\n");
                 // getRectEx() returns false when a node is invisible, so we just
                 // go processing next text node on failure (it may fail for other
@@ -12433,38 +14272,135 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
                 // highlighting)
                 go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText(); // skip this text node
                 nodeStartRect = lvRect(); // reset
+                nodeStartRectCtx = RECT_CTX_NONE;
                 continue;
             }
         }
+        if ( check_start_bidi_segment ) {
+            check_start_bidi_segment = false;
+            // If in a BiDi RTL paragraph, the range/selection starts in the middle of a LTR segment
+            // and the selection includes more followup RTL text on that line, we will have
+            // a hole (the first part of the LTR segment between the RTL text on its left
+            // and the 2nd part of the LTR segment on its right).
+            // We should add the Rect for the first (LTR) segment as soon as we meet any RTL text.
+            bool startIsRtl = (nodeStartRectCtx & RECT_CTX_IS_RTL) != 0;
+            bool paraIsRtl = (nodeStartRectCtx & RECT_CTX_IN_RTL_PARA) != 0;
+            if ( startIsRtl != paraIsRtl ) {
+                // We are on a BiDi line and start with a different direction:
+                // in a RTL para, a LTR segment. If that LTR segment has preceeding
+                // LTR chars (not in the selection) on that line, and we later meet
+                // RTL text, we can't merge them (or we would include these preceeding
+                // LTR chars in the rect.
+                // Look back to find a non-space char (we skip spaces as they are not
+                // included in rects at boundaries, and they could be in either segments,
+                // and it feels they should not have any say in if we merge or not).
+                forceAddBidiSegment = false;
+                ldomXPointerEx prevPos = curPos;
+                while ( prevPos.prevVisibleChar(false) ) { // look back
+                    lChar32 c = prevPos.getChar();
+                    if ( c == 0 || (lGetCharProps(c) & CH_PROP_SPACE) ) // end of text node or space
+                        continue;
+                    lvRect prevCharRect;
+                    int prevCharRectCtx;
+                    if ( prevPos.getRectEx(prevCharRect, true, &prevCharRectCtx) ) {
+                        bool prevIsRtl = (prevCharRectCtx & RECT_CTX_IS_RTL) != 0;
+                        if ( prevIsRtl == startIsRtl && prevCharRect.top == nodeStartRect.top
+                                && prevCharRect.bottom == nodeStartRect.bottom ) {
+                            // On a same paragraph and on a same line, and what comes before is
+                            // in the same direction: we should not merge our first segments.
+                            forceAddBidiSegment = true;
+                        }
+                    }
+                    break;
+                }
+            }
+            // Note: the whole pendingBidiSegment stuff serves the same role for the end of selection;
+            // we need to keep track of it all along as we don't know when we will meet the end
+            // of selection.
+        }
         if (lineStartRect.isEmpty()) {
             lineStartRect = nodeStartRect; // re-use the one already computed
+            lineStartRectIsRTL = (nodeStartRectCtx & RECT_CTX_IS_RTL) != 0;
+            lineIsBidi = (nodeStartRectCtx & RECT_CTX_IN_BIDI_LINE) != 0;
         }
         // This would help noticing a line-feed-back-to-start-of-line:
         //   else if (nodeStartRect.left < lineStartRect.right)
         // but it makes a 2-lines-tall single segment if text-indent is larger
         // than previous line end.
-        // So, use .top comparison
-        else if (nodeStartRect.top > lineStartRect.top) {
+        // So, use .top comparison, but also split if a different height starts
+        // on the same top (currently, this can happen only with initial-letter)
+        else if (nodeStartRect.top > lineStartRect.top
+                || (nodeStartRect.top == lineStartRect.top && nodeStartRect.bottom != lineStartRect.bottom)) {
             // We ended last node on a line, but a new node starts (or previous
             // one continues) on a different line.
-            // And we have a not-yet-added lineStartRect: add it as it is
+            if ( hasBidiPendingSegment ) {
+                // Not the end of range: we can merge back any pending
+                // segment into the current segment we will be adding
+                lineStartRect.extend(pendingBidiSegment);
+                hasBidiPendingSegment = false;
+            }
             rects.add( lineStartRect );
+            forceAddBidiSegment = false; // no longer at play
             lineStartRect = nodeStartRect; // start line on current node
+            lineStartRectIsRTL = (nodeStartRectCtx & RECT_CTX_IS_RTL) != 0;
+            lineIsBidi = (nodeStartRectCtx & RECT_CTX_IN_BIDI_LINE) != 0;
+        }
+        else if ( lineIsBidi ) {
+            // Next text node in a BiDi line: we need to check for a change of direction
+            bool nodeStartIsRTL = (nodeStartRectCtx & RECT_CTX_IS_RTL) != 0;
+            if (lineStartRectIsRTL == nodeStartIsRTL) {
+                // No direction change: keep accumulating in lineStartRect
+            }
+            else { // direction change
+                bool paraIsRTL = (nodeStartRectCtx & RECT_CTX_IN_RTL_PARA) != 0;
+                if ( hasBidiPendingSegment ) {
+                    // We had a pending segment (from a non-paragraph direction),
+                    // so we're back into the paragraph direction: we can
+                    // merge it back into our current segment
+                    lineStartRect.extend(pendingBidiSegment);
+                    hasBidiPendingSegment = false;
+                }
+                if ( forceAddBidiSegment ) {
+                    // We end the first non-para-direction segment: it can't grow, add it
+                    rects.add( lineStartRect );
+                    forceAddBidiSegment = false;
+                    lineStartRect = nodeStartRect;
+                }
+                else if ( nodeStartIsRTL != paraIsRTL ) {
+                    // New segment in a non-para-direction: we may end selection on it,
+                    // keep previous rect (in the para direction) pending, we'll merge
+                    // it back if end of line or new text in the para direction is met
+                    // before end of range.
+                    pendingBidiSegment = lineStartRect;
+                    hasBidiPendingSegment = true;
+                    // And start a new segment for this non-para-direction text
+                    lineStartRect = nodeStartRect;
+                }
+                else { // nodeStartIsRTL == paraIsRTL
+                    // We can go on extending the previous non-para-direction lineStartRect
+                    // with coming up para-direction text
+                }
+                lineStartRectIsRTL = nodeStartIsRTL;
+            }
         }
 
         // 1) Look if text node contains end of range (probably the case
         // when only a few words are highlighted)
-        if (curPos.getNode() == rangeEnd.getNode() && rangeEnd.getOffset() <= textLen) {
-            curCharRect = lvRect();
+        // (If BiDi line, we can't take that shortcut and we need to iterate
+        // char by char: fall through to section 3)
+        if ( !lineIsBidi && curPos.getNode() == rangeEnd.getNode() && rangeEnd.getOffset() <= textLen ) {
+            lvRect curCharRect;
+            int curCharRectCtx;
             curPos.setOffset(rangeEnd.getOffset() - 1); // Range end is not part of the range
-            if (!curPos.getRectEx(curCharRect, true)) {
+            if (!curPos.getRectEx(curCharRect, true, &curCharRectCtx)) {
                 // printf("#### curPos.getRectEx(textLen=%d) failed\n", textLen);
                 go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText(); // skip this text node
                 nodeStartRect = lvRect(); // reset
+                nodeStartRectCtx = RECT_CTX_NONE;
                 continue;
             }
-            if (curCharRect.top == nodeStartRect.top) { // end of range is on current line
-                // (Two offsets in a same text node with the same tops are on the same line)
+            if (curCharRect.top == nodeStartRect.top && curCharRect.bottom == nodeStartRect.bottom) { // end of range is on current line
+                // (Two offsets in a same text node with the same top/bottom are on the same line)
                 lineStartRect.extend(curCharRect);
                 // lineStartRect will be added after loop exit
                 break; // we're done
@@ -12472,64 +14408,191 @@ void ldomXRange::getSegmentRects( LVArray<lvRect> & rects, bool includeImages )
         }
 
         // 2) Look if the full text node is contained on the line
-        // Ignore (possibly collapsed) space at end of text node
-        curPos.setOffset(nodeText[textLen-1] == ' ' ? textLen-2 : textLen-1 );
-        curCharRect = lvRect();
-        if (!curPos.getRectEx(curCharRect, true)) {
-            // printf("#### curPos.getRectEx(textLen=%d) failed\n", textLen);
-            go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText(); // skip this text node
-            nodeStartRect = lvRect(); // reset
-            continue;
-        }
-        if (curCharRect.top == nodeStartRect.top) {
-            // Extend line up to the end of this node, but don't add it yet,
-            // lineStartRect can still be extended with (parts of) next text nodes
-            lineStartRect.extend(curCharRect);
-            nodeStartRect  = lvRect(); // reset
-            go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText(); // go processing next text node
-            continue;
+        // (If BiDi line, we can't take that shortcut and we need to iterate
+        // char by char: fall through to section 3)
+        if ( !lineIsBidi ) {
+            // Ignore (possibly collapsed) space at end of text node
+            curPos.setOffset(nodeText[textLen-1] == ' ' && !is_whitespace_pre ? textLen-2 : textLen-1);
+            lvRect curCharRect;
+            int curCharRectCtx;
+            if (!curPos.getRectEx(curCharRect, true, &curCharRectCtx)) {
+                // printf("#### curPos.getRectEx(textLen=%d) failed\n", textLen);
+                go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText(); // skip this text node
+                nodeStartRect = lvRect(); // reset
+                nodeStartRectCtx = RECT_CTX_NONE;
+                continue;
+            }
+            if (curCharRect.top == nodeStartRect.top && curCharRect.bottom == nodeStartRect.bottom) {
+                // Extend line up to the end of this node, but don't add it yet,
+                // lineStartRect can still be extended with (parts of) next text nodes
+                lineStartRect.extend(curCharRect);
+                nodeStartRect  = lvRect(); // reset
+                nodeStartRectCtx = RECT_CTX_NONE;
+                go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText(); // go processing next text node
+                continue;
+            }
         }
 
         // 3) Current text node's end is not on our line:
         // scan it char by char to see where it changes line
         // (we could use binary search to reduce the number of iterations)
         curPos.setOffset(startOffset);
-        prevCharRect = nodeStartRect;
-        for (int i=startOffset+1; i<=textLen-1; i++) {
+        lvRect prevCharRect = nodeStartRect;
+
+        int i;
+        for (i=startOffset+1; i<=textLen-1; i++) {
             // skip spaces (but let soft-hyphens in, so they are part of the
             // highlight when they are shown at end of line)
             lChar32 c = nodeText[i];
-            if (c == ' ') // || c == 0x00AD)
-                continue;
             curPos.setOffset(i);
-            curCharRect = lvRect(); // reset
-            if (!curPos.getRectEx(curCharRect, true)) {
+            if (c == ' ' && !is_whitespace_pre) { // || c == 0x00AD)
+                continue;
+            }
+            lvRect curCharRect;
+            int curCharRectCtx;
+            if (!curPos.getRectEx(curCharRect, true, &curCharRectCtx)) {
                 // printf("#### curPos.getRectEx(char=%d) failed\n", i);
                 // Can happen with non-break-space and may be others,
                 // just try with next char
                 continue;
             }
             if (curPos.compare(rangeEnd) >= 0) {
-                // should not happen, we should have dealt with it as 1)
+                // Unless BiDi and we didn't take that shortcut, it should not
+                // happen, we should have dealt with it as 1)
                 // printf("??????????? curPos.getRectEx(char=%d) end of range\n", i);
-                go_on = false;        // don't break yet, need to add what we met before
-                curCharRect.top = -1; // force adding prevCharRect
+                if ( ! prevCharRect.isEmpty() ) {
+                    lineStartRect.extend(prevCharRect);
+                }
+                // The code after the while loop will finalize it all:
+                // add any pending segment, and add the current segment
+                go_on = false;
+                break;
             }
-            if (curCharRect.top != nodeStartRect.top) { // no more on the same line
-                if ( ! prevCharRect.isEmpty() ) { // (should never be empty)
+            if (curCharRect.top != nodeStartRect.top || curCharRect.bottom != nodeStartRect.bottom) { // no longer on the same line
+                // Unless BiDi and we didn't take that shortcut, it should not
+                // happen, we should have dealt with it as 2)
+                if ( ! prevCharRect.isEmpty() ) {
                     // We got previously a rect on this line: it's the end of line
                     lineStartRect.extend(prevCharRect);
+                }
+                if ( hasBidiPendingSegment ) {
+                    // Not the end of range: we can merge back any pending
+                    // segment into the current segment we will be adding
+                    lineStartRect.extend(pendingBidiSegment);
+                    hasBidiPendingSegment = false;
+                }
+                if (! lineStartRect.isEmpty()) {
                     rects.add( lineStartRect );
                 }
+                forceAddBidiSegment = false; // no longer at play
                 // Continue with this text node, but on a new line
                 nodeStartRect = curCharRect;
+                nodeStartRectCtx = curCharRectCtx;
                 lineStartRect = lvRect(); // reset
-                break; // break for (i<textLen) loop
+                lineStartRectIsRTL = (curCharRectCtx & RECT_CTX_IS_RTL) != 0;
+                lineIsBidi = (curCharRectCtx & RECT_CTX_IN_BIDI_LINE) != 0;
+                break; // break for loop, continue while loop with same node on new line
             }
-            prevCharRect = curCharRect; // still on the line: candidate for end of line
+            if ( lineIsBidi ) {
+                // In BiDi line: check if direction changed
+                bool curIsRTL = (curCharRectCtx & RECT_CTX_IS_RTL) != 0;
+                if (lineStartRectIsRTL == curIsRTL) {
+                    // No direction change: keep accumulating in lineStartRect
+                }
+                else { // direction change
+                    if ( ! prevCharRect.isEmpty() ) {
+                        // Extend lineStartRect to last previous-direction char rect
+                        lineStartRect.extend(prevCharRect);
+                    }
+                    if ( ! lineStartRect.isEmpty() ) {
+                        // We have a previous-direction segment
+                        bool paraIsRTL = (curCharRectCtx & RECT_CTX_IN_RTL_PARA) != 0;
+                        if ( hasBidiPendingSegment ) {
+                            // We had a pending segment (from a non-paragraph direction),
+                            // so we're back into the paragraph direction: we can
+                            // merge it back into our current segment
+                            lineStartRect.extend(pendingBidiSegment);
+                            hasBidiPendingSegment = false;
+                        }
+                        if ( forceAddBidiSegment ) {
+                            // We end the first non-para-direction segment: it can't grow, add it
+                            rects.add( lineStartRect );
+                            forceAddBidiSegment = false;
+                            lineStartRect = curCharRect;
+                        }
+                        else if ( curIsRTL != paraIsRTL ) {
+                            // New segment in a non-para-direction: we may end selection on it,
+                            // keep previous rect (in the para direction) pending, we'll merge
+                            // it back if end of line or new text in the para direction is met
+                            // before end of range.
+                            pendingBidiSegment = lineStartRect;
+                            hasBidiPendingSegment = true;
+                            // And start a new segment for this non-para-direction text
+                            lineStartRect = curCharRect;
+                        }
+                        else { // curIsRTL == paraIsRTL
+                            // We can go on extending the previous non-para-direction lineStartRect
+                            // with coming up para-direction text
+                        }
+                        lineStartRectIsRTL = curIsRTL;
+                    }
+                }
+            }
+            prevCharRect = curCharRect; // still on the line: candidate for end of segment
             if (! go_on)
                 break; // we're done
         }
+        if (go_on && i > textLen-1) {
+            // We completed the for loop naturally (i > textLen-1), all chars were on the same line
+            if ( lineIsBidi ) {
+                // Be sure we don't miss the last char if we change direction (simpler
+                // to extend it here even if possibly not its end, than tracking it)
+                lineStartRect.extend(prevCharRect);
+            }
+            // Advance to next text node
+            nodeStartRect = lvRect(); // reset for next node
+            nodeStartRectCtx = RECT_CTX_NONE;
+            go_on = includeImages ? curPos.nextTextOrImage() : curPos.nextText();
+        }
+    }
+    // Range end reached
+    if ( hasBidiPendingSegment ) {
+        // We were on a BiDi line, and have a pending segment: in a RTL paragraph,
+        // it holds a previous RTL segment, while we were building lineStartRect
+        // on a LTR segment.
+        // If the LTR segment would continue after rangeEnd, we should not merge
+        // them. But if what comes after is RTL, or we are at paragraph end
+        // or change line, we can merge them.
+        // Look ahead to find a non-space char (we skip spaces as they are not
+        // included in rects at boundaries, and they could be in either segments,
+        // and it feels they should not have any say in if we merge or not).
+        bool merge = true;
+        if ( !lineStartRect.isEmpty() ) {
+            ldomXPointerEx nextPos = rangeEnd;
+            while ( true ) {
+                lChar32 c = nextPos.getChar();
+                if ( c == 0 || (lGetCharProps(c) & CH_PROP_SPACE) ) { // end of text node or space
+                    if ( !nextPos.nextVisibleChar(false) )
+                        break; // new paragraph: we can merge
+                    continue;
+                }
+                lvRect nextCharRect;
+                int nextCharRectCtx;
+                if (nextPos.getRectEx(nextCharRect, true, &nextCharRectCtx)) {
+                    bool nextIsRtl = (nextCharRectCtx & RECT_CTX_IS_RTL) != 0;
+                    if ( nextIsRtl == lineStartRectIsRTL && nextCharRect.top <= lineStartRect.top ) {
+                        // On a same paragraph and on a same line, and what comes after is
+                        // in the same direction: we should not merge.
+                        merge = false;
+                    }
+                }
+                break;
+            }
+        }
+        if ( merge )
+            lineStartRect.extend(pendingBidiSegment);
+        else
+            rects.add( pendingBidiSegment );
     }
     // Add any lineStartRect not yet added
     if (! lineStartRect.isEmpty()) {
@@ -14326,6 +16389,9 @@ public:
         else if ( STYLE_HAS_CR_HINT(style, TEXT_SELECTION_BLOCK) ) {
             newBlock = true;
         }
+        else if ( elem->getNodeId() == el_br ) {
+            newBlock = true;
+        }
         else if ( rm == erm_inline ) {
             // Don't set newBlock if rendering method is erm_inline,
             // no matter the original CSS display.
@@ -15586,7 +17652,7 @@ ldomNode * ldomDocumentWriterFilter::OnTagOpen( const lChar32 * nsname, const lC
     }
 
     #if MATHML_SUPPORT==1
-        if ( (_currNode && _currNode->_insideMathML) || (id == el_math) ) {
+        if ( (_currNode && _currNode->_insideMathML) || (id == el_math && _document->isDefStyleSet()) ) {
             // This may create a wrapping mathBox around this new element
             _mathMLHelper.handleMathMLtag(this, MATHML_STEP_BEFORE_NEW_CHILD, id);
         }
@@ -15794,6 +17860,9 @@ void ldomDocumentWriterFilter::OnTagClose( const lChar32 * /*nsname*/, const lCh
         }
     }
 
+    if ( id == el_style && curNodeId == el_style )
+        _inHeadStyle = false;
+
     // Parse <link rel="stylesheet">, put the css file link in _stylesheetLinks,
     // they will be added to <body><stylesheet> when we meet <BODY>
     // (duplicated in ldomDocumentWriter::OnTagClose)
@@ -15881,7 +17950,6 @@ void ldomDocumentWriterFilter::OnText( const lChar32 * text, int len, lUInt32 fl
     // Accumulate <HEAD><STYLE> content
     if (_inHeadStyle) {
         _headStyleText << lString32(text, len);
-        _inHeadStyle = false;
         return;
     }
 
@@ -15970,9 +18038,9 @@ void ldomDocumentWriterFilter::OnText( const lChar32 * text, int len, lUInt32 fl
             bool isHr = false;
             if ( autoPara ) {
                 while ( (*text==' ' || *text=='\t' || *text==160) && len > 0 ) {
+                    leftSpace += (*text == '\t') ? 8 : 1;
                     text++;
                     len--;
-                    leftSpace += (*text == '\t') ? 8 : 1;
                 }
                 paraTag = leftSpace > 8 ? U"h2" : U"p";
                 lChar32 ch = 0;
@@ -16763,10 +18831,13 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered, lUInt32 force_n
                         // elements wrapping floats when toggling BLOCK_RENDERING_ENHANCED
                         if (style.get()->float_ > css_f_none)
                             _nodeDisplayStyleHash += 123;
+                        // printf("h idx=%d id=%s d:%d w:%d\n", buf[j].getDataIndex(), LCSTR(buf[j].getNodeName()), style.get()->display, style.get()->white_space);
                     }
+                    // else { printf("h idx=%d id=%s style is null\n", buf[j].getDataIndex(), LCSTR(buf[j].getNodeName())); }
                     //printf("element %d %d style hash: %x\n", i, j, sh);
                     LVFontRef font = buf[j].getFont();
                     lUInt32 fh = calcHash( font );
+                    // printf("h idx=%d id=%s sh:%x fh:%x\n", buf[j].getDataIndex(), LCSTR(buf[j].getNodeName()), sh, fh);
                     res = res * 31 + fh;
                     //printf("element %d %d font hash: %x\n", i, j, fh);
 //                    if ( maxlog>0 && sh==0 ) {
@@ -16781,6 +18852,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered, lUInt32 force_n
         // because of the presence of a cache file
         if ( _boxingWishedButPreventedByCache )
             _nodeDisplayStyleHash += 79;
+        // printf("done %x %x\n", res, _nodeDisplayStyleHash);
 
         CRLog::debug("  COMPUTED _nodeStyleHash %x", res);
         _nodeStyleHash = res;
@@ -16810,6 +18882,7 @@ lUInt32 tinyNodeCollection::calcStyleHash(bool already_rendered, lUInt32 force_n
     res = (res * 31 + globalHash) * 31 + docFlags;
 //    CRLog::info("Calculated style hash = %08x", res);
     CRLog::debug("calcStyleHash done");
+    // printf("end %x %x\n", res, _nodeDisplayStyleHash);
     return res;
 }
 
@@ -16870,6 +18943,7 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
     LVArray<css_style_ref_t> * list = _styles.getIndex();
 
     _fontMap.clear(); // style index to font index
+    int currentDocFragmentIdx = -1; // tracked below as we cross DocFragment boundaries, in document order
 
     for ( int i=0; i<count; i++ ) {
         int offs = i*TNC_PART_LEN;
@@ -16881,13 +18955,21 @@ bool tinyNodeCollection::updateLoadedStyles( bool enabled )
         for ( int j=0; j<sz; j++ ) {
             buf[j].setDocumentIndex( _docIndex );
             if ( buf[j].isElement() ) {
+                // Each DocFragment may declare @font-face rules scoped to itself.
+                // Clear the style→font cache at each boundary so nodes in later
+                // DocFragments re-resolve against their own DocFragment's font scope
+                // rather than reusing a resolution from a prior DocFragment.
+                if ( buf[j].getNodeId() == el_DocFragment ) {
+                    _fontMap.clear();
+                    currentDocFragmentIdx = (int)buf[j].getNodeIndex();
+                }
                 lUInt16 style = getNodeStyleIndex( buf[j]._handle._dataIndex );
                 if ( enabled && style!=0 ) {
                     css_style_ref_t s = list->get( style );
                     if ( !s.isNull() ) {
                         lUInt16 fntIndex = _fontMap.get( style );
                         if ( fntIndex==0 ) {
-                            LVFontRef fnt = getFont(&buf[j], s.get(), getFontContextDocIndex());
+                            LVFontRef fnt = getFont(&buf[j], s.get(), getFontContextDocIndex(), currentDocFragmentIdx);
                             fntIndex = (lUInt16)_fonts.cache( fnt );
                             if ( fnt.isNull() ) {
                                 CRLog::error("font not found for style!");
@@ -18229,7 +20311,7 @@ const lString32 & ldomNode::getFirstInnerAttributeValue( lUInt16 nsid, lUInt16 i
 }
 
 /// returns all attribute values by attribute name id, looking at all children
-const void ldomNode::getAllInnerAttributeValues( lUInt16 nsid, lUInt16 id, lString32Collection & values ) const
+void ldomNode::getAllInnerAttributeValues( lUInt16 nsid, lUInt16 id, lString32Collection & values ) const
 {
     ASSERT_NODE_NOT_NULL;
     values.clear();
@@ -18479,7 +20561,7 @@ lString8 ldomNode::getText8( lChar8 blockDelimiter, int maxSize ) const
                 if (i >= getChildCount() - 1)
                     break;
                 if ( blockDelimiter && child->isElement() ) {
-                    if ( child->getStyle()->display == css_d_block )
+                    if ( !child->getStyle().isNull() && child->getStyle()->display == css_d_block )
                         txt << blockDelimiter;
                 }
             }
@@ -18690,7 +20772,10 @@ static void updateStyleData( ldomNode * node )
 #endif
 
 #if BUILD_LITE!=1
-static void updateStyleDataRecursive( ldomNode * node, LVDocViewCallback * progressCallback, int & lastProgressPercent )
+// docFragmentIdx: the DocFragment sibling index `node` is nested under, tracked
+// down through the recursion as we go (rather than have initNodeFont() walk
+// back up the ancestor chain to re-discover it for every single node).
+static void updateStyleDataRecursive( ldomNode * node, LVDocViewCallback * progressCallback, int & lastProgressPercent, int docFragmentIdx )
 {
     if ( !node->isElement() )
         return;
@@ -18699,6 +20784,8 @@ static void updateStyleDataRecursive( ldomNode * node, LVDocViewCallback * progr
     // DocFragment (for epub) and body (for html) may hold some stylesheet
     // as first child or a link to stylesheet file in attribute
     if ( node->getNodeId()==el_DocFragment || node->getNodeId()==el_body ) {
+        if ( node->getNodeId()==el_DocFragment )
+            docFragmentIdx = (int)node->getNodeIndex();
         styleSheetChanged = node->applyNodeStylesheet();
         if ( styleSheetChanged ) {
             // For HTML files, if the parent of this <body> is a <html>,
@@ -18707,7 +20794,7 @@ static void updateStyleDataRecursive( ldomNode * node, LVDocViewCallback * progr
             // element, will be initNodeStyle()'ed just below.)
             ldomNode * parentNode = node->getParentNode();
             if ( parentNode->getNodeId() == el_html ) {
-                parentNode->initNodeStyle();
+                parentNode->initNodeStyle(docFragmentIdx);
             }
         }
         // We don't have access to much metric to show the progress of
@@ -18725,12 +20812,12 @@ static void updateStyleDataRecursive( ldomNode * node, LVDocViewCallback * progr
         }
     }
 
-    node->initNodeStyle();
+    node->initNodeStyle(docFragmentIdx);
     int n = node->getChildCount();
     for ( int i=0; i<n; i++ ) {
         ldomNode * child = node->getChildNode(i);
         if ( child->isElement() )
-            updateStyleDataRecursive( child, progressCallback, lastProgressPercent );
+            updateStyleDataRecursive( child, progressCallback, lastProgressPercent, docFragmentIdx );
     }
     if ( styleSheetChanged )
         node->getDocument()->getStyleSheet()->pop();
@@ -18743,7 +20830,7 @@ void ldomNode::initNodeStyleRecursive( LVDocViewCallback * progressCallback )
         progressCallback->OnNodeStylesUpdateStart();
     getDocument()->_fontMap.clear();
     int lastProgressPercent = -1;
-    updateStyleDataRecursive( this, progressCallback, lastProgressPercent );
+    updateStyleDataRecursive( this, progressCallback, lastProgressPercent, -1 );
     //recurseElements( updateStyleData );
     if (progressCallback)
         progressCallback->OnNodeStylesUpdateEnd();
@@ -19167,7 +21254,7 @@ void ldomNode::setStyle( css_style_ref_t & style )
     }
 }
 
-bool ldomNode::initNodeFont()
+bool ldomNode::initNodeFont(int docFragmentIdx)
 {
     if ( !isElement() )
         return false;
@@ -19180,7 +21267,7 @@ bool ldomNode::initNodeFont()
             CRLog::error("style not found for index %d", style);
             s = getDocument()->_styles.get( style );
         }
-        LVFontRef fnt = ::getFont(this, s.get(), getDocument()->getFontContextDocIndex());
+        LVFontRef fnt = ::getFont(this, s.get(), getDocument()->getFontContextDocIndex(), docFragmentIdx);
         fntIndex = (lUInt16)getDocument()->_fonts.cache( fnt );
         if ( fnt.isNull() ) {
             CRLog::error("font not found for style!");
@@ -19207,17 +21294,26 @@ bool ldomNode::initNodeFont()
     return true;
 }
 
-void ldomNode::initNodeStyle()
+void ldomNode::initNodeStyle(int docFragmentIdx)
 {
     // assume all parent styles already initialized
     if ( !getDocument()->isDefStyleSet() )
         return;
     if ( isElement() ) {
+        if ( getNodeId() == el_DocFragment ) {
+            // Style->font resolution is cached below (in initNodeFont()) keyed
+            // by style index only, not by DocFragment, so clear it at each
+            // DocFragment boundary: a style shared with a prior DocFragment must
+            // not reuse a font that was resolved under that other DocFragment's
+            // @font-face scope.
+            getDocument()->_fontMap.clear();
+        }
         if ( isRoot() || getParentNode()->isRoot() )
         {
             setNodeStyle( this,
                 getDocument()->getDefaultStyle(),
-                getDocument()->getDefaultFont()
+                getDocument()->getDefaultFont(),
+                docFragmentIdx
             );
         }
         else
@@ -19252,7 +21348,8 @@ void ldomNode::initNodeStyle()
 #endif
             setNodeStyle( this,
                 style,
-                font
+                font,
+                docFragmentIdx
                 );
 #if DEBUG_DOM_STORAGE==1
             if ( this->getStyle().isNull() ) {
@@ -19272,7 +21369,7 @@ bool ldomNode::isBoxingNode( bool orPseudoElem, lUInt16 exceptBoxingNodeId ) con
         if( id <= EL_BOXING_END && id >= EL_BOXING_START && id != exceptBoxingNodeId ) {
             return true;
         }
-        if ( orPseudoElem && id == el_pseudoElem ) {
+        if ( orPseudoElem && id == el_pseudoElem && exceptBoxingNodeId != el_pseudoElem ) {
             return true;
         }
     }
@@ -19698,6 +21795,17 @@ bool ldomNode::getNodeListMarker( int & counterValue, lString32 & marker, int & 
 #endif
 }
 
+/// walks up from this node to the nearest DocFragment ancestor and returns
+/// its sibling index, or -1 if none is found
+int ldomNode::getDocFragmentIdx() const
+{
+    ASSERT_NODE_NOT_NULL;
+    for ( const ldomNode * n = this; n && !n->isNull() && !n->isRoot(); n = n->getParentNode() ) {
+        if ( n->getNodeId() == el_DocFragment )
+            return n->getNodeIndex();
+    }
+    return -1;
+}
 
 /// returns first child node
 ldomNode * ldomNode::getFirstChild() const
@@ -19763,6 +21871,81 @@ void ldomNode::addChild( lInt32 childNodeIndex )
         modify(); // convert to mutable element
     tinyElement * me = NPELEM;
     me->_children.add( childNodeIndex );
+}
+
+bool ldomNode::removeStandaloneWhitespaceTextChildrenInMixedContent( bool handleFloating )
+{
+#if BUILD_LITE!=1
+    ASSERT_NODE_NOT_NULL;
+    if ( !isElement() )
+        return false;
+    // In mixed block/inline content, most inline runs are often just whitespace
+    // separators between block siblings (typical HTML pretty-printing). The
+    // legacy autoboxChildren() path would later remove them one by one from the
+    // middle of a potentially huge _children array, which is quadratic. Compact
+    // them in one pass here, now that styles and rendMethods tell us whether
+    // such whitespace is really ignorable in this context.
+    tinyElement * me = isPersistent() ? NULL : NPELEM;
+    int childCount = getChildCount();
+    if ( childCount == 0 )
+        return false;
+    LVArray<lInt32> keptChildren;
+    bool compacting = false;
+    for ( int i=0; i<childCount; ) {
+        ldomNode * node = getChildNode(i);
+        if ( node->isWhitespaceText() ) {
+            int j = i;
+            while ( j+1 < childCount && getChildNode(j+1)->isWhitespaceText() )
+                j++;
+            ldomNode * prev = i > 0 ? getChildNode(i-1) : NULL;
+            ldomNode * next = j+1 < childCount ? getChildNode(j+1) : NULL;
+            bool prevInlineish = prev && ( isInlineNode(prev) || (handleFloating && isFloatingNode(prev)) );
+            bool nextInlineish = next && ( isInlineNode(next) || (handleFloating && isFloatingNode(next)) );
+            // Keep whitespace only when it sits between inline-ish siblings.
+            // Leading/trailing whitespace around such runs, and whitespace
+            // between block siblings, would be trimmed or removed later by
+            // autoboxChildren(); doing it in one pass avoids many costly
+            // middle-of-array removals on huge child collections.
+            bool keepRun = prevInlineish && nextInlineish && ( isInlineNode(prev) || isInlineNode(next) );
+            if ( keepRun ) {
+                if ( compacting ) {
+                    for ( int k=i; k<=j; k++ )
+                        keptChildren.add( me->_children[k] );
+                }
+            }
+            else {
+                if ( !compacting ) {
+                    // Keep the common no-removal path cheap: delay both modify()
+                    // and temporary array allocation until we have found the
+                    // first whitespace run that should really be dropped.
+                    if ( !me ) {
+                        modify();
+                        me = NPELEM;
+                    }
+                    compacting = true;
+                    keptChildren.reserve(childCount);
+                    for ( int k=0; k<i; k++ )
+                        keptChildren.add( me->_children[k] );
+                }
+                for ( int k=i; k<=j; k++ )
+                    getChildNode(k)->destroy();
+            }
+            i = j + 1;
+            continue;
+        }
+        if ( compacting )
+            keptChildren.add( me->_children[i] );
+        i++;
+    }
+    if ( compacting ) {
+        me->_children = keptChildren;
+        return true;
+    }
+    return false;
+#else
+    CR_UNUSED(handleFloating);
+    return false;
+#endif
 }
 
 /// move range of children startChildIndex to endChildIndex inclusively to specified element
@@ -20237,15 +22420,13 @@ LVImageSourceRef ldomNode::getObjectImageSource()
 }
 
 /// register embedded document fonts in font manager, if any exist in document
+/// note: currently only called from loadCacheFileContent(), to re-register fonts
+/// deserialized from the cache file's _fontList
 void ldomDocument::registerEmbeddedFonts()
 {
     if (_fontList.empty())
         return;
     int list = _fontList.length();
-    lString8 x=lString8("");
-    lString32Collection flist;
-    fontMan->getFaceList(flist);
-    int cnt = flist.length();
     for (int i = 0; i < list; i++) {
         LVEmbeddedFontDef *item = _fontList.get(i);
         lString32 url = item->getUrl();
@@ -20256,40 +22437,79 @@ void ldomDocument::registerEmbeddedFonts()
                 if (!tmp.empty()) {face=tmp;break;}
             }
         }
-        if ((!x.empty() && x.pos(face)!=-1) || url.empty()) {
+        if (url.empty()) {
+            continue;
+        }
+        if (item->getIsLocal()) {
+            // @font-face { font-family: face; src: local("url"); }
+            // url names an already-installed system font; alias `face` to it,
+            // scoped to the DocFragment that originally declared it.
+            if (!fontMan->RegisterDocumentFontAlias(getDocIndex(), face, UnicodeToLocal(url), item->getDocFragmentIdx())) {
+                //CRLog::error("Failed to find local font face: %s referenced by font-face %s", LCSTR(url), face.c_str());
+            }
             continue;
         }
         if (url.startsWithNoCase(lString32("res://")) || url.startsWithNoCase(lString32("file://"))) {
-            if (!fontMan->RegisterExternalFont(getDocIndex(), item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
+            // @font-face { font-family: face; src: url("res://...") or url("file://..."); }
+            // url points to a font file outside the document container (e.g. a KOReader resource).
+            if (!fontMan->RegisterExternalFont(getDocIndex(), item->getUrl(), item->getFace(), item->getWeight(), item->getWidth(), item->getItalic(), item->getDocFragmentIdx())) {
                 //CRLog::error("Failed to register external font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
             }
             continue;
         }
-        else {
-            if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getBold(), item->getItalic())) {
-                //CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
-                lString32 fontface = lString32("");
-                for (int j = 0; j < cnt; j = j + 1) {
-                fontface = flist[j];
-                do { (fontface.replace(lString32(" "), lString32("\0"))); }
-                while (fontface.pos(lString32(" ")) != -1);
-                do { (url.replace(lString32(" "), lString32("\0"))); }
-                while (url.pos(lString32(" ")) != -1);
-                 if (fontface.lowercase().pos(url.lowercase()) != -1) {
-                    if(fontMan->SetAlias(face, UnicodeToLocal(flist[j]), getDocIndex(),item->getBold(),item->getItalic())){
-                    x.append(face).append(lString8(","));
-                        CRLog::debug("font-face %s matches local font %s",face.c_str(),LCSTR(flist[j]));
-                    break;}
-                 }
-                }
-            }
+        // @font-face { font-family: face; src: url("fonts/foo.ttf"); }
+        // url is a path relative to the document container (e.g. an EPUB-embedded font).
+        if (!fontMan->RegisterDocumentFont(getDocIndex(), _container, item->getUrl(), item->getFace(), item->getWeight(), item->getWidth(), item->getItalic(), item->getDocFragmentIdx())) {
+            //CRLog::error("Failed to register document font face: %s file: %s", item->getFace().c_str(), LCSTR(item->getUrl()));
         }
     }
 }
-/// unregister embedded document fonts in font manager, if any exist in document
-void ldomDocument::unregisterEmbeddedFonts()
+
+/// Registers a font declared by a parsed @font-face CSS rule (called as a
+/// side-effect of CSS parsing, never from registerEmbeddedFonts()'s cache
+/// re-open path) and records it in _fontList for cache serialisation.
+/// The _fontList append only happens on successful registration, so that a
+/// duplicate @font-face rule (e.g. repeated inline <style> across spine
+/// items) is a cheap no-op rather than corrupting the serialised list.
+/// Registering here, immediately as each rule is parsed, is what lets a
+/// DocFragment's @font-face rules take effect before that same DocFragment's
+/// body is styled (parseStyleSheet runs right before body styling, per
+/// DocFragment). Without this, fonts would only become known to fontMan in a
+/// separate batch after all DocFragments were processed, so early fragments
+/// would style against an incomplete font registry and fall back to the
+/// default font -- the same bug class the old pre/post-scan + forceReinitStyles()
+/// design in epubfmt.cpp existed to paper over.
+bool ldomDocument::registerFontFace(lString32 url, lString8 face, int weight, int width, bool italic, bool isLocal)
 {
-    fontMan->UnregisterDocumentFonts(_docIndex);
+    if (url.empty() || face.empty())
+        return false;
+    int docFragIdx = _parsingDocFragmentIdx;
+    bool registered;
+    if (isLocal) {
+        // src: local() resolves to a system font alias. The resolved target
+        // (an installed system font) is always the same regardless of scope,
+        // but the alias *mapping* itself is fragment-scoped: two DocFragments
+        // may map the same family name to different local() targets, so
+        // docFragIdx is passed through rather than registering document-wide.
+        registered = fontMan->RegisterDocumentFontAlias(getDocIndex(), face, UnicodeToLocal(url), docFragIdx);
+    }
+    else if (url.startsWithNoCase(lString32("res://")) || url.startsWithNoCase(lString32("file://"))) {
+        registered = fontMan->RegisterExternalFont(getDocIndex(), url, face, weight, width, italic, docFragIdx);
+    }
+    else {
+        registered = fontMan->RegisterDocumentFont(getDocIndex(), _container, url, face, weight, width, italic, docFragIdx);
+    }
+    if (registered) {
+        _fontList.add(url, face, weight, width, italic, isLocal, docFragIdx);
+        // A node styled earlier in this same fresh parse may have already
+        // resolved (and cached in _fontMap, keyed by style index) a fallback
+        // font for a style referencing this family before it was registered.
+        // Drop the whole map so any such stale resolution is redone against
+        // the now-updated font registry -- see FONTFACE_PARSER_REFACTOR.md,
+        // "Bug found via runtime verification: stale font-resolution cache".
+        _fontMap.clear();
+    }
+    return registered;
 }
 
 /// returns object image stream
@@ -20313,8 +22533,10 @@ LVStreamRef ldomDocument::getObjectImageStream( lString32 refName )
         if ( data.startsWith(lString32("data:image/svg+xml")) ) {
             int pos = data.pos(U',');
             if ( pos > 0 ) {
-                // The attribute value has already been url-decoded at parsing time
-                lString8 plaindata = UnicodeToUtf8(refName.substr(pos+1));
+                // The payload may or may not be percent-encoded (eg. a CSS
+                // background-image - DecodeHTMLUrlString() is a no-op when
+                // there is nothing to decode.
+                lString8 plaindata = UnicodeToUtf8(DecodeHTMLUrlString(refName.substr(pos+1)));
                 ref = LVCreateStringStream(plaindata);
                 return ref;
             }
@@ -20380,31 +22602,40 @@ void ldomDocument::setNodeNumberingProps( lUInt32 nodeDataIndex, ListNumberingPr
     lists.set(nodeDataIndex, v);
 }
 
-/// returns the sum of this node and its parents' top and bottom margins, borders and paddings
+/// returns the sum of the decorations (margin, border, padding) enclosing this node in document flow
 /// (provide account_height_below_strut_baseline=true for images, as they align on the baseline,
 /// so their container would be larger because of the strut)
 int ldomNode::getSurroundingAddedHeight(bool account_height_below_strut_baseline)
 {
     int h = 0;
     ldomNode * n = this;
+    // Reserve an ancestor's top/bottom decorations only while this node is
+    // still at that edge in the block flow. Body padding should constrain
+    // an image that is the body's only block content, but not one between
+    // other blocks.
+    bool has_top_edge = true;
+    bool has_bottom_edge = true;
     while (true) {
         ldomNode * parent = n->getParentNode();
         lvdom_element_render_method rm = n->getRendMethod();
         if ( rm != erm_inline && rm != erm_invisible && rm != erm_killed) {
-            // Add offset of border and padding
+            // Margins and padding in % are scaled according to parent's width.
             int base_width = 0;
             if ( parent && !(parent->isNull()) ) {
-                // margins and padding in % are scaled according to parent's width
                 RenderRectAccessor fmt( parent );
                 base_width = fmt.getWidth();
             }
             css_style_ref_t style = n->getStyle();
-            h += lengthToPx( n, style->margin[2], base_width );  // top margin
-            h += lengthToPx( n, style->margin[3], base_width );  // bottom margin
-            h += lengthToPx( n, style->padding[2], base_width ); // top padding
-            h += lengthToPx( n, style->padding[3], base_width ); // bottom padding
-            h += measureBorder(n, 0); // top border
-            h += measureBorder(n, 2); // bottom border
+            if ( has_top_edge ) {
+                h += lengthToPx( n, style->margin[2], base_width );
+                h += lengthToPx( n, style->padding[2], base_width );
+                h += measureBorder(n, 0);
+            }
+            if ( has_bottom_edge ) {
+                h += lengthToPx( n, style->margin[3], base_width );
+                h += lengthToPx( n, style->padding[3], base_width );
+                h += measureBorder(n, 2);
+            }
             if ( account_height_below_strut_baseline && rm == erm_final ) {
                 if ( n == this && isImage() ) {
                     // We're usually called on an image by lvtextfm.cpp, where lvrend.cpp,
@@ -20457,6 +22688,25 @@ int ldomNode::getSurroundingAddedHeight(bool account_height_below_strut_baseline
         }
         if ( !parent || parent->isNull() )
             break;
+        // Look for direct block-like siblings on either side. Text/inline,
+        // hidden/killed nodes and floatBoxes do not move normal-flow content.
+        for ( int side = 0; side < 2; side++ ) {
+            bool top = side == 0;
+            int idx = n->getNodeIndex() + (top ? -1 : 1);
+            while ( idx >= 0 && idx < parent->getChildCount() ) {
+                ldomNode * sibling = parent->getChildNode(idx);
+                lvdom_element_render_method rm = sibling->getRendMethod(); // returns erm_invisible for text nodes
+                if ( rm != erm_inline && rm != erm_invisible && rm != erm_killed && !sibling->isFloatingBox() )
+                    break; // There is a sibling in the block axis: this is not an edge
+                idx += top ? -1 : 1;
+            }
+            if ( idx >= 0 && idx < parent->getChildCount() ) {
+                if ( top )
+                    has_top_edge = false;
+                else
+                    has_bottom_edge = false;
+            }
+        }
         n = parent;
     }
     return h;
@@ -20903,37 +23153,78 @@ void ldomDocument::buildSyntheticPageMap( int chars_per_synthetic_page )
         return; // already done
     }
     m_pagemap.clear();
+    m_pagemap.invalidatePageInfo();
     if ( chars_per_synthetic_page <= 0 ) {
         m_pagemap._chars_per_synthetic_page = 0;
         return;
     }
     printf("CRE: building synthetic page map (%d)\n", chars_per_synthetic_page);
     m_pagemap._chars_per_synthetic_page = chars_per_synthetic_page;
-    ldomXPointerEx xp = ldomXPointerEx( getRootNode(), 0 );
     int page_num = 0;
     int count = 0; // chars needed until new page
     // We loop thru all text nodes, whether visible or not (as visiblity can be changed
     // with styles, and we want this to be stable)
-    while ( xp.nextText() ) {
-        // But skip text from elements which would by default be hidden (<style>, <script>,
-        // some FB2 elements...), mostly so that a huge <style> at top of document doesn't
-        // generate many synthetic pages that would end up all on the first screen page.
-        const css_elem_def_props_t * ntype = xp.getNode()->getParentNode()->getElementTypePtr();
-        if ( ntype && ntype->display == css_d_none ) {
-            continue;
+    // Use our usual non-recursive node walker code.
+    ldomNode * n = getRootNode();
+    if ( n && n->getChildCount() > 0 ) {
+        int index = 0;
+        n = n->getChildNode(index);
+        while ( true ) {
+            // Check the node only the first time we meet it (index == 0) and
+            // not when we get back to it from a child to process next sibling
+            if ( index == 0 ) {
+                if ( n->isElement() ) {
+                    // We want to skip text from elements which would by default be hidden (<style>, <script>,
+                    // some FB2 elements...), mostly so that a huge <style> at top of document doesn't
+                    // generate many synthetic pages that would end up all on the first screen page.
+                    const css_elem_def_props_t * ntype = n->getElementTypePtr();
+                    if ( ntype && ntype->display == css_d_none ) {
+                        // Ignore all children, get back to parent and have it process our sibling
+                        index = n->getNodeIndex() + 1;
+                        n = n->getParentNode();
+                        if ( !n )
+                            break; // back to root node
+                        continue;
+                    }
+                    lUInt16 id = n->getNodeId();
+                    if (id == el_DocFragment ) {
+                        // Start a new page number on any new DocFragment (each HTML file
+                        // in an EPUB), as this is stable
+                        count = chars_per_synthetic_page;
+                        page_num++;
+                        lString32 title;
+                        title.appendDecimal(page_num);
+                        m_pagemap.addPage(title, ldomXPointer(n, 0), lString32::empty_str);
+                    }
+                }
+                else { // isText()
+                    lString32 text = n->getText();
+                    int len = text.length();
+                    int offset = 0;
+                    while (len > count) {
+                        offset += count;
+                        len -= count;
+                        count = chars_per_synthetic_page;
+                        page_num++;
+                        lString32 title;
+                        title.appendDecimal(page_num);
+                        m_pagemap.addPage(title, ldomXPointer(n, offset), lString32::empty_str);
+                    }
+                    count -= len;
+                }
+            }
+            // Process next child
+            if ( index < n->getChildCount() ) {
+                n = n->getChildNode(index);
+                index = 0;
+                continue;
+            }
+            // No more child, get back to parent and have it process our sibling
+            index = n->getNodeIndex() + 1;
+            n = n->getParentNode();
+            if ( !n )
+                break; // back to root node
         }
-        lString32 txt = xp.getText();
-        int len = txt.length();
-        while (len > count) {
-            xp.setOffset(xp.getOffset() + count);
-            len -= count;
-            count = chars_per_synthetic_page;
-            page_num++;
-            lString32 title;
-            title.appendDecimal(page_num);
-            m_pagemap.addPage(title, ldomXPointer(xp.getNode(), xp.getOffset()), lString32::empty_str);
-        }
-        count -= len;
     }
     // cache file will have to be updated with the new page map
     setCacheFileStale(true);
@@ -21006,6 +23297,41 @@ bool LVPageMapItem::deserialize( ldomDocument * doc, SerialBuf & buf )
     return !buf.error();
 
 }
+
+/// order items by their resolved document Y position
+void LVPageMap::sortByDocY()
+{
+    // _doc_y must have been resolved by LVDocView::updatePageMapInfo() before we're called.
+    // Items sharing the same position are tie-broken on their _index, so they keep their
+    // relative order (a page list may reference the same location twice, and unresolved
+    // items are given the position of their predecessor).
+    // We use an insertion sort: page lists are small (a few hundred items at most), and
+    // they are usually already ordered or nearly so - which this handles in O(n) passes,
+    // while needing no additional dependency (LVPtrVector::sort() uses qsort(), which
+    // is not stable, and we don't want to pull in <algorithm> for std::stable_sort()).
+    int nb = _children.length();
+    for ( int i=1; i<nb; i++ ) {
+        LVPageMapItem * item = _children[i];
+        int j = i - 1;
+        while ( j >= 0 ) {
+            LVPageMapItem * prev = _children[j];
+            bool prev_is_after = prev->_doc_y != item->_doc_y ? prev->_doc_y > item->_doc_y
+                                                              : prev->_index > item->_index;
+            if ( !prev_is_after )
+                break;
+            _children[j+1] = prev; // shift it right (don't use LVPtrVector::set(),
+                                   // which would delete the item it overwrites)
+            j--;
+        }
+        _children[j+1] = item;
+    }
+    // Keep _index in sync with the new order, so it still is the index of the item
+    // in this page map (as set by addPage()), and still a valid tie-break above if
+    // we are called again.
+    for ( int i=0; i<nb; i++ )
+        _children[i]->_index = i;
+}
+
 /// serialize to byte array (pointer will be incremented by number of bytes written)
 bool LVPageMap::serialize( SerialBuf & buf )
 {
@@ -21291,7 +23617,7 @@ void runBasicTinyDomUnitTests()
         style1->font_size.type = css_val_px;
         style1->font_size.value = 24 << 8;
         style1->font_name = cs8("Arial");
-        style1->font_weight = css_fw_400;
+        style1->font_weight = 400;
         style1->font_style = css_fs_normal;
         style1->font_features.type = css_val_unspecified;
         style1->font_features.value = 0;
@@ -21324,7 +23650,7 @@ void runBasicTinyDomUnitTests()
         style2->font_size.type = css_val_px;
         style2->font_size.value = 24 << 8;
         style2->font_name = cs8("Arial");
-        style2->font_weight = css_fw_400;
+        style2->font_weight = 400;
         style2->font_style = css_fs_normal;
         style2->font_features.type = css_val_unspecified;
         style2->font_features.value = 0;
@@ -21357,7 +23683,7 @@ void runBasicTinyDomUnitTests()
         style3->font_size.type = css_val_px;
         style3->font_size.value = 24 << 8;
         style3->font_name = cs8("Arial");
-        style3->font_weight = css_fw_400;
+        style3->font_weight = 400;
         style3->font_style = css_fs_normal;
         style3->font_features.type = css_val_unspecified;
         style3->font_features.value = 0;

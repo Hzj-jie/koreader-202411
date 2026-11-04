@@ -11,8 +11,10 @@ typedef struct DrawContext {
 	int rotate;
 	double zoom;
 	double gamma;
+	double saturation;
 	int offset_x;
 	int offset_y;
+	bool background_cleanup;
 } DrawContext;
 ]])
 
@@ -44,11 +46,10 @@ end
 function DC_mt.__index:getGamma()
   return self.gamma
 end
-
 local dctype = ffi.metatype("DrawContext", DC_mt)
 
 function DC.new(rotate, zoom, x, y, gamma)
-  return dctype(rotate or 0, zoom or 1.0, gamma or -1.0, x or 0, y or 0)
+  return dctype(rotate or 0, zoom or 1.0, gamma or -1.0, 1.0, x or 0, y or 0, false)
 end
 
 return DC

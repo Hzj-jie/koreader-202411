@@ -11,10 +11,11 @@
 
 *******************************************************/
 
+#include "crsetup.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../include/crsetup.h"
 #include "../include/lvfnt.h"
 #include "../include/lvtextfm.h"
 #include "../include/lvdrawbuf.h"
@@ -25,6 +26,7 @@
 #include "../include/lvtinydom.h"
 #include "../include/lvrend.h"
 #include "../include/textlang.h"
+#include "../include/renderutil.h"
 #endif
 
 #if USE_HARFBUZZ==1
@@ -40,7 +42,6 @@
 #define UNUSED_SPACE_THRESHOLD_PERCENT 5
 #define MAX_ADDED_LETTER_SPACING_PERCENT 0
 #define CJK_WIDTH_SCALE_PERCENT 100
-
 
 // to debug formatter
 
@@ -139,6 +140,22 @@ embedded_float_t * lvtextAddEmbeddedFloat( formatted_text_fragment_t * pbuffer )
     return (pbuffer->floats[ pbuffer->floatcount++ ] = lvtextAllocEmbeddedFloat());
 }
 
+static void lvtextAddOversizedInlineBox( formatted_text_fragment_t * pbuffer, int src_text_index )
+{
+    for ( int i=0; i < pbuffer->oversized_inlinebox_count; i++ ) {
+        if ( pbuffer->oversized_inlineboxes[i] == src_text_index ) {
+            return;
+        }
+    }
+    int size = (pbuffer->oversized_inlinebox_count + FLT_ALLOC_SIZE-1) / FLT_ALLOC_SIZE * FLT_ALLOC_SIZE;
+    if (pbuffer->oversized_inlinebox_count >= size)
+    {
+        size += FLT_ALLOC_SIZE;
+        pbuffer->oversized_inlineboxes = cr_realloc( pbuffer->oversized_inlineboxes, size );
+    }
+    pbuffer->oversized_inlineboxes[ pbuffer->oversized_inlinebox_count++ ] = src_text_index;
+}
+
 
 formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
 {
@@ -146,6 +163,7 @@ formatted_text_fragment_t * lvtextAllocFormatter( lUInt16 width )
     pbuffer->width = width;
     pbuffer->strut_height = 0;
     pbuffer->strut_baseline = 0;
+    pbuffer->percent_height_base = -1;
     pbuffer->is_reusable = true;
     pbuffer->light_formatting = false;
     int defMode = MAX_IMAGE_SCALE_MUL > 1 ? (ARBITRARY_IMAGE_SCALE_ENABLED==1 ? 2 : 1) : 0;
@@ -177,6 +195,8 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
         {
             if (pbuffer->srctext[i].flags & LTEXT_FLAG_OWNTEXT)
                 free( (void*)pbuffer->srctext[i].t.text );
+            if ( pbuffer->srctext[i].retained_font_ref )
+                delete (LVFontRef*)pbuffer->srctext[i].retained_font_ref;
         }
         free( pbuffer->srctext );
     }
@@ -198,6 +218,10 @@ void lvtextFreeFormatter( formatted_text_fragment_t * pbuffer )
             free(pbuffer->floats[i]);
         }
         free( pbuffer->floats );
+    }
+    if (pbuffer->oversized_inlineboxes)
+    {
+        free( pbuffer->oversized_inlineboxes );
     }
     if (pbuffer->inlineboxes_links)
     {
@@ -225,8 +249,9 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
    lInt16          indent,    /* first line indent (or all but first, when negative) */
    void *          object,    /* pointer to custom object */
    lUInt16         offset,
-   lInt16          letter_spacing
-                         )
+   lInt16          letter_spacing,
+   void *          retained_font_ref
+                          )
 {
     int srctextsize = (pbuffer->srctextlen + FRM_ALLOC_SIZE-1) / FRM_ALLOC_SIZE * FRM_ALLOC_SIZE;
     if ( pbuffer->srctextlen >= srctextsize)
@@ -236,6 +261,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
     pline->t.font = font;
+    pline->retained_font_ref = retained_font_ref;
 //    if (font) {
 //        // DEBUG: check for crash
 //        CRLog::trace("c font = %08x  txt = %08x", (lUInt32)font, (lUInt32)text);
@@ -296,6 +322,7 @@ void lvtextAddSourceObject(
         pbuffer->srctext = cr_realloc( pbuffer->srctext, srctextsize );
     }
     src_text_fragment_t * pline = &pbuffer->srctext[ pbuffer->srctextlen++ ];
+    pline->retained_font_ref = NULL;
     pline->index = (lUInt16)(pbuffer->srctextlen-1);
     pline->flags = flags | LTEXT_SRC_IS_OBJECT;
     pline->o.objflags = objflags;
@@ -325,7 +352,7 @@ int getLTextExtraProperty( src_text_fragment_t * srcline, ltext_extra_t extra_pr
     if ( !srcline->object )
         return 0;
     ldomNode * node = (ldomNode *) srcline->object;
-    if ( node->isText() )
+    if ( node->isEffectiveText() )
         node = node->getParentNode();
     if ( !node || node->isNull() )
         return 0;
@@ -406,6 +433,7 @@ public:
     bool m_has_float_to_position;
     bool m_has_ongoing_float;
     bool m_no_clear_own_floats;
+    bool m_no_clear_own_initial_letter;
     kerning_mode_t m_kerning_mode;
     bool m_allow_strut_confining;
     bool m_has_multiple_scripts;
@@ -430,6 +458,18 @@ public:
     bool m_has_cjk; // true when some CJK met
     int  m_cjk_prev_line_added_space_div; // Used with CJK justified lines, to
     int  m_cjk_prev_line_added_space_mod; // apply same spacing on last line.
+    lUInt32 m_formatted_initial_letter_id;
+    int  m_formatted_initial_letter_ink_end_y;
+    struct {
+        bool active;
+        bool is_carried;
+        bool is_right;
+        lUInt32 node_id;
+        int x;
+        int width;
+        int start_y;
+        int end_y;
+    } m_initial_letter_exclusion;
 
 // These are not unicode codepoints: these values are put where we
 // store text indexes in the source text node.
@@ -464,10 +504,21 @@ public:
         m_has_float_to_position = false;
         m_has_ongoing_float = false;
         m_no_clear_own_floats = false;
+        m_no_clear_own_initial_letter = false;
         m_has_multiple_scripts = false;
         m_usable_left_overflow = 0;
         m_usable_right_overflow = 0;
         m_hanging_punctuation = false;
+        m_formatted_initial_letter_id = 0;
+        m_formatted_initial_letter_ink_end_y = 0;
+        m_initial_letter_exclusion.active = false;
+        m_initial_letter_exclusion.is_carried = false;
+        m_initial_letter_exclusion.node_id = 0;
+        m_initial_letter_exclusion.is_right = false;
+        m_initial_letter_exclusion.x = 0;
+        m_initial_letter_exclusion.width = 0;
+        m_initial_letter_exclusion.start_y = 0;
+        m_initial_letter_exclusion.end_y = 0;
         m_has_cjk = false;
         m_cjk_prev_line_added_space_div = 0;
         m_cjk_prev_line_added_space_mod = 0;
@@ -481,6 +532,70 @@ public:
 
     ~LVFormatter()
     {
+    }
+
+    // Handle sinking initial-letter exclusion area (similar to how we handle floats,
+    // but this should not follow floats' clearance/stacking rules and pecularities)
+    void activateInitialLetterInlineBoxExclusion(formatted_line_t * frmline, formatted_word_t * word) {
+        if ( !word || !(word->flags & LTEXT_WORD_IS_INLINE_BOX) ) {
+            return;
+        }
+        src_text_fragment_t * src = &m_pbuffer->srctext[word->src_text_index];
+        ldomNode * node = (ldomNode *) src->object;
+        if ( !getInitialLetterInlineBoxPseudoElem(node) ) {
+            return;
+        }
+        RenderRectAccessor fmt( node );
+        InitialLetterInlineBoxMetrics metrics;
+        if ( !getInitialLetterInlineBoxMetrics(node, fmt.getBaseline(), metrics) ) {
+            return;
+        }
+        int exclusion_start = frmline->y + frmline->height;
+        // If the first line had to grow upward for accents/raised initials, the
+        // same vertical shift must extend the later-line exclusion footprint.
+        int exclusion_end = frmline->y + metrics.top_overflow + metrics.exclusion_height;
+        if ( exclusion_end <= exclusion_start ) {
+            return;
+        }
+        int exclusion_x = fmt.getX();
+        int exclusion_right = exclusion_x + fmt.getWidth();
+        // This mirrors the width widening done when the inline-box is first measured.
+        int left_overflow = 0;
+        int right_overflow = 0;
+        if ( getInitialLetterInlineBoxHorizontalInkOverflow(node, left_overflow, right_overflow) ) {
+            if ( m_para_dir_is_rtl ) {
+                exclusion_x -= left_overflow;
+            }
+            else {
+                exclusion_right += right_overflow;
+            }
+        }
+        if ( exclusion_right <= 0 || exclusion_x >= m_pbuffer->width ) {
+            return;
+        }
+        if ( exclusion_x < 0 ) {
+            exclusion_x = 0;
+        }
+        if ( exclusion_right > m_pbuffer->width ) {
+            exclusion_right = m_pbuffer->width;
+        }
+        // We only report back (if/via float_footprint, to renderBlockElementEnhanced())
+        // the initial letter we found if it has generated an exclusion area.
+        lUInt32 node_id = node->getDataIndex();
+        m_formatted_initial_letter_id = node_id;
+        m_initial_letter_exclusion.active = true;
+        m_initial_letter_exclusion.is_carried = false;
+        m_initial_letter_exclusion.node_id = node_id;
+        m_initial_letter_exclusion.is_right = m_para_dir_is_rtl;
+        m_initial_letter_exclusion.x = exclusion_x;
+        m_initial_letter_exclusion.width = exclusion_right - exclusion_x;
+        m_initial_letter_exclusion.start_y = exclusion_start;
+        m_initial_letter_exclusion.end_y = exclusion_end;
+        int inline_box_top = frmline->y + frmline->baseline - word->o.baseline + word->y;
+        int ink_end = inline_box_top + metrics.ink_bottom;
+        if ( ink_end > m_formatted_initial_letter_ink_end_y ) {
+            m_formatted_initial_letter_ink_end_y = ink_end;
+        }
     }
 
     // Embedded floats positioning helpers.
@@ -524,8 +639,27 @@ public:
     // Also set offset_x to the x where this width is available
     int getAvailableWidthAtY(int start_y, int h, int & offset_x) {
         if (m_pbuffer->floatcount == 0) { // common short path when no float
-            offset_x = 0;
-            return m_pbuffer->width;
+            int fl_left_max_x = 0;
+            int fl_right_min_x = m_pbuffer->width;
+            if ( m_initial_letter_exclusion.active ) {
+                int y = start_y;
+                while ( y <= start_y + h ) {
+                    if ( y >= m_initial_letter_exclusion.start_y && y < m_initial_letter_exclusion.end_y ) {
+                        if ( m_initial_letter_exclusion.is_right ) {
+                            if ( m_initial_letter_exclusion.x < fl_right_min_x )
+                                fl_right_min_x = m_initial_letter_exclusion.x;
+                        }
+                        else {
+                            int right = m_initial_letter_exclusion.x + m_initial_letter_exclusion.width;
+                            if ( right > fl_left_max_x )
+                                fl_left_max_x = right;
+                        }
+                    }
+                    y += 1;
+                }
+            }
+            offset_x = fl_left_max_x;
+            return fl_right_min_x - fl_left_max_x;
         }
         int fl_left_max_x = 0;
         int fl_right_min_x = m_pbuffer->width;
@@ -545,6 +679,17 @@ public:
                         if (flt->x + flt->width > fl_left_max_x)
                             fl_left_max_x = flt->x + flt->width;
                     }
+                }
+            }
+            if ( m_initial_letter_exclusion.active && y >= m_initial_letter_exclusion.start_y && y < m_initial_letter_exclusion.end_y ) {
+                if ( m_initial_letter_exclusion.is_right ) {
+                    if ( m_initial_letter_exclusion.x < fl_right_min_x )
+                        fl_right_min_x = m_initial_letter_exclusion.x;
+                }
+                else {
+                    int right = m_initial_letter_exclusion.x + m_initial_letter_exclusion.width;
+                    if ( right > fl_left_max_x )
+                        fl_left_max_x = right;
                 }
             }
             y += 1;
@@ -588,9 +733,18 @@ public:
         flt->srctext = src;
 
         ldomNode * node = (ldomNode *) src->object;
-        flt->is_right = node->getStyle()->float_ == css_f_right;
+        css_float_t float_ = node->getStyle()->float_;
+        flt->is_right = ( ( float_ == css_f_right ) ||
+                          ( m_para_dir_is_rtl && float_ == css_f_inline_start ) ||
+                          (!m_para_dir_is_rtl && float_ == css_f_inline_end ) );
         // clear was not moved to the floatBox: get it from its single child
         flt->clear = node->getChildNode(0)->getStyle()->clear;
+        if ( flt->clear == css_c_inline_start ) {
+            flt->clear = m_para_dir_is_rtl ? css_c_right : css_c_left;
+        }
+        else if ( flt->clear == css_c_inline_end ) {
+            flt->clear = m_para_dir_is_rtl ? css_c_left : css_c_right;
+        }
 
         // Thanks to the wrapping floatBox element, which has no
         // margin, we can set its RenderRectAccessor to be exactly
@@ -677,6 +831,17 @@ public:
                         flt->x = x;
                         flt->y = y;
                         flt->to_position = false;
+                        ldomNode * source_node = node->getEffectiveNode();
+                        if ( source_node != node ) {
+                            // We ended up positionning the cloneNode for an floatBox on
+                            // the ::first-line of the paragraph, which means the original
+                            // floatBox has not been positionned and won't be shown.
+                            // Flag that original node as not-rendered/discarded, so that
+                            // getRect(), when called on a xpointer to the original source,
+                            // know it has to climb to its clondeNode and use its rect.
+                            RenderRectAccessor source_fmt( source_node );
+                            RENDER_RECT_SET_FLAG(source_fmt, BOX_IS_DISCARDED);
+                        }
                         fmt.setX(flt->x);
                         fmt.setY(flt->y);
                         if (flt->is_right)
@@ -716,6 +881,17 @@ public:
             flt->y = y;
             flt->to_position = false;
             ldomNode * node = (ldomNode *) flt->srctext->object;
+            ldomNode * source_node = node->getEffectiveNode();
+            if ( source_node != node ) {
+                // We ended up positionning the cloneNode for an floatBox on
+                // the ::first-line of the paragraph, which means the original
+                // floatBox has not been positionned and won't be shown.
+                // Flag that original node as not-rendered/discarded, so that
+                // getRect(), when called on a xpointer to the original source,
+                // know it has to climb to its clondeNode and use its rect.
+                RenderRectAccessor source_fmt( source_node );
+                RENDER_RECT_SET_FLAG(source_fmt, BOX_IS_DISCARDED);
+            }
             RenderRectAccessor fmt( node );
             fmt.setX(flt->x);
             fmt.setY(flt->y);
@@ -732,6 +908,10 @@ public:
         // inner floats (we don't fill the height of outer floats (float_footprint)
         // as they can still apply over our siblings.)
         fillAndMoveToY( getFloatsMaxBottomY() );
+    }
+    void finalizeInitialLetterInk() {
+        // Similar for a still ongoing initial-letter
+        fillAndMoveToY( m_formatted_initial_letter_ink_end_y );
     }
     void fillAndMoveToY(int target_y) {
         // Adds blank lines to fill the vertical space from current m_y to target_y.
@@ -924,7 +1104,7 @@ public:
                 }
             }
             else {
-                pos += src->t.len;
+                pos += src->t.len - src->t.offset;
             }
         }
 
@@ -1180,7 +1360,13 @@ public:
                         // to set LCHAR_ALLOW_WRAP_AFTER on it.
                         // (it will allow wrap before and after an object, unless it's near
                         // some punctuation/quote/paren, whose rules will be ensured it seems).
-                        int brk = lb_process_next_char(&lbCtx, (utf32_t)0xFFFC); // OBJECT REPLACEMENT CHARACTER
+                        lChar32 surrogate = 0xFFFC; // OBJECT REPLACEMENT CHARACTER
+                        if ( getInitialLetterInlineBoxPseudoElem((ldomNode *)src->object) ) {
+                            // If that inline box is an initial letter, keep the following text stuck to it
+                            // (if there is a following space, it will naturally cancel this)
+                            surrogate = 0x2060; // WORD JOINER
+                        }
+                        int brk = lb_process_next_char(&lbCtx, (utf32_t)surrogate);
                         if (pos > 0) {
                             if (brk == LINEBREAK_ALLOWBREAK)
                                 m_flags[pos-1] |= LCHAR_ALLOW_WRAP_AFTER;
@@ -1258,8 +1444,8 @@ public:
                 lbCtx.lbpLang = src->lang_cfg->getLBProps();
                 #endif
 
-                int len = src->t.len;
-                lStr_ncpy( m_text+pos, src->t.text, len );
+                int len = src->t.len - src->t.offset;
+                lStr_ncpy( m_text+pos, src->t.text + src->t.offset, len );
                 if ( i==0 || (src->flags & LTEXT_FLAG_NEWLINE) )
                     m_flags[pos] = LCHAR_MANDATORY_NEWLINE;
 
@@ -1851,8 +2037,7 @@ public:
             FriBidiLevel newBidiLevel;
         #endif
         #if (USE_HARFBUZZ==1)
-            bool checkIfHarfbuzz = true;
-            bool usingHarfbuzz = false;
+            bool usingHarfbuzz = m_kerning_mode == KERNING_MODE_HARFBUZZ;
             // Unicode script change (note: hb_script_t is uint32_t)
             lUInt32 prevScript = HB_SCRIPT_COMMON;
             hb_unicode_funcs_t* _hb_unicode_funcs = hb_unicode_funcs_get_default();
@@ -1874,15 +2059,6 @@ public:
                 isObject = m_flags[i] & LCHAR_IS_OBJECT; // image, float or inline box
                 newFont = isObject ? NULL : (LVFont *)newSrc->t.font;
                 newLetterSpacing = newSrc->letter_spacing; // 0 for objects
-                #if (USE_HARFBUZZ==1)
-                    // Check if we are using Harfbuzz kerning with the first font met
-                    if ( checkIfHarfbuzz && newFont ) {
-                        if ( m_kerning_mode == KERNING_MODE_HARFBUZZ ) {
-                            usingHarfbuzz = true;
-                        }
-                        checkIfHarfbuzz = false;
-                    }
-                #endif
             }
             if (i > 0)
                 prevCharIsObject = m_flags[i-1] & LCHAR_IS_OBJECT; // image, float or inline box
@@ -2243,6 +2419,28 @@ public:
                         int width = fmt.getWidth();
                         int height = fmt.getHeight();
                         int baseline = fmt.getBaseline();
+                        // If that inline-box is an initial-letter, we need some adjustments
+                        InitialLetterInlineBoxMetrics initial_letter_metrics;
+                        if ( getInitialLetterInlineBoxMetrics(node, baseline, initial_letter_metrics) ) {
+                            baseline = initial_letter_metrics.placement_baseline;
+                            // Widen its word->width to account for ink overflowing on the side
+                            // of the running text (ie. italic 'f').
+                            // (activateInitialLetterInlineBoxExclusion() will do the same for
+                            // the exclusion area).
+                            int left_overflow = 0;
+                            int right_overflow = 0;
+                            if ( getInitialLetterInlineBoxHorizontalInkOverflow(node, left_overflow, right_overflow) ) {
+                                if ( m_para_dir_is_rtl ) {
+                                    width += left_overflow;
+                                }
+                                else {
+                                    width += right_overflow;
+                                }
+                            }
+                            // It feels we can let a space following the initial letter
+                            // be expanded by text justification.
+                            // if ( start < m_length-1 ) m_flags[start+1] |= LCHAR_LOCKED_SPACING;
+                        }
                         m_srcs[start]->o.width = width;
                         m_srcs[start]->o.height = height;
                         m_srcs[start]->o.baseline = baseline;
@@ -2261,13 +2459,12 @@ public:
                         ldomNode * node = (ldomNode *) src->object;
                         int width = 0;
                         int height = 0;
-                        // We have yet no container height to provide for CSS heights in %,
-                        // so they won't apply
-                        getStyledImageSize( node, width, height, m_pbuffer->width, -1 );
+                        getStyledImageSize( node, width, height, m_pbuffer->width, m_pbuffer->percent_height_base );
                         // Ensure they are constrained to this paragraph width and page height
                         // Note: resizeImage() may do some additional scaling depending on image_scaling_options,
                         // use mode=0 scale=1 for these if this is not desirable.
-                        resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
+                        if (!STYLE_HAS_CR_HINT(node->getStyle(), NO_CAP_IMAGE_SIZE))
+                            resizeImage(width, height, m_pbuffer->width, m_max_img_height, m_length>1);
                         if ( (m_srcs[start]->flags & LTEXT_STRUT_CONFINED) && m_allow_strut_confining ) {
                             // Text with "-cr-hint: strut-confined" might just be vertically shifted,
                             // but won't change widths. But images who will change height must also
@@ -2779,19 +2976,22 @@ public:
                         && frmline->word_count > 1           // not if single word (expanded, but not taking the full width is ugly)
                         && 100 * extra_width > m_pbuffer->unused_space_threshold_percent * usable_width ) {
             // extra_width is more than 5% of usable_width: we would be added too much spacing.
-            // But we're allowed to add some letter spacing intoto words to reduce spacing
+            // But we're allowed to add some letter spacing into words to reduce spacing
             // between words.
             // (We do that only when this line is justified - we could do it too when the
             // line is left- or right-aligned, but we do not know here if this is not the
             // last line of a paragraph, left aligned, that would not need to be expanded.)
             // We loop and increase letter spacing, and we stop as soon as we are
             // under the unused_space_threshold_percent (5%). If some iteration
-            // brings us below min_extra_width (spaces shrunk too much), we go
+            // brings us below zero extra width (spaces would have to be shrunk), we go
             // back to the previous letter_spacing (which may put us back with
             // the unused extra space > 5%, but that is preferable).
+            // (We used to allow added_spacing to eat into the additional_extra_width
+            // budget that condensed spacing (word->min_width) could provide, but it
+            // ended up looking bad for some highly expanded lines, as letter spacing
+            // became too similar to word spacing.)
             //
             // First, gather some info
-            int min_extra_width = 0; // negative value (from the allowed spaces condensing)
             int max_font_size = 0;
             for ( int i=0; i<(int)frmline->word_count; i++ ) {
                 formatted_word_t * word = &frmline->words[i];
@@ -2802,7 +3002,6 @@ public:
                 // them get less space added, and western/numbers get the expansion).
                 if ( word->distinct_glyphs <= 0 || word->flags & LTEXT_WORD_IS_CJK )
                     continue;
-                min_extra_width += word->min_width - word->width;
                 src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
                 LVFont * font = (LVFont *)srcline->t.font;
                 int font_size = font->getSize();
@@ -2834,9 +3033,13 @@ public:
                     else
                         can_try_larger = true;
                     added_spacing += word->distinct_glyphs * word->added_letter_spacing;
+                    // spaces between words need the same amount of tracking as the glyphs to
+                    // maintain visual contrast between letter spacing and word spacing.
+                    if ( word->flags & LTEXT_WORD_CAN_ADD_SPACE_AFTER && i < frmline->word_count-1 )
+                        added_spacing += word->added_letter_spacing;
                 }
                 int new_extra_width = extra_width - added_spacing;
-                if ( new_extra_width < min_extra_width ) { // too much added, not enough for spaces
+                if ( new_extra_width < 0 ) { // too much added, not enough for spaces
                     // Get back values from previous step (which was fine)
                     added_spacing = 0;
                     for ( int i=0; i<(int)frmline->word_count; i++ ) {
@@ -3070,12 +3273,23 @@ public:
                     formatted_word_t * word = &frmline->words[i];
                     src_text_fragment_t * srcline = &m_pbuffer->srctext[word->src_text_index];
                     ldomNode * node = (ldomNode *) srcline->object;
+                    ldomNode * source_node = node->getEffectiveNode();
+                    if ( source_node != node ) {
+                        // We ended up positionning the cloneNode for an inlineBox on
+                        // the ::first-line of the paragraph, which means the original
+                        // inlineBox has not been positionned and won't be shown.
+                        // Flag that original node as not-rendered/discarded, so that
+                        // getRect(), when called on a xpointer to the original source,
+                        // know it has to climb to its clondeNode and use its rect.
+                        RenderRectAccessor source_fmt( source_node );
+                        RENDER_RECT_SET_FLAG(source_fmt, BOX_IS_DISCARDED);
+                    }
                     RenderRectAccessor fmt( node );
                     if ( RENDER_RECT_HAS_FLAG(fmt, BOX_IS_POSITIONNED) )
                         continue;
                     RENDER_RECT_SET_FLAG(fmt, BOX_IS_POSITIONNED);
                     fmt.setX( frmline->x + word->x );
-                    fmt.setY( frmline->y + frmline->baseline - word->o.baseline + word->y );
+                    fmt.setY( (int)frmline->y + (int)frmline->baseline - (int)word->o.baseline + (int)word->y );
                     fmt.push();
                     #if MATHML_SUPPORT==1
                         ldomNode * unboxedParent = node->getUnboxedParent();
@@ -3199,6 +3413,9 @@ public:
         // Override it for PRE lines (or in case align has not been set)
         if ( preFormattedOnly || !align )
             align = m_para_dir_is_rtl ? LTEXT_ALIGN_RIGHT : LTEXT_ALIGN_LEFT;
+
+        // single initial-letter word on the logical first line, if any
+        int initial_letter_word_index = -1;
 
         TR("addLine(%d, %d) y=%d  align=%d", start, end, m_y, align);
 
@@ -3433,10 +3650,20 @@ public:
         // increased if some inline elements need more, but not decreased.
         frmline->height = m_pbuffer->strut_height;
         frmline->baseline = m_pbuffer->strut_baseline;
-        if (m_has_ongoing_float)
+        if (m_has_ongoing_float) {
             // Avoid page split when some float that started on a previous line
             // still spans this line
             frmline->flags |= LTEXT_LINE_SPLIT_AVOID_BEFORE;
+        }
+        if ( m_initial_letter_exclusion.active && m_y < m_initial_letter_exclusion.end_y
+                                               && m_y >= m_initial_letter_exclusion.start_y ) {
+            // Avoid page split on every line actually affected by the exclusion.
+            // (Using the exclusion start_y rather than the naive:
+            //   (!first || m_initial_letter_exclusion.is_carried)
+            // keeps this working in these two cases and also when splitParagraphs() starts
+            // a new sub-paragraph after a <br/> and our initial letter still spans.)
+            frmline->flags |= LTEXT_LINE_SPLIT_AVOID_BEFORE;
+        }
         if ( lineIsBidi ) {
             // Flag that line, so createXPointer() and getRect() know it's not
             // a regular one and can't assume words and text nodes are linear.
@@ -3690,7 +3917,7 @@ public:
                                 // This is a bit hacky, but no other solution: just
                                 // replace that ignorable char with a space in the
                                 // src text
-                                *((lChar32 *) (m_srcs[wstart]->t.text + m_charindex[wstart])) = U' ';
+                                *((lChar32 *) (m_srcs[wstart]->t.text + m_srcs[wstart]->t.offset + m_charindex[wstart])) = U' ';
                             }
                             else if (m_srcs[wstart]->flags & LTEXT_SRC_IS_OBJECT && m_srcs[wstart]->o.objflags & LTEXT_OBJECT_IS_FLOAT) {
                                 // But not if what's on this line is a float (the code below don't expect floats)
@@ -3724,8 +3951,9 @@ public:
                 // This LTEXT_VALIGN_ flag is now only of use with objects (images)
                 int vertical_align_flag = srcline->flags & LTEXT_VALIGN_MASK;
                 // These will be used later to adjust the main line baseline and height:
-                int top_to_baseline; // distance from this word top to its own baseline (formerly named 'b')
-                int baseline_to_bottom; // descender below baseline for this word (formerly named 'h')
+                int top_to_baseline = 0;   // distance from this word top to its own baseline (formerly named 'b')
+                int baseline_to_bottom =0; // descender below baseline for this word (formerly named 'h')
+                    // (initialized to 0 to avoid avoid "used but uninitialized" warning, but will be set when needed)
                 // For each word, we'll have to check and adjust line height and baseline,
                 // except when LTEXT_VALIGN_TOP and LTEXT_VALIGN_BOTTOM where it has to
                 // be delayed until the full line is laid out. Until that, we store some
@@ -3752,6 +3980,7 @@ public:
                     word->width = srcline->o.width;
                     word->min_width = word->width;
                     word->o.height = srcline->o.height;
+                    bool is_initial_letter_inline_box = false;
                     if ( srcline->o.objflags & LTEXT_OBJECT_IS_INLINE_BOX ) { // inline-block
                         word->flags = LTEXT_WORD_IS_INLINE_BOX;
                         // For inline-block boxes, the baseline may not be the bottom; it has
@@ -3759,6 +3988,7 @@ public:
                         word->o.baseline = srcline->o.baseline;
                         top_to_baseline = word->o.baseline;
                         baseline_to_bottom = word->o.height - word->o.baseline;
+                        is_initial_letter_inline_box = getInitialLetterInlineBoxPseudoElem((ldomNode *) srcline->object) != NULL;
                         // We can't really ensure strut_confined with inline-block boxes,
                         // or we could miss content (it would be overwritten by next lines)
                         if ( m_pbuffer->inlineboxes_links ) {
@@ -3813,7 +4043,20 @@ public:
                     // For vertical-align: top or bottom, delay computation as we need to
                     // know the final frmline height and baseline, which might change
                     // with upcoming words.
-                    if ( word->flags & LTEXT_WORD_IS_PAD ) {
+                    if ( is_initial_letter_inline_box ) {
+                        if ( initial_letter_word_index < 0 ) {
+                            // There can be only one initial-letter per paragraph. In RTL/BiDi,
+                            // it is not guaranteed to be the visual first word.
+                            // Remember its index for additional fixup when done with that line..
+                            initial_letter_word_index = frmline->word_count - 1;
+                        }
+                        lvtextAddOversizedInlineBox(m_pbuffer, srcline->index);
+                        // We will ensure its specific vertical positionning after all other
+                        // delayed vertical alignments and line-growth have been done
+                        word->y = 0;
+                        adjust_line_box = false;
+                    }
+                    else if ( word->flags & LTEXT_WORD_IS_PAD ) {
                         // We don't care about y/height/baseline
                         word->y = srcline->valign_dy;
                         adjust_line_box = false;
@@ -3945,7 +4188,7 @@ public:
                     // Set word start and end (start+len-1) indices in the source text node
                     if ( !m_has_bidi ) {
                         // No bidi, everything is linear
-                        word->t.start = m_charindex[wstart];
+                        word->t.start = m_charindex[wstart] + srcline->t.offset;
                         word->t.len = i - wstart;
                     }
                     else if ( m_flags[wstart] & LCHAR_IS_RTL ) {
@@ -3955,7 +4198,7 @@ public:
                         // are in the same text node.
                         // charindex may have been reordered, and may not be sync'ed with wstart/i-1,
                         // but it is linearly decreasing between i-1 and wstart
-                        word->t.start = m_charindex[i-1];
+                        word->t.start = m_charindex[i-1] + srcline->t.offset;
                         word->t.len = m_charindex[wstart] - m_charindex[i-1] + 1;
                         word->flags |= LTEXT_WORD_DIRECTION_IS_RTL; // Draw glyphs in reverse order
                         #if (USE_FRIBIDI==1)
@@ -3975,12 +4218,12 @@ public:
                     else {
                         // Bidi and first char LTR. Same comments as above, except for last one:
                         // it is linearly increasing between wstart and i-1
-                        word->t.start = m_charindex[wstart];
+                        word->t.start = m_charindex[wstart] + srcline->t.offset;
                         word->t.len = m_charindex[i-1] + 1 - m_charindex[wstart];
                     }
 
                     // Flag word that are the start of a link (for in-page footnotes)
-                    if ( word->t.start==0 && srcline->flags & LTEXT_IS_LINK ) {
+                    if ( word->t.start==srcline->t.offset && srcline->flags & LTEXT_IS_LINK ) {
                         word->flags |= LTEXT_WORD_IS_LINK_START;
                         // todo: we might miss some links if the source text starts with a space
                     }
@@ -4158,7 +4401,8 @@ public:
                                 word->width = new_width;
                             }
                         }
-                        word->width += font->getHyphenWidth();
+                        if ( !srcline->lang_cfg->hideHyphenationMark() )
+                            word->width += font->getHyphenWidth();
                         word->min_width = word->width;
                         word->flags |= LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER;
                     }
@@ -4314,7 +4558,7 @@ public:
                                 break;
                             }
                         }
-                        bool ends_with_hyphen = m_flags[lastnonspace] & LCHAR_ALLOW_HYPH_WRAP_AFTER;
+                        bool ends_with_hyphen = (m_flags[lastnonspace] & LCHAR_ALLOW_HYPH_WRAP_AFTER) && !srcline->lang_cfg->hideHyphenationMark();
                         int rsb = 0; // don't bother with hyphen rsb, which can't overflow
                         int right_overflow = 0;
                         if ( !ends_with_hyphen ) {
@@ -4620,9 +4864,33 @@ public:
             }
         }
 
+        if ( initial_letter_word_index >= 0 ) {
+            formatted_word_t * word = &frmline->words[initial_letter_word_index];
+            src_text_fragment_t * src = &m_pbuffer->srctext[word->src_text_index];
+            ldomNode * node = (ldomNode *) src->object;
+            InitialLetterInlineBoxMetrics metrics;
+            if ( node && getInitialLetterInlineBoxMetrics(node, word->o.baseline, metrics) ) {
+                // Initial-letter should stay anchored to the paragraph strut baseline,
+                // not to any extra first-line baseline lift caused by superscripts or
+                // other delayed vertical-align adjustments. We still reserve the real
+                // top ink overflow on that first line so accents don't paint upward.
+                if ( metrics.top_overflow > 0 ) {
+                    frmline->baseline += metrics.top_overflow;
+                    frmline->height += metrics.top_overflow;
+                }
+                word->y = m_pbuffer->strut_baseline + metrics.top_overflow - frmline->baseline;
+            }
+        }
+
         if ( !light_formatting ) {
             // Fix up words position and width to ensure requested alignment and indent
             alignLine( frmline, align, rightIndent, hasInlineBoxes );
+        }
+
+        if ( initial_letter_word_index >= 0 ) {
+            // This has to done after alignLine() has possibly repositionned its inline-box.
+            formatted_word_t * word = &frmline->words[initial_letter_word_index];
+            activateInitialLetterInlineBoxExclusion(frmline, word);
         }
 
         // Get ready for next line
@@ -4729,6 +4997,9 @@ public:
 
         // split paragraph into lines, export lines
         int pos = 0;
+
+        bool is_css_first_line = m_srcs[0] ? (m_srcs[0]->flags & LTEXT_IS_FIRST_LINE_CLONE) : false;
+
         #if (USE_LIBUNIBREAK!=1)
         int upSkipPos = -1;
         #endif
@@ -4763,8 +5034,12 @@ public:
             int cjkReduceWidth = 0; // max total line width which can be reduced by narrowing CJK punctuations
             int firstInlineBoxPos = -1;
 
+            // (Let's not do the following when initial-letter is at play: better to cut raw
+            // the first word if it can't be hyphenated, and have bits of it alongside its
+            // initial letter, than having it cut after the initial letter and the next part
+            // way below that initial letter.)
             int maxWidth = getCurrentLineWidth();
-            if (maxWidth <= minWidth) {
+            if (maxWidth <= minWidth && !m_initial_letter_exclusion.active ) {
                 // Find y with available minWidth
                 int unused_x;
                 // We need to provide a height to find some width available over
@@ -4798,9 +5073,20 @@ public:
             // Find candidates where end of line is possible
             bool seen_non_collapsed_space = false;
             bool seen_first_rendered_char = false;
+            bool first_line_sequance_end_reached = false; // ::first-line cloned text end reached
             int i;
             for ( i=pos; i<m_length; i++ ) {
                 if ( m_text[i]=='\n' ) { // might happen in <pre>formatted only (?)
+                    lastMandatoryWrap = i;
+                    break;
+                }
+                if ( is_css_first_line && !(m_srcs[i]->flags & LTEXT_IS_FIRST_LINE_CLONE) ) {
+                    // We reached the non-first-line sequence: the first-line sequence
+                    // did fit all on the first line, don't go at appending the same
+                    // text from the non-first line sequence
+                    first_line_sequance_end_reached = true;
+                    // For the followup wrap position resolution, pretend we met a \n
+                    // after where first line sequence ended
                     lastMandatoryWrap = i;
                     break;
                 }
@@ -5194,10 +5480,12 @@ public:
                     // (lStr_findWordBounds() might grab objects or inlineboxes as part of
                     // the word, so skip them when looking for a font)
                     int _hyphen_width = 0;
-                    for ( int i=wstart; i<wend; i++ ) {
-                        if ( !(m_srcs[i]->flags & LTEXT_SRC_IS_OBJECT) ) {
-                            _hyphen_width = ((LVFont*)m_srcs[i]->t.font)->getHyphenWidth();
-                            break;
+                    if ( !m_srcs[wordpos]->lang_cfg->hideHyphenationMark() ) {
+                        for ( int i=wstart; i<wend; i++ ) {
+                            if ( !(m_srcs[i]->flags & LTEXT_SRC_IS_OBJECT) ) {
+                                _hyphen_width = ((LVFont*)m_srcs[i]->t.font)->getHyphenWidth();
+                                break;
+                            }
                         }
                     }
                     // Use the hyph method of the source node that contains wordpos
@@ -5315,6 +5603,63 @@ public:
             if (endp > m_length)
                 endp = m_length;
 
+            if ( is_css_first_line ) {
+                is_css_first_line = false;
+                if ( first_line_sequance_end_reached ) {
+                    // We're done: let us be exiting this loop properly
+                    wrapPos = m_length-1;
+                }
+                else {
+                    // We had a copy of the source text with CSS first-line styling,
+                    // and we did not meet its end. We should fast forward skipping
+                    // that first-line sequence, and once in the normal text sequence
+                    // (which includes the full text since the start of the paragraph)
+                    // skip the part that has just been output as first-line to restart
+                    // on after where we wrapped.
+                    // We initially assumed we would get the same text content in the
+                    // first-line sequence as in the normal text copy we get after it,
+                    // but when a list item marker is prepended, we do not.
+                    // So, get the node (a cloneNode) and offset at which we stopped on,
+                    // get its source node, and try to find it in the normal sequence:
+                    // we can then restart on it at the same offset/charindex.
+                    lUInt16 orig_offset = 0;
+                    ldomNode * orig_node = (ldomNode *) m_srcs[wrapPos]->object;
+                    if ( orig_node ) {
+                        orig_node = orig_node->getCloneNodeSource();
+                        orig_offset = m_charindex[wrapPos];
+                    }
+                    // First, skip from here until non-first-line-clone
+                    int i = wrapPos;
+                    while (i < m_length && m_srcs[i]->flags & LTEXT_IS_FIRST_LINE_CLONE)
+                        i++;
+                    int normal_sequence_start = i; // in case !found
+                    bool found = false;
+                    if ( orig_node ) { // look for it
+                        while (i < m_length) {
+                            ldomNode * node = (ldomNode *) m_srcs[i]->object;
+                            if ( node == orig_node ) {
+                                if ( m_charindex[i] == orig_offset ) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            i++;
+                        }
+                    }
+                    if ( !found ) {
+                        // If we did not find it, go with our initial assumption:
+                        // move in the non-first-line as much as we walked until wrap
+                        // in the first-line sequence
+                        i = normal_sequence_start + wrapPos;
+                    }
+                    // And use that as wrapPos for what follows.
+                    wrapPos = i;
+                    if (wrapPos >= m_length)
+                        wrapPos = m_length-1;
+                    // printf("first line done, moving from %d to %d (found=%d)\n", endp, i, found);
+                }
+            }
+
             // Best position to end this line found.
             bool hasInlineBoxes = firstInlineBoxPos >= 0 && firstInlineBoxPos < endp;
             addLine(pos, endp, x, para, pos==0, wrapPos>=m_length-1, preFormattedOnly, isLastPara, hasInlineBoxes);
@@ -5336,6 +5681,7 @@ public:
             }
             #endif
         }
+
     }
 
     void processEmbeddedBlock( int idx )
@@ -5481,6 +5827,14 @@ public:
             // Clear our own floats so they are fully contained in this final block.
             finalizeFloats();
         }
+        if ( !m_no_clear_own_initial_letter ) {
+            // Likewise, contain our own initial-letter ink
+            // (When m_no_clear_own_initial_letter unset, we are rendering a table cell
+            // or a standalone float/inlinebox: we clear only down to the bottom ink,
+            // and not down to the exclusion area which is usually aligned to a paragraph
+            // line box, so possibly taller, which would leave some blank space.)
+            finalizeInitialLetterInk();
+        }
         if ( clear_after_last_flag ) {
             floatClearText( clear_after_last_flag );
         }
@@ -5562,6 +5916,12 @@ static void freeFrmLines( formatted_text_fragment_t * m_pbuffer )
     m_pbuffer->floats = NULL;
     m_pbuffer->floatcount = 0;
 
+    // Also clear oversized inlinebox src indices
+    if (m_pbuffer->oversized_inlineboxes)
+        free( m_pbuffer->oversized_inlineboxes );
+    m_pbuffer->oversized_inlineboxes = NULL;
+    m_pbuffer->oversized_inlinebox_count = 0;
+
     // Also clear inlinebox links containers
     if (m_pbuffer->inlineboxes_links)
     {
@@ -5570,7 +5930,7 @@ static void freeFrmLines( formatted_text_fragment_t * m_pbuffer )
         while ( (pair = it.next()) ) {
             delete pair->value;
         }
-        free( m_pbuffer->inlineboxes_links );
+        delete m_pbuffer->inlineboxes_links;
     }
     m_pbuffer->inlineboxes_links = NULL;
 }
@@ -5616,6 +5976,7 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height, int para_dire
 
     if (float_footprint) {
         formatter.m_no_clear_own_floats = float_footprint->no_clear_own_floats;
+        formatter.m_no_clear_own_initial_letter = float_footprint->no_clear_own_initial_letter;
 
         // BlockFloatFootprint provides a set of floats to represent
         // outer floats possibly having some footprint over the final
@@ -5634,9 +5995,31 @@ lUInt32 LFormattedText::Format(lUInt16 width, lUInt16 page_height, int para_dire
             flt->is_right = (bool)(float_footprint->floats[i][4]);
             flt->inward_margin = float_footprint->floats[i][5];
         }
+        // It can also provide the exclusion area from a previous initial letter
+        // not fully consumed by its own final block.
+        if ( float_footprint->initial_letter_active ) {
+            formatter.m_initial_letter_exclusion.active = true;
+            formatter.m_initial_letter_exclusion.is_carried = true;
+            formatter.m_initial_letter_exclusion.node_id = float_footprint->initial_letter_id;
+            formatter.m_initial_letter_exclusion.is_right = float_footprint->initial_letter_is_right;
+            formatter.m_initial_letter_exclusion.x = float_footprint->initial_letter_x;
+            formatter.m_initial_letter_exclusion.width = float_footprint->initial_letter_width;
+            formatter.m_initial_letter_exclusion.start_y = 0;
+            formatter.m_initial_letter_exclusion.end_y = float_footprint->initial_letter_end_y;
+        }
     }
 
     lUInt32 h = formatter.format();
+
+    if ( float_footprint && formatter.m_formatted_initial_letter_id && float_footprint->no_clear_own_initial_letter ) {
+        // By the time formatting ends, m_formatted_initial_letter_id survives
+        // only if the formatter also installed the matching local exclusion.
+        bool carry_new_initial_letter = formatter.m_initial_letter_exclusion.active
+                                     && formatter.m_initial_letter_exclusion.end_y > (int)h;
+        float_footprint->forwardFoundInitialLetter(formatter.m_formatted_initial_letter_id,
+                                        carry_new_initial_letter,
+                                        formatter.m_initial_letter_exclusion.end_y);
+    }
 
     if ( float_footprint && float_footprint->no_clear_own_floats ) {
         // If we did not finalize/clear our embedded floats, forward
@@ -5814,6 +6197,7 @@ static void drawBorder(LVDrawBuf * buf, int x0, int x1, int y, int h, ldomNode *
     css_length_t border_color = style->border_color[bdidx];
     lUInt32 bdcl = border_color.type == css_val_color ? // "currentcolor" if not
                         border_color.value : style->color.value;
+    bdcl = buf->getInvertColors() ? invertNonGrayscaleColor(bdcl) : bdcl;
     if ( !IS_COLOR_FULLY_TRANSPARENT(bdcl) ) {
         int border_width = measureBorder(borderNode, bdidx);
         css_border_style_type_t border_style;
@@ -5954,6 +6338,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     css_style_ref_t style = node->getStyle();
                     lUInt32 bgcl = style->background_color.type == css_val_color ? // "currentcolor" if not
                                             style->background_color.value : style->color.value;
+                    bgcl = buf->getInvertColors() ? invertNonGrayscaleColor(bgcl) : bgcl;
                     if ( !IS_COLOR_FULLY_TRANSPARENT(bgcl) ) { // background color to start/continue/end
                         bgcl = LTEXT_COLOR_IS_RESERVED(bgcl) ? LTEXT_COLOR_RESERVED_REPLACE : bgcl;
                         if ( is_right_pad != is_mirrored ) { // unmirrored right pad, or mirrored left pad
@@ -5994,7 +6379,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 }
                 else
                 {
-                    lUInt32 bgcl = srcline->bgcolor;
+                    lUInt32 bgcl = buf->getInvertColors() ? invertNonGrayscaleColor(srcline->bgcolor) : srcline->bgcolor;
                     if ( lastWordColor!=bgcl || lastWordStart==-1 ) {
                         if ( lastWordStart!=-1 )
                             if ( ((lastWordColor>>24) & 0xFF) != 0xFF ) // Not reserved, not alpha=100% (not transparent)
@@ -6037,7 +6422,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                         if ( srcline->flags & LTEXT_HAS_TOP_BOTTOM_BORDER ) {
                             // Find out the nearest parent node that carries some border
                             ldomNode * tmp = node;
-                            if (tmp->isText())
+                            if (tmp->isEffectiveText())
                                 tmp = tmp->getParentNode();
                             while ( tmp && tmp->getRendMethod() != erm_final ) {
                                 int border = measureBorder(tmp, side);
@@ -6234,7 +6619,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                 else
                 {
                     bool flgHyphen = false;
-                    if ( word->flags&LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) {
+                    if ( (word->flags & LTEXT_WORD_CAN_HYPH_BREAK_LINE_AFTER) && !srcline->lang_cfg->hideHyphenationMark() ) {
                         if (j==frmline->word_count-1)
                             flgHyphen = true;
                         // Also do that even if it's not the last word in the line
@@ -6272,8 +6657,8 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     }
                     lUInt32 oldColor = buf->GetTextColor();
                     lUInt32 oldBgColor = buf->GetBackgroundColor();
-                    lUInt32 cl = srcline->color;
-                    lUInt32 bgcl = srcline->bgcolor;
+                    lUInt32 cl = buf->getInvertColors() ? invertNonGrayscaleColor(srcline->color) : srcline->color;
+                    lUInt32 bgcl = buf->getInvertColors() ? invertNonGrayscaleColor(srcline->bgcolor) : srcline->bgcolor;
                     if ( LTEXT_COLOR_IS_RESERVED(cl) ) {
                         if ( cl == LTEXT_COLOR_TRANSPARENT ) { // color: transparent
                             continue; // Don't draw this word
@@ -6392,6 +6777,50 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             }
         }
         line_y += frmline->height;
+    }
+
+    // Oversized inline boxes (currently initial-letter) are normally drawn when
+    // their owner first line is drawn, which preserves the usual text paint
+    // ordering. When that first line is fully above the viewport, redraw these
+    // here so the sunk part still appears lower down.
+    // (oversized_inlineboxes have been made generic and could contain anything
+    // but we know that currently it can only be an initial-letter on the first line;
+    // as an optimization, we just ensure that looking if the first line was not drawn.)
+    bool first_line_drawn = ignore_clip;
+    if ( !first_line_drawn && m_pbuffer->frmlinecount > 0 ) {
+        first_line_drawn = y + m_pbuffer->frmlines[0]->height > clip.top;
+    }
+    if ( !first_line_drawn ) {
+        for (i=0; i<m_pbuffer->oversized_inlinebox_count; i++) {
+            int src_index = m_pbuffer->oversized_inlineboxes[i];
+            srcline = &m_pbuffer->srctext[src_index];
+            ldomNode * node = (ldomNode *)srcline->object;
+            RenderRectAccessor fmt( node );
+            int top_overflow = fmt.getTopOverflow();
+            int bottom_overflow = fmt.getBottomOverflow();
+            if ( y + fmt.getY() - top_overflow >= clip.bottom
+                    || y + fmt.getY() + fmt.getHeight() + bottom_overflow <= clip.top ) {
+                continue;
+            }
+            int x0 = x + fmt.getX();
+            int y0 = y + fmt.getY();
+            int doc_x = 0 - fmt.getX();
+            int doc_y = 0 - fmt.getY();
+            int dx = m_pbuffer->width;
+            int dy = m_pbuffer->page_height;
+            int page_height = m_pbuffer->page_height;
+            if ( absmarks_update_needed ) {
+                getAbsMarksFromMarks(marks, absmarks, node);
+                absmarks_update_needed = false;
+            }
+            lvRect curclip;
+            buf->GetClipRect( &curclip );
+            if ( draw_extra_info ) {
+                buf->SetClipRect( &draw_extra_info->content_overflow_clip );
+            }
+            DrawDocument( *buf, node, x0, y0, dx, dy, doc_x, doc_y, page_height, absmarks, bookmarks );
+            buf->SetClipRect(&curclip);
+        }
     }
 
     // Draw floats if any

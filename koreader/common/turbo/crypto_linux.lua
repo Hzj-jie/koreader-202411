@@ -23,7 +23,7 @@ require("turbo.cdef")
 
 local crypto = {} -- crypto namespace
 
-local lssl = ffi.load(os.getenv("TURBO_LIBSSL") or "ssl")
+local lssl = ffi.loadlib("ssl", "60")
 local libtffi = util.load_libtffi()
 
 local EWOULDBLOCK, EINPROGRESS, ECONNRESET =

@@ -1,12 +1,15 @@
 #ifndef LVDOCVIEWPROPS_H
 #define LVDOCVIEWPROPS_H
 
+#include "crsetup.h"
+
 // standard properties supported by LVDocView
 #define PROP_FONT_GAMMA              "font.gamma" // currently supported: 0.65 .. 1.35, see gammatbl.h
 #define PROP_FONT_GAMMA_INDEX        "font.gamma.index" // currently supported: 0..30 ~= 0.65 .. 1.35, see gammatbl.h
 #define PROP_FONT_ANTIALIASING       "font.antialiasing.mode"
 #define PROP_FONT_HINTING            "font.hinting.mode"
 #define PROP_FONT_KERNING            "font.kerning.mode"
+#define PROP_FONT_FRACTIONAL_POSITIONING "font.fractional.positioning"
 #define PROP_FONT_COLOR              "font.color.default"
 #define PROP_FONT_FACE               "font.face.default"
 #define PROP_FONT_BASE_WEIGHT        "font.face.base.weight"        // replaces PROP_FONT_WEIGHT_EMBOLDEN ("font.face.weight.embolden")

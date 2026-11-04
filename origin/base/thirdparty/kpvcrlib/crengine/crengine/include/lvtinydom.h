@@ -25,6 +25,8 @@
 #ifndef __LV_TINYDOM_H_INCLUDED__
 #define __LV_TINYDOM_H_INCLUDED__
 
+#include "crsetup.h"
+
 #include "lvtypes.h"
 #include "lvplatform.h"
 #include "lvmemman.h"
@@ -71,6 +73,10 @@ extern const int gDOMVersionCurrent;
 #define DOC_FLAG_NONLINEAR_PAGEBREAK   16
 /// default docFlag set
 #define DOC_FLAG_DEFAULTS (DOC_FLAG_ENABLE_INTERNAL_STYLES|DOC_FLAG_ENABLE_FOOTNOTES|DOC_FLAG_ENABLE_DOC_FONTS)
+
+/// sentinel for docFragmentIdx params: look it up (by walking up from node to
+/// its DocFragment ancestor) rather than trusting a caller-supplied value
+#define DOC_FRAGMENT_IDX_UNKNOWN (-2)
 
 
 
@@ -138,11 +144,75 @@ extern const int gDOMVersionCurrent;
 #define PT_DIR_SCAN_FORWARD_LOGICAL_FIRST    2
 #define PT_DIR_SCAN_FORWARD_LOGICAL_LAST     3
 
+// Rect context flags for getRectEx()
+#define RECT_CTX_NONE           0x00  // No context
+#define RECT_CTX_IS_RTL         0x01  // Character is in RTL word/segment
+#define RECT_CTX_IN_BIDI_LINE   0x02  // Character is in a BiDi line
+#define RECT_CTX_IN_RTL_PARA    0x04  // Character is in a RTL paragraph
+
 // Flags for setNodeStylesInvalidIfLoading(int reason_flag)
 #define NODE_STYLES_INVALID_PECULIAR_CSS_PSEUDOCLASSES                 0x01
 #define NODE_STYLES_INVALID_FOSTER_PARENTING_OF_INVALID_TABLE_ELEMENT  0x02
 #define NODE_STYLES_INVALID_INHERITED_PROPERTY_SET_ON_BOXING_ELEMENT   0x04
 #define NODE_STYLES_INVALID_PECULIAR_CSS_INNER_CONTENT_CHECK           0x08
+
+/// Optional search features for ldomDocument::findText() / ldomXRange::findText().
+///
+/// These flags are intentionally explicit instead of being folded into a few booleans:
+/// frontends may want to pilot or expose them independently.
+///
+/// Summary:
+/// - MATCH_ACROSS_TEXT_NODES lets one logical match cross inline DOM text-node boundaries
+///   inside a single rendered block: "fo<b>ob</b>ar" matches "foobar".
+/// - COLLAPSE_CONSECUTIVE_SPACES collapses runs of folded spaces to a single separator:
+///   "many  spaces", "many&nbsp; spaces", "many  spaces".
+/// - NORMALIZE_CANONICAL handles canonically equivalent Unicode text:
+///   "café" matches "café".
+/// - NORMALIZE_COMPATIBILITY is broader and accepts compatibility forms:
+///   "office" matches "oﬃce", "ABC" matches "ＡＢＣ".
+/// - IGNORE_FORMAT_CONTROL_CHARS ignores discretionary formatting/control characters
+///   that often should not block a match, such as TATWEEL, zero-width spaces,
+///   word joiners, and BiDi controls. It also ignores ZWNJ/ZWJ, which is more
+///   aggressive and may hide orthographic distinctions in some scripts.
+/// - FOLD_SPACES makes common Unicode spaces equivalent to SPACE: "New York",
+///   "New York", "New York".
+/// - FOLD_APOSTROPHES makes apostrophe-like characters equivalent: "don't", "don’t",
+///   "donʼt".
+/// - FOLD_HYPHENS makes hyphen/dash/minus variants equivalent to ASCII '-':
+///   "co-operate", "co‐operate", "co−operate".
+/// - IGNORE_DIACRITICS ignores combining-mark distinctions after decomposition:
+///   "замок", "за́мок", "замо́к" can match by base letters.
+/// - MATCH_WHOLE_WORDS keeps only matches delimited by word boundaries in the
+///   searchable text buffer.
+///
+/// Regex search ignores all folding/normalization/format-control/whole-word flags,
+/// but when MATCH_ACROSS_TEXT_NODES is set it can still search the raw text of a
+/// whole rendered block across inline node boundaries.
+///
+/// In the current implementation, the order of processing is roughly:
+///    1. optional decomposition/normalization (CANONICAL or COMPATIBILITY)
+///       (NORMALIZE_COMPATIBILITY includes and supersedes NORMALIZE_CANONICAL)
+///    2. optional case-folding (caseInsensitive)
+///    3. explicit FOLD_APOSTROPHES, FOLD_HYPHENS, FOLD_SPACES,
+///       and optional IGNORE_FORMAT_CONTROL_CHARS
+///    4. optional IGNORE_DIACRITICS
+///    5. optional COLLAPSE_CONSECUTIVE_SPACES
+///    6. optional MATCH_WHOLE_WORDS boundary check on the final searchable text
+///
+enum ldomFindTextFlag : lUInt32 {
+    LDOM_FIND_TEXT_NONE                        = 0x0000,
+    LDOM_FIND_TEXT_MATCH_ACROSS_TEXT_NODES     = 0x0001,
+    LDOM_FIND_TEXT_COLLAPSE_CONSECUTIVE_SPACES = 0x0002,
+    LDOM_FIND_TEXT_NORMALIZE_CANONICAL         = 0x0004,
+    LDOM_FIND_TEXT_NORMALIZE_COMPATIBILITY     = 0x0008,
+    LDOM_FIND_TEXT_IGNORE_FORMAT_CONTROL_CHARS = 0x0010,
+    LDOM_FIND_TEXT_FOLD_SPACES                 = 0x0020,
+    LDOM_FIND_TEXT_FOLD_APOSTROPHES            = 0x0040,
+    LDOM_FIND_TEXT_FOLD_HYPHENS                = 0x0080,
+    LDOM_FIND_TEXT_IGNORE_DIACRITICS           = 0x0100,
+    LDOM_FIND_TEXT_MATCH_WHOLE_WORDS           = 0x1000,
+};
+
 
 //#if BUILD_LITE!=1
 /// final block cache
@@ -786,6 +856,9 @@ public:
 
     int  getBaseline();
     void setBaseline( int baseline );
+    int  getPercentHeightBase();
+    void setPercentHeightBase( int height );
+
     int  getListPropNodeIndex();
     void setListPropNodeIndex( int idx );
     int  getLangNodeIndex();
@@ -799,7 +872,7 @@ public:
     void getNextFloatMinYs( int & left, int & right );
     void setNextFloatMinYs( int left, int right );
     void getInvolvedFloatIds( int & float_count, lUInt32 * float_ids );
-    void setInvolvedFloatIds( int float_count, lUInt32 * float_ids );
+    void setInvolvedFloatIds( int float_count, const lUInt32 * float_ids );
 
     void push();
     void clear();
@@ -902,6 +975,7 @@ private:
     void autoboxChildren( int startIndex, int endIndex, bool handleFloating=false );
     void removeChildren( int startIndex, int endIndex );
     bool cleanIfOnlyEmptyTextInline( bool handleFloating=false );
+    bool removeStandaloneWhitespaceTextChildrenInMixedContent( bool handleFloating=false );
     /// returns true if element has inline content (non empty text, images, <BR>)
     bool hasNonEmptyInlineContent( bool ignoreFloats=false );
 
@@ -916,11 +990,84 @@ public:
     // child, creating it if needed and possible
     void ensurePseudoElement( bool is_before );
 
+    // Ensure this node has a ::first-letter pseudo element, creating it if needed and possible
+    // (initStyle: whether to call initNodeStyle() on newly created pseudoElem)
+    void ensureFirstLetter(bool initStyle=false);
+    /// Find FirstLetter pseudoElem from a text node, returns NULL if not found or display:none
+    /// (if textOffset is provided, sets it to the FirstLetter character count)
+    ldomNode * getFirstLetterPseudoElem(int * textOffset=NULL) const;
+    /// Find the text node following a FirstLetter pseudoElem, returns NULL if not found
+    ldomNode * getFirstLetterTextNode() const;
+
+    // Ensure this node has a ::first-line pseudo element with cloned children.
+    // Called from initNodeRendMethod() after all boxing is complete.
+    void ensureFirstLine();
+
+    /// Get the original node from a cloneNode element (for ::first-line)
+    /// Returns NULL if this is not a cloneNode or if the original node cannot be found
+    ldomNode * getCloneNodeSource() const;
+
+    /// These (with *Effective*) are equivalent to the non-Effective methods, which
+    /// if called on a cloneNode will return what's asked from its source node.
+    /// (hardcoded 1 is el_clonedNode )
+    inline ldomNode * getEffectiveNode() {
+        return (getNodeId() == 1) ? getCloneNodeSource() : this;
+    }
+    inline ldomNode * getEffectiveParentNode() {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getParentNode() : getParentNode();
+    }
+    inline bool isEffectiveElement() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->isElement() : isElement();
+    }
+    inline bool isEffectiveText() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->isText() : isText();
+    }
+    inline lString32 getEffectiveText() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getText() : getText();
+    }
+    inline lUInt16 getEffectiveNodeId() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getNodeId() : getNodeId();
+    }
+    inline bool hasEffectiveAttribute( lUInt16 id ) const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->hasAttribute(id) : hasAttribute(id);
+    }
+    inline const lString32 & getEffectiveAttributeValue( lUInt16 id ) const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getAttributeValue(id) : getAttributeValue(id);
+    }
+    inline lString32 getEffectiveAttributeValueLC( lUInt16 id ) const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getAttributeValueLC(id) : getAttributeValueLC(id);
+    }
+    inline bool isEffectiveImage() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->isImage() : isImage();
+    }
+    inline lvdom_element_render_method getEffectiveRendMethod() {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getRendMethod() : getRendMethod();
+    }
+    inline ldomNode * getEffectiveFirstLetterTextNode() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getFirstLetterTextNode() : getFirstLetterTextNode();
+    }
+    inline ldomNode * getEffectiveFirstLetterPseudoElem(int * textOffset=NULL) const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->getFirstLetterPseudoElem(textOffset) : getFirstLetterPseudoElem(textOffset);
+    }
+    inline bool isEffectiveFloatingBox() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->isFloatingBox() : isFloatingBox();
+    }
+    inline bool isEffectiveBoxingInlineBox() const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->isBoxingInlineBox() : isBoxingInlineBox();
+    }
+    inline bool isEffectiveEmbeddedBlockBoxingInlineBox(bool inline_box_checks_done=false) const {
+        return (getNodeId() == 1) ? getCloneNodeSource()->isEmbeddedBlockBoxingInlineBox(inline_box_checks_done) : isEmbeddedBlockBoxingInlineBox(inline_box_checks_done);
+    }
+
+
     /// if stylesheet file name is set, and file is found, set stylesheet to its value
     bool applyNodeStylesheet();
 
-    bool initNodeFont();
-    void initNodeStyle();
+    /// docFragmentIdx: this node's DocFragment sibling index, if already known by
+    /// the caller (eg. a traversal tracking it as it goes), else
+    /// DOC_FRAGMENT_IDX_UNKNOWN to have it looked up as needed.
+    bool initNodeFont(int docFragmentIdx=DOC_FRAGMENT_IDX_UNKNOWN);
+    void initNodeStyle(int docFragmentIdx=DOC_FRAGMENT_IDX_UNKNOWN);
     /// init render method for this node only (children should already have rend method set)
     void initNodeRendMethod();
     /// init render method for the whole subtree
@@ -1016,8 +1163,8 @@ public:
     const lString32 & getFirstInnerAttributeValue( lUInt16 nsid, lUInt16 id ) const;
     const lString32 & getFirstInnerAttributeValue( lUInt16 id ) const { return getFirstInnerAttributeValue( LXML_NS_ANY, id ); }
     /// returns all attribute values by attribute name id, looking at all children
-    const void getAllInnerAttributeValues( lUInt16 nsid, lUInt16 id, lString32Collection & values ) const;
-    const void getAllInnerAttributeValues( lUInt16 id, lString32Collection & values ) const {
+    void getAllInnerAttributeValues( lUInt16 nsid, lUInt16 id, lString32Collection & values ) const;
+    void getAllInnerAttributeValues( lUInt16 id, lString32Collection & values ) const {
         return getAllInnerAttributeValues( LXML_NS_ANY, id, values );
     }
 
@@ -1154,6 +1301,8 @@ public:
 
     /// for display:list-item node, get marker
     bool getNodeListMarker( int & counterValue, lString32 & marker, int & markerWidth );
+    /// returns true if text node contains only plain whitespace
+    bool isWhitespaceText() const;
     /// is node a floating floatBox
     bool isFloatingBox() const;
     /// is node an inlineBox that has not been re-inlined by having
@@ -1169,6 +1318,12 @@ public:
 
     /// is node an image
     bool isImage() const;
+
+    /// walks up from this node to the nearest DocFragment ancestor and returns
+    /// its sibling index (its position among the root's children), or -1 if
+    /// no DocFragment ancestor is found (non-EPUB documents, or nodes above
+    /// the DocFragment level)
+    int getDocFragmentIdx() const;
 
     /// return real (as in the original HTML) parent/siblings by skipping any internal
     /// boxing element up or down (returns NULL when no more sibling)
@@ -1660,10 +1815,11 @@ public:
 	}
 //#if BUILD_LITE!=1
     /// returns caret rectangle for pointer inside formatted document
-    bool getRect(lvRect & rect, bool extended=false, bool adjusted=false) const;
+    bool getRect(lvRect & rect, bool extended=false, bool adjusted=false, int * ctxFlags=NULL) const;
     /// returns glyph rectangle for pointer inside formatted document considering paddings and borders
     /// (with adjusted=true, adjust for left and right side bearing of the glyph, for cleaner highlighting)
-    bool getRectEx(lvRect & rect, bool adjusted=false) const { return getRect(rect, true, adjusted); }
+    /// (with ctxFlags, returns some context info about the char Bidi and edges)
+    bool getRectEx(lvRect & rect, bool adjusted=false, int * ctxFlags=NULL) const { return getRect(rect, true, adjusted, ctxFlags); }
     /// returns coordinates of pointer inside formatted document
     lvPoint toPoint( bool extended=false ) const;
 //#endif
@@ -1715,6 +1871,37 @@ public:
     }
 };
 
+/**
+ * @brief EPUB CFI (Canonical Fragment Identifier) for a location in a document.
+ *
+ * Built from the same (node, offset) couple as an ldomXPointer, it serializes
+ * that location as a string conforming to the EPUB Canonical Fragment Identifier
+ * specification (https://w3c.github.io/epub-specs/epub33/epubcfi/), pointing at
+ * the same location in the book as ldomXPointer::toStringV2() would.
+ */
+class ldomEPubCFI
+{
+protected:
+    ldomXPointer _pointer;
+public:
+    /// default constructor makes a NULL CFI
+    ldomEPubCFI() { }
+    /// constructor from an existing XPointer
+    ldomEPubCFI( const ldomXPointer & pointer ) : _pointer(pointer) { }
+    /// constructor by node pointer and offset
+    ldomEPubCFI( ldomNode * node, int offset ) : _pointer(node, offset) { }
+    /// returns the XPointer this CFI points to the same location as
+    const ldomXPointer & getXPointer() const { return _pointer; }
+    /// returns true for NULL CFI
+    bool isNull() const { return _pointer.isNull(); }
+    /// converts to an "epubcfi(...)" string (empty string if the location can't be expressed)
+    lString32 toString();
+    /// converts to an "epubcfi(parent,start,end)" range string spanning from this
+    /// location to the given one, in document order whichever way round they come
+    /// (empty string if the range can't be expressed)
+    lString32 toRangeString( const ldomXPointer & to );
+};
+
 #define MAX_DOM_LEVEL 64
 /// Xpointer optimized to iterate through DOM tree
 class ldomXPointerEx : public ldomXPointer
@@ -1725,9 +1912,9 @@ protected:
     void initIndex();
 public:
     /// returns bottom level index
-    int getIndex() { return _indexes[_level-1]; }
+    int getIndex() const { return _indexes[_level-1]; }
     /// returns node level
-    int getLevel() { return _level; }
+    int getLevel() const { return _level; }
     /// default constructor
     ldomXPointerEx()
 	    : ldomXPointer()
@@ -1783,6 +1970,8 @@ public:
     {
         return _data->getDocument()==v._data->getDocument() && _data->getNode()==v._data->getNode() && _data->getOffset()==v._data->getOffset();
     }
+    /// returns true when this node path is a prefix of the provided xpointer path
+    bool isPathPrefixOf( const ldomXPointerEx & v ) const;
     /// searches path for element with specific id, returns level at which element is founs, 0 if not found
     int findElementInPath( lUInt16 id );
     /// compare two pointers, returns -1, 0, +1
@@ -1906,6 +2095,7 @@ public:
 };
 
 class ldomXRange;
+class ldomXRangeList;
 
 /// callback for DOM tree iteration interface
 class ldomNodeCallback {
@@ -2084,7 +2274,7 @@ public:
     };
 
     /// searches for specified text inside range
-    bool findText( lString32 pattern, bool caseInsensitive, bool reverse, LVArray<ldomWord> & words, int maxCount, int maxHeight, int maxHeightCheckStartY = -1, bool checkMaxFromStart = false, bool patternIsRegex = false );
+    bool findText( lString32 pattern, bool caseInsensitive, bool reverse, ldomXRangeList & ranges, int maxCount, int maxHeight, int maxHeightCheckStartY = -1, bool checkMaxFromStart = false, bool patternIsRegex = false, lUInt32 searchFlags = LDOM_FIND_TEXT_NONE );
 };
 
 class ldomMarkedText
@@ -2378,6 +2568,7 @@ public:
 class LVPageMap
 {
     friend class ldomDocument;
+    friend class LVDocView;
 private:
     ldomDocument *  _doc;
     int             _valid_for_visible_page_numbers;
@@ -2391,6 +2582,9 @@ private:
         item->_index = _children.length();
         _children.add(item);
     }
+    /// order items by their resolved document Y position (see lvtinydom.cpp).
+    /// Only for LVDocView::updatePageMapInfo(), which has resolved _doc_y beforehand.
+    void sortByDocY();
 public:
     /// serialize to byte array (pointer will be incremented by number of bytes written)
     bool serialize( SerialBuf & buf );
@@ -2567,6 +2761,14 @@ private:
 
     LVEmbeddedFontList _fontList;
 
+    // DocFragment index of the @font-face rule currently being parsed; -1
+    // outside a per-DocFragment CSS parse (e.g. a document-level stylesheet).
+    // Not used on cache reload: registerEmbeddedFonts() reads the DocFragment
+    // index already stored per entry in _fontList instead of this field.
+    // Set by applyNodeStylesheet() for the duration of each DocFragment's
+    // parseStyleSheet() call, then reset.
+    int _parsingDocFragmentIdx;
+
     lString8Collection _fontFamilyFonts;
 
     StyleSheetCache _styleSheetCache;
@@ -2592,6 +2794,12 @@ protected:
 #endif
 
 public:
+
+    /// Set/get the DocFragment index being parsed for @font-face scoping.
+    /// Called by ldomNode::applyNodeStylesheet() and LVImportStylesheetParser
+    /// to scope @font-face registrations to the correct DocFragment, or -1 for global.
+    void setParsingDocFragmentIdx(int idx) { _parsingDocFragmentIdx = idx; }
+    int  getParsingDocFragmentIdx() const  { return _parsingDocFragmentIdx; }
 
 #if BUILD_LITE!=1
     lUInt32 getDocumentRenderingHash() { return _doc_rendering_hash; }
@@ -2620,9 +2828,12 @@ public:
     /// return document's embedded font list
     LVEmbeddedFontList & getEmbeddedFontList() { return _fontList; }
     /// register embedded document fonts in font manager, if any exist in document
+    /// note: currently only called from loadCacheFileContent(), to re-register fonts
+    /// deserialized from the cache file's _fontList
     void registerEmbeddedFonts();
-    /// unregister embedded document fonts in font manager, if any exist in document
-    void unregisterEmbeddedFonts();
+    /// register a font declared by a parsed @font-face CSS rule, as a side-effect
+    /// of CSS parsing; appends to the embedded font list only on success
+    bool registerFontFace(lString32 url, lString8 face, int weight, int width, bool italic, bool isLocal);
 #endif
 
     /// returns pointer to TOC root node
@@ -2795,7 +3006,7 @@ public:
     /// get rendered block cache object
     CVRendBlockCache & getRendBlockCache() { return _renderedBlockCache; }
 
-    bool findText( lString32 pattern, bool caseInsensitive, bool reverse, int minY, int maxY, LVArray<ldomWord> & words, int maxCount, int maxHeight, int maxHeightCheckStartY = -1, bool patternIsRegex = false );
+    bool findText( lString32 pattern, bool caseInsensitive, bool reverse, int minY, int maxY, ldomXRangeList & ranges, int maxCount, int maxHeight, int maxHeightCheckStartY = -1, bool patternIsRegex = false, lUInt32 searchFlags = LDOM_FIND_TEXT_NONE );
 #endif
 };
 
@@ -3009,9 +3220,6 @@ private:
 
 public:
 
-    /// return content of html/head/style element
-    lString8 getHeadStyleText() { return UnicodeToUtf8(headStyleText); }
-
     ldomNode * getBaseElement() { return lastBaseElement; }
 
     lString32 convertId( lString32 id );
@@ -3107,7 +3315,7 @@ lString32 extractDocSeriesAndNumber( ldomDocument * doc, lString32 & seriesNumbe
 lString32 extractDocKeywords( ldomDocument * doc );
 lString32 extractDocDescription( ldomDocument * doc );
 
-bool IsEmptySpace( const lChar32 * text, int len );
+
 
 /// parse XML document from stream, returns NULL if failed
 ldomDocument * LVParseXMLStream( LVStreamRef stream,

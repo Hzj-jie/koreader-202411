@@ -1,0 +1,89 @@
+--- a/src/Makefile.am	2026-09-05 23:34:19.000000000 -0700
++++ b/src/Makefile.am	2026-10-29 22:15:30.299273829 -0700
+@@ -2,6 +2,7 @@
+ 	unibreakbase.h \
+ 	unibreakdef.h \
+ 	linebreak.h \
++	linebreakdef.h \
+ 	graphemebreak.h \
+ 	wordbreak.h
+ lib_LTLIBRARIES = libunibreak.la
+--- a/src/linebreak.c	2026-09-06 01:01:31.000000000 -0700
++++ b/src/linebreak.c	2026-10-29 19:51:48.531559922 -0700
+@@ -1096,6 +1096,8 @@
+         return LINEBREAK_NOBREAK;
+     }
+ 
++    if (lbpCtx->posLast != INVALID_POS)
++    {
+     /* Rule LB15b: no break before a final Pf&QU, even after spaces.
+      * Tentatively suppress the break; it is reverted when the following
+      * char is word-like.  Rule LB8 (ZW) forces a break and takes
+@@ -1139,6 +1141,7 @@
+         lbpCtx->cPendingOrigBrk = (char)brk;
+         return LINEBREAK_NOBREAK;
+     }
++    }
+ 
+     return brk;
+ }
+@@ -1285,7 +1288,7 @@
+  * @param[in]     lang    language of the input
+  * @post                  the line breaking context is initialized
+  */
+-static void lb_init_break_context(
++void lb_init_break_context(
+         struct LineBreakContext *lbpCtx,
+         utf32_t ch,
+         const char *lang)
+@@ -1332,7 +1335,7 @@
+  *                        #LINEBREAK_ALLOWBREAK, and #LINEBREAK_NOBREAK
+  * @post                  the line breaking context is updated
+  */
+-static int lb_process_next_char(
++int lb_process_next_char(
+         struct LineBreakContext *lbpCtx,
+         utf32_t ch )
+ {
+@@ -1431,6 +1434,14 @@
+  *               the number of code-points or code-units in the source
+  *               string, depending on the outputType parameter.
+  */
++
++enum LineBreakClass lb_get_char_class(
++        const struct LineBreakContext *lbpCtx,
++        utf32_t ch)
++{
++    return get_char_lb_class_lang(ch, lbpCtx->lbpLang);
++}
++
+ size_t set_linebreaks(
+         const void *s,
+         size_t len,
+--- a/src/linebreakdef.h	2026-09-05 22:08:34.000000000 -0700
++++ b/src/linebreakdef.h	2026-10-29 19:51:48.531041214 -0700
+@@ -235,4 +235,24 @@
+ extern const char lb_prop_bmp[];
+ extern const struct LineBreakPropertiesLang lb_prop_lang_map[];
+ 
++
++/* Function Declarations */
++void lb_init_break_context(
++        struct LineBreakContext *lbpCtx,
++        utf32_t ch,
++        const char *lang);
++int lb_process_next_char(
++        struct LineBreakContext *lbpCtx,
++        utf32_t ch);
++enum LineBreakClass lb_get_char_class(
++        const struct LineBreakContext *lbpCtx,
++        utf32_t ch);
++size_t set_linebreaks(
++        const void *s,
++        size_t len,
++        const char *lang,
++        enum BreakOutputType outputType,
++        char *brks,
++        get_next_char_t get_next_char);
++
+ #endif /* LINEBREAKDEF_H */

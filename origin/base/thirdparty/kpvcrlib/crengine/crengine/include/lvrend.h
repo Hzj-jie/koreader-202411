@@ -14,6 +14,8 @@
 #ifndef __LV_REND_H_INCLUDED__
 #define __LV_REND_H_INCLUDED__
 
+#include "crsetup.h"
+
 #include "lvtypes.h"
 #include "lvplatform.h"
 #include "lvtinydom.h"
@@ -42,6 +44,8 @@
 #define RENDER_RECT_FLAG_CHILDREN_RENDERING_REORDERED       0x0200 // for table rows/thead/tfoot/cells reordering
 #define RENDER_RECT_FLAG_BOX_IS_POSITIONNED                 0x0400 // for inlineBox (when X/Y set in its erm_final)
 #define RENDER_RECT_FLAG_DO_MATH_TRANSFORM                  0x0800 // do math glyph stretching
+#define RENDER_RECT_FLAG_BOX_IS_DISCARDED                   0x1000 // source inlineBox hidden in favor of a ::first-line clone owner
+#define RENDER_RECT_FLAG_NO_CLEAR_OWN_INITIAL_LETTER        0x2000
 #define RENDER_RECT_FLAG_TEMP_USED_AS_CSS_CHECK_CACHE       0x8000 // has been cleared and is used as a CSS checks cache
 
 #define RENDER_RECT_SET_FLAG(r, f)     ( r.setFlags( r.getFlags() | RENDER_RECT_FLAG_##f ) )
@@ -81,6 +85,7 @@ public:
     // Forwarded from BLOCK_RENDERING_DO_NOT_CLEAR_OWN_FLOATS
     // (or not when table cell erm_final)
     bool no_clear_own_floats;
+    bool no_clear_own_initial_letter;
     bool use_floatIds;
     // Footprints, used when they are more than 5 floats involved,
     // or ALLOW_EXACT_FLOATS_FOOTPRINTS not enabled.
@@ -90,14 +95,29 @@ public:
     int right_h;
     int left_min_y;
     int right_min_y;
-    // FloatIds, used when less than 5 floats involved
-    // and ALLOW_EXACT_FLOATS_FOOTPRINTS enabled
+    // FloatIds, used when there are at most 5 exact saved nodes involved
+    // and ALLOW_EXACT_FLOATS_FOOTPRINTS enabled. These are usually floatBox
+    // nodes, but one slot may be used by an initial-letter inlineBox so
+    // we can rebuild its carried exclusion without extra cached fields.
     int nb_floatIds;
     lUInt32 floatIds[5];
     // Floats to transfer to final block for it to
     // start with these 5 "fake" embedded floats
     int floats_cnt;
     int floats[5][6]; // max 5 floats, with (x,y,w,h,is_right,inward_margin) each
+    // Initial letter exclusion area (from a previous formatting) but still active,
+    // transferred to a new final block formatting so it can wrap around.
+    bool initial_letter_active;
+    lUInt32 initial_letter_id;
+    int  initial_letter_end_y;
+    int  initial_letter_x;
+    int  initial_letter_width;
+    bool initial_letter_is_right;
+    // New initial letter received from a final block formatting when it has
+    // met one, possibly still ongoing and to carry onto next formattings.
+    lUInt32 formatted_initial_letter_id;
+    bool formatted_initial_letter_carry_on;
+    int  formatted_initial_letter_carry_end_y;
 
     int getFinalMinY() { return used_min_y; };
     int getFinalMaxY() { return used_max_y; };
@@ -106,13 +126,20 @@ public:
     void generateEmbeddedFloatsFromFootprints( int final_width );
     void generateEmbeddedFloatsFromFloatIds( ldomNode * node, int final_width );
     void forwardOverflowingFloat( int x, int y, int w, int h, bool r, ldomNode * node );
+    void forwardFoundInitialLetter(lUInt32 node_id, bool carry_on, int end_y);
     int getTopShiftX(int final_width, bool get_right_shift=false);
 
-    BlockFloatFootprint( FlowState * fl=NULL, int dleft=0, int dtop=0, bool noclearownfloats=false ) :
+    BlockFloatFootprint( FlowState * fl=NULL, int dleft=0, int dtop=0,
+                         bool noclearownfloats=false, bool noclearowninitialletter=false ) :
         flow(fl), d_left(dleft), d_top(dtop), used_min_y(0), used_max_y(0),
-        no_clear_own_floats(noclearownfloats), use_floatIds(false),
+        no_clear_own_floats(noclearownfloats),
+        no_clear_own_initial_letter(noclearowninitialletter), use_floatIds(false),
         left_w(0), left_h(0), right_w(0), right_h(0), left_min_y(0), right_min_y(0),
-        nb_floatIds(0), floats_cnt(0)
+        nb_floatIds(0), floats_cnt(0),
+        initial_letter_active(false), initial_letter_id(0), initial_letter_end_y(0),
+        initial_letter_x(0), initial_letter_width(0), initial_letter_is_right(false),
+        formatted_initial_letter_id(0),
+        formatted_initial_letter_carry_on(false), formatted_initial_letter_carry_end_y(0)
         { }
 };
 
@@ -130,8 +157,9 @@ typedef struct {
 bool isSameFontStyle( css_style_rec_t * style1, css_style_rec_t * style2 );
 /// removes format data from node
 void freeFormatData( ldomNode * node );
+
 /// returns best suitable font for style
-LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId);
+LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId, int docFragmentIdx=DOC_FRAGMENT_IDX_UNKNOWN);
 /// initializes format data for node
 void initFormatData( ldomNode * node );
 /// initializes rendering method for node
@@ -140,8 +168,8 @@ int initRendMethod( ldomNode * node, bool recurseChildren, bool allowAutoboxing 
 lUInt32 styleToTextFmtFlags( bool is_block, const css_style_ref_t & style, lUInt32 oldflags, int direction=REND_DIRECTION_UNSET );
 /// renders block as single text formatter object
 void renderFinalBlock( ldomNode * node, LFormattedText * txform, RenderRectAccessor * fmt, lUInt32 & flags,
-                       int indent, int line_h, TextLangCfg * lang_cfg=NULL, int valign_dy=0, bool * is_link_start=NULL,
-                       lString32 running_bidi_ctrlchars=lString32::empty_str );
+                       int indent, int line_h, TextLangCfg * lang_cfg=NULL, lUInt32 bgcolor=LTEXT_COLOR_CURRENT, int valign_dy=0,
+                       bool * is_link_start=NULL, lString32 running_bidi_ctrlchars=lString32::empty_str );
 /// renders block which contains subblocks (with enode document's rendering flags)
 int renderBlockElement( LVRendPageContext & context, ldomNode * enode, int x, int y, int width,
         int usable_left_overflow=0, int usable_right_overflow=0, int direction=REND_DIRECTION_UNSET, int * baseline=NULL );
@@ -153,7 +181,9 @@ int renderTable( LVRendPageContext & context, ldomNode * element, int x, int y, 
                  bool shrink_to_fit, int min_width, int & fitted_width, int direction=REND_DIRECTION_UNSET,
                  bool pb_inside_avoid=false, bool enhanced_rendering=false, bool is_ruby_table=false );
 /// sets node style
-void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font );
+/// docFragmentIdx: the node's DocFragment sibling index, if already known by the
+/// caller (eg. a traversal tracking it), else left to be looked up as needed.
+void setNodeStyle( ldomNode * node, css_style_ref_t parent_style, LVFontRef parent_font, int docFragmentIdx=DOC_FRAGMENT_IDX_UNKNOWN );
 /// copy style
 void copystyle( css_style_ref_t sourcestyle, css_style_ref_t deststyle );
 

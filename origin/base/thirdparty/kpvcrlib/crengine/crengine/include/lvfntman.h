@@ -15,8 +15,11 @@
 #ifndef __LV_FNT_MAN_H_INCLUDED__
 #define __LV_FNT_MAN_H_INCLUDED__
 
-#include <stdlib.h>
 #include "crsetup.h"
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <math.h>
 #include "lvtypes.h"
 #include "lvplatform.h"
 #include "lvfnt.h"
@@ -131,6 +134,8 @@ struct LVFontGlyphCacheItem
     GlyphCacheItemData data;
     lUInt16 bmp_width;
     lUInt16 bmp_height;
+    lUInt16 bmp_pitch;
+    lUInt8  bmp_pixelformat; // 1=grayscale, 4=BGRA
     lInt16  origin_x;
     lInt16  origin_y;
     lUInt16 advance;
@@ -145,16 +150,19 @@ struct LVFontGlyphCacheItem
         // NOTE: Again, we stash the data *in place of* the bmp array, so, the effective size of our object is:
         //       LVFontGlyphCacheItem-up-to-bmp + the glyph storage size.
         //       Given the alignment constraints on bmp, the only sane way to compute that is via offsetof.
-        return offsetof(LVFontGlyphCacheItem, bmp) + ((bmp_width * bmp_height) * sizeof(*bmp));
+        return offsetof(LVFontGlyphCacheItem, bmp) + (bmp_pitch * bmp_height);
     }
-    static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar32 ch, int w, int h )
+    static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lChar32 ch, int w, int h, int pitch = 0, lUInt8 pixfmt = 1 )
     {
+        if (!pitch) pitch = w * pixfmt;
         LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( offsetof(LVFontGlyphCacheItem, bmp)
-                                                                        + ((w*h) * sizeof(*bmp)) );
+                                                                        + (pitch * h) );
 	if (item) {
 	    item->data.ch = ch;
 	    item->bmp_width = (lUInt16)w;
 	    item->bmp_height = (lUInt16)h;
+	    item->bmp_pitch = (lUInt16)pitch;
+	    item->bmp_pixelformat = pixfmt;
 	    item->origin_x =   0;
 	    item->origin_y =   0;
 	    item->advance =    0;
@@ -167,14 +175,17 @@ struct LVFontGlyphCacheItem
         return item;
     }
     #if USE_HARFBUZZ==1
-    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache* local_cache, lUInt32 glyph_index, int w, int h)
+    static LVFontGlyphCacheItem *newItem(LVFontLocalGlyphCache* local_cache, lUInt32 glyph_index, int w, int h, int pitch = 0, lUInt8 pixfmt = 1)
     {
+        if (!pitch) pitch = w * pixfmt;
         LVFontGlyphCacheItem * item = (LVFontGlyphCacheItem *)malloc( offsetof(LVFontGlyphCacheItem, bmp)
-                                                                        + ((w*h) * sizeof(*bmp)) );
+                                                                        + (pitch * h) );
         if (item) {
             item->data.gindex = glyph_index;
             item->bmp_width = (lUInt16) w;
             item->bmp_height = (lUInt16) h;
+            item->bmp_pitch = (lUInt16) pitch;
+            item->bmp_pixelformat = pixfmt;
             item->origin_x = 0;
             item->origin_y = 0;
             item->advance = 0;
@@ -302,10 +313,33 @@ enum kerning_mode_t {
 // No more room for: (let's hope it's really the default in fonts)
 // #define LFNT_OT_FEATURES_P_JP90 0x80000000 // +jp90      (font-variant-east-asian: jis90)
 
+// Sub-masks of the bits above that belong to each individual font-variant-*
+// longhand property, so that setting one longhand to "normal"/"none" can
+// reset just the bits it owns, without wiping out bits set by other
+// longhands (or by the font-variant shorthand) within the same declaration
+// block. Only the font-variant shorthand itself (or "font-variant: normal")
+// should reset the union of all these masks.
+#define LFNT_OT_FEATURES_MASK_LIGATURES  (LFNT_OT_FEATURES_M_LIGA | LFNT_OT_FEATURES_M_CALT | LFNT_OT_FEATURES_P_DLIG | \
+                                          LFNT_OT_FEATURES_M_DLIG | LFNT_OT_FEATURES_P_HLIG | LFNT_OT_FEATURES_M_HLIG)
+#define LFNT_OT_FEATURES_MASK_ALTERNATES (LFNT_OT_FEATURES_P_HIST)
+#define LFNT_OT_FEATURES_MASK_CAPS       (LFNT_OT_FEATURES_P_SMCP | LFNT_OT_FEATURES_P_C2SC | LFNT_OT_FEATURES_P_PCAP | \
+                                          LFNT_OT_FEATURES_P_C2PC | LFNT_OT_FEATURES_P_UNIC | LFNT_OT_FEATURES_P_TITL)
+#define LFNT_OT_FEATURES_MASK_POSITION   (LFNT_OT_FEATURES_P_SUPS | LFNT_OT_FEATURES_P_SUBS)
+#define LFNT_OT_FEATURES_MASK_NUMERIC    (LFNT_OT_FEATURES_P_LNUM | LFNT_OT_FEATURES_P_ONUM | LFNT_OT_FEATURES_P_PNUM | \
+                                          LFNT_OT_FEATURES_P_TNUM | LFNT_OT_FEATURES_P_ZERO | LFNT_OT_FEATURES_P_ORDN | \
+                                          LFNT_OT_FEATURES_P_FRAC | LFNT_OT_FEATURES_P_AFRC)
+#define LFNT_OT_FEATURES_MASK_EASTASIAN  (LFNT_OT_FEATURES_P_RUBY | LFNT_OT_FEATURES_P_SMPL | LFNT_OT_FEATURES_P_TRAD | \
+                                          LFNT_OT_FEATURES_P_FWID | LFNT_OT_FEATURES_P_PWID | LFNT_OT_FEATURES_P_JP78 | \
+                                          LFNT_OT_FEATURES_P_JP83 | LFNT_OT_FEATURES_P_JP04)
+#define LFNT_OT_FEATURES_MASK_ALL        (LFNT_OT_FEATURES_MASK_LIGATURES | LFNT_OT_FEATURES_MASK_ALTERNATES | \
+                                          LFNT_OT_FEATURES_MASK_CAPS | LFNT_OT_FEATURES_MASK_POSITION | \
+                                          LFNT_OT_FEATURES_MASK_NUMERIC | LFNT_OT_FEATURES_MASK_EASTASIAN)
+
 // Extra font metrics (cached)
 enum font_extra_metric_t
 {
     font_metric_x_height = 0,
+    font_metric_cap_height,
     font_metric_ch_width,
     font_metric_y_superscript_y_offset,
     font_metric_y_subscript_y_offset,
@@ -483,6 +517,12 @@ public:
     virtual int getRightSideBearing( lChar32 ch, bool negative_only=false, bool italic_only=false ) = 0;
     /// returns extra metric
     virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px=true) = 0;
+    /// returns the vertical offset (in px, below the baseline) at which DrawTextString
+    /// draws the underline decoration line
+    virtual int getUnderlineOffset() const { return 0; }
+    /// returns the thickness (in px) of the underline / overline / strikethrough
+    /// decoration line drawn by DrawTextString
+    virtual int getUnderlineThickness() const { return 0; }
     /// returns if font has OpenType Math tables
     virtual bool hasOTMathSupport() const = 0;
     /// retrieves font handle
@@ -511,6 +551,12 @@ public:
     virtual int getFeatures() const { return 0; }
     /// set OpenType features (bitmap)
     virtual void setFeatures( int features ) { }
+
+    /// hash of the active variable-font axis values; 0 for static fonts or no variations
+    virtual lUInt32 getVariationHash() const { return 0; }
+
+    /// synthesized (embolden/lighten) weight applied on top of the loaded face, 0 if none
+    virtual int getSynthWeight() const { return 0; }
 
     /// sets current kerning mode
     virtual void setKerningMode( kerning_mode_t /*mode*/ ) { }
@@ -563,36 +609,135 @@ enum font_antialiasing_t
     font_aa_all
 };
 
+// 4-char axis tags used in variable font variation axes
+#ifndef LVFONT_TAG
+#define LVFONT_TAG(a,b,c,d) ((lUInt32)((lUInt8)(a))<<24 | (lUInt32)((lUInt8)(b))<<16 \
+                             | (lUInt32)((lUInt8)(c))<<8  | (lUInt32)((lUInt8)(d)))
+#endif
+#define LVFONT_TAG_WGHT  LVFONT_TAG('w','g','h','t')  // weight axis
+#define LVFONT_TAG_OPSZ  LVFONT_TAG('o','p','s','z')  // optical size axis
+#define LVFONT_TAG_ITAL  LVFONT_TAG('i','t','a','l')  // italic axis
+#define LVFONT_TAG_SLNT  LVFONT_TAG('s','l','n','t')  // slant axis
+#define LVFONT_TAG_WDTH  LVFONT_TAG('w','d','t','h')  // width axis
+
+/// Active design-space values for the five registered variable-font axes.
+/// Axes not explicitly set carry no value and do not affect the cache key.
+struct LVFontVariations {
+    bool  wght_set; float wght;
+    bool  opsz_set; float opsz;
+    bool  ital_set; float ital;
+    bool  slnt_set; float slnt;
+    bool  wdth_set; float wdth;
+
+    LVFontVariations()
+        : wght_set(false), wght(0.0f)
+        , opsz_set(false), opsz(0.0f)
+        , ital_set(false), ital(0.0f)
+        , slnt_set(false), slnt(0.0f)
+        , wdth_set(false), wdth(0.0f)
+    {}
+
+    bool empty() const { return !wght_set && !opsz_set && !ital_set && !slnt_set && !wdth_set; }
+
+    bool has(lUInt32 tag) const {
+        switch (tag) {
+            case LVFONT_TAG_WGHT: return wght_set;
+            case LVFONT_TAG_OPSZ: return opsz_set;
+            case LVFONT_TAG_ITAL: return ital_set;
+            case LVFONT_TAG_SLNT: return slnt_set;
+            case LVFONT_TAG_WDTH: return wdth_set;
+            default: return false;
+        }
+    }
+    float get(lUInt32 tag, float fallback = 0.0f) const {
+        switch (tag) {
+            case LVFONT_TAG_WGHT: return wght_set ? wght : fallback;
+            case LVFONT_TAG_OPSZ: return opsz_set ? opsz : fallback;
+            case LVFONT_TAG_ITAL: return ital_set ? ital : fallback;
+            case LVFONT_TAG_SLNT: return slnt_set ? slnt : fallback;
+            case LVFONT_TAG_WDTH: return wdth_set ? wdth : fallback;
+            default: return fallback;
+        }
+    }
+    void set(lUInt32 tag, float value) {
+        if (!isfinite(value)) {
+            CRLog::error("LVFontVariations::set: non-finite value for axis 0x%08x: ignoring", tag);
+            return;
+        }
+        switch (tag) {
+            case LVFONT_TAG_WGHT: wght_set = true; wght = value; break;
+            case LVFONT_TAG_OPSZ: opsz_set = true; opsz = value; break;
+            case LVFONT_TAG_ITAL: ital_set = true; ital = value; break;
+            case LVFONT_TAG_SLNT: slnt_set = true; slnt = value; break;
+            case LVFONT_TAG_WDTH: wdth_set = true; wdth = value; break;
+            default: break;
+        }
+    }
+
+    bool operator==(const LVFontVariations& o) const {
+        return wght_set == o.wght_set && (!wght_set || wght == o.wght)
+            && opsz_set == o.opsz_set && (!opsz_set || opsz == o.opsz)
+            && ital_set == o.ital_set && (!ital_set || ital == o.ital)
+            && slnt_set == o.slnt_set && (!slnt_set || slnt == o.slnt)
+            && wdth_set == o.wdth_set && (!wdth_set || wdth == o.wdth);
+    }
+    bool operator!=(const LVFontVariations& o) const { return !(*this == o); }
+
+    lUInt32 hash() const {
+        lUInt32 h = 0, b;
+        if (wght_set) { memcpy(&b, &wght, sizeof(b)); h = h*31 + LVFONT_TAG_WGHT; h = h*31 + b; }
+        if (opsz_set) { memcpy(&b, &opsz, sizeof(b)); h = h*31 + LVFONT_TAG_OPSZ; h = h*31 + b; }
+        if (ital_set) { memcpy(&b, &ital, sizeof(b)); h = h*31 + LVFONT_TAG_ITAL; h = h*31 + b; }
+        if (slnt_set) { memcpy(&b, &slnt, sizeof(b)); h = h*31 + LVFONT_TAG_SLNT; h = h*31 + b; }
+        if (wdth_set) { memcpy(&b, &wdth, sizeof(b)); h = h*31 + LVFONT_TAG_WDTH; h = h*31 + b; }
+        return h;
+    }
+};
+
 class LVEmbeddedFontDef {
     lString32 _url;
     lString8 _face;
-    bool _bold;
+    int _weight;
+    int _width; // font-width descriptor, in tenths of a percent
     bool _italic;
+    // When true, _url holds a font family name from a `src: local(...)` rule
+    // rather than a path to an embedded font file.
+    bool _isLocal;
+    // Index of the DocFragment that declared this @font-face rule, or -1 if
+    // it applies to all DocFragments (e.g. a rule parsed outside any
+    // DocFragment). local() aliases are doc-fragment-scoped like any other rule.
+    int _docFragmentIdx;
 public:
-    LVEmbeddedFontDef(lString32 url, lString8 face, bool bold, bool italic) :
-        _url(url), _face(face), _bold(bold), _italic(italic)
+    LVEmbeddedFontDef(lString32 url, lString8 face, int weight, int width, bool italic, bool isLocal = false, int docFragmentIdx = -1) :
+        _url(url), _face(face), _weight(weight), _width(width), _italic(italic), _isLocal(isLocal), _docFragmentIdx(docFragmentIdx)
     {
     }
-    LVEmbeddedFontDef() : _bold(false), _italic(false) {
+    LVEmbeddedFontDef() : _weight(400), _width(css_fwd_normal), _italic(false), _isLocal(false), _docFragmentIdx(-1) {
     }
 
     const lString32 & getUrl() const { return _url; }
     const lString8 & getFace() const { return _face; }
-    bool getBold() const { return _bold; }
+    int getWeight() const { return _weight; }
+    int getWidth() const { return _width; }
     bool getItalic() const { return _italic; }
+    bool getIsLocal() const { return _isLocal; }
+    int getDocFragmentIdx() const { return _docFragmentIdx; }
     void setFace(const lString8 &  face) { _face = face; }
-    void setBold(bool bold) { _bold = bold; }
+    void setWeight(int weight) { _weight = weight; }
+    void setWidth(int width) { _width = width; }
     void setItalic(bool italic) { _italic = italic; }
+    void setIsLocal(bool isLocal) { _isLocal = isLocal; }
+    void setDocFragmentIdx(int docFragmentIdx) { _docFragmentIdx = docFragmentIdx; }
     bool serialize(SerialBuf & buf);
     bool deserialize(SerialBuf & buf);
 };
 
 class LVEmbeddedFontList : public LVPtrVector<LVEmbeddedFontDef> {
 public:
-    LVEmbeddedFontDef * findByUrl(lString32 url);
+    LVEmbeddedFontDef * findByUrlAndDocFragment(lString32 url, int docFragmentIdx);
     void add(LVEmbeddedFontDef * def) { LVPtrVector<LVEmbeddedFontDef>::add(def); }
-    bool add(lString32 url, lString8 face, bool bold, bool italic);
-    bool add(lString32 url) { return add(url, lString8::empty_str, false, false); }
+    bool add(lString32 url, lString8 face, int weight, int width, bool italic, bool isLocal = false, int docFragmentIdx = -1);
+    bool add(lString32 url) { return add(url, lString8::empty_str, 400, css_fwd_normal, false); }
     bool addAll(LVEmbeddedFontList & list);
     void set(LVEmbeddedFontList & list) { clear(); addAll(list); }
     bool serialize(SerialBuf & buf);
@@ -613,7 +758,8 @@ public:
     virtual void gc() = 0;
     /// returns most similar font
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
-                                int features=0, int documentId = -1, bool useBias=false) = 0;
+                                int features=0, int documentId = -1, bool useBias=false,
+                                const LVFontVariations* variations=NULL, int docFragmentIdx = -1) = 0;
 
     /// return available font weight values
     virtual void GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface) = 0;
@@ -629,9 +775,9 @@ public:
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers font by name and face
-    virtual bool RegisterExternalFont(int /*documentId*/, lString32 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
+    virtual bool RegisterExternalFont(int /*documentId*/, lString32 /*name*/, lString8 /*face*/, int /*weight*/, int /*width*/, bool /*italic*/, int /*docFragmentIdx*/ = -1) { return false; }
     /// registers document font
-    virtual bool RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString32 /*name*/, lString8 /*face*/, bool /*bold*/, bool /*italic*/) { return false; }
+    virtual bool RegisterDocumentFont(int /*documentId*/, LVContainerRef /*container*/, lString32 /*name*/, lString8 /*face*/, int /*weight*/, int /*width*/, bool /*italic*/, int /*docFragmentIdx*/ = -1) { return false; }
     /// unregisters all document fonts
     virtual void UnregisterDocumentFonts(int /*documentId*/) { }
     /// makes sure registered fonts have a proper entry at weight 400 and 700 when possible,
@@ -655,6 +801,10 @@ public:
     virtual kerning_mode_t GetKerningMode() { return _kerningMode; }
     /// get kerning mode: true==ON, false=OFF
     virtual void SetKerningMode( kerning_mode_t mode ) { _kerningMode = mode; gc(); clearGlyphCache(); }
+    /// get fractional glyph positioning strength (0: off, 1..3: increasing precision)
+    virtual int GetFractionalGlyphPositioning() { return 0; }
+    /// set fractional glyph positioning strength (0: off, 1..3: increasing precision)
+    virtual void SetFractionalGlyphPositioning( int /*strength*/ ) { }
 
     /// get monospace size scale percent
     virtual int GetMonospaceSizeScale() { return _monospaceSizeScale; }
@@ -700,10 +850,22 @@ public:
     /// returns current hinting mode
     virtual hinting_mode_t  GetHintingMode() { return HINTING_MODE_AUTOHINT; }
 
-    virtual bool SetAlias(lString8 alias,lString8 facename,int id,bool bold,bool italic){ return false;}
+    /// Resolves `src: local(localName)` from a document's @font-face rule: if a
+    /// family named `localName` is registered, makes `alias` resolve to it for
+    /// font selection within `documentId`, scoped to `docFragmentIdx` (-1 for the
+    /// whole document) so two DocFragments can map the same family name to
+    /// different local() targets. Returns false if no such family exists.
+    virtual bool RegisterDocumentFontAlias(int /*documentId*/, lString8 /*alias*/, lString8 /*localName*/, int /*docFragmentIdx*/ = -1) { return false; }
 
-    /// set as preferred font with the given bias to add in CalcMatch algorithm
-    virtual bool SetAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias=true ) { CR_UNUSED(face); return false; }
+    /// Set the primary reading font used as the step-2 fallback for all generic families.
+    virtual void SetPrimaryFont( lString8 /*face*/ ) {}
+    /// Set the fallback font for the CSS generic family the given face belongs to.
+    virtual void SetFamilyFallbackFont( lString8 /*face*/ ) {}
+    /// Backward-compatible wrapper; prefers SetPrimaryFont / SetFamilyFallbackFont.
+    virtual bool SetAsPreferredFontWithBias( lString8 face, int /*bias*/, bool clearOthersBias=true ) {
+        if (clearOthersBias) SetPrimaryFont(face); else SetFamilyFallbackFont(face);
+        return true;
+    }
 };
 
 class LVBaseFont : public LVFont

@@ -15,6 +15,8 @@
 #ifndef _HYPHEN_
 #define _HYPHEN_
 
+#include "crsetup.h"
+
 #include "lvtypes.h"
 #include "lvstream.h"
 #include "lvhashtable.h"
@@ -49,7 +51,7 @@ public:
         , _right_hyphen_min(rightHyphenMin)
         { }
     lString32 getId() { return _id; }
-    virtual bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 ) = 0;
+    virtual bool hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 ) = 0;
     virtual ~HyphMethod() { }
     virtual lUInt32 getCount() { return 0; }
     virtual lUInt32 getSize() { return 0; }
@@ -87,6 +89,8 @@ public:
 
 #define HYPH_DICT_ID_NONE U"@none"
 #define HYPH_DICT_ID_ALGORITHM U"@algorithm"
+// Internal factory selector; the returned method still reports @algorithm.
+#define HYPH_DICT_ID_ALGORITHM_GRAPHEME U"@algorithm-grapheme"
 #define HYPH_DICT_ID_SOFTHYPHENS U"@softhyphens"
 #define HYPH_DICT_ID_DICTIONARY U"@dictionary"
 
@@ -160,7 +164,7 @@ public:
     HyphMan();
     ~HyphMan();
 
-    static bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 );
+    static bool hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 );
     /* Obsolete:
     inline static bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize=1 )
     {
@@ -200,7 +204,7 @@ public:
 
     static inline lUInt32 getHash() { return _hash_value; };
 
-    static bool hyphenate( const lChar32 * str, int len, lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
+    static bool hyphenate( const lChar32 * str, int len, const lUInt16 * widths, lUInt8 * flags, lUInt16 hyphCharWidth, lUInt16 maxWidth, size_t flagSize );
     static lString32 getHyphenation(const char *word);
 };
 

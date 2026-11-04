@@ -12,12 +12,11 @@
 
 */
 
+#include "crsetup.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
-
-
-#include "../include/crsetup.h"
 #include "../include/lvfntman.h"
 #include "../include/lvstream.h"
 #include "../include/lvdrawbuf.h"
@@ -27,6 +26,9 @@
 // Uncomment for debugging text measurement or drawing
 // #define DEBUG_MEASURE_TEXT
 // #define DEBUG_DRAW_TEXT
+
+// Uncomment for debugging variable fonts loading and use
+//#define DEBUG_VAR_FONT 1
 
 // define to filter out all fonts except .ttf
 //#define LOAD_TTF_FONTS_ONLY
@@ -50,11 +52,19 @@
 #include <freetype/ftsynth.h>    // for FT_GlyphSlot_Oblique()
 #include <freetype/ftglyph.h>    // for FT_Matrix_Multiply()
 #include <freetype/tttables.h>   // for FT_Get_Sfnt_Table()
+#include <freetype/ftmm.h>       // for FT_Get_MM_Var() / FT_Set_Var_Design_Coordinates()
+// FT_Done_MM_Var was added in FreeType 2.9; fall back to free() on older versions
+#if FREETYPE_MINOR >= 9 || FREETYPE_MAJOR > 2
+#  define FT_DONE_MM_VAR(lib, p) FT_Done_MM_Var(lib, p)
+#else
+#  define FT_DONE_MM_VAR(lib, p) free(p)
+#endif
 
 // Use Freetype embolden API instead of LVFontBoldTransform to
-// make fake bold (for fonts that do not provide a bold face).
-// This gives a chance to get them working with Harfbuzz, even if
-// they won't look as nice as if they came with a real bold font.
+// Use FT_Outline_Embolden() for synthetic weight adjustment (both heavier and lighter).
+// This works with HarfBuzz and supports the full weight range via signed strength.
+// The alternative (LVFontBoldTransform bitmap smearing) can only embolden and does
+// not integrate with HarfBuzz shaping.
 #define USE_FT_EMBOLDEN
 
 #if USE_HARFBUZZ==1
@@ -213,6 +223,30 @@ static void destroy_SVGGlyphsCollector_svg_funcs() {
 // Uncomment to use the former >>6 (trunc) with no rounding (instead of previous one)
 // #define FONT_METRIC_TO_PX(x)    ((x) >> 6)
 
+static inline int FONT_METRIC_FLOOR_TO_PX(lInt32 x)
+{
+    return x >= 0 ? (x >> 6) : -(((-x) + 63) >> 6);
+}
+
+static inline int FONT_METRIC_FRAC_64(lInt32 x)
+{
+    int floor_px = FONT_METRIC_FLOOR_TO_PX(x);
+    return x - floor_px * 64;
+}
+
+static inline int FONT_METRIC_SUBPIXEL_PHASE_STEP(lInt32 x, int phase_count, int &draw_x)
+{
+    draw_x = FONT_METRIC_FLOOR_TO_PX(x);
+    int phase_64 = FONT_METRIC_FRAC_64(x);
+    int phase_unit = 64 / phase_count;
+    int phase_step = (phase_64 + phase_unit / 2) / phase_unit;
+    if (phase_step >= phase_count) {
+        phase_step = 0;
+        draw_x += 1;
+    }
+    return phase_step;
+}
+
 #if COLOR_BACKBUFFER==0
 //#define USE_BITMAP_FONT
 #endif
@@ -238,6 +272,7 @@ LVFontManager * fontMan = NULL;
 
 static double gammaLevel = 1.0;
 static int gammaIndex = GAMMA_NO_CORRECTION_INDEX;
+static int fractionalGlyphPositioningStrength = 0;
 
 /// returns first found face from passed list, or return face for font found by family only
 lString8 LVFontManager::findFontFace(lString8 commaSeparatedFaceList, css_font_family_t fallbackByFamily) {
@@ -329,23 +364,23 @@ static const char * EMBEDDED_FONT_DEF_MAGIC = "FNTD";
 ////////////////////////////////////////////////////////////////////
 bool LVEmbeddedFontDef::serialize(SerialBuf & buf) {
     buf.putMagic(EMBEDDED_FONT_DEF_MAGIC);
-    buf << _url << _face << _bold << _italic;
+    buf << _url << _face << _weight << _width << _italic << _isLocal << _docFragmentIdx;
     return !buf.error();
 }
 
 bool LVEmbeddedFontDef::deserialize(SerialBuf & buf) {
     if (!buf.checkMagic(EMBEDDED_FONT_DEF_MAGIC))
         return false;
-    buf >> _url >> _face >> _bold >> _italic;
+    buf >> _url >> _face >> _weight >> _width >> _italic >> _isLocal >> _docFragmentIdx;
     return !buf.error();
 }
 
 ////////////////////////////////////////////////////////////////////
 // LVEmbeddedFontList
 ////////////////////////////////////////////////////////////////////
-LVEmbeddedFontDef * LVEmbeddedFontList::findByUrl(lString32 url) {
+LVEmbeddedFontDef * LVEmbeddedFontList::findByUrlAndDocFragment(lString32 url, int docFragmentIdx) {
     for (int i=0; i<length(); i++) {
-        if (get(i)->getUrl() == url)
+        if (get(i)->getUrl() == url && get(i)->getDocFragmentIdx() == docFragmentIdx)
             return get(i);
     }
     return NULL;
@@ -355,30 +390,38 @@ bool LVEmbeddedFontList::addAll(LVEmbeddedFontList & list) {
     bool changed = false;
     for (int i=0; i<list.length(); i++) {
         LVEmbeddedFontDef * def = list.get(i);
-        changed = add(def->getUrl(), def->getFace(), def->getBold(), def->getItalic()) || changed;
+        changed = add(def->getUrl(), def->getFace(), def->getWeight(), def->getWidth(), def->getItalic(), def->getIsLocal(), def->getDocFragmentIdx()) || changed;
     }
     return changed;
 }
 
-bool LVEmbeddedFontList::add(lString32 url, lString8 face, bool bold, bool italic) {
-    LVEmbeddedFontDef * def = findByUrl(url);
+bool LVEmbeddedFontList::add(lString32 url, lString8 face, int weight, int width, bool italic, bool isLocal, int docFragmentIdx) {
+    LVEmbeddedFontDef * def = findByUrlAndDocFragment(url, docFragmentIdx);
     if (def) {
         bool changed = false;
         if (def->getFace() != face) {
             def->setFace(face);
             changed = true;
         }
-        if (def->getBold() != bold) {
-            def->setBold(bold);
+        if (def->getWeight() != weight) {
+            def->setWeight(weight);
+            changed = true;
+        }
+        if (def->getWidth() != width) {
+            def->setWidth(width);
             changed = true;
         }
         if (def->getItalic() != italic) {
             def->setItalic(italic);
             changed = true;
         }
+        if (def->getIsLocal() != isLocal) {
+            def->setIsLocal(isLocal);
+            changed = true;
+        }
         return changed;
     }
-    def = new LVEmbeddedFontDef(url, face, bold, italic);
+    def = new LVEmbeddedFontDef(url, face, weight, width, italic, isLocal, docFragmentIdx);
     add(def);
     return false;
 }
@@ -556,6 +599,7 @@ bool isHBScriptCursive( hb_script_t script ) {
 }
 #endif
 
+#if 0 // removed during font manager refactor
 // LVFontDef carries a font definition, and can be used to identify:
 // - registered fonts, from available font files (size=-1 if scalable)
 // - instantiated fonts from one of the registered fonts, with some
@@ -972,6 +1016,7 @@ public:
     { }
     virtual ~LVFontCache() { }
 };
+#endif // 0 // removed during font manager refactor
 
 
 #if (USE_FREETYPE==1)
@@ -1049,10 +1094,18 @@ static LVFontGlyphCacheItem * newItem( LVFontLocalGlyphCache * local_cache, lCha
     FT_Bitmap*  bitmap = &slot->bitmap;
     int w = bitmap->width;
     int h = bitmap->rows;
-    LVFontGlyphCacheItem * item = LVFontGlyphCacheItem::newItem(local_cache, ch, w, h);
+    lUInt8 pixfmt = (bitmap->pixel_mode == FT_PIXEL_MODE_BGRA) ? 4 : 1;
+    int pitch = w * pixfmt;
+    LVFontGlyphCacheItem * item = LVFontGlyphCacheItem::newItem(local_cache, ch, w, h, pitch, pixfmt);
     if (!item)
         return 0;
-    if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
+    if ( bitmap->pixel_mode == FT_PIXEL_MODE_BGRA ) {
+        if (bitmap->buffer && w > 0 && h > 0) {
+            for (int y = 0; y < h; y++)
+                memcpy(item->bmp + y * pitch, bitmap->buffer + y * bitmap->pitch, w * 4);
+        }
+    }
+    else if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
         lUInt8 mask = 0x80;
         const lUInt8 * ptr = (const lUInt8 *)bitmap->buffer;
         lUInt8 * dst = item->bmp;
@@ -1109,10 +1162,18 @@ static LVFontGlyphCacheItem * newItem(LVFontLocalGlyphCache *local_cache, lUInt3
     FT_Bitmap*  bitmap = &slot->bitmap;
     int w = bitmap->width;
     int h = bitmap->rows;
-    LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, index, w, h);
+    lUInt8 pixfmt = (bitmap->pixel_mode == FT_PIXEL_MODE_BGRA) ? 4 : 1;
+    int pitch = w * pixfmt;
+    LVFontGlyphCacheItem *item = LVFontGlyphCacheItem::newItem(local_cache, index, w, h, pitch, pixfmt);
     if (!item)
         return 0;
-    if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
+    if ( bitmap->pixel_mode == FT_PIXEL_MODE_BGRA ) {
+        if (bitmap->buffer && w > 0 && h > 0) {
+            for (int y = 0; y < h; y++)
+                memcpy(item->bmp + y * pitch, bitmap->buffer + y * bitmap->pitch, w * 4);
+        }
+    }
+    else if ( bitmap->pixel_mode==FT_PIXEL_MODE_MONO ) { //drawMonochrome
         lUInt8 mask = 0x80;
         const lUInt8 * ptr = (const lUInt8 *)bitmap->buffer;
         lUInt8 * dst = item->bmp;
@@ -1145,6 +1206,15 @@ static LVFontGlyphCacheItem * newItem(LVFontLocalGlyphCache *local_cache, lUInt3
     return item;
 }
 #endif
+
+static inline void drawGlyphItem(LVDrawBuf * buf, int x, int y,
+        LVFontGlyphCacheItem * item, const lUInt32 * palette)
+{
+    if (item->bmp_pixelformat == 4)
+        buf->DrawColorGlyph(x, y, item->bmp, item->bmp_width, item->bmp_height, item->bmp_pitch, palette);
+    else
+        buf->Draw(x, y, item->bmp, item->bmp_width, item->bmp_height, palette);
+}
 
 // Each LVFontGlyphCacheItem is put in 2 caches:
 // - the LVFontLocalGlyphCache LVFreeTypeFace->_glyph_cache of the
@@ -1338,21 +1408,132 @@ void LVFontGlobalGlyphCache::clear()
     }
 }
 
+// Width classes (OS/2 usWidthClass 1-9, and the CSS font-width keywords), in tenths
+// of a percent, and the names used as family name suffixes for them.
+static const int fontWidthClasses[] = { 500, 625, 750, 875, 1000, 1125, 1250, 1500, 2000 };
+static const char * const fontWidthClassNames[] = {
+    "UltraCondensed", "ExtraCondensed", "Condensed", "SemiCondensed", NULL,
+    "SemiExpanded", "Expanded", "ExtraExpanded", "UltraExpanded"
+};
+
+// CSS Fonts 4 sec 5.2: a font's width (in tenths of a percent) is its OS/2 usWidthClass,
+// mapped per the font-width keyword table. Without a valid value (no OS/2 table, e.g. Type 1,
+// or a value outside 1-9), the face is normal width (100%).
+static int getFontWidth(FT_Face face) {
+    TT_OS2 * os2 = (TT_OS2 *)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
+    if (os2 && os2->usWidthClass >= 1 && os2->usWidthClass <= 9)
+        return fontWidthClasses[os2->usWidthClass - 1];
+    return css_fwd_normal;
+}
+
+// Whether a family name already names a width ("Roboto Condensed", "Arial Narrow"...),
+// so that no width suffix is added to it.
+static bool familyNamesWidth( const lString8 & family )
+{
+    // Matched anywhere: unambiguous, and often glued to a prefix
+    // ("SemiCondensed", "UltraExpanded", "RobotoCondensed").
+    static const char * const anywhere[] = { "condensed", "expanded", NULL };
+    // Matched as whole words only (split on ' ' and '-'): these also occur
+    // inside unrelated names ("cond" in "Second", "wide" in "Worldwide").
+    static const char * const words[] = { "narrow", "wide", "compressed", "extended", "cond", NULL };
+    lString8 lc(family);
+    lc.lowercase();
+    for ( int i = 0; anywhere[i]; i++ ) {
+        if ( lc.pos(anywhere[i]) >= 0 )
+            return true;
+    }
+    int start = 0;
+    while ( start < lc.length() ) {
+        int end = start;
+        while ( end < lc.length() && lc[end] != ' ' && lc[end] != '-' )
+            end++;
+        lString8 word = lc.substr(start, end - start);
+        for ( int i = 0; words[i]; i++ ) {
+            if ( word == words[i] )
+                return true;
+        }
+        start = end + 1;
+    }
+    return false;
+}
+
+// Static faces whose width is not normal are registered as their own family
+// ("Foo Condensed", "Foo Expanded"...): they show as separate fonts, as condensed
+// ones always have, and are not mixed with the normal faces of their family.
+// font-width then only picks among the faces of one family: in practice, the wdth
+// axis of a variable font, or @font-face fonts declaring font-width.
+// So these faces are registered at normal width, not their OS/2 one: font-width is
+// matched before font-weight, and a sibling with a wrong usWidthClass (e.g. a Bold
+// claiming 100% in a Condensed family) would otherwise win over the right weight.
+// Returns the suffix to append to the family name, or NULL.
+// - family: no suffix if it already names a width, whatever the style name says
+//   (no "Roboto Condensed Condensed", or "Foo Expanded Condensed" from a bad style name).
+// - style: the face's style name. A width keyword in it wins; the condensed ones
+//   are checked first, as they always were, so existing family names don't change.
+// - width: the face's width class, in tenths of a percent. Used when the style name
+//   has no width keyword.
+// - isVariable: variable fonts are never split, their wdth axis covers the widths.
+static const char * widthFamilySuffix( const lString8 & family, const char * style, int width, bool isVariable )
+{
+    if ( isVariable || familyNamesWidth(family) )
+        return NULL;
+    if ( style && *style ) {
+        lString8 lc(style);
+        lc.lowercase();
+        if ( lc.pos("extracondensed") >= 0 )
+            return "ExtraCondensed";
+        if ( lc.pos("semicondensed") >= 0 )
+            return "SemiCondensed";
+        if ( lc.pos("condensed") >= 0 )
+            return "Condensed";
+        if ( lc.pos("ultraexpanded") >= 0 )
+            return "UltraExpanded";
+        if ( lc.pos("extraexpanded") >= 0 )
+            return "ExtraExpanded";
+        if ( lc.pos("semiexpanded") >= 0 )
+            return "SemiExpanded";
+        if ( lc.pos("expanded") >= 0 )
+            return "Expanded";
+        // e.g. Arial Narrow: family "Arial", styles "Narrow", "Narrow Bold"...
+        if ( lc.pos("narrow") >= 0 )
+            return "Narrow";
+    }
+    // Nearest width class (FontConfig's FC_WIDTH values are rounded percentages, e.g. 63, 87).
+    int best = 0;
+    for ( int i = 1; i < 9; i++ ) {
+        if ( abs(fontWidthClasses[i] - width) < abs(fontWidthClasses[best] - width) )
+            best = i;
+    }
+    return fontWidthClassNames[best];
+}
+
 lString8 familyName( FT_Face face )
 {
     lString8 faceName( face->family_name );
-    if ( face->style_name ) {
-        if (faceName == "Arial" && !strcmp(face->style_name, "Narrow"))
-            faceName << " " << face->style_name;
-        else if (strstr(face->style_name, "ExtraCondensed"))
-            faceName << " " << "ExtraCondensed";
-        else if (strstr(face->style_name, "SemiCondensed"))
-            faceName << " " << "SemiCondensed";
-        else if (strstr(face->style_name, "Condensed"))
-            faceName << " " << "Condensed";
-    }
+    const char * suffix = widthFamilySuffix(faceName, face->style_name, getFontWidth(face),
+                                            FT_HAS_MULTIPLE_MASTERS(face));
+    if ( suffix )
+        faceName << " " << suffix;
     return faceName;
 }
+
+// Style name keywords and their weight, in matching priority order
+// (longer/more specific names first, so "extrabold" wins over "bold")
+static const struct {
+    const char * name;
+    int weight;
+} font_weight_names[] = {
+    { "extrablack", 950 }, { "ultrablack", 950 }, { "extra black", 950 }, { "ultra black", 950 },
+    { "extrabold", 800 },  { "ultrabold", 800 },  { "extra bold", 800 },  { "ultra bold", 800 },
+    { "demibold", 600 },   { "semibold", 600 },   { "demi bold", 600 },   { "semi bold", 600 },
+    { "extralight", 200 }, { "ultralight", 200 }, { "extra light", 200 }, { "ultra light", 200 },
+    { "demilight", 300 },  { "light", 300 },      { "demi light", 300 },
+    { "regular", 400 },    { "normal", 400 },     { "book", 400 },        { "text", 400 },
+    { "thin", 100 },
+    { "medium", 500 },
+    { "bold", 700 },
+    { "black", 900 },      { "heavy", 900 },
+};
 
 int getFontWeight(FT_Face face) {
     if (!face)
@@ -1361,33 +1542,44 @@ int getFontWeight(FT_Face face) {
     bool bold_flag = (face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
     lString32 style32(face->style_name);
     style32 = style32.lowercase();
-    if (style32.pos("extrablack") >= 0 || style32.pos("ultrablack") >= 0
-          || style32.pos("extra black") >= 0 || style32.pos("ultra black") >= 0)
-        weight = 950;
-    else if (style32.pos("extrabold") >= 0 || style32.pos("ultrabold") >= 0
-          || style32.pos("extra bold") >= 0 || style32.pos("ultra bold") >= 0)
-        weight = 800;
-    else if (style32.pos("demibold") >= 0 || style32.pos("semibold") >= 0
-          || style32.pos("demi bold") >= 0 || style32.pos("semi bold") >= 0)
-        weight = 600;
-    else if (style32.pos("extralight") >= 0 || style32.pos("ultralight") >= 0
-          || style32.pos("extra light") >= 0 || style32.pos("ultra light") >= 0)
-        weight = 200;
-    else if (style32.pos("demilight") >= 0 || style32.pos("light") >= 0
-          || style32.pos("demi light") >= 0)
-        weight = 300;
-    else if (style32.pos("regular") >= 0 || style32.pos("normal") >= 0 || style32.pos("book") >= 0 || style32.pos("text") >= 0)
-        weight = 400;
-    else if (style32.pos("thin") >= 0)
-        weight = 100;
-    else if (style32.pos("medium") >= 0)
-        weight = 500;
-    else if (style32.pos("bold") >= 0)
-        weight = 700;
-    else if (style32.pos("black") >= 0 || style32.pos("heavy") >= 0)
-        weight = 900;
 
-    if (-1 == weight)
+    // 1. A style name that is exactly regular, semibold or bold (ignoring
+    // any italic/oblique part) gets its round value, so that e.g. a "Regular"
+    // face is always 400 whatever odd usWeightClass it may declare
+    // (KOReader expects Regular to be 400, and may synthesize bold otherwise).
+    lString32 plain = style32;
+    plain.replace(cs32("italic"), lString32::empty_str);
+    plain.replace(cs32("oblique"), lString32::empty_str);
+    plain.trimNonAlpha();
+    if (plain.empty() || plain == "regular") // empty: "Italic" alone
+        weight = 400;
+    else if (plain == "semibold" || plain == "semi bold")
+        weight = 600;
+    else if (plain == "bold")
+        weight = 700;
+
+    // 2. The OS/2 table's usWeightClass, if present
+    if (weight == -1) {
+        TT_OS2 * os2 = (TT_OS2 *)FT_Get_Sfnt_Table(face, FT_SFNT_OS2);
+        if (os2 && os2->version != 0xFFFF) {
+            int wc = os2->usWeightClass;
+            if (wc >= 1 && wc <= 1000)
+                weight = wc;
+        }
+    }
+
+    // 3. Weight keywords found anywhere in the style name
+    if (weight == -1) {
+        for (size_t i = 0; i < sizeof(font_weight_names) / sizeof(font_weight_names[0]); i++) {
+            if (style32.pos(font_weight_names[i].name) >= 0) {
+                weight = font_weight_names[i].weight;
+                break;
+            }
+        }
+    }
+
+    // 4. Only the bold flag left to go by
+    if (weight == -1)
         weight = bold_flag ? 700 : 400;
     else if (weight <= 400 && bold_flag)
         weight = 700;
@@ -1495,6 +1687,7 @@ protected:
     FT_Pos         _synth_weight_strength; // for emboldening with FT_Outline_Embolden()
     FT_Pos         _synth_weight_half_strength;
     int            _features; // requested OpenType features bitmap
+    LVFontVariations _variations; // variable font axis values applied to this instance
 #if USE_HARFBUZZ==1
     hb_font_t* _hb_font;
     hb_buffer_t* _hb_buffer;
@@ -1505,6 +1698,22 @@ protected:
     LVHashTable<struct LVCharTriplet, struct LVCharPosInfo> _width_cache2;
 #endif
 public:
+    int getFractionalGlyphPositioningGranularity() const {
+        if (!fractionalGlyphPositioningStrength)
+            return 1;
+        // Strength 1, 2 and 3 bound the positioning error to 1/96, 1/192
+        // and 1/384 em respectively. Cap at eight phases to limit cache use.
+        // At 48 px/em, strengths 1/2/3 use 1/2/4 phases. Each higher
+        // strength doubles the px/em thresholds: strength 3 uses 8 phases
+        // below 48 px/em, 4 below 96, 2 below 192, and 1 above.
+        int x_ppem = _face->size->metrics.x_ppem;
+        int error_denominator = 96 << (fractionalGlyphPositioningStrength - 1);
+        int phase_count = 1;
+        while (phase_count < 8 && 2 * phase_count * x_ppem < error_denominator)
+            phase_count *= 2;
+        return phase_count;
+    }
+
 
     virtual void clearFontRefs( const LVFont *ptr ) {
         if ( _fallbackFont.get() == ptr ) {
@@ -1605,6 +1814,28 @@ public:
         return x_height;
     }
 
+    int getCapHeight() {
+        int cap_height = 0;
+        int glyph_index = getCharIndex( 'H', 0 );
+        if ( glyph_index ) {
+            int error = FT_Load_Glyph( _face, glyph_index, FT_LOAD_DEFAULT );
+            if ( !error ) {
+                cap_height = _slot->metrics.horiBearingY;
+            }
+        }
+        if ( cap_height <= 0 ) {
+            TT_OS2 * os2 = (TT_OS2 *)FT_Get_Sfnt_Table(_face, FT_SFNT_OS2);
+            if ( os2 && os2->sCapHeight > 0 ) {
+                // The OS/2 values are unscaled font units; convert them to pixels.
+                cap_height = FT_MulFix(os2->sCapHeight, _face->size->metrics.y_scale);
+            }
+        }
+        if ( cap_height <= 0 ) {
+            cap_height = _size*64 * 7/10; // 0.7em
+        }
+        return cap_height;
+    }
+
     virtual LVFontRef getDecimalListItemFont() {
         if ( !_DecimalListItemFont.isNull() )
             return _DecimalListItemFont;
@@ -1638,7 +1869,7 @@ public:
         _BulletListItemFont = fontMan->GetFont(
             getSize(),
             400,  // regular weight   // bullets stays the regular weight and non-italic, even
-            0,    // no italic        // when their UL and LI are bold and/or italic
+            false,// no italic        // when their UL and LI are bold and/or italic
             getFontFamily(),
             preferred_bullet_fonts,   // We can provide a list, fontMan->GetFont() will split t and look for each
             0,    // no feature needed
@@ -1664,7 +1895,13 @@ public:
     }
 
     /// returns font weight
-    virtual int getWeight() const { return _synth_weight > 0 ? _synth_weight : _weight; }
+    virtual int getWeight() const {
+        if (_synth_weight > 0) return _synth_weight;
+        if (_variations.wght_set) return (int)_variations.wght;
+        return _weight;
+    }
+    /// returns synthesized (embolden/lighten) weight applied on top of the loaded face, 0 if none
+    virtual int getSynthWeight() const { return _synth_weight; }
     /// returns italic flag
     virtual int getItalic() const { return _italic; }
     /// sets face name
@@ -1898,6 +2135,13 @@ public:
     virtual int getFeatures() const {
         return _features;
     }
+    void setVariations( const LVFontVariations& variations ) {
+        _variations = variations;
+        _hash = 0; // force calcHash(font_ref_t) to recompute
+    }
+    virtual lUInt32 getVariationHash() const {
+        return _variations.hash();
+    }
 
     virtual void setKerningMode( kerning_mode_t kerningMode ) {
         _kerningMode = kerningMode;
@@ -1939,6 +2183,9 @@ public:
             else if (_hintingMode == HINTING_MODE_DISABLED) {
                 flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
             }
+            // Allow users to disable color font rendering by toggling hinting mode off
+            if ( FT_HAS_COLOR(_face) && _hintingMode != HINTING_MODE_DISABLED )
+                flags |= FT_LOAD_COLOR;
             hb_ft_font_set_load_flags(_hb_font, flags);
         }
         #endif
@@ -2078,6 +2325,42 @@ public:
             0,        /* pixel_width           */
             _face_size );  /* pixel_height          */
 
+        // Apply variable font axis coordinates (wght, opsz, ...) if any were requested
+        if (!_variations.empty() && FT_Err_Ok == error) {
+            FT_MM_Var* mm_var = NULL;
+            if (FT_Get_MM_Var(_face, &mm_var) == FT_Err_Ok && mm_var) {
+                // Build axis coord array (FT_Fixed = 16.16) starting from defaults
+                FT_Fixed * coords = new FT_Fixed[mm_var->num_axis];
+                for (FT_UInt ai = 0; ai < mm_var->num_axis; ai++) {
+                    lUInt32 axTag = (lUInt32)mm_var->axis[ai].tag;
+                    coords[ai] = _variations.has(axTag)
+                        ? (FT_Fixed)(_variations.get(axTag) * 65536.0f)
+                        : mm_var->axis[ai].def;
+                }
+                FT_Set_Var_Design_Coordinates(_face, mm_var->num_axis, coords);
+                delete[] coords;
+                #ifdef DEBUG_VAR_FONT
+                {
+                    // Log the set axes in font order
+                    char axisBuf[256] = "";
+                    int pos = 0;
+                    for (FT_UInt ai = 0; ai < mm_var->num_axis && pos < (int)sizeof(axisBuf) - 20; ai++) {
+                        lUInt32 t = (lUInt32)mm_var->axis[ai].tag;
+                        if (_variations.has(t))
+                            pos += snprintf(axisBuf + pos, sizeof(axisBuf) - pos,
+                                            "%s%c%c%c%c=%.1f",
+                                            pos ? ", " : "",
+                                            (char)((t >> 24) & 0xFF), (char)((t >> 16) & 0xFF),
+                                            (char)((t >>  8) & 0xFF), (char)(t & 0xFF),
+                                            _variations.get(t));
+                    }
+                    CRLog::info("Variable font %s: axes [%s]", _fileName.c_str(), axisBuf);
+                }
+                #endif
+                FT_DONE_MM_VAR(_library, mm_var);
+            }
+        }
+
         #if USE_HARFBUZZ==1
         if (FT_Err_Ok == error) {
             if (_hb_font)
@@ -2099,7 +2382,20 @@ public:
                 else if (_hintingMode == HINTING_MODE_DISABLED) {
                     flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
                 }
+                if ( FT_HAS_COLOR(_face) && _hintingMode != HINTING_MODE_DISABLED )
+                    flags |= FT_LOAD_COLOR;
                 hb_ft_font_set_load_flags(_hb_font, flags);
+                // Apply variable font variations to the HarfBuzz font as well
+                if (!_variations.empty()) {
+                    hb_variation_t hbvars[5]; // at most 5 standard axes
+                    unsigned int nvar = 0;
+                    if (_variations.wght_set) { hbvars[nvar].tag = LVFONT_TAG_WGHT; hbvars[nvar++].value = _variations.wght; }
+                    if (_variations.opsz_set) { hbvars[nvar].tag = LVFONT_TAG_OPSZ; hbvars[nvar++].value = _variations.opsz; }
+                    if (_variations.ital_set) { hbvars[nvar].tag = LVFONT_TAG_ITAL; hbvars[nvar++].value = _variations.ital; }
+                    if (_variations.slnt_set) { hbvars[nvar].tag = LVFONT_TAG_SLNT; hbvars[nvar++].value = _variations.slnt; }
+                    if (_variations.wdth_set) { hbvars[nvar].tag = LVFONT_TAG_WDTH; hbvars[nvar++].value = _variations.wdth; }
+                    hb_font_set_variations(_hb_font, hbvars, nvar);
+                }
             }
         }
         #endif
@@ -2917,15 +3213,20 @@ public:
             int t_notdef_start = -1;
             int t_notdef_end = -1;
             bool max_width_reached = false; // set when reached while measuring with the fallback font
+            int fractional_positioning_granularity = getFractionalGlyphPositioningGranularity();
+            bool use_fractional_positioning = fractional_positioning_granularity > 1;
+            lInt32 cur_width_64 = 0;
             for (int t = 0; t < len; t++) {
                 #ifdef DEBUG_MEASURE_TEXT
                     printf("MTHB t%d (=%x) ", t, text[t]);
                 #endif
                 // Grab all glyphs that do not belong to a cluster greater that our char position
+                bool cluster_has_advance = false;
                 while ( hg < glyph_count ) {
                     hcl = glyph_info[hg].cluster;
                     if (hcl <= t) {
                         int advance = 0;
+                        lInt32 advance_64 = 0;
                         if ( glyph_info[hg].codepoint != 0 ) { // Codepoint found in this font
                             #ifdef DEBUG_MEASURE_TEXT
                                 printf("(found cp=%x) ", glyph_info[hg].codepoint);
@@ -2970,6 +3271,7 @@ public:
                                     // And fix our current width
                                     cur_width = widths[lastFitChar-1];
                                     prev_width = cur_width;
+                                    cur_width_64 = cur_width * 64;
                                     #ifdef DEBUG_MEASURE_TEXT
                                         printf("MTHB ### measured past failures > W= %d\n[...]", cur_width);
                                     #endif
@@ -2988,24 +3290,41 @@ public:
                                 // And go on with the found glyph now that we fixed what was before
                             }
                             // Glyph found in this font
-                            if ( glyph_pos[hg].x_advance )
-                                advance = FONT_METRIC_TO_PX(glyph_pos[hg].x_advance + _synth_weight_strength);
+                            if ( glyph_pos[hg].x_advance ) {
+                                advance_64 = glyph_pos[hg].x_advance + _synth_weight_strength;
+                                advance = FONT_METRIC_TO_PX(advance_64);
+                            }
                         }
                         else {
                             #ifdef DEBUG_MEASURE_TEXT
                                 printf("(glyph not found) ");
                             #endif
                             // Keep the advance of .notdef/tofu in case there is no fallback font to correct them
-                            if ( glyph_pos[hg].x_advance )
-                                advance = FONT_METRIC_TO_PX(glyph_pos[hg].x_advance + _synth_weight_strength);
+                            if ( glyph_pos[hg].x_advance ) {
+                                advance_64 = glyph_pos[hg].x_advance + _synth_weight_strength;
+                                advance = FONT_METRIC_TO_PX(advance_64);
+                            }
                             if ( t_notdef_start < 0 ) {
                                 t_notdef_start = t;
                             }
                         }
+                        if ( use_fractional_positioning ) {
+                            cur_width_64 += advance_64;
+                            #ifdef DEBUG_MEASURE_TEXT
+                                advance = FONT_METRIC_TO_PX(cur_width_64) - cur_width;
+                            #endif
+                            cur_width = FONT_METRIC_TO_PX(cur_width_64);
+                            cluster_has_advance = cluster_has_advance || advance_64 != 0;
+                            // (With fractional positioning, a cluster can have a non-zero 26.6 advance
+                            // while still rounding to the same integer pixel width as the previous one.)
+                        }
+                        else {
+                            cur_width += advance;
+                            cluster_has_advance = cur_width != prev_width;
+                        }
                         #ifdef DEBUG_MEASURE_TEXT
                             printf("c%d+%d ", hcl, advance);
                         #endif
-                        cur_width += advance;
                         cur_cluster = hcl;
                         hg++;
                         continue; // keep grabbing glyphs
@@ -3027,13 +3346,19 @@ public:
                     // We're either a single char cluster, or the start
                     // of a multi chars cluster.
                     flags[t] = GET_CHAR_FLAGS(text[t]);
-                    if (cur_width == prev_width) {
+                    if ( !cluster_has_advance ) {
                         // But if there is no advance (this happens with soft-hyphens),
                         // flag it and don't add any letter spacing.
                         flags[t] |= LCHAR_IS_CLUSTER_TAIL;
                     }
-                    else {
-                        cur_width += letter_spacing; // only between clusters/graphemes
+                    else { // Only add letter-spacing between clusters/graphemes.
+                        if ( use_fractional_positioning ) {
+                            cur_width_64 += letter_spacing * 64;
+                            cur_width = FONT_METRIC_TO_PX(cur_width_64);
+                        }
+                        else {
+                            cur_width += letter_spacing;
+                        }
                     }
                     // It seems each soft-hyphen is in its own cluster, of length 1 and width 0,
                     // so HarfBuzz must already deal correctly with soft-hyphens.
@@ -3078,6 +3403,7 @@ public:
                     }
                     // And add all that to our current width
                     cur_width = widths[lastFitChar-1];
+                    cur_width_64 = cur_width * 64;
                     #ifdef DEBUG_MEASURE_TEXT
                         printf("MTHB ### measured past failures at EOT > W= %d\n[...]", cur_width);
                     #endif
@@ -3252,8 +3578,7 @@ public:
 
         // find last word
         if ( allow_hyphenation ) {
-            if ( !_hyphen_width )
-                _hyphen_width = getCharWidth( getHyphChar() );
+            int hyphen_width = ( lang_cfg ? lang_cfg : TextLangMan::getTextLangCfg() )->hideHyphenationMark() ? 0 : getHyphenWidth();
             if ( lastFitChar > 3 ) {
                 int hwStart, hwEnd;
                 bool hasRtl;
@@ -3261,9 +3586,9 @@ public:
                 if ( !hasRtl && hwStart < (int)(lastFitChar-1) && hwEnd > hwStart+3 ) {
                     //int maxw = max_width - (hwStart>0 ? widths[hwStart-1] : 0);
                     if ( lang_cfg )
-                        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+                        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphen_width, max_width);
                     else // Use global lang hyph method
-                        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+                        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphen_width, max_width);
                 }
             }
         }
@@ -3339,6 +3664,8 @@ public:
             else if (_hintingMode == HINTING_MODE_DISABLED) {
                 rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
             }
+            if ( FT_HAS_COLOR(_face) && _hintingMode != HINTING_MODE_DISABLED )
+                rend_flags |= FT_LOAD_COLOR;
             if (_synth_weight > 0 || _italic == 2) { // Don't render yet
                 rend_flags &= ~FT_LOAD_RENDER;
                 // Also disable any hinting, as it would be wrong after embolden.
@@ -3416,6 +3743,8 @@ public:
             else if (_hintingMode == HINTING_MODE_DISABLED) {
                 rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
             }
+            if ( FT_HAS_COLOR(_face) && _hintingMode != HINTING_MODE_DISABLED )
+                rend_flags |= FT_LOAD_COLOR;
 
             if (_synth_weight > 0 || _italic == 2) { // Don't render yet
                 rend_flags &= ~FT_LOAD_RENDER;
@@ -3473,6 +3802,93 @@ public:
             }
 
             item = newItem(&_glyph_cache2, index, _slot);
+            if (item)
+                _glyph_cache2.put(item);
+        }
+        return item;
+    }
+
+    LVFontGlyphCacheItem * getGlyphByIndexSubpixel(lUInt32 index, int phase_step, int phase_count) {
+        if (phase_count <= 1 || _drawMonochrome )
+            return NULL;
+        // Phase zero has no outline translation, so reuse the normal bitmap.
+        if (phase_step == 0)
+            return getGlyphByIndex(index);
+        if (phase_step < 0)
+            return NULL;
+
+        // This is the same loading/rendering path as getGlyphByIndex(), but with
+        // the outline shifted horizontally before rendering. The phase count is
+        // the requested number of addressable positions inside one pixel:
+        //   1  phase : 0/64 only, normal glyph cache entry
+        //   4  phases: 0/64, 16/64, 32/64, 48/64
+        //   64 phases: every 1/64 pixel position
+        //
+        // Subpixel phase 0 uses the normal glyph cache entry. Non-zero phases are stored
+        // in the high 6 bits of the existing 32-bit glyph cache key, leaving the
+        // lower 26 bits for the glyph index.
+        // (This shared cache key scheme can cause subpixel entries for indices < 2^26
+        // to collide with normal entries for indices >= 2^26: current fonts are far
+        // below that, so we accept this constraint.)
+        if (phase_step >= phase_count)
+            phase_step = phase_count - 1;
+        static const int SUBPIXEL_PHASE_SHIFT = 26;
+        lUInt32 cache_index = ((lUInt32)phase_step << SUBPIXEL_PHASE_SHIFT)
+                            | (index & ((1u << SUBPIXEL_PHASE_SHIFT) - 1));
+        LVFontGlyphCacheItem *item = _glyph_cache2.getByIndex(cache_index);
+        if (!item) {
+            // Unlike getGlyphByIndex(), we cannot request FT_LOAD_RENDER here:
+            // we must translate the loaded outline for this subpixel phase first.
+            int rend_flags = FT_LOAD_TARGET_LIGHT;
+            if (_hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR) {
+                rend_flags |= FT_LOAD_NO_AUTOHINT;
+            }
+            else if (_hintingMode == HINTING_MODE_AUTOHINT) {
+                rend_flags |= FT_LOAD_FORCE_AUTOHINT;
+            }
+            else if (_hintingMode == HINTING_MODE_DISABLED) {
+                rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
+            }
+            if ( FT_HAS_COLOR(_face) && _hintingMode != HINTING_MODE_DISABLED )
+                rend_flags |= FT_LOAD_COLOR;
+
+            updateTransform();
+            int error = FT_Load_Glyph( _face, index, rend_flags );
+            if ( error == FT_Err_Execution_Too_Long && _hintingMode == HINTING_MODE_BYTECODE_INTERPRETOR ) {
+                rend_flags |= FT_LOAD_NO_HINTING;
+                error = FT_Load_Glyph( _face, index, rend_flags );
+            }
+            if ( error )
+                return NULL;
+            if (_slot->format != FT_GLYPH_FORMAT_OUTLINE)
+                return NULL;
+
+            // Apply synthetic transformations before the phase translation, then
+            // render the final outline explicitly.
+            bool is_embolden = false;
+            if (_synth_weight > 0) {
+                FT_Outline_Embolden(&_slot->outline, _synth_weight_strength);
+                FT_Outline_Translate(&_slot->outline, 0, -_synth_weight_half_strength);
+                is_embolden = true;
+            }
+            if (_italic==2) {
+                FT_GlyphSlot_Oblique(_slot);
+            }
+            FT_Outline_Translate(&_slot->outline, phase_step * (64 / phase_count), 0);
+            FT_Render_Glyph(_slot, FT_RENDER_MODE_LIGHT);
+
+            if (_synth_weight > 0 && is_embolden) {
+                if ( _slot->format == FT_GLYPH_FORMAT_OUTLINE ) {
+                    if ( _slot->metrics.horiAdvance > 0 ) {
+                        _slot->metrics.horiAdvance = (_slot->linearHoriAdvance >> 10) + _synth_weight_strength;
+                    }
+                    else {
+                        _slot->metrics.horiBearingX -= _synth_weight_strength;
+                    }
+                }
+            }
+
+            item = newItem(&_glyph_cache2, cache_index, _slot);
             if (item)
                 _glyph_cache2.put(item);
         }
@@ -3578,6 +3994,9 @@ public:
         return false;
     }
 
+    virtual int getUnderlineOffset() const    { return _underline_offset; }
+    virtual int getUnderlineThickness() const { return _underline_thickness; }
+
     virtual int getExtraMetric(font_extra_metric_t metric, bool scaled_to_px)
     {
         if ( _extra_metric == NULL ) {
@@ -3622,6 +4041,10 @@ public:
                 if ( !value_set ) {
                     value = _size*64 / 2; // 0.5em
                 }
+                break;
+            }
+            case font_metric_cap_height: {
+                value = getCapHeight();
                 break;
             }
             case font_metric_ch_width: {
@@ -4111,6 +4534,9 @@ public:
             int fb_t_start = 0;
             int fb_t_end = len;
             int hg = 0;  // index in glyph_info/glyph_pos
+            int fractional_positioning_granularity = getFractionalGlyphPositioningGranularity();
+            bool use_fractional_positioning = fractional_positioning_granularity > 1;
+            lInt32 x_64 = x * 64;
             while (hg < glyph_count) { // hg is the start of a new cluster at this point
                 bool draw_with_fallback = false;
                 int hcl = glyph_info[hg].cluster;
@@ -4228,6 +4654,7 @@ public:
                        def_char, palette, fb_addHyphen, lang_cfg, fb_flags, letter_spacing,
                        width, text_decoration_back_gap, target_w, target_h, svg_collector );
                     x += fb_advance;
+                    x_64 = x * 64;
                     #ifdef DEBUG_DRAW_TEXT
                         printf("DTHB ### drawn past notdef > X+= %d\n[...]", fb_advance);
                     #endif
@@ -4238,6 +4665,7 @@ public:
                     #endif
                     // Draw glyphs of this same cluster
                     int prev_x = x;
+                    bool cluster_has_advance = false;
                     for (i = hg; i < hg2; i++) {
                         if ( svg_collector ) {
                             bool can_adjust_from_previous = (i == hg) && !isHBScriptCursive(hb_buffer_get_script(_hb_buffer));
@@ -4248,26 +4676,60 @@ public:
                             svg_collector->addGlyph();
                             continue;
                         }
-                        LVFontGlyphCacheItem *item = getGlyphByIndex(glyph_info[i].codepoint);
-                        if (item) {
-                            if ( transform_stretch ) {
+                        LVFontGlyphCacheItem *item = NULL;
+                        if ( transform_stretch ) {
+                            item = getGlyphByIndex(glyph_info[i].codepoint);
+                            if (item) {
                                 // Stretched drawing of glyph to the x/y/w/h provided (used with MathML)
                                 // Split the targeted width to each glyph in case we have more than one
                                 int w = target_w / glyph_count;
                                 DrawStretchedGlyph(buf, glyph_info[i].codepoint, x, y, w, target_h, palette);
                                 x += w;
+                                x_64 = x * 64;
+                                cluster_has_advance = x > prev_x;
                             }
-                            else {
-                                // Regular drawing of glyph at the baseline
-                                int w;
-                                if ( glyph_pos[i].x_advance )
-                                    w = FONT_METRIC_TO_PX(glyph_pos[i].x_advance + _synth_weight_strength);
-                                else
-                                    w = 0;
-                                #ifdef DEBUG_DRAW_TEXT
-                                    printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
-                                            item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), w);
-                                #endif
+                            #ifdef DEBUG_DRAW_TEXT
+                            else
+                                printf("SKIPPED %x", glyph_info[i].codepoint);
+                            #endif
+                            continue;
+                        }
+                        // Regular drawing of glyph at the baseline
+                        int draw_x = x;
+                        bool use_subpixel_glyph = use_fractional_positioning
+                                    && !(flags & (LFNT_HINT_CJK_ALTERED_WIDTH | LFNT_HINT_CJK_SCALED_WIDTH));
+                        if (use_subpixel_glyph) {
+                            int phase_step = FONT_METRIC_SUBPIXEL_PHASE_STEP(x_64 + glyph_pos[i].x_offset,
+                                                            fractional_positioning_granularity, draw_x);
+                            item = getGlyphByIndexSubpixel(glyph_info[i].codepoint,
+                                                            phase_step, fractional_positioning_granularity);
+                        }
+                        if (!item) {
+                            // Bitmap/color/monochrome glyphs cannot represent a phase,
+                            // so use the normal cache entry and rounded placement.
+                            item = getGlyphByIndex(glyph_info[i].codepoint);
+                            use_subpixel_glyph = false;
+                            draw_x = x;
+                        }
+                        if (!item) {
+                            #ifdef DEBUG_DRAW_TEXT
+                                printf("SKIPPED %x", glyph_info[i].codepoint);
+                            #endif
+                            continue;
+                        }
+                        int w = 0;
+                        lInt32 w_64 = 0;
+                        if ( glyph_pos[i].x_advance ) {
+                            w_64 = glyph_pos[i].x_advance + _synth_weight_strength;
+                            w = FONT_METRIC_TO_PX(w_64);
+                        }
+                        #ifdef DEBUG_DRAW_TEXT
+                            printf("%x(x=%d+%d,w=%d) ", glyph_info[i].codepoint, x,
+                                item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset), w);
+                        #endif
+                        if ( flags & (LFNT_HINT_CJK_ALTERED_WIDTH | LFNT_HINT_CJK_SCALED_WIDTH) ) {
+                                // With these CJK flags, we will compute/adjust x/w and we'll use
+                                // them as-is. use_subpixel_glyph has already been set to false above.
                                 if ( flags & LFNT_HINT_CJK_ALTERED_WIDTH ) {
                                     int orig_width = width;
                                     if ( flags & LFNT_HINT_CJK_SCALED_WIDTH ) {
@@ -4325,26 +4787,41 @@ public:
                                     // gives x=x0+width, which is necessary to correctly draw any underline
                                     w = x0 + width - x;
                                 }
-                                buf->Draw(x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
-                                          y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
-                                          item->bmp,
-                                          item->bmp_width,
-                                          item->bmp_height,
-                                          palette);
-                                x += w;
-                            }
+                                draw_x = x;
                         }
-                        #ifdef DEBUG_DRAW_TEXT
-                        else
-                            printf("SKIPPED %x", glyph_info[i].codepoint);
-                        #endif
+                        if (!use_subpixel_glyph) {
+                            drawGlyphItem(buf,
+                                      draw_x + item->origin_x + FONT_METRIC_TO_PX(glyph_pos[i].x_offset),
+                                      y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
+                                      item, palette);
+                            x += w;
+                            x_64 = x * 64;
+                            cluster_has_advance = x > prev_x;
+                        }
+                        else {
+                            // (x_offset was already accounted for when computing phase_step)
+                            drawGlyphItem(buf,
+                                      draw_x + item->origin_x,
+                                      y + _baseline - item->origin_y - FONT_METRIC_TO_PX(glyph_pos[i].y_offset),
+                                      item, palette);
+                            x_64 += w_64;
+                            x = FONT_METRIC_TO_PX(x_64);
+                            cluster_has_advance = cluster_has_advance || w_64 != 0;
+                        }
                     }
                     // Whole cluster drawn: add letter spacing
-                    if ( x > prev_x ) {
+                    if ( cluster_has_advance ) {
                         // But only if this cluster has some advance
                         // (e.g. a soft-hyphen makes its own cluster, that
                         // draws a space glyph, but with no advance)
-                        x += letter_spacing;
+                        if ( use_fractional_positioning ) {
+                            x_64 += letter_spacing * 64;
+                            x = FONT_METRIC_TO_PX(x_64);
+                        }
+                        else {
+                            x += letter_spacing;
+                            x_64 = x * 64;
+                        }
                     }
                 }
                 hg = hg2;
@@ -4361,15 +4838,27 @@ public:
 
             if (addHyphen) {
                 ch = getHyphChar();
-                LVFontGlyphCacheItem *item = getGlyph(ch, def_char);
+                int draw_x = x;
+                LVFontGlyphCacheItem *item = NULL;
+                if (use_fractional_positioning) {
+                    FT_UInt hyphen_index = getCharIndex(ch, 0);
+                    if (hyphen_index) {
+                        int phase_step = FONT_METRIC_SUBPIXEL_PHASE_STEP(x_64,
+                                                fractional_positioning_granularity, draw_x);
+                        item = getGlyphByIndexSubpixel(hyphen_index,
+                                                phase_step, fractional_positioning_granularity);
+                    }
+                }
+                if (!item) {
+                    // Phase zero and hyphens from a fallback font use the normal cache entry.
+                    item = getGlyph(ch, def_char);
+                    draw_x = x;
+                }
                 if (item) {
                     w = item->advance;
-                    buf->Draw( x + item->origin_x,
-                               y + _baseline - item->origin_y,
-                               item->bmp,
-                               item->bmp_width,
-                               item->bmp_height,
-                               palette);
+                    drawGlyphItem(buf, draw_x + item->origin_x,
+                                   y + _baseline - item->origin_y,
+                                   item, palette);
                     x  += w; // + letter_spacing; (let's not add any letter-spacing after hyphen)
                 }
             }
@@ -4477,12 +4966,9 @@ public:
                             x += (posInfo.width * cjk_width_scale_percent / 100 - posInfo.width) / 2;
                             cjk_dx = x0 + width - x - posInfo.width;
                         }
-                        buf->Draw(x + item->origin_x + posInfo.offset,
+                        drawGlyphItem(buf, x + item->origin_x + posInfo.offset,
                             y + _baseline - item->origin_y,
-                            item->bmp,
-                            item->bmp_width,
-                            item->bmp_height,
-                            palette);
+                            item, palette);
                         // Assume zero advance means it's a diacritic, and we should not apply
                         // any letter spacing on this char (now, and when justifying)
                         if ( posInfo.width != 0 )
@@ -4605,12 +5091,9 @@ public:
                         x += (w * cjk_width_scale_percent / 100 - w) / 2;
                         w = x0 + width - x;
                     }
-                    buf->Draw( x + FONT_METRIC_TO_PX(kerning) + item->origin_x,
+                    drawGlyphItem(buf, x + FONT_METRIC_TO_PX(kerning) + item->origin_x,
                         y + _baseline - item->origin_y,
-                        item->bmp,
-                        item->bmp_width,
-                        item->bmp_height,
-                        palette);
+                        item, palette);
 
                     // Assume zero advance means it's a diacritic, and we should not apply
                     // any letter spacing on this char (now, and when justifying)
@@ -4732,6 +5215,8 @@ public:
         else if (_hintingMode == HINTING_MODE_DISABLED) {
             rend_flags |= FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_HINTING;
         }
+        if ( FT_HAS_COLOR(_face) && _hintingMode != HINTING_MODE_DISABLED )
+            rend_flags |= FT_LOAD_COLOR;
         if (_synth_weight > 0 || _italic == 2) { // Don't render yet
             rend_flags &= ~FT_LOAD_RENDER;
             // Also disable any hinting, as it would be wrong after embolden.
@@ -4775,12 +5260,12 @@ public:
         // This felt needed at some point to draw tall stretchy glyphs, but seems no longer needed
         // buf->setHidePartialGlyphs(false);
 
-        buf->Draw( x + pad_x,
-            y + pad_y,
-            bitmap->buffer,
-            bitmap->width,
-            bitmap->rows,
-            palette);
+        if (bitmap->pixel_mode == FT_PIXEL_MODE_BGRA)
+            buf->DrawColorGlyph( x + pad_x, y + pad_y,
+                bitmap->buffer, bitmap->width, bitmap->rows, bitmap->pitch, palette);
+        else
+            buf->Draw( x + pad_x, y + pad_y,
+                bitmap->buffer, bitmap->width, bitmap->rows, palette);
 
         // Restore original pixel size
         error = FT_Set_Pixel_Sizes(
@@ -4823,6 +5308,257 @@ public:
 
 };
 
+/// Transparent proxy that forwards every LVFont pure virtual to a wrapped font.
+/// Inherit from this instead of LVFont when only a subset of methods differ;
+/// override just those - the rest are handled here.
+class LVFontProxy : public LVFont
+{
+    LVFontRef  _wrappedRef;
+protected:
+    LVFont * _font; // fast pointer; matches _wrappedRef throughout lifetime
+public:
+    explicit LVFontProxy(LVFontRef f) : _wrappedRef(f), _font(f.get()) {}
+
+    virtual bool getGlyphInfo(lUInt32 c, glyph_info_t* g, lChar32 d=0, bool gi=false, bool fb=false)
+        { return _font->getGlyphInfo(c, g, d, gi, fb); }
+    virtual bool getGlyphExtraMetric(glyph_extra_metric_t m, lUInt32 c, int& v,
+                                      bool s=true, lChar32 d=0, bool fb=false)
+        { return _font->getGlyphExtraMetric(m, c, v, s, d, fb); }
+    virtual lUInt16 measureText(const lChar32* t, int len, lUInt16* w, lUInt8* f,
+                                 int mw, lChar32 d, TextLangCfg* lc=NULL,
+                                 int ls=0, bool ah=true, lUInt32 h=0)
+        { return _font->measureText(t, len, w, f, mw, d, lc, ls, ah, h); }
+    virtual lUInt32 getTextWidth(const lChar32* t, int len, TextLangCfg* lc=NULL)
+        { return _font->getTextWidth(t, len, lc); }
+    virtual LVFontGlyphCacheItem* getGlyph(lUInt32 c, lChar32 d=0, bool fb=false)
+        { return _font->getGlyph(c, d, fb); }
+    virtual int  getBaseline()         { return _font->getBaseline(); }
+    virtual int  getHeight()     const { return _font->getHeight(); }
+    virtual int  getSize()       const { return _font->getSize(); }
+    virtual int  getWeight()     const { return _font->getWeight(); }
+    virtual int  getItalic()     const { return _font->getItalic(); }
+    virtual int  getCharWidth(lChar32 c, lChar32 d=0) { return _font->getCharWidth(c, d); }
+    virtual int  getLeftSideBearing(lChar32 c, bool n=false, bool i=false)
+        { return _font->getLeftSideBearing(c, n, i); }
+    virtual int  getRightSideBearing(lChar32 c, bool n=false, bool i=false)
+        { return _font->getRightSideBearing(c, n, i); }
+    virtual int  getExtraMetric(font_extra_metric_t m, bool s=true)
+        { return _font->getExtraMetric(m, s); }
+    virtual lChar32 getHyphChar()      { return _font->getHyphChar(); }
+    virtual int getUnderlineOffset() const    { return _font->getUnderlineOffset(); }
+    virtual int getUnderlineThickness() const { return _font->getUnderlineThickness(); }
+    virtual bool hasOTMathSupport() const { return _font->hasOTMathSupport(); }
+    virtual void* GetHandle()          { return _font->GetHandle(); }
+    virtual lString8 getTypeFace() const { return _font->getTypeFace(); }
+    virtual css_font_family_t getFontFamily() const { return _font->getFontFamily(); }
+    virtual int DrawTextString(LVDrawBuf* buf, int x, int y,
+                                const lChar32* text, int len,
+                                lChar32 d, lUInt32* pal, bool hyp,
+                                TextLangCfg* lc, lUInt32 fl, int ls, int w,
+                                int tbg, int tw, int th, SVGGlyphsCollector* svg)
+        { return _font->DrawTextString(buf, x, y, text, len, d, pal, hyp,
+                                       lc, fl, ls, w, tbg, tw, th, svg); }
+    virtual bool getBitmapMode()              { return _font->getBitmapMode(); }
+    virtual void setBitmapMode(bool m)        { _font->setBitmapMode(m); }
+    virtual int  getFeatures() const          { return _font->getFeatures(); }
+    virtual void setFeatures(int f)           { _font->setFeatures(f); }
+    virtual lUInt32 getVariationHash() const  { return _font->getVariationHash(); }
+    virtual int getSynthWeight() const        { return _font->getSynthWeight(); }
+    virtual void setKerningMode(kerning_mode_t m)  { _font->setKerningMode(m); }
+    virtual kerning_mode_t getKerningMode() const  { return _font->getKerningMode(); }
+    virtual void setHintingMode(hinting_mode_t m)  { _font->setHintingMode(m); }
+    virtual hinting_mode_t getHintingMode() const  { return _font->getHintingMode(); }
+    virtual void clearCache()      { _font->clearCache(); }
+    virtual bool kerningEnabled()  { return _font->kerningEnabled(); }
+    virtual bool IsNull()  const   { return _font->IsNull(); }
+    virtual bool operator!() const { return !_font; }
+    virtual void Clear()           { _wrappedRef.Clear(); }
+    virtual ~LVFontProxy() {}
+};
+
+/// Synthesises small-caps by routing lowercase characters to uppercase glyphs
+/// in a smaller font instance (~75% of the normal size).
+class LVFontSmallCapsTransform : public LVFontProxy
+{
+    LVFontRef  _smallRef;  // keeps the small font alive
+    LVFont   * _smallFont; // fast pointer; matches _smallRef throughout lifetime (same pattern as LVFontProxy::_wrappedRef/_font)
+    bool       _allCaps; // true for all-small-caps (c2sc): uppercase is shrunk too
+
+    static lChar32 toUppercase(lChar32 ch) {
+        lChar32 buf[1] = { ch }; lStr_uppercase(buf, 1); return buf[0];
+    }
+    static bool isLowercase(lChar32 ch) {
+        return (lGetCharProps(ch) & CH_PROP_LOWER) != 0;
+    }
+    static bool isUppercase(lChar32 ch) {
+        return (lGetCharProps(ch) & CH_PROP_UPPER) != 0;
+    }
+    void mapChar(lChar32 ch, LVFont*& font, lChar32& mapped) const {
+        if (isLowercase(ch))                  { font = _smallFont; mapped = toUppercase(ch); }
+        else if (_allCaps && isUppercase(ch)) { font = _smallFont; mapped = ch; }
+        else                                   { font = _font;      mapped = ch; }
+    }
+    // Per-character font/glyph mapping, plus buffer for the longest
+    // possible run, so consecutive characters routed to the same font can be
+    // measured/drawn together in one call (kerning, ligatures, HarfBuzz
+    // shaping) instead of one isolated character at a time.
+    struct MappedRun {
+        LVFont ** font;
+        lChar32 * mapped;
+        lUInt16 * widths;
+        lUInt8  * flags;
+        explicit MappedRun(int len)
+            : font(new LVFont*[len]), mapped(new lChar32[len]),
+              widths(new lUInt16[len]), flags(new lUInt8[len]) {}
+        ~MappedRun() { delete[] font; delete[] mapped; delete[] widths; delete[] flags; }
+    };
+    void fillMappedRun(const lChar32 * text, int len, MappedRun & run) const {
+        for (int i = 0; i < len; i++)
+            mapChar(text[i], run.font[i], run.mapped[i]);
+    }
+public:
+    LVFontSmallCapsTransform(LVFontRef normalFont, LVFontRef smallFont, bool allCaps = false)
+        : LVFontProxy(normalFont), _smallRef(smallFont), _smallFont(smallFont.get()), _allCaps(allCaps) {}
+
+    virtual void setBitmapMode(bool m)           { LVFontProxy::setBitmapMode(m); _smallFont->setBitmapMode(m); }
+    virtual void setKerningMode(kerning_mode_t m) { LVFontProxy::setKerningMode(m); _smallFont->setKerningMode(m); }
+    virtual void setHintingMode(hinting_mode_t m) { LVFontProxy::setHintingMode(m); _smallFont->setHintingMode(m); }
+    virtual void clearCache() { LVFontProxy::clearCache(); _smallFont->clearCache(); }
+    virtual void Clear()      { LVFontProxy::Clear();      _smallRef.Clear(); }
+    virtual bool hasOTMathSupport() const { return false; }
+
+    virtual int getCharWidth(lChar32 ch, lChar32 d=0)
+        { LVFont* f; lChar32 m; mapChar(ch, f, m); return f->getCharWidth(m, d); }
+    virtual int getLeftSideBearing(lChar32 ch, bool n=false, bool i=false)
+        { LVFont* f; lChar32 m; mapChar(ch, f, m); return f->getLeftSideBearing(m, n, i); }
+    virtual int getRightSideBearing(lChar32 ch, bool n=false, bool i=false)
+        { LVFont* f; lChar32 m; mapChar(ch, f, m); return f->getRightSideBearing(m, n, i); }
+    virtual bool getGlyphInfo(lUInt32 c, glyph_info_t* g, lChar32 d=0, bool gi=false, bool fb=false)
+        { LVFont* f; lChar32 m; mapChar((lChar32)c, f, m); return f->getGlyphInfo((lUInt32)m, g, d, gi, fb); }
+    virtual bool getGlyphExtraMetric(glyph_extra_metric_t mt, lUInt32 c, int& v,
+                                      bool s=true, lChar32 d=0, bool fb=false)
+        { LVFont* f; lChar32 m; mapChar((lChar32)c, f, m); return f->getGlyphExtraMetric(mt, (lUInt32)m, v, s, d, fb); }
+    virtual LVFontGlyphCacheItem* getGlyph(lUInt32 c, lChar32 d=0, bool fb=false)
+        { LVFont* f; lChar32 m; mapChar((lChar32)c, f, m); return f->getGlyph((lUInt32)m, d, fb); }
+    virtual lUInt32 getTextWidth(const lChar32* text, int len, TextLangCfg* lc=NULL) {
+        if (len <= 0)
+            return 0;
+        MappedRun run(len);
+        fillMappedRun(text, len, run);
+        lUInt32 w = 0;
+        int i = 0;
+        while (i < len) {
+            LVFont* f = run.font[i];
+            int j = i + 1;
+            while (j < len && run.font[j] == f) j++;
+            int runLen = j - i;
+            f->measureText(run.mapped + i, runLen, run.widths, run.flags, 0x7FFF, 0, lc, 0, false, 0);
+            w += run.widths[runLen - 1];
+            i = j;
+        }
+        return w;
+    }
+    // Characters are split into runs of consecutive characters routed to the
+    // same font (normal or small), and each run is measured/drawn in one call
+    // so that kerning, ligatures and HarfBuzz shaping apply within the run -
+    // they can never apply across a run boundary, since that would require
+    // shaping glyphs from two distinct font instances together.
+    virtual lUInt16 measureText(const lChar32* text, int len,
+                                 lUInt16* widths, lUInt8* flags,
+                                 int max_width, lChar32 def_char,
+                                 TextLangCfg* lc=NULL, int ls=0,
+                                 bool ah=true, lUInt32 hints=0) {
+        if (len <= 0)
+            return 0;
+        MappedRun run(len);
+        fillMappedRun(text, len, run);
+        int total = 0;
+        int i = 0;
+        while (i < len) {
+            LVFont* f = run.font[i];
+            int j = i + 1;
+            while (j < len && run.font[j] == f) j++;
+            int runLen = j - i;
+            int n = f->measureText(run.mapped + i, runLen, run.widths, run.flags,
+                                    max_width - total, def_char, lc, ls, false, hints);
+            for (int k = 0; k < n; k++) {
+                widths[i + k] = (lUInt16)(total + run.widths[k]);
+                flags[i + k]  = run.flags[k];
+            }
+            if (n < runLen)
+                return (lUInt16)(i + n);
+            total += run.widths[runLen - 1];
+            i = j;
+        }
+        return (lUInt16)len;
+    }
+    virtual int DrawTextString(LVDrawBuf* buf, int x, int y,
+                                const lChar32* text, int len, lChar32 def_char,
+                                lUInt32* palette, bool addHyphen, TextLangCfg* lc,
+                                lUInt32 flags, int letter_spacing, int width,
+                                int text_decoration_back_gap,
+                                int target_w, int target_h, SVGGlyphsCollector* svg) {
+        int x0 = x;
+        // Shift small-font glyphs down so their baseline aligns with the normal font's.
+        int y_small = y + (_font->getBaseline() - _smallFont->getBaseline());
+        lUInt32 noDecFlags = flags & ~LFNT_DRAW_DECORATION_MASK;
+        if (len > 0) {
+            MappedRun run(len);
+            fillMappedRun(text, len, run);
+            int i = 0;
+            while (i < len) {
+                LVFont* f = run.font[i];
+                int j = i + 1;
+                while (j < len && run.font[j] == f) j++;
+                int runLen = j - i;
+                bool runHasHyphen = addHyphen && (j == len);
+                x += f->DrawTextString(buf, x, f == _smallFont ? y_small : y,
+                                       run.mapped + i, runLen, def_char,
+                                       palette, runHasHyphen, lc, noDecFlags,
+                                       letter_spacing, -1, 0, -1, -1, svg);
+                i = j;
+            }
+        }
+        // This is a deliberate duplicate (not shared via a helper) of the
+        // LFNT_DRAW_UNDERLINE/OVERLINE/LINE_THROUGH block in
+        // LVFreeTypeFace::DrawTextString() above (lvfntman.cpp:4759-4786):
+        // keep the two in sync if those formulas ever change.
+        int advance = x - x0;
+        if ( flags & LFNT_DRAW_DECORATION_MASK ) {
+            // text decoration: underline, etc.
+            // Don't overflow the provided width (which may be lower than our
+            // pen x if last glyph was a space not accounted in word width)
+            if ( width >= 0 && x > x0 + width)
+                x = x0 + width;
+            // And start the decoration before x0 if it is continued
+            // from previous word
+            x0 -= text_decoration_back_gap;
+            int thickness = getUnderlineThickness();
+            lUInt32 cl = buf->GetTextColor();
+            if ( flags & LFNT_DRAW_UNDERLINE ) {
+                int liney = y + getBaseline() + getUnderlineOffset();
+                buf->FillRect( x0, liney, x, liney+thickness, cl );
+            }
+            if ( flags & LFNT_DRAW_OVERLINE ) {
+                // For now, we use the underline thickness as the offset from top, so
+                // to not be too high (should probably be computed from other metrics)
+                int liney = y + thickness;
+                buf->FillRect( x0, liney, x, liney+thickness, cl );
+                // If we want to use this flag while developping for visually marking the start of words, use this instead:
+                // buf->FillRect( x0-getBaseline()/4, y, x0+getBaseline()/4, y+1, cl );
+            }
+            if ( flags & LFNT_DRAW_LINE_THROUGH ) {
+                // int liney = y + getBaseline() - getSize()/4 - h/2;
+                int liney = y + getBaseline() - getSize()*2/7;
+                buf->FillRect( x0, liney, x, liney+thickness, cl );
+            }
+        }
+        return advance;
+    }
+    virtual ~LVFontSmallCapsTransform() {}
+};
+
+#if 0 // removed during font manager refactor
 class LVFontBoldTransform : public LVFont
 {
     LVFontRef _baseFontRef;
@@ -4858,19 +5594,28 @@ public:
         _vShift = _size <= 36 ? 0 : 1;
         _baseline = _baseFont->getBaseline();
     }
+#endif // 0 // removed during font manager refactor
 
-    /// hyphenation character
-    virtual lChar32 getHyphChar() {
-        // return UNICODE_SOFT_HYPHEN_CODE;
-        return UNICODE_HYPHEN_MINUS;
+class LVFontBoldTransform : public LVFontProxy
+{
+    int _hShift;
+    int _vShift;
+    LVFontLocalGlyphCache _glyph_cache;
+public:
+    /// returns font weight
+    virtual int getWeight() const
+    {
+        int w = _font->getWeight() + 200;
+        if ( w>900 ) w = 900;
+        return w;
     }
 
-    /// hyphen width
-    virtual int getHyphenWidth() {
-        FONT_GUARD
-        if ( _hyphWidth<0 )
-            _hyphWidth = getCharWidth( getHyphChar() );
-        return _hyphWidth;
+    LVFontBoldTransform( LVFontRef baseFont, LVFontGlobalGlyphCache * globalCache )
+        : LVFontProxy(baseFont), _glyph_cache(globalCache)
+    {
+        int size = _font->getSize();
+        _hShift = size <= 36 ? 1 : 2;
+        _vShift = size <= 36 ? 0 : 1;
     }
 
     /** \brief get glyph info
@@ -4879,7 +5624,7 @@ public:
     */
     virtual bool getGlyphInfo( lUInt32 code, glyph_info_t * glyph, lChar32 def_char=0, bool code_is_glyph_index=false, bool is_fallback=false  )
     {
-        bool res = _baseFont->getGlyphInfo( code, glyph, def_char, is_fallback );
+        bool res = _font->getGlyphInfo( code, glyph, def_char, is_fallback );
         if ( !res )
             return res;
         glyph->blackBoxX += glyph->blackBoxX>0 ? _hShift : 0;
@@ -4910,7 +5655,7 @@ public:
                      )
     {
         CR_UNUSED(allow_hyphenation);
-        lUInt16 res = _baseFont->measureText(
+        lUInt16 res = _font->measureText(
                         text, len,
                         widths,
                         flags,
@@ -4964,7 +5709,7 @@ public:
         if ( item )
             return item;
 
-        LVFontGlyphCacheItem * olditem = _baseFont->getGlyph( ch, def_char, is_fallback );
+        LVFontGlyphCacheItem * olditem = _font->getGlyph( ch, def_char, is_fallback );
         if ( !olditem )
             return NULL;
 
@@ -5004,6 +5749,13 @@ public:
         return item;
     }
 
+    /// returns char glyph advance width
+    virtual int getCharWidth( lChar32 ch, lChar32 def_char=0 )
+    {
+        return _font->getCharWidth(ch, def_char) + _hShift;
+    }
+
+#if 0 // removed during font manager refactor
     /** \brief get glyph image in 1 byte per pixel format
         \param code is unicode character
         \param buf is buffer [width*height] to place glyph data
@@ -5113,6 +5865,7 @@ public:
     {
         return _baseFont->getFontFamily();
     }
+#endif // 0 // removed during font manager refactor
 
     /// draws text string (returns x advance)
     virtual int DrawTextString( LVDrawBuf * buf, int x, int y,
@@ -5134,7 +5887,7 @@ public:
         }
         lvRect clip;
         buf->GetClipRect( &clip );
-        if ( y + _height < clip.top || y >= clip.bottom )
+        if ( y + getHeight() < clip.top || y >= clip.bottom )
             return 0;
 
         //int error;
@@ -5156,7 +5909,7 @@ public:
             }
             else {
                 ch = getHyphChar();
-                isHyphen = 0;
+                isHyphen = false;
             }
 
             LVFontGlyphCacheItem * item = getGlyph(ch, def_char);
@@ -5165,12 +5918,9 @@ public:
                 // avoid soft hyphens inside text string
                 w = item->advance;
                 if ( item->bmp_width && item->bmp_height && (!isHyphen || i==len) ) {
-                    buf->Draw( x + item->origin_x,
-                        y + _baseline - item->origin_y,
-                        item->bmp,
-                        item->bmp_width,
-                        item->bmp_height,
-                        palette);
+                    drawGlyphItem(buf, x + item->origin_x,
+                        y + getBaseline() - item->origin_y,
+                        item, palette);
                 }
             }
             x  += w + letter_spacing;
@@ -5185,10 +5935,10 @@ public:
             // And start the decoration before x0 if it is continued
             // from previous word
             x0 -= text_decoration_back_gap;
-            int h = _size > 30 ? 2 : 1;
+            int h = getSize() > 30 ? 2 : 1;
             lUInt32 cl = buf->GetTextColor();
             if ( flags & LFNT_DRAW_UNDERLINE ) {
-                int liney = y + _baseline + h;
+                int liney = y + getBaseline() + h;
                 buf->FillRect( x0, liney, x, liney+h, cl );
             }
             if ( flags & LFNT_DRAW_OVERLINE ) {
@@ -5196,13 +5946,16 @@ public:
                 buf->FillRect( x0, liney, x, liney+h, cl );
             }
             if ( flags & LFNT_DRAW_LINE_THROUGH ) {
-                int liney = y + _height/2 - h/2;
+                int liney = y + getHeight()/2 - h/2;
                 buf->FillRect( x0, liney, x, liney+h, cl );
             }
         }
         return advance;
     }
 
+    virtual ~LVFontBoldTransform() {}
+
+#if 0 // removed during font manager refactor
     /// get bitmap mode (true=monochrome bitmap, false=antialiased)
     virtual bool getBitmapMode()
     {
@@ -5246,6 +5999,7 @@ public:
     virtual ~LVFontBoldTransform()
     {
     }
+#endif // 0 // removed during font manager refactor
 };
 
 /// create transform for font
@@ -5266,13 +6020,829 @@ static LVFontRef dumpFontRef( LVFontRef fnt ) {
 }
 #endif
 
+// ============================================================================
+// LVFontFace / LVFontFamily / LVFontRegistry
+//
+// Registry of physical font faces, selector, and instance cache.
+// ============================================================================
+
+/// One physical font face as registered from a file or in-memory buffer.
+struct LVFontFace {
+    lString8           file_path;    // filesystem path, or container-relative path for embedded fonts
+    int                face_index;
+    bool               is_italic;
+    css_font_family_t  css_family;
+    lString8           typeface;     // family name used for lookup
+    bool               has_emojis;
+    bool               has_ot_math;
+    bool               has_small_caps;
+    int                documentId;   // -1 for global fonts
+    // Sorted set of DocFragment indices that may use this face.
+    // Empty = no restriction (all DocFragments, or document-scoped).
+    // Used instead of a single docFragmentIdx so that one LVFontFace entry
+    // covers all DocFragments that declare the same @font-face, keeping the
+    // registry O(fonts) rather than O(doc fragments × fonts).
+    LVArray<int>       docFragmentIdxSet;
+    LVByteArrayRef     buf;          // non-null for in-memory fonts
+    // Variable-font axis ranges; for static fonts min==max.
+    bool  _has_wght; float _wght_min, _wght_max;
+    bool  _has_opsz; float _opsz_min, _opsz_max;
+    bool  _has_ital; float _ital_min, _ital_max;
+    bool  _has_slnt; float _slnt_min, _slnt_max;
+    bool  _has_wdth; float _wdth_min, _wdth_max;
+
+    LVFontFace() : face_index(-1), is_italic(false)
+               , has_emojis(false), has_ot_math(false), has_small_caps(false), documentId(-1)
+               , _has_wght(false), _wght_min(0), _wght_max(0)
+               , _has_opsz(false), _opsz_min(0), _opsz_max(0)
+               , _has_ital(false), _ital_min(0), _ital_max(0)
+               , _has_slnt(false), _slnt_min(0), _slnt_max(0)
+               , _has_wdth(false), _wdth_min(0), _wdth_max(0) {}
+
+    // Returns true if this face is accessible from the given DocFragment.
+    // A face with an empty docFragmentIdxSet has no restriction.
+    bool allowedForDocFragment(int docFragmentIdx) const {
+        if (docFragmentIdxSet.empty()) return true;
+        if (docFragmentIdx < 0) return false;  // restricted face, no doc fragment context
+        int lo = 0, hi = docFragmentIdxSet.length() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) / 2;
+            if (docFragmentIdxSet[mid] == docFragmentIdx) return true;
+            if (docFragmentIdxSet[mid] < docFragmentIdx) lo = mid + 1;
+            else hi = mid - 1;
+        }
+        return false;
+    }
+
+    // Insert docFragmentIdx into the sorted docFragmentIdxSet (no-op if already present).
+    // DocFragments are registered in increasing index order, so this is almost
+    // always an append: check that case first to skip the binary search.
+    void addDocFragment(int docFragmentIdx) {
+        if (docFragmentIdx < 0) return;
+        int n = docFragmentIdxSet.length();
+        if (n == 0 || docFragmentIdxSet[n - 1] < docFragmentIdx) {
+            docFragmentIdxSet.add(docFragmentIdx);
+            return;
+        }
+        if (docFragmentIdxSet[n - 1] == docFragmentIdx)
+            return;  // already present
+        int lo = 0, hi = n;
+        while (lo < hi) {
+            int mid = (lo + hi) / 2;
+            if (docFragmentIdxSet[mid] < docFragmentIdx) lo = mid + 1;
+            else hi = mid;
+        }
+        if (lo < n && docFragmentIdxSet[lo] == docFragmentIdx)
+            return;  // already present
+        docFragmentIdxSet.insert(lo, docFragmentIdx);
+    }
+
+    void setAxisInfo(lUInt32 tag, float mn, float mx) {
+        switch (tag) {
+            case LVFONT_TAG_WGHT: _has_wght = true; _wght_min = mn; _wght_max = mx; break;
+            case LVFONT_TAG_OPSZ: _has_opsz = true; _opsz_min = mn; _opsz_max = mx; break;
+            case LVFONT_TAG_ITAL: _has_ital = true; _ital_min = mn; _ital_max = mx; break;
+            case LVFONT_TAG_SLNT: _has_slnt = true; _slnt_min = mn; _slnt_max = mx; break;
+            case LVFONT_TAG_WDTH: _has_wdth = true; _wdth_min = mn; _wdth_max = mx; break;
+        }
+    }
+    bool hasAxis(lUInt32 tag) const {
+        switch (tag) {
+            case LVFONT_TAG_WGHT: return _has_wght;
+            case LVFONT_TAG_OPSZ: return _has_opsz;
+            case LVFONT_TAG_ITAL: return _has_ital;
+            case LVFONT_TAG_SLNT: return _has_slnt;
+            case LVFONT_TAG_WDTH: return _has_wdth;
+        }
+        return false;
+    }
+
+    bool hasWeightAxis() const { return _has_wght && _wght_min < _wght_max; }
+
+    /// The single weight value of a static (non-variable-weight) face, e.g. 400
+    /// for a Regular face or 700 for a Bold face. For a face with a weight axis
+    /// (hasWeightAxis()==true, _wght_min < _wght_max), there is no single weight
+    /// to report, so this returns 0 - callers must check hasWeightAxis() first
+    /// and use _wght_min/_wght_max as the axis range instead.
+    int getStaticWeight() const { return hasWeightAxis() ? 0 : (int)_wght_min; }
+
+    /// Stable identity hash: (file, face_index, documentId, typeface).
+    /// typeface is included so that registering the same font file under a
+    /// second @font-face family name is not mistaken for a duplicate.
+    /// docFragmentIdx is NOT included: the registry holds one entry per physical
+    /// face per document and tracks allowed DocFragments via docFragmentIdxSet.
+    lUInt32 id() const {
+        lUInt32 h = file_path.getHash();
+        h = h * 31 + (lUInt32)face_index;
+        h = h * 31 + (lUInt32)(documentId == -1 ? 0 : documentId);
+        h = h * 31 + typeface.getHash();
+        return h;
+    }
+};
+
+/// All faces registered under one family name.
+class LVFontFamily {
+    lString8                      _name;  // lowercase lookup key; display name lives in face.typeface
+    LVPtrVector<LVFontFace, true> _faces; // heap-allocated for pointer stability:
+                                          // callers hold const LVFontFace* from faceAt()
+public:
+    LVFontFamily() {}
+    explicit LVFontFamily(lString8 name) : _name(name) {}
+    void addFace(const LVFontFace& face) { _faces.add(new LVFontFace(face)); }
+    void removeFacesForDocument(int documentId) {
+        for (int i = _faces.length() - 1; i >= 0; i--)
+            if (_faces[i]->documentId == documentId)
+                _faces.erase(i, 1);
+    }
+    // Find a face by its identity hash and add docFragmentIdx to its allowed set.
+    // Returns true if a matching face was found (and updated).
+    bool addDocFragmentById(lUInt32 id, int docFragmentIdx) {
+        for (int i = 0; i < _faces.length(); i++) {
+            if (_faces[i]->id() == id) {
+                _faces[i]->addDocFragment(docFragmentIdx);
+                return true;
+            }
+        }
+        return false;
+    }
+    // Add docFragmentIdx to every face in this family with the given file_path and documentId.
+    // Returns true if at least one face was found.
+    bool addDocFragmentForFilePath(const lString8& file_path, int documentId, int docFragmentIdx) {
+        bool found = false;
+        for (int i = 0; i < _faces.length(); i++) {
+            if (_faces[i]->documentId == documentId && _faces[i]->file_path == file_path) {
+                _faces[i]->addDocFragment(docFragmentIdx);
+                found = true;
+            }
+        }
+        return found;
+    }
+    const lString8& getName() const { return _name; }
+    const LVFontFace& faceAt(int i) const { return *_faces[i]; }
+    LVFontFace& mutableFaceAt(int i) { return *_faces[i]; }
+    int faceCount() const { return _faces.length(); }
+};
+
+/// One alias mapping: `alias` family name -> `canonical` family name,
+/// scoped to a document (documentId == -1 for a currently unused global
+/// scope) and a set of DocFragments.
+struct LVFontAlias
+{
+    lString8 alias;     // lowercase
+    lString8 canonical; // lowercase
+    int documentId;     // -1 for global
+    // Sorted set of DocFragment indices this mapping applies to.
+    // Empty = document-wide (applies to every DocFragment in documentId).
+    LVArray<int> docFragmentIdxSet;
+
+    LVFontAlias() : documentId(-1) {}
+
+    // Mirrors LVFontFace::allowedForDocFragment().
+    bool appliesToDocFragment(int docFragmentIdx) const
+    {
+        if (docFragmentIdxSet.empty())
+            return true;
+        if (docFragmentIdx < 0)
+            return false;
+        int lo = 0, hi = docFragmentIdxSet.length() - 1;
+        while (lo <= hi) {
+            int mid = (lo + hi) / 2;
+            if (docFragmentIdxSet[mid] == docFragmentIdx)
+                return true;
+            if (docFragmentIdxSet[mid] < docFragmentIdx)
+                lo = mid + 1;
+            else
+                hi = mid - 1;
+        }
+        return false;
+    }
+
+    // Mirrors LVFontFace::addDocFragment().
+    void addDocFragment(int docFragmentIdx)
+    {
+        if (docFragmentIdx < 0)
+            return;
+        int n = docFragmentIdxSet.length();
+        if (n == 0 || docFragmentIdxSet[n - 1] < docFragmentIdx) {
+            docFragmentIdxSet.add(docFragmentIdx);
+            return;
+        }
+        if (docFragmentIdxSet[n - 1] == docFragmentIdx)
+            return; // already present
+        int lo = 0, hi = n;
+        while (lo < hi) {
+            int mid = (lo + hi) / 2;
+            if (docFragmentIdxSet[mid] < docFragmentIdx)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+        if (lo < n && docFragmentIdxSet[lo] == docFragmentIdx)
+            return; // already present
+        docFragmentIdxSet.insert(lo, docFragmentIdx);
+    }
+
+    // Remove docFragmentIdx from a restricted (non-empty) set. No-op if the
+    // set is document-wide (empty) or doesn't contain it.
+    void removeDocFragment(int docFragmentIdx)
+    {
+        for (int i = 0; i < docFragmentIdxSet.length(); i++) {
+            if (docFragmentIdxSet[i] == docFragmentIdx)
+            {
+                docFragmentIdxSet.erase(i, 1);
+                return;
+            }
+        }
+    }
+};
+
+/// Registry of physical font faces, keyed by family name.
+/// Holds only registered faces - no loaded instances.
+class LVFontRegistry {
+    LVPtrVector<LVFontFamily, true>   _families;
+    // Alias mappings: alias -> canonical family name. One entry per distinct
+    // (alias, canonical, documentId) triple; see LVFontAlias for how the
+    // DocFragment scope is folded in.
+    LVPtrVector<LVFontAlias, true>    _aliases;
+
+    LVFontFamily* findOrCreateFamily(lString8 name) {
+        lString8 lower = name;
+        lower.lowercase();
+        for (int i = 0; i < _families.length(); i++)
+            if (_families[i]->getName() == lower)
+                return _families[i];
+        LVFontFamily* f = new LVFontFamily(lower);
+        _families.add(f);
+        return f;
+    }
+public:
+    void registerFace(const LVFontFace& face) {
+        lString8 key = face.typeface;
+        key.lowercase();
+        findOrCreateFamily(key)->addFace(face);
+    }
+
+    // Registers alias -> canonical for documentId, scoped to docFragmentIdx
+    // (-1 for document-wide). Matches the old last-registration-wins
+    // behaviour when this exact scope was previously mapped to a different
+    // canonical (e.g. a single DocFragment declaring the same family name
+    // via local() twice): the stale claim on that scope is dropped first.
+    // Document-wide and fragment-restricted mappings for the same alias
+    // otherwise coexist (resolveAlias() prefers the more specific one)
+    void registerAlias(lString8 alias, lString8 canonical, int documentId, int docFragmentIdx = -1) {
+        alias.lowercase();
+        canonical.lowercase();
+        if (docFragmentIdx < 0) {
+            // Document-wide: at most one such entry per (alias, documentId).
+            for (int i = 0; i < _aliases.length(); i++) {
+                LVFontAlias* a = _aliases[i];
+                if (a->alias == alias && a->documentId == documentId && a->docFragmentIdxSet.empty()) {
+                    a->canonical = canonical;
+                    return;
+                }
+            }
+            LVFontAlias* a = new LVFontAlias();
+            a->alias = alias;
+            a->canonical = canonical;
+            a->documentId = documentId;
+            _aliases.add(a);
+            return;
+        }
+        // Fragment-scoped: detach docFragmentIdx from whichever restricted
+        // group currently claims it under a different canonical, then
+        // attach it to (or create) the group for the new canonical.
+        LVFontAlias* target = nullptr;
+        for (int i = _aliases.length() - 1; i >= 0; i--) {
+            LVFontAlias* a = _aliases[i];
+            if (a->alias != alias || a->documentId != documentId || a->docFragmentIdxSet.empty())
+                continue;
+            if (a->canonical == canonical) {
+                target = a;
+                continue;
+            }
+            a->removeDocFragment(docFragmentIdx);
+            if (a->docFragmentIdxSet.empty())
+                _aliases.erase(i, 1);  // now-pointless restricted group
+        }
+        if (!target) {
+            target = new LVFontAlias();
+            target->alias = alias;
+            target->canonical = canonical;
+            target->documentId = documentId;
+            _aliases.add(target);
+        }
+        target->addDocFragment(docFragmentIdx);
+    }
+
+    // Resolves an alias registered for `documentId`/`docFragmentIdx`, preferring
+    // (in order): an exact doc fragment match, a document-wide alias for
+    // `documentId` (empty docFragmentIdxSet), then a global (documentId == -1)
+    // alias. A doc-fragment-scoped alias is invisible outside its own DocFragment.
+    lString8 resolveAlias(lString8 name, int documentId, int docFragmentIdx = -1) const {
+        name.lowercase();
+        int docWideMatch = -1;
+        int globalMatch = -1;
+        for (int i = 0; i < _aliases.length(); i++) {
+            const LVFontAlias *a = _aliases[i];
+            if (a->alias != name)
+                continue;
+            if (a->documentId == documentId){
+                if (docFragmentIdx >= 0 && !a->docFragmentIdxSet.empty() && a->appliesToDocFragment(docFragmentIdx))
+                    return a->canonical;
+                if (a->docFragmentIdxSet.empty() && docWideMatch < 0)
+                    docWideMatch = i;
+            }
+            else if (a->documentId == -1 && a->docFragmentIdxSet.empty() && globalMatch < 0) {
+                globalMatch = i;
+            }
+        }
+        if (docWideMatch >= 0)
+            return _aliases[docWideMatch]->canonical;
+        if (globalMatch >= 0)
+            return _aliases[globalMatch]->canonical;
+        return name;
+    }
+
+    const LVFontFamily* findFamily(lString8 name, int documentId = -1, int docFragmentIdx = -1) const {
+        // Return the family by name regardless of documentId - global fonts have
+        // documentId=-1 and must be reachable from any document.  Face-level
+        // document scoping (preferring embedded faces over global ones) is handled
+        // in LVFontSelector::matchFamily().
+        lString8 key = resolveAlias(name, documentId, docFragmentIdx);
+        for (int i = 0; i < _families.length(); i++)
+            if (_families[i]->getName() == key) return _families[i];
+        return nullptr;
+    }
+
+    void removeFonts(int documentId) {
+        for (int i = _families.length() - 1; i >= 0; i--) {
+            _families[i]->removeFacesForDocument(documentId);
+            if (_families[i]->faceCount() == 0)
+                delete _families.remove(i);
+        }
+        for (int i = _aliases.length() - 1; i >= 0; i--) {
+            if (_aliases[i]->documentId == documentId)
+                _aliases.erase(i, 1);
+        }
+    }
+
+    int familyCount() const { return _families.length(); }
+    const LVFontFamily* familyAt(int i) const { return _families[i]; }
+
+    /// For each family, ensure a real face is registered at weight 400 and 700 when
+    /// possible, to avoid synthesizing these common weights.  For 400, the nearest
+    /// face below 700 is chosen, preferring heavier (500 beats 300); for 700, the
+    /// lightest face at or above 700 is chosen.
+    /// Variable fonts are skipped - their axis covers any weight natively.
+    /// Document-embedded faces are skipped - they are scoped to one document.
+    void regularizeWeights(bool print_updates) {
+        for (int fi = 0; fi < _families.length(); fi++) {
+            LVFontFamily* fam = _families[fi];
+            LVFontFace* regular        = nullptr;
+            LVFontFace* regular_italic = nullptr;
+            LVFontFace* bold           = nullptr;
+            LVFontFace* bold_italic    = nullptr;
+
+            for (int i = 0; i < fam->faceCount(); i++) {
+                LVFontFace& face = fam->mutableFaceAt(i);
+                if (face.documentId != -1)
+                    continue;
+                if (face.hasWeightAxis())
+                    continue;
+                int w = face.getStaticWeight();
+                if (w < 700) {
+                    // nearest to 401: prefers 500 over 300 as a substitute for 400
+                    LVFontFace** slot;
+                    if (face.is_italic)
+                        slot = &regular_italic;
+                    else
+                        slot = &regular;
+                    if (!*slot || myabs(w - 401) < myabs((*slot)->getStaticWeight() - 401))
+                        *slot = &face;
+                } else {
+                    // lightest face at or above 700
+                    LVFontFace** slot;
+                    if (face.is_italic)
+                        slot = &bold_italic;
+                    else
+                        slot = &bold;
+                    if (!*slot || w - 700 < (*slot)->getStaticWeight() - 700)
+                        *slot = &face;
+                }
+            }
+
+            lString8 name = fam->getName();
+            if (regular && regular->getStaticWeight() != 400) {
+                if (print_updates)
+                    printf("CRE: font %s regular: updated weight from %d to 400\n", name.c_str(), regular->getStaticWeight());
+                regular->setAxisInfo(LVFONT_TAG_WGHT, 400.0f, 400.0f);
+            }
+            if (regular_italic && regular_italic->getStaticWeight() != 400) {
+                if (print_updates)
+                    printf("CRE: font %s regular italic: updated weight from %d to 400\n", name.c_str(), regular_italic->getStaticWeight());
+                regular_italic->setAxisInfo(LVFONT_TAG_WGHT, 400.0f, 400.0f);
+            }
+            if (bold && bold->getStaticWeight() != 700) {
+                if (print_updates)
+                    printf("CRE: font %s bold: updated weight from %d to 700\n", name.c_str(), bold->getStaticWeight());
+                bold->setAxisInfo(LVFONT_TAG_WGHT, 700.0f, 700.0f);
+            }
+            if (bold_italic && bold_italic->getStaticWeight() != 700) {
+                if (print_updates)
+                    printf("CRE: font %s bold italic: updated weight from %d to 700\n", name.c_str(), bold_italic->getStaticWeight());
+                bold_italic->setAxisInfo(LVFONT_TAG_WGHT, 700.0f, 700.0f);
+            }
+        }
+    }
+
+    bool hasFaceId(lUInt32 id) const {
+        for (int i = 0; i < _families.length(); i++)
+            for (int j = 0; j < _families[i]->faceCount(); j++)
+                if (_families[i]->faceAt(j).id() == id) return true;
+        return false;
+    }
+    // If a face with the given file_path+documentId is already registered,
+    // add docFragmentIdx to its allowed set and return true.  Avoids reloading
+    // the font file from disk/memory for repeat registrations from new DocFragments.
+    bool addDocFragmentToFacesForFile(const lString8& file_path, int documentId, int docFragmentIdx) {
+        bool found = false;
+        for (int i = 0; i < _families.length(); i++)
+            if (_families[i]->addDocFragmentForFilePath(file_path, documentId, docFragmentIdx))
+                found = true;
+        return found;
+    }
+    // Find mutable face pointer by id (for merging docFragmentIdxSet on initial register).
+    LVFontFace* findFaceById(lUInt32 id) {
+        for (int i = 0; i < _families.length(); i++)
+            for (int j = 0; j < _families[i]->faceCount(); j++)
+                if (_families[i]->faceAt(j).id() == id)
+                    return &_families[i]->mutableFaceAt(j);
+        return nullptr;
+    }
+};
+
+/// Result of a font selection.
+/// computed_variations holds the OpenType axis values to apply (only used by variable fonts).
+/// Synthesized bold/italic are NOT here; loadAndCache() re-derives them from
+/// the requested weight/italic vs the face's own weight/italic at load time.
+struct LVFontMatch {
+    const LVFontFace*  face;
+    LVFontVariations   computed_variations;  // axis values; static faces get their fixed wght/wdth
+
+    LVFontMatch() : face(nullptr) {}
+    bool valid() const { return face != nullptr; }
+};
+
+/// Font matching, broadly following the CSS Fonts Level 4 sec 5 algorithm:
+/// https://www.w3.org/TR/css-fonts-4/#font-matching-algorithm
+/// matchFamily() follows sec 5.2's italic/oblique preferred-vs-fallback split
+/// fairly closely; pickBestWeight() is a simplified nearest-distance heuristic
+/// for sec 5.3 and can disagree with the spec's directional fallback search
+/// (see its own comment for details).
+/// Pure function - no cache or loading.
+class LVFontSelector {
+
+    // Weight matching: exact static match first; then a variable font whose
+    // wght axis covers the requested weight; then the nearest static weight
+    // by distance, preferring lighter on a tie. This is a simplified
+    // nearest-distance heuristic, not a literal implementation of sec 5.3's
+    // directional fallback search (ascend to 500 then descend for targets in
+    // [400,500], etc.) - the two can disagree when no candidate falls within
+    // [target,500] for a target in that range.
+    const LVFontFace* pickBestWeight(
+            const LVArray<const LVFontFace*>& cands, int weight) const
+    {
+        if (cands.length() == 0) return nullptr;
+        if (cands.length() == 1) return cands[0];
+
+        // Exact static match.
+        for (int i = 0; i < cands.length(); i++)
+            if (!cands[i]->hasWeightAxis() && cands[i]->getStaticWeight() == weight) return cands[i];
+
+        // Variable font whose axis covers the requested weight - no synthesis needed.
+        for (int i = 0; i < cands.length(); i++) {
+            const LVFontFace* f = cands[i];
+            if (f->hasWeightAxis() &&
+                    weight >= (int)f->_wght_min && weight <= (int)f->_wght_max)
+                return f;
+        }
+
+        // Nearest by distance; prefer lighter on a tie.
+        bool preferHigher = false;
+        const LVFontFace* best = nullptr;
+        int bestDist = 1000000;
+        int bestDistSigned = 0;
+        for (int i = 0; i < cands.length(); i++) {
+            const LVFontFace* f = cands[i];
+            // For variable fonts use the nearest axis endpoint, not the default weight.
+            int dist = f->hasWeightAxis()
+                ? (weight < (int)f->_wght_min ? (int)f->_wght_min - weight
+                                               : (int)f->_wght_max - weight)
+                : f->getStaticWeight() - weight;
+            int absDist = dist < 0 ? -dist : dist;
+            if (absDist < bestDist ||
+                    (absDist == bestDist && best &&
+                     preferHigher && dist > 0 && bestDistSigned < 0) ||
+                    (absDist == bestDist && best &&
+                     !preferHigher && dist < 0 && bestDistSigned > 0)) {
+                best = cands[i];
+                bestDist = absDist;
+                bestDistSigned = dist;
+            }
+        }
+        return best;
+    }
+
+    // requested: opsz (font-optical-sizing) and wdth (font-width); wght and
+    //            ital/slnt come from the weight/italic parameters.
+    // computed:  the full axis set to hand to FreeType, with wght and wdth
+    //            clamped to the face's ranges and ital/slnt derived from italic.
+    LVFontVariations computeVariations(const LVFontFace& f,
+                                        const LVFontVariations& requested,
+                                        int weight, bool italic) const
+    {
+        LVFontVariations computed;
+        // wght and ital/slnt are derived from the weight/italic CSS properties.
+        if (f._has_wght) {
+            float w = (float)weight;
+            if (w < f._wght_min) w = f._wght_min;
+            if (w > f._wght_max) w = f._wght_max;
+            computed.set(LVFONT_TAG_WGHT, w);
+        }
+        if (italic && f._has_ital && f._ital_max > 0.5f)
+            computed.set(LVFONT_TAG_ITAL, 1.0f);
+        else if (italic && !f.is_italic && f._has_slnt && f._slnt_min < 0.0f)
+            computed.set(LVFONT_TAG_SLNT, -12.0f);
+        // opsz is passed through verbatim from requested.
+        if (requested.opsz_set && f._has_opsz)
+            computed.set(LVFONT_TAG_OPSZ, requested.opsz);
+        // wdth (from font-width) is clamped to the face's axis range, as wght above.
+        if (f._has_wdth) {
+            float w = requested.wdth_set ? requested.wdth : 100.0f;
+            if (w < f._wdth_min) w = f._wdth_min;
+            if (w > f._wdth_max) w = f._wdth_max;
+            computed.set(LVFONT_TAG_WDTH, w);
+        }
+        return computed;
+    }
+
+    // Whether a face may be used by the given document/DocFragment at all.
+    static bool faceVisible(const LVFontFace& face, int documentId, int docFragmentIdx)
+    {
+        if (face.documentId != -1 && face.documentId != documentId)
+            return false;
+        // Doc-fragment-scoped: only visible to DocFragments that declared this font.
+        // Guard on documentId != -1 so that when doc fonts are disabled
+        // (getFontContextDocIndex() returns -1), doc fragment filtering is also off.
+        if (documentId != -1 && !face.allowedForDocFragment(docFragmentIdx))
+            return false;
+        return true;
+    }
+
+    // Lower is better. Follows sec 5.2's width rule: a face whose range contains
+    // the requested width is best (0); otherwise, for a request <= 100%, the
+    // nearest narrower face is preferred to any wider one, and for a request > 100%
+    // the nearest wider one is preferred to any narrower one.
+    static float widthRank(const LVFontFace& f, float req)
+    {
+        if (req >= f._wdth_min && req <= f._wdth_max)
+            return 0;
+        const float penalty = 100000.0f; // pushes the less preferred direction behind the preferred one
+        bool narrower = f._wdth_max < req; // face is entirely narrower than requested
+        float dist = narrower ? req - f._wdth_max : f._wdth_min - req;
+        bool preferNarrower = req <= 100.0f;
+        return 1 + dist + (narrower == preferNarrower ? 0 : penalty);
+    }
+
+public:
+    /// family must be non-null; callers check registry.findFamily()/familyAt() first.
+    LVFontMatch matchFamily(const LVFontFamily* family,
+                             int weight, bool italic,
+                             const LVFontVariations& requested,
+                             int documentId = -1,
+                             int docFragmentIdx = -1) const
+    {
+        LVFontMatch m;
+
+        // Sec 5.2: split faces by italic style match, keeping document-embedded
+        // faces separate from system faces so embedded faces are tried first.
+        // preferred/fallback = document-embedded faces (italic match / mismatch).
+        // sys_preferred/sys_fallback = system faces (italic match / mismatch).
+        LVArray<const LVFontFace*> preferred, fallback;
+        LVArray<const LVFontFace*> sys_preferred, sys_fallback;
+        // Sec 5.2 matches font-width first: every face has a width (range), and
+        // only the faces with the best-matching one survive. Computed separately for document and
+        // system faces so that an embedded face is never dropped in favour of a system one.
+        const float reqWidth = requested.wdth_set ? requested.wdth : 100.0f;
+        float docWidthDist = -1, sysWidthDist = -1;
+        for (int i = 0; i < family->faceCount(); i++) {
+            const LVFontFace& face = family->faceAt(i);
+            if (!faceVisible(face, documentId, docFragmentIdx))
+                continue;
+            float& best = (face.documentId != -1) ? docWidthDist : sysWidthDist;
+            float d = widthRank(face, reqWidth);
+            if (best < 0 || d < best)
+                best = d;
+        }
+        for (int i = 0; i < family->faceCount(); i++) {
+            const LVFontFace& face = family->faceAt(i);
+            if (!faceVisible(face, documentId, docFragmentIdx))
+                continue;
+            float bestWidth = (face.documentId != -1) ? docWidthDist : sysWidthDist;
+            if (widthRank(face, reqWidth) > bestWidth)
+                continue;
+            bool nativelyItalic = face.is_italic ||
+                    (face._has_ital && face._ital_max > 0.5f) ||
+                    (face._has_slnt && face._slnt_min < 0.0f);
+            bool styleMatch = italic ? nativelyItalic : !face.is_italic;
+            if (face.documentId != -1) {
+                if (styleMatch) preferred.add(&face);
+                else            fallback.add(&face);
+            } else {
+                if (styleMatch) sys_preferred.add(&face);
+                else            sys_fallback.add(&face);
+            }
+        }
+
+        // Try document-embedded faces first, then system faces.
+        const LVFontFace* face = pickBestWeight(
+                preferred.length() > 0 ? preferred : fallback, weight);
+        if (!face)
+            face = pickBestWeight(
+                    sys_preferred.length() > 0 ? sys_preferred : sys_fallback, weight);
+        if (!face) return m;
+
+        m.face                = face;
+        m.computed_variations = computeVariations(*face, requested, weight, italic);
+        return m;
+    }
+
+    LVFontMatch select(int weight, bool italic,
+                        css_font_family_t family,
+                        const lString8& typeface,
+                        const LVFontVariations& requested,
+                        const LVFontRegistry& registry,
+                        int documentId,
+                        const lString8& preferred_family,
+                        int docFragmentIdx = -1) const
+    {
+        // 1. Try each name in the CSS font-family list in order.
+        //    typeface may be a comma-separated list e.g. "Georgia, Times New Roman".
+        //    splitPropertyValueList handles quoted names and strips whitespace.
+        LVFontMatch m;
+        lString8Collection names;
+        splitPropertyValueList(typeface.c_str(), names);
+        for (int i = 0; i < names.length(); i++) {
+            const LVFontFamily* fam = registry.findFamily(names[i], documentId, docFragmentIdx);
+            if (!fam)
+                continue;
+            m = matchFamily(fam, weight, italic, requested, documentId, docFragmentIdx);
+            if (m.valid()) return m;
+        }
+
+        // 2. User's preferred family (replaces the useBias scoring trick).
+        if (!preferred_family.empty()) {
+            const LVFontFamily* fam = registry.findFamily(preferred_family, documentId, docFragmentIdx);
+            if (fam) {
+                m = matchFamily(fam, weight, italic, requested, documentId, docFragmentIdx);
+                if (m.valid()) return m;
+            }
+        }
+
+        // 3. Generic family fallback: any registered family whose faces match
+        //    the requested generic type (monospace, serif, sans-serif).
+        for (int i = 0; i < registry.familyCount(); i++) {
+            const LVFontFamily* fam = registry.familyAt(i);
+            for (int j = 0; j < fam->faceCount(); j++) {
+                if (fam->faceAt(j).css_family == family) {
+                    m = matchFamily(fam, weight, italic, requested, documentId, docFragmentIdx);
+                    if (m.valid()) return m;
+                    break;
+                }
+            }
+        }
+
+        // 4. Last resort: any registered face at all.
+        if (registry.familyCount() > 0) {
+            m = matchFamily(registry.familyAt(0), weight, italic, requested, documentId, docFragmentIdx);
+        }
+
+        return m;
+    }
+};
+
+/// Cache key identifying one specific loaded font instance.
+struct LVFontInstanceKey {
+    lUInt32 face_id;           // stable hash of (file, face_index, documentId)
+    int     size;              // requested pixel size
+    int     face_size;         // actual loaded size (may differ for monospace)
+    int     features;          // OpenType features bitmap
+    int     requested_weight;  // CSS-requested weight (e.g. 700); loadAndCache() synthesizes bold if face's wght axis differs
+    bool    requested_italic;  // CSS-requested italic; loadAndCache() synthesizes italic if face.is_italic differs
+    lUInt32 computed_variations_hash;   // LVFontVariations::hash() of computed axis values
+
+    bool operator==(const LVFontInstanceKey& o) const {
+        return face_id         == o.face_id
+            && size            == o.size
+            && face_size       == o.face_size
+            && features        == o.features
+            && requested_weight == o.requested_weight
+            && requested_italic == o.requested_italic
+            && computed_variations_hash == o.computed_variations_hash;
+    }
+    lUInt32 hash() const {
+        lUInt32 h = face_id;
+        h = h * 31 + (lUInt32)(unsigned)size;
+        h = h * 31 + (lUInt32)(unsigned)face_size;
+        h = h * 31 + (lUInt32)(unsigned)features;
+        h = h * 31 + (lUInt32)(unsigned)requested_weight;
+        h = h * 31 + ((lUInt32)requested_italic);
+        h = h * 31 + computed_variations_hash;
+        return h;
+    }
+};
+
+/// Exact-match instance cache - authoritative source for loaded font instances.
+class LVFontInstanceCache {
+    struct Entry {
+        LVFontInstanceKey key;
+        LVFontRef         font;
+    };
+    LVArray<Entry> _entries;
+public:
+    LVFontRef get(const LVFontInstanceKey& key) const {
+        for (int i = 0; i < _entries.length(); i++) {
+            if (_entries[i].key == key) {
+                assert(!_entries[i].font.isNull()); // put() only stores valid refs; gc() removes null ones
+                return _entries[i].font;
+            }
+        }
+        return LVFontRef();
+    }
+    void put(const LVFontInstanceKey& key, LVFontRef font) {
+        for (int i = 0; i < _entries.length(); i++) {
+            if (_entries[i].key == key) {
+                _entries[i].font = font;
+                return;
+            }
+        }
+        Entry e;
+        e.key  = key;
+        e.font = font;
+        _entries.add(e);
+    }
+    bool hasFaceId(lUInt32 face_id) const {
+        for (int i = 0; i < _entries.length(); i++)
+            if (_entries[i].key.face_id == face_id)
+                return true;
+        return false;
+    }
+    void clear() {
+        _entries.clear();
+    }
+    // Evict instances whose face_id is in the provided set.
+    // Call before removeFonts() so the registry still holds the face IDs.
+    void evictFaces(const LVArray<lUInt32>& face_ids) {
+        for (int i = _entries.length() - 1; i >= 0; i--)
+            for (int j = 0; j < face_ids.length(); j++)
+                if (_entries[i].key.face_id == face_ids[j]) {
+                    _entries.remove(i);
+                    break;
+                }
+    }
+    // Full reset used only in the destructor.
+    void clearAll() {
+        _entries.clear();
+    }
+    int length() const { return _entries.length(); }
+
+    /// Call f(font) for every live instance.  Used by mode-change methods
+    /// (SetAntialiasMode, SetHintingMode, SetKerningMode, clearGlyphCache).
+    template<typename Fn>
+    void forEachFont(Fn f) {
+        for (int i = 0; i < _entries.length(); i++)
+            if (!_entries[i].font.isNull())
+                f(_entries[i].font);
+    }
+
+    void gc() {
+        for (int i = _entries.length() - 1; i >= 0; i--) {
+            if (_entries[i].font.isNull() || _entries[i].font.getRefCount() == 1)
+                _entries.remove(i);
+        }
+    }
+};
+
 class LVFreeTypeFontManager : public LVFontManager
 {
 private:
-    lString8    _path;
-    lString8    _fallbackFontFacesString; // comma separated list of fallback fonts
-    lString8Collection _fallbackFontFaces;  // splitted from previous
-    LVFontCache _cache;
+    lString8    _fallbackFontFacesString;  // comma separated list of fallback fonts
+    lString8Collection _fallbackFontFaces; // splitted from previous
+    LVFontRegistry      _registry;         // physical face registry
+    LVFontSelector      _font_selector;    // font matching/selection (see LVFontSelector)
+    LVFontInstanceCache _instance_cache;   // exact-match instance cache
+    lString8 _preferred_family;            // primary reading font - step-2 fallback for any generic family
+    lString8 _preferred_by_css_family[9];  // per-css-family overrides; indexed by css_font_family_t (max=8)
     FT_Library  _library;
     LVFontGlobalGlyphCache _globalCache;
     lString32 _requiredChars;
@@ -5285,7 +6855,29 @@ public:
     /// get hash of installed fonts and fallback font
     virtual lUInt32 GetFontListHash(int documentId) {
         FONT_MAN_GUARD
-        return _cache.GetFontListHash(documentId) * 75 + _fallbackFontFacesString.getHash();
+        // Sum per-face hashes rather than folding them in registry order, so the
+        // result doesn't depend on registration order (filesystem traversal order,
+        // or the order documents register/unregister their embedded fonts).
+        lUInt32 hash = 0;
+        for (int i = 0; i < _registry.familyCount(); i++) {
+            const LVFontFamily* f = _registry.familyAt(i);
+            for (int j = 0; j < f->faceCount(); j++) {
+                const LVFontFace& face = f->faceAt(j);
+                // Include global faces and faces belonging to this document.
+                if (documentId != -1 && face.documentId != -1 && face.documentId != documentId)
+                    continue;
+                lUInt32 h = face.file_path.getHash();
+                h = h * 31 + (lUInt32)face.face_index;
+                h = h * 31 + face.typeface.getHash(); // family name: changes if a face is moved to another family
+                h = h * 31 + (lUInt32)(unsigned)(int)face._wght_min;
+                h = h * 31 + (lUInt32)(unsigned)(int)face._wght_max;
+                h = h * 31 + (lUInt32)(face._wdth_min * 10 + 0.5f);
+                h = h * 31 + (lUInt32)(face._wdth_max * 10 + 0.5f);
+                h = h * 31 + (lUInt32)face.is_italic;
+                hash += h;
+            }
+        }
+        return hash * 75 + _fallbackFontFacesString.getHash();
     }
 
     /// set fallback fonts
@@ -5298,8 +6890,7 @@ public:
             for (int i = 0; i < faces.length(); i++) {
                 lString8 face = faces[i];
                 CRLog::trace("Looking for fallback font %s", face.c_str());
-                LVFontCacheItem * item = _cache.findFallback( face, -1 );
-                if ( !item ) { // not found
+                if ( !_registry.findFamily(face) ) { // not registered
                     continue;
                 }
                 if ( !has_valid_face ) {
@@ -5326,22 +6917,30 @@ public:
                 return false;
             }
             _fallbackFontFacesString = facesString;
-            _cache.clearFallbackFonts();
             // Somehow, with Fedra Serif (only!), changing the fallback font does
             // not prevent glyphs from previous fallback font to be re-used...
             // So let's clear glyphs caches too.
+            // Also reset the per-instance cached fallback font reference so every
+            // live instance re-resolves it against the new fallback on next use.
+            _instance_cache.forEachFont([](LVFontRef& f) { f->setFallbackFont(LVFontRef()); });
             gc();
             clearGlyphCache();
         }
         return !_fallbackFontFacesString.empty();
     }
 
-    /// set as preferred font with the given bias to add in CalcMatch algorithm
-    virtual bool SetAsPreferredFontWithBias( lString8 face, int bias, bool clearOthersBias ) {
+    virtual void SetPrimaryFont( lString8 face ) {
         FONT_MAN_GUARD
-        return _cache.setAsPreferredFontWithBias(face, bias, clearOthersBias);
+        _preferred_family = face;
+        for (int i = 0; i < 9; i++) _preferred_by_css_family[i].clear();
     }
 
+    virtual void SetFamilyFallbackFont( lString8 face ) {
+        FONT_MAN_GUARD
+        const LVFontFamily* fam = _registry.findFamily(face);
+        if (fam && fam->faceCount() > 0)
+            _preferred_by_css_family[(int)fam->faceAt(0).css_family] = face;
+    }
 
     /// get fallback font face (returns empty string if no fallback font is set)
     virtual lString8 GetFallbackFontFaces() { return _fallbackFontFacesString; }
@@ -5358,9 +6957,7 @@ public:
             size &= 0xFFFC;
         else if ( size>16 )
             size &= 0xFFFE;
-        LVFontCacheItem * item = _cache.findFallback( _fallbackFontFaces[0], size );
-        if ( !item->getFont().isNull() )
-            return item->getFont();
+        // GetFont() uses the selector + instance cache - no need for findFallback().
         return GetFont(size, 400, false, css_ff_sans_serif, _fallbackFontFaces[0], 0, -1);
     }
 
@@ -5424,10 +7021,9 @@ public:
         gc();
         clearGlyphCache();
         FONT_MAN_GUARD
-        LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
-        for ( int i=0; i<fonts->length(); i++ ) {
-            fonts->get(i)->getFont()->setBitmapMode( isBitmapModeForSize( fonts->get(i)->getFont()->getHeight() ) );
-        }
+        _instance_cache.forEachFont([this](LVFontRef& f) {
+            f->setBitmapMode(isBitmapModeForSize(f->getHeight()));
+        });
     }
 
     /// sets current gamma level
@@ -5439,10 +7035,9 @@ public:
         _hintingMode = mode;
         gc();
         clearGlyphCache();
-        LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
-        for ( int i=0; i<fonts->length(); i++ ) {
-            fonts->get(i)->getFont()->setHintingMode(mode);
-        }
+        _instance_cache.forEachFont([mode](LVFontRef& f) {
+            f->setHintingMode(mode);
+        });
     }
 
     /// sets current gamma level
@@ -5457,10 +7052,25 @@ public:
         _kerningMode = mode;
         gc();
         clearGlyphCache();
-        LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
-        for ( int i=0; i<fonts->length(); i++ ) {
-            fonts->get(i)->getFont()->setKerningMode( mode );
-        }
+        _instance_cache.forEachFont([mode](LVFontRef& f) {
+            f->setKerningMode(mode);
+        });
+    }
+
+    virtual int GetFractionalGlyphPositioning() {
+        return fractionalGlyphPositioningStrength;
+    }
+
+    virtual void SetFractionalGlyphPositioning(int strength) {
+        if (strength < 0 || strength > 3)
+            strength = 0;
+        if (fractionalGlyphPositioningStrength == strength)
+            return;
+        FONT_MAN_GUARD
+        fractionalGlyphPositioningStrength = strength;
+        CRLog::debug("Fractional glyph positioning strength is %d", strength);
+        gc();
+        clearGlyphCache();
     }
 
     /// set monospace size scale percent
@@ -5485,7 +7095,7 @@ public:
     {
         FONT_MAN_GUARD
         _fallbackFontSizesAdjusted = adjusted;
-        _cache.clearFallbackFonts();
+        _instance_cache.forEachFont([](LVFontRef& f) { f->setFallbackFont(LVFontRef()); });
         gc();
     }
 
@@ -5495,18 +7105,16 @@ public:
         FONT_MAN_GUARD
         _globalCache.clear();
         #if USE_HARFBUZZ==1
-        // needs to clear each font _glyph_cache2 (for Gamma change, which
-        // does not call any individual font method)
-        LVPtrVector< LVFontCacheItem > * fonts = _cache.getInstances();
-        for ( int i=0; i<fonts->length(); i++ ) {
-            fonts->get(i)->getFont()->clearCache();
-        }
+        // Clear per-font glyph caches (e.g. after a gamma change).
+        _instance_cache.forEachFont([](LVFontRef& f) {
+            f->clearCache();
+        });
         #endif
     }
 
     virtual int GetFontCount()
     {
-        return _cache.length();
+        return _registry.familyCount();
     }
 
     bool initSystemFonts()
@@ -5532,7 +7140,11 @@ public:
 
             FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_WEIGHT, FC_FAMILY,
                                                FC_SLANT, FC_SPACING, FC_INDEX,
-                                               FC_STYLE, FC_SCALABLE, NULL);
+                                               FC_STYLE, FC_SCALABLE, FC_WIDTH,
+#ifdef FC_VARIABLE
+                                               FC_VARIABLE,
+#endif
+                                               NULL);
             FcPattern *pat = FcPatternCreate();
             //FcBool b = 1;
             FcPatternAddBool(pat, FC_SCALABLE, 1);
@@ -5647,6 +7259,14 @@ public:
                     CRLog::debug("no FC_SLANT for %s", s);
                     //continue;
                 }
+                // FC_WIDTH constants are already CSS font-width percentages (FC_WIDTH_CONDENSED
+                // is 75, etc). Only used to pick the family name suffix of static faces, which
+                // are then registered at normal width, as with the FreeType paths.
+                int fcWidth = 100;
+                res = FcPatternGetInteger(fontset->fonts[i], FC_WIDTH, 0, &fcWidth);
+                if(res != FcResultMatch || fcWidth <= 0) {
+                    fcWidth = 100;
+                }
                 int spacing = 0;
                 res = FcPatternGetInteger(fontset->fonts[i], FC_SPACING, 0, &spacing);
                 if(res != FcResultMatch) {
@@ -5663,14 +7283,8 @@ public:
                 //     default: cr_weight=300; break;
                 // }
                 css_font_family_t fontFamily = css_ff_sans_serif;
-                lString32 face32((const char *)family);
-                face32.lowercase();
                 if ( spacing==FC_MONO )
                     fontFamily = css_ff_monospace;
-                else if (face32.pos("sans") >= 0)
-                    fontFamily = css_ff_sans_serif;
-                else if (face32.pos("serif") >= 0)
-                    fontFamily = css_ff_serif;
 
                 //css_ff_inherit,
                 //css_ff_serif,
@@ -5680,42 +7294,30 @@ public:
                 //css_ff_monospace,
                 bool italic = (slant!=FC_SLANT_ROMAN);
 
+                FcBool variable = FcFalse;
+#ifdef FC_VARIABLE
+                FcPatternGetBool(fontset->fonts[i], FC_VARIABLE, 0, &variable);
+#endif
                 lString8 face((const char*)family);
-                lString8 style8((const char*)style);
-                style8.lowercase();
-                if (style8.pos("extracondensed") >= 0)
-                    face << " ExtraCondensed";
-                else if (style8.pos("semicondensed") >= 0)
-                    face << " SemiCondensed";
-                else if (style8.pos("condensed") >= 0)
-                    face << " Condensed";
+                const char * suffix = widthFamilySuffix(face, (const char*)style, fcWidth * 10, variable == FcTrue);
+                if (suffix)
+                    face << " " << suffix;
 
-                LVFontDef def(
-                    lString8((const char*)s),
-                    -1, // height==-1 for scalable fonts
-                    weight,
-                    italic,
-                    -1, // OpenType features = -1 for not yet instantiated fonts
-                    fontFamily,
-                    face,
-                    index
-                );
+                LVFontFace def;
+                def.file_path  = lString8((const char*)s);
+                def.face_index = index;
+                def.setAxisInfo(LVFONT_TAG_WGHT, (float)weight, (float)weight);
+                def.setAxisInfo(LVFONT_TAG_WDTH, 100.0f, 100.0f); // any width info is in the family name
+                def.is_italic  = italic;
+                def.css_family = fontFamily;
+                def.typeface   = face;
                 CRLog::debug("FONTCONFIG: Font family:%s style:%s weight:%d slant:%d spacing:%d file:%s",
                                                 family, style, weight, slant, spacing, s);
-                if ( _cache.findDuplicate( &def ) ) {
-                    CRLog::debug("is duplicate, skipping");
-                    continue;
-                }
-                _cache.update( &def, LVFontRef(NULL) );
-
-                if ( scalable != FcFalse && !def.getItalic() ) {
-                    LVFontDef newDef( def );
-                    newDef.setItalic(2); // can italicize
-                    if ( !_cache.findDuplicate( &newDef ) )
-                        _cache.update( &newDef, LVFontRef(NULL) );
-                }
-
-                facesFound++;
+                // Note: inspectFTFace is not called here - opening every FontConfig-enumerated
+                // font file for HarfBuzz/axis inspection would significantly slow down startup.
+                // Variable fonts discovered via FontConfig lack axis metadata until first use.
+                if (tryRegisterFace(def))
+                    facesFound++;
             }
 
             FcFontSetDestroy(fontset);
@@ -5734,8 +7336,11 @@ public:
     virtual ~LVFreeTypeFontManager()
     {
         FONT_MAN_GUARD
+        // Release all cached font instances before touching the glyph cache or
+        // library: LVFreeTypeFace destructors call FT_Done_Face and flush their
+        // local glyph cache, both of which require these to still be alive.
+        _instance_cache.clearAll();
         _globalCache.clear();
-        _cache.clear();
         if ( _library )
             FT_Done_FreeType( _library );
         #if USE_HARFBUZZ==1
@@ -5773,25 +7378,99 @@ public:
     virtual void gc() // garbage collector
     {
         FONT_MAN_GUARD
-        _cache.gc();
+        _instance_cache.gc();
     }
 
-    lString8 makeFontFileName( lString8 name )
-    {
-        lString8 filename = _path;
-        if (!filename.empty() && _path[_path.length()-1]!=PATH_SEPARATOR_CHAR)
-            filename << PATH_SEPARATOR_CHAR;
-        filename << name;
-        return filename;
-    }
-
-    /// returns available typefaces
+    /// returns available typefaces (global fonts only - excludes document-embedded fonts)
     virtual void getFaceList( lString32Collection & list )
     {
         FONT_MAN_GUARD
-        _cache.getFaceList( list );
+        list.clear();
+        for (int i = 0; i < _registry.familyCount(); i++) {
+            const LVFontFamily* f = _registry.familyAt(i);
+            // A family can hold a mix of global and document-scoped faces when
+            // a document font shares its typeface name with a global one, so
+            // find the first global face rather than assuming faceAt(0) is global.
+            assert(f->faceCount() > 0); // registerFace() always adds a face; removeFonts() prunes empties
+            for (int j = 0; j < f->faceCount(); j++) {
+                const LVFontFace& face = f->faceAt(j);
+                if (face.documentId != -1)
+                    continue;
+                // typeface holds the original-case display name;
+                // getName() is the lowercase lookup key, not used for display.
+                lString32 name = Utf8ToUnicode(face.typeface);
+                list.add(name);
+                break;
+            }
+        }
+        list.sort();
     }
 
+    virtual void getRegisteredDocumentFontList( int document_id, lString32Collection & list )
+    {
+        FONT_MAN_GUARD
+        list.clear();
+        for (int i = 0; i < _registry.familyCount(); i++) {
+            const LVFontFamily* fam = _registry.familyAt(i);
+            for (int j = 0; j < fam->faceCount(); j++) {
+                const LVFontFace& face = fam->faceAt(j);
+                if (face.documentId != document_id)
+                    continue;
+                lString32 name = Utf8ToUnicode(face.typeface);
+                if (!list.contains(name))
+                    list.add(name);
+            }
+        }
+        list.sort();
+    }
+
+    virtual void getInstantiatedDocumentFontList( int document_id, lString32Collection & list )
+    {
+        FONT_MAN_GUARD
+        list.clear();
+        for (int i = 0; i < _registry.familyCount(); i++) {
+            const LVFontFamily* fam = _registry.familyAt(i);
+            for (int j = 0; j < fam->faceCount(); j++) {
+                const LVFontFace& face = fam->faceAt(j);
+                if (face.documentId != document_id)
+                    continue;
+                if (!_instance_cache.hasFaceId(face.id()))
+                    continue;
+                lString32 name = Utf8ToUnicode(face.typeface);
+                if (!list.contains(name))
+                    list.add(name);
+            }
+        }
+        list.sort();
+    }
+
+    virtual bool getFontFileNameAndFaceIndex( lString32 name, bool bold, bool italic, lString8 & filename, int & index, int & family_type, bool & has_ot_math, bool & has_emojis )
+    {
+        FONT_MAN_GUARD
+        const LVFontFamily* fam = _registry.findFamily(UnicodeToUtf8(name));
+        if (!fam)
+            return false;
+        int weight = bold ? 700 : 400;
+        LVFontMatch m = _font_selector.matchFamily(fam, weight, italic, LVFontVariations());
+        if (!m.valid())
+            return false;
+        filename     = m.face->file_path;
+        index        = m.face->face_index;
+        family_type  = (int)m.face->css_family;
+        has_ot_math  = m.face->has_ot_math;
+        has_emojis   = m.face->has_emojis;
+        return true;
+    }
+
+    /// makes sure registered fonts have a proper entry at weight 400 and 700 when possible,
+    /// to avoid having synthesized fonts for these normal and bold weights
+    virtual void RegularizeRegisteredFontsWeights(bool print_updates)
+    {
+        FONT_MAN_GUARD
+        _registry.regularizeWeights(print_updates);
+    }
+
+#if 0 // removed during font manager refactor
     /// returns registered font files
     virtual void getFontFileNameList( lString32Collection & list )
     {
@@ -6026,7 +7705,6 @@ public:
             }
         #endif
         LVFreeTypeFace * font = new LVFreeTypeFace(_lock, _library, &_globalCache);
-        lString8 pathname = makeFontFileName( fname );
 
         //def.setName( fname );
         //def.setIndex( index );
@@ -6054,7 +7732,7 @@ public:
             face_size = size * GetMonospaceSizeScale() / 100;
         }
         if (item->getDef()->getBuf().isNull())
-            loaded = font->loadFromFile( pathname.c_str(), item->getDef()->getIndex(), size, family, isBitmapModeForSize(size), italicize, item->getDef()->getWeight(), face_size );
+            loaded = font->loadFromFile( fname.c_str(), item->getDef()->getIndex(), size, family, isBitmapModeForSize(size), italicize, item->getDef()->getWeight(), face_size );
         else
             loaded = font->loadFromBuffer(item->getDef()->getBuf(), item->getDef()->getIndex(), size, family, isBitmapModeForSize(size), italicize, item->getDef()->getWeight(), face_size );
         if (loaded) {
@@ -6111,6 +7789,269 @@ public:
 
     void GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface) {
         _cache.getAvailableFontWeights(weights, typeface);
+    }
+#endif // 0 // removed during font manager refactor
+
+    /// returns registered font files
+    virtual void getFontFileNameList( lString32Collection & list )
+    {
+        FONT_MAN_GUARD
+        list.clear();
+        for (int i = 0; i < _registry.familyCount(); i++) {
+            const LVFontFamily* f = _registry.familyAt(i);
+            for (int j = 0; j < f->faceCount(); j++) {
+                lString32 name = Utf8ToUnicode(f->faceAt(j).file_path);
+                if (name.empty())
+                    continue;
+                bool found = false;
+                for (int k = 0; k < list.length(); k++)
+                    if (list[k] == name) { found = true; break; }
+                if (!found) list.add(name);
+            }
+        }
+    }
+
+    /// Inspect an open FT_Face and populate all capability/axis fields on def.
+    /// Called after the def constructor so that HarfBuzz and FreeType queries
+    /// only happen once per face regardless of which registration path is used.
+    /// defaultWeight and defaultWidth are used to pin the wght and wdth axes for
+    /// non-variable fonts (those without their own fvar wght or wdth axis).
+    void inspectFTFace(FT_Face ft_face, LVFontFace& def, int defaultWeight, int defaultWidth)
+    {
+        def.has_emojis = checkForEmojis(ft_face);
+        #if USE_HARFBUZZ==1
+        {
+            hb_face_t* hb_face = hb_ft_face_create(ft_face, NULL);
+            if (hb_ot_math_has_data(hb_face))
+                def.has_ot_math = true;
+            { // native small-caps ('smcp' GSUB feature); absence triggers synthesis
+                hb_tag_t smcp = HB_TAG('s','m','c','p');
+                unsigned feat_idx = 0;
+                if (hb_ot_layout_language_find_feature(hb_face, HB_OT_TAG_GSUB,
+                        0, HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX, smcp, &feat_idx))
+                    def.has_small_caps = true;
+            }
+            hb_face_destroy(hb_face);
+        }
+        #endif
+        // Detect variable-font axes from FreeType's MM_Var table.
+        {
+            FT_MM_Var* mm_var = NULL;
+            if (FT_Get_MM_Var(ft_face, &mm_var) == FT_Err_Ok && mm_var) {
+                #ifdef DEBUG_VAR_FONT
+                char axisBuf[512] = ""; int axisBufPos = 0;
+                #endif
+                for (FT_UInt ai = 0; ai < mm_var->num_axis; ai++) {
+                    lUInt32 tag      = (lUInt32)mm_var->axis[ai].tag;
+                    float   minValue = mm_var->axis[ai].minimum / 65536.0f;
+                    float   maxValue = mm_var->axis[ai].maximum / 65536.0f;
+                    def.setAxisInfo(tag, minValue, maxValue);
+                    #ifdef DEBUG_VAR_FONT
+                    if (axisBufPos < (int)sizeof(axisBuf) - 40)
+                        axisBufPos += snprintf(axisBuf + axisBufPos, sizeof(axisBuf) - axisBufPos,
+                                               "%s%c%c%c%c [%.0f..%.0f]", ai ? ", " : "",
+                                               (char)((tag>>24)&0xFF),(char)((tag>>16)&0xFF),
+                                               (char)((tag>> 8)&0xFF),(char)(tag&0xFF),
+                                               minValue, maxValue);
+                    #endif
+                }
+                #ifdef DEBUG_VAR_FONT
+                CRLog::info("Variable font found: \"%s\"  axes: %s",
+                            def.file_path.c_str(), axisBuf);
+                #endif
+                FT_DONE_MM_VAR(_library, mm_var);
+            }
+        }
+        // All fonts carry wght, ital and wdth axis info; non-variable fonts get a fixed-point range.
+        if (!def.hasAxis(LVFONT_TAG_WGHT)) {
+            def.setAxisInfo(LVFONT_TAG_WGHT, (float)defaultWeight, (float)defaultWeight);
+        }
+        if (!def.hasAxis(LVFONT_TAG_ITAL)) {
+            float iv = def.is_italic ? 1.0f : 0.0f;
+            def.setAxisInfo(LVFONT_TAG_ITAL, iv, iv);
+        }
+        if (!def.hasAxis(LVFONT_TAG_WDTH)) {
+            def.setAxisInfo(LVFONT_TAG_WDTH, defaultWidth / 10.0f, defaultWidth / 10.0f);
+        }
+    }
+
+    /// Register a face, merging docFragmentIdx into an existing entry if one
+    /// with the same id already exists.  For system (documentId==-1) faces
+    /// the old duplicate-rejection behaviour is preserved.
+    bool tryRegisterFace(const LVFontFace& def, int docFragmentIdx = -1)
+    {
+        if (docFragmentIdx >= 0) {
+            // Document-embedded, doc-fragment-scoped: merge into existing or add new.
+            LVFontFace* existing = _registry.findFaceById(def.id());
+            if (existing) {
+                existing->addDocFragment(docFragmentIdx);
+                return true;
+            }
+            LVFontFace newDef = def;
+            newDef.addDocFragment(docFragmentIdx);
+            _registry.registerFace(newDef);
+            return true;
+        }
+        // Non-doc-fragment-scoped (system fonts or document-global): deduplicate.
+        if (_registry.hasFaceId(def.id())) {
+            CRLog::trace("font definition is duplicate");
+            return false;
+        }
+        _registry.registerFace(def);
+        return true;
+    }
+
+    /// Resolves `src: local(localName)` from a document's @font-face rule: if a
+    /// family named `localName` is registered, makes `alias` resolve to it for
+    /// font selection within `documentId`. Simplified from the old SetAlias():
+    /// the face-copying loop (which duplicated faces under the alias name with
+    /// documentId set, so they appeared in getRegisteredDocumentFontList) is
+    /// removed since local() fonts aren't truly embedded in the document.
+    virtual bool RegisterDocumentFontAlias(int documentId, lString8 alias, lString8 localName, int docFragmentIdx = -1)
+    {
+        FONT_MAN_GUARD
+        if (!_registry.findFamily(localName))
+            return false;
+        _registry.registerAlias(alias, localName, documentId, docFragmentIdx);
+        return true;
+    }
+
+    /// Load a font face, apply synthesis, cache the instance, and return it.
+    LVFontRef loadAndCache(const LVFontFace& face, int size, int face_size,
+                            int weight, bool italic,
+                            int features, const LVFontVariations& computed_variations,
+                            const LVFontInstanceKey& key)
+    {
+        bool wghtByAxis = face.hasWeightAxis();
+        bool needsSynthWeight = false;
+        // Initial weight for the loaded face: the actual instantiated wght for
+        // variable fonts, or the face's single design weight for static fonts.
+        int loadWeight;
+        if (wghtByAxis) {
+            loadWeight = (int)computed_variations.get(LVFONT_TAG_WGHT);
+        } else {
+            loadWeight = face.getStaticWeight();
+        #ifdef USE_FT_EMBOLDEN
+            // FT_Outline_Embolden supports negative strength, so we can thin as well as embolden.
+            needsSynthWeight = myabs(weight - loadWeight) >= 25;
+        #else
+            // LVFontBoldTransform can only embolden (hShift is always positive).
+            needsSynthWeight = weight - loadWeight >= 200;
+        #endif
+        }
+        bool italByAxis = (face._has_ital && face._ital_max > 0.5f) ||
+                          (face._has_slnt && face._slnt_min < 0.0f);
+        bool italicize = italic && !face.is_italic && !italByAxis;
+
+        LVFreeTypeFace* font = new LVFreeTypeFace(_lock, _library, &_globalCache);
+        font->setVariations(computed_variations);
+
+        bool loaded;
+        if (face.buf.isNull()) {
+            loaded = font->loadFromFile(face.file_path.c_str(), face.face_index, size,
+                                        face.css_family, isBitmapModeForSize(size),
+                                        italicize, loadWeight, face_size);
+        } else {
+            loaded = font->loadFromBuffer(face.buf, face.face_index, size,
+                                          face.css_family, isBitmapModeForSize(size),
+                                          italicize, loadWeight, face_size);
+        }
+        if (!loaded) {
+            delete font;
+            return LVFontRef(NULL);
+        }
+
+        LVFontRef ref(font);
+        font->setFeatures(features);
+        font->setKerningMode(GetKerningMode());
+        font->setFaceName(face.typeface);
+
+        if (needsSynthWeight) {
+        #ifdef USE_FT_EMBOLDEN
+            font->setSynthWeight(weight < 200 ? 200 : weight);
+        #else
+            ref = LVFontRef(new LVFontBoldTransform(ref, &_globalCache));
+        #endif
+        }
+
+        // Apply small-caps synthesis: wrap with a transform that routes lowercase
+        // letters to uppercase glyphs rendered at ~75% of the normal size.
+        bool needsSmallCaps = (features & (LFNT_OT_FEATURES_P_SMCP | LFNT_OT_FEATURES_P_C2SC))
+                               && !face.has_small_caps;
+        if (needsSmallCaps) {
+            int small_size = (size * 3 + 2) / 4; // ~75%, rounded up
+            if (small_size < 1) small_size = 1;
+            // Carry wdth/opsz through verbatim: computeVariations() only honours
+            // `requested` for those two axes. ital/slnt are NOT taken from
+            // `requested` - computeVariations() derives them solely from the
+            // `italic` bool - so pass the original CSS-requested `italic` flag
+            // (not `face.is_italic || italicize`, which is false for axis-based
+            // oblique faces like Acumin's slnt axis) so the small font's selector
+            // pass recomputes the same slant the main face got.
+            LVFontVariations smallVars;
+            if (computed_variations.wdth_set)
+                smallVars.set(LVFONT_TAG_WDTH, computed_variations.wdth);
+            if (computed_variations.opsz_set)
+                smallVars.set(LVFONT_TAG_OPSZ, computed_variations.opsz * 0.75f);
+            // Downscaled glyphs lose apparent stroke thickness, so request a bit
+            // of extra weight on the small font to compensate.
+            int small_weight = weight + 100;
+            if (small_weight > 1000) small_weight = 1000;
+            LVFontRef smallRef = GetFont(small_size, small_weight, italic,
+                                         face.css_family, face.typeface,
+                                         features & ~(LFNT_OT_FEATURES_P_SMCP | LFNT_OT_FEATURES_P_C2SC),
+                                         face.documentId, false, smallVars.empty() ? NULL : &smallVars);
+            if (!smallRef.isNull())
+                ref = LVFontRef(new LVFontSmallCapsTransform(ref, smallRef,
+                                    (features & LFNT_OT_FEATURES_P_C2SC) != 0));
+        }
+
+        _instance_cache.put(key, ref);
+        return ref;
+    }
+
+    virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t css_family, lString8 typeface,
+                                int features, int documentId, bool useBias=false,
+                                const LVFontVariations* variations=NULL, int docFragmentIdx = -1)
+    {
+        FONT_MAN_GUARD
+
+        // 1. Select face + synthesis via LVFontSelector.
+        LVFontVariations requested = variations ? *variations : LVFontVariations();
+        lString8 preferred;
+        if (useBias) {
+            preferred = _preferred_by_css_family[(int)css_family];
+            if (preferred.empty())
+                preferred = _preferred_family;
+        }
+        LVFontMatch m = _font_selector.select(weight, italic, css_family, typeface,
+                                         requested, _registry, documentId, preferred, docFragmentIdx);
+        if (!m.valid()) {
+            CRLog::error("GetFont: no match for typeface='%s' w=%d italic=%d family=%d",
+                         typeface.c_str(), weight, (int)italic, (int)css_family);
+            return LVFontRef(NULL);
+        }
+
+        // 2. Build instance cache key.
+        int face_size = size;
+        if (m.face->css_family == css_ff_monospace && GetMonospaceSizeScale() != 100)
+            face_size = size * GetMonospaceSizeScale() / 100;
+
+        LVFontInstanceKey key;
+        key.face_id          = m.face->id();
+        key.size             = size;
+        key.face_size        = face_size;
+        key.features         = features;
+        key.requested_weight = weight;
+        key.requested_italic = italic;
+        key.computed_variations_hash = m.computed_variations.hash();
+
+        // 3. Return cached instance if available; otherwise load and cache.
+        LVFontRef cached = _instance_cache.get(key);
+        if (!cached.isNull()) return cached;
+
+        return loadAndCache(*m.face, size, face_size, weight, italic,
+                            features, m.computed_variations, key);
     }
 
     bool checkCharSet( FT_Face face )
@@ -6183,20 +8124,31 @@ public:
     // Note: publishers can specify font-variant/font-feature-settings/font-variation-settings
     // in the @font-face declaration.
     // todo: parse it and pass it here, and set it on the non-instantiated font (instead of -1)
-    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString32 name, lString8 faceName, bool bold, bool italic) {
+    virtual bool RegisterDocumentFont(int documentId, LVContainerRef container, lString32 name, lString8 faceName, int weight, int width, bool italic, int docFragmentIdx = -1) {
         FONT_MAN_GUARD
-        lString8 name8 = UnicodeToUtf8(name);
-        CRLog::debug("RegisterDocumentFont(documentId=%d, path=%s)", documentId, name8.c_str());
-        if (_cache.findDocumentFontDuplicate(documentId, name8)) {
+        if (container.isNull()) // no container to resolve src: url() against (e.g. a styletweak)
             return false;
-        }
+        lString8 name8 = UnicodeToUtf8(name);
+        CRLog::debug("RegisterDocumentFont(documentId=%d, docFragmentIdx=%d, path=%s)", documentId, docFragmentIdx, name8.c_str());
+        // Fast path: if this file is already registered for this document, just add
+        // the new doc fragment to existing entries without reloading the font data.
+        if (docFragmentIdx >= 0 && _registry.addDocFragmentToFacesForFile(name8, documentId, docFragmentIdx))
+            return true;
         name.trim(); // Remove any " " appended to avoid url override with duplicates
         LVStreamRef stream = container->OpenStream(name.c_str(), LVOM_READ);
+        if (stream.isNull()) // Try again in case it is percent-encoded
+            stream = container->OpenStream(DecodeHTMLUrlString(name).c_str(), LVOM_READ);
         if (stream.isNull())
             return false;
         lUInt32 size = (lUInt32)stream->GetSize();
-        if (size < 100 || size > 5000000)
+        if (size < 100) {
+            printf("CRE WARNING: document font '%s' ignored: file too small\n", LCSTR(name));
             return false;
+        }
+        if (size > 25000000) {
+            printf("CRE WARNING: document font '%s' ignored: file too big\n", LCSTR(name));
+            return false;
+        }
         LVByteArrayRef buf = stream->GetData();
         if (!buf)
             return false;
@@ -6239,21 +8191,32 @@ public:
                 fontFamily = css_ff_serif;
             */
 
-            int weight = !faceName.empty() ? (bold ? 700 : 400) : getFontWeight(face);
+            int resolvedWeight = !faceName.empty() ? weight : getFontWeight(face);
+            // Without a declared @font-face family, the width is in the family name
+            // (see widthFamilySuffix()), so the face is registered at normal width.
+            int resolvedWidth = !faceName.empty() ? width : css_fwd_normal;
             bool italicFlag = !faceName.empty() ? italic : (face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
-            LVFontDef def(
-                name8,
-                -1, // height==-1 for scalable fonts
-                weight,
-                italicFlag,
-                -1, // OpenType features = -1 for not yet instantiated fonts
-                fontFamily,
-                familyName,
-                index,
-                documentId,
-                buf
-            );
+            LVFontFace def;
+            def.file_path   = name8;
+            def.face_index  = index;
+            def.is_italic   = italicFlag;
+            def.css_family  = fontFamily;
+            def.typeface    = familyName;
+            def.documentId  = documentId;
+            def.buf         = buf;
+            inspectFTFace(face, def, resolvedWeight, resolvedWidth);
+            #if (DEBUG_FONT_MAN==1)
+                if ( _log )
+                    fprintf(_log, "registering font: (file=%s[%d], weight=%d, italic=%d, family=%d, typeface=%s)\n",
+                        def.file_path.c_str(), def.face_index, weight,
+                        def.is_italic?1:0, (int)def.css_family, def.typeface.c_str());
+            #endif
+            if ( face ) { FT_Done_Face( face ); face = NULL; }
+            if (!tryRegisterFace(def, docFragmentIdx)) return false;
+            res = true;
+            if ( index>=num_faces-1 ) break;
+#if 0 // removed during font manager refactor
             def.setHasEmojis( checkForEmojis(face) );
             #if USE_HARFBUZZ==1
                 hb_face_t * hb_face = hb_ft_face_create(face, NULL);
@@ -6288,25 +8251,37 @@ public:
 
             if ( index>=num_faces-1 )
                 break;
+#endif // 0 // removed during font manager refactor
         }
         return res;
     }
 
     /// unregisters all document fonts
     virtual void UnregisterDocumentFonts(int documentId) {
-        _cache.removeDocumentFonts(documentId);
+        LVArray<lUInt32> face_ids;
+        for (int i = 0; i < _registry.familyCount(); i++) {
+            const LVFontFamily* fam = _registry.familyAt(i);
+            for (int j = 0; j < fam->faceCount(); j++) {
+                const LVFontFace& face = fam->faceAt(j);
+                if (face.documentId == documentId)
+                    face_ids.add(face.id());
+            }
+        }
+        _instance_cache.evictFaces(face_ids);
+        _registry.removeFonts(documentId);
     }
 
-    virtual bool RegisterExternalFont(int documentId, lString32 name, lString8 family_name, bool bold, bool italic) {
+    virtual bool RegisterExternalFont(int documentId, lString32 name, lString8 family_name, int weight, int width, bool italic, int docFragmentIdx = -1) {
         if (name.startsWithNoCase(lString32("res://")))
             name = name.substr(6);
         else if (name.startsWithNoCase(lString32("file://")))
             name = name.substr(7);
         lString8 fname = UnicodeToUtf8(name);
-        CRLog::debug("RegisterExternalFont(documentId=%d, path=%s)", documentId, fname.c_str());
-        if (_cache.findDocumentFontDuplicate(documentId, fname)) {
-            return false;
-        }
+        CRLog::debug("RegisterExternalFont(documentId=%d, docFragmentIdx=%d, path=%s)", documentId, docFragmentIdx, fname.c_str());
+        // Fast path: if this file is already registered for this document, just add
+        // the new doc fragment to existing entries without reloading the font from disk.
+        if (docFragmentIdx >= 0 && _registry.addDocFragmentToFacesForFile(fname, documentId, docFragmentIdx))
+            return true;
 
         bool res = false;
         int index = 0;
@@ -6350,17 +8325,19 @@ public:
                 fontFamily = css_ff_serif;
             */
 
-            LVFontDef def(
-                fname,
-                -1, // height==-1 for scalable fonts
-                bold ? 700 : 400,
-                italic,
-                -1, // OpenType features = -1 for not yet instantiated fonts
-                fontFamily,
-                family_name,
-                index,
-                documentId
-            );
+            LVFontFace def;
+            def.file_path   = fname;
+            def.face_index  = index;
+            def.is_italic   = italic;
+            def.css_family  = fontFamily;
+            def.typeface    = family_name;
+            def.documentId  = documentId;
+            inspectFTFace(face, def, weight, width);
+            FT_Done_Face( face ); face = NULL;
+            if (!tryRegisterFace(def, docFragmentIdx)) return false;
+            res = true;
+            if ( index>=num_faces-1 ) break;
+#if 0 // removed during font manager refactor
             def.setHasEmojis( checkForEmojis(face) );
             #if USE_HARFBUZZ==1
                 hb_face_t * hb_face = hb_ft_face_create(face, NULL);
@@ -6395,6 +8372,7 @@ public:
 
             if ( index>=num_faces-1 )
                 break;
+#endif // 0 // removed during font manager refactor
         }
         return res;
     }
@@ -6412,11 +8390,9 @@ public:
             return false; // load ttf fonts only
         #endif
         //CRLog::trace("RegisterFont(%s)", name.c_str());
-        lString8 fname = makeFontFileName( name );
-        //CRLog::trace("font file name : %s", fname.c_str());
         #if (DEBUG_FONT_MAN==1)
             if ( _log ) {
-                fprintf(_log, "RegisterFont( %s ) path=%s\n", name.c_str(), fname.c_str());
+                fprintf(_log, "RegisterFont( %s )\n", name.c_str());
             }
         #endif
 
@@ -6426,7 +8402,7 @@ public:
 
         // for all faces in file
         for ( ;; index++ ) {
-            FT_Error error = FT_New_Face( _library, fname.c_str(), index, &face ); /* create face object */
+            FT_Error error = FT_New_Face( _library, name.c_str(), index, &face ); /* create face object */
             if (error != FT_Err_Ok) {
                 ft_error_trace(__func__, "FT_New_Face", error);
                 break;
@@ -6453,6 +8429,31 @@ public:
             }
             int num_faces = face->num_faces;
 
+            lString8 familyName( ::familyName(face) );
+            css_font_family_t fontFamily = css_ff_sans_serif;
+            if (face->face_flags & FT_FACE_FLAG_FIXED_WIDTH) fontFamily = css_ff_monospace;
+            int weight = getFontWeight(face);
+            bool italicFlag = ( face->style_flags & FT_STYLE_FLAG_ITALIC ) ? true : false;
+            LVFontFace def;
+            def.file_path  = name;
+            def.face_index = index;
+            def.is_italic  = italicFlag;
+            def.css_family = fontFamily;
+            def.typeface   = familyName;
+            // Any width info is in the family name (see familyName()); a variable font's
+            // wdth axis, if any, is read by inspectFTFace() and overrides this default.
+            inspectFTFace(face, def, weight, css_fwd_normal);
+            #if (DEBUG_FONT_MAN==1)
+                if ( _log )
+                    fprintf(_log, "registering font: (file=%s[%d], weight=%d, italic=%d, family=%d, typeface=%s)\n",
+                        def.file_path.c_str(), def.face_index, weight,
+                        def.is_italic?1:0, (int)def.css_family, def.typeface.c_str());
+            #endif
+            if ( face ) { FT_Done_Face( face ); face = NULL; }
+            if (!tryRegisterFace(def)) return false;
+            res = true;
+            if ( index>=num_faces-1 ) break;
+#if 0 // removed during font manager refactor
             css_font_family_t fontFamily = css_ff_sans_serif;
             if ( face->face_flags & FT_FACE_FLAG_FIXED_WIDTH )
                 fontFamily = css_ff_monospace;
@@ -6515,19 +8516,48 @@ public:
 
             if ( index>=num_faces-1 )
                 break;
+#endif // 0 // removed during font manager refactor
         }
         return res;
     }
 
-    virtual bool Init( lString8 path )
+    void GetAvailableFontWeights(LVArray<int>& weights, lString8 typeface) {
+        FONT_MAN_GUARD
+        weights.clear();
+        const LVFontFamily* f = _registry.findFamily(typeface);
+        if (!f) return;
+        for (int i = 0; i < f->faceCount(); i++) {
+            const LVFontFace& face = f->faceAt(i);
+            if (face.hasWeightAxis()) {
+                int lo = (int)(ceil(face._wght_min / 100.0f) * 100);
+                int hi = (int)(floor(face._wght_max / 100.0f) * 100);
+                for (int w = lo; w <= hi; w += 100)
+                    weights.add(w);
+                return;
+            }
+        }
+        for (int i = 0; i < f->faceCount(); i++) {
+            int w = f->faceAt(i).getStaticWeight();
+            bool found = false;
+            for (int j = 0; j < weights.length(); j++)
+                if (weights[j] == w) { found = true; break; }
+            if (!found) weights.add(w);
+        }
+        for (int i = 1; i < weights.length(); i++)
+            for (int j = i; j > 0 && weights[j-1] > weights[j]; j--) {
+                int tmp = weights[j-1];
+                weights[j-1] = weights[j];
+                weights[j] = tmp;
+            }
+    }
+
+    virtual bool Init( lString8 /*path*/ )
     {
-        _path = path;
         initSystemFonts();
         return (_library != NULL);
     }
 };
 #endif // (USE_FREETYPE==1)
-
 
 #if (USE_BITMAP_FONTS==1)
 class LVBitmapFontManager : public LVFontManager
@@ -6563,7 +8593,8 @@ public:
         return filename;
     }
     virtual LVFontRef GetFont(int size, int weight, bool italic, css_font_family_t family, lString8 typeface,
-                                int features, int documentId, bool useBias=false)
+                                int features, int documentId, bool useBias=false,
+                                const LVFontVariations* /*variations*/=NULL, int /*docFragmentIdx*/=-1)
     {
         LVFontDef * def = new LVFontDef(
             lString8::empty_str,
@@ -6624,7 +8655,7 @@ public:
         lvsize_t bytes_read = 0;
         if ( stream->Read( &hdr, sizeof(hdr), &bytes_read ) == LVERR_OK && bytes_read == sizeof(hdr) )
         {
-            LVFontDef def(
+            LVFontRegistrationData def(
                 name,
                 hdr.fontHeight,
                 hdr.flgBold?700:400,
@@ -6694,7 +8725,9 @@ public:
     {
         _cache.gc();
     }
-    virtual LVFontRef GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface )
+    virtual LVFontRef GetFont(int size, int weight, bool bitalic, css_font_family_t family, lString8 typeface,
+                                int features=0, int documentId=-1, bool useBias=false,
+                                const LVFontVariations* /*variations*/=NULL, int /*docFragmentIdx*/=-1)
     {
         int italic = bitalic?1:0;
         if (size<8)
@@ -6702,7 +8735,7 @@ public:
         if (size>255)
             size = 255;
 
-        LVFontDef def(
+        LVFontRegistrationData def(
             lString8::empty_str,
             size,
             weight,
@@ -6773,7 +8806,7 @@ public:
             ff = css_ff_sans_serif;
             break;
         }
-        LVFontDef def(
+        LVFontRegistrationData def(
             face,
             -1, //lf->lfHeight>0 ? lf->lfHeight : -lf->lfHeight,
             -1, //lf->lfWeight,
@@ -6882,7 +8915,7 @@ bool InitFontManager( lString8 path )
     fontMan = new LVWin32FontManager;
 #elif (USE_FREETYPE==1)
     fontMan = new LVFreeTypeFontManager;
-#else
+#elif (USE_BITMAP_FONTS==1)
     fontMan = new LVBitmapFontManager;
 #endif
     return fontMan->Init( path );
@@ -6899,6 +8932,7 @@ bool ShutdownFontManager()
     return false;
 }
 
+#if 0 // removed during font manager refactor
 // Font definitions matching/scoring
 int LVFontDef::CalcDuplicateMatch( const LVFontDef & def ) const
 {
@@ -7101,12 +9135,9 @@ int LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
                 // avoid soft hyphens inside text string
                 w = item->advance;
                 if ( item->bmp_width && item->bmp_height ) {
-                    buf->Draw( x + item->origin_x,
+                    drawGlyphItem(buf, x + item->origin_x,
                         y + baseline - item->origin_y,
-                        item->bmp,
-                        item->bmp_width,
-                        item->bmp_height,
-                        palette);
+                        item, palette);
                 }
             }
             x  += w; // + letter_spacing;
@@ -7137,6 +9168,7 @@ int LVBaseFont::DrawTextString( LVDrawBuf * buf, int x, int y,
     }
     return x - x0;
 }
+#endif // 0 // removed during font manager refactor
 
 #if (USE_BITMAP_FONTS==1)
 bool LBitmapFont::getGlyphInfo( lUInt32 code, LVFont::glyph_info_t * glyph, lChar32 def_char, bool code_is_glyph_index, bool is_fallback )
@@ -7224,6 +9256,7 @@ int LBitmapFont::LoadFromFile( const char * fname )
 }
 #endif // (USE_BITMAP_FONTS==1)
 
+#if 0 // removed during font manager refactor
 // Font cache management
 LVFontCacheItem * LVFontCache::findDuplicate( const LVFontDef * def )
 {
@@ -7480,6 +9513,7 @@ void LVFontCache::gc()
         gc();
     }
 }
+#endif // 0 // removed during font manager refactor
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32) && USE_FREETYPE!=1
 void LVBaseWin32Font::Clear()
@@ -7698,6 +9732,7 @@ lUInt16 LVWin32DrawFont::measureText(
 
     if ( !_hyphen_width )
         _hyphen_width = getCharWidth( UNICODE_SOFT_HYPHEN_CODE );
+    int hyphen_width = ( lang_cfg ? lang_cfg : TextLangMan::getTextLangCfg() )->hideHyphenationMark() ? 0 : _hyphen_width;
 
     lUInt16 wsum = 0;
     lUInt16 nchars = 0;
@@ -7749,9 +9784,9 @@ lUInt16 LVWin32DrawFont::measureText(
 
     }
     if ( lang_cfg )
-        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+        lang_cfg->getHyphMethod()->hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphen_width, max_width);
     else // Use global lang hyph method
-        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, _hyphen_width, max_width);
+        HyphMan::hyphenate(text+hwStart, hwEnd-hwStart, widths+hwStart, flags+hwStart, hyphen_width, max_width);
 
     return nchars;
 }
@@ -8041,6 +10076,8 @@ lUInt16 LVWin32Font::measureText(
 
     glyph = GetGlyphRec( UNICODE_SOFT_HYPHEN_CODE );
     hyphwidth = glyph ? glyph->gi.width : 0;
+    if ( (lang_cfg ? lang_cfg : TextLangMan::getTextLangCfg())->hideHyphenationMark() )
+        hyphwidth = 0;
 
     for ( ; wsum < max_width && nchars < len; nchars++ )
     {
@@ -8145,6 +10182,7 @@ bool operator == (const LVFont & r1, const LVFont & r2)
             && r1.getTypeFace() == r2.getTypeFace()
             && r1.getKerningMode() == r2.getKerningMode()
             && r1.getHintingMode() == r2.getHintingMode()
+            && r1.getVariationHash() == r2.getVariationHash()
+            && r1.getSynthWeight() == r2.getSynthWeight()
             ;
 }
-

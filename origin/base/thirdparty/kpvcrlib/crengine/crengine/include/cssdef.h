@@ -16,6 +16,8 @@
 #if !defined(__CSS_DEF_H_INCLUDED__)
 #define __CSS_DEF_H_INCLUDED__
 
+#include "crsetup.h"
+
 #include "lvtypes.h"
 #include "lvref.h"
 #include "lvstring.h"
@@ -136,15 +138,14 @@ enum css_vertical_align_t {
 };
 
 /// text-decoration property values
-enum css_text_decoration_t {
-    // TODO: support multiple flags
-    css_td_inherit = 0,
-    css_td_none = 1,
-    css_td_underline = 2,
-    css_td_overline = 3,
-    css_td_line_through = 4,
-    css_td_blink = 5
-};
+/// (bit flags, so multiple decorations may be combined)
+typedef lUInt8 css_text_decoration_t;
+static const css_text_decoration_t css_td_inherit = 0;
+static const css_text_decoration_t css_td_none = 0x01;
+static const css_text_decoration_t css_td_underline = 0x02;
+static const css_text_decoration_t css_td_overline = 0x04;
+static const css_text_decoration_t css_td_line_through = 0x08;
+static const css_text_decoration_t css_td_blink = 0x10;
 
 /// text-transform property values
 enum css_text_transform_t {
@@ -171,22 +172,25 @@ enum css_font_style_t {
     css_fs_oblique
 };
 
-/// font-weight property values
-enum css_font_weight_t {
-    css_fw_inherit,
-    css_fw_normal,
-    css_fw_bold,
-    css_fw_bolder,
-    css_fw_lighter,
-    css_fw_100,
-    css_fw_200,
-    css_fw_300,
-    css_fw_400,
-    css_fw_500,
-    css_fw_600,
-    css_fw_700,
-    css_fw_800,
-    css_fw_900
+/// font-weight: stored as its numeric value (1–1000) or one of the keyword sentinels below.
+static const lUInt16 css_fw_inherit  = 0;    // unset / inherit
+static const lUInt16 css_fw_normal   = 1001; // keyword "normal"  → 400 at compute
+static const lUInt16 css_fw_bold     = 1002; // keyword "bold"    → 700 at compute
+static const lUInt16 css_fw_bolder   = 1003; // keyword "bolder"  → relative
+static const lUInt16 css_fw_lighter  = 1004; // keyword "lighter" → relative
+
+/// font-width (legacy name: font-stretch): stored as the percentage in tenths of a percent
+/// (100% = 1000, 87.5% = 875), so all CSS keywords and fractional values are exact.
+/// 0 means unset / inherit. Initial value is normal = 100%.
+static const lUInt16 css_fwd_inherit = 0;
+static const lUInt16 css_fwd_normal  = 1000;
+#define CSS_FWD_MAX 65000 // clamp for stored values (6500%)
+
+/// font-optical-sizing property values
+enum css_font_optical_sizing_t {
+    css_fos_inherit,
+    css_fos_auto,   // set opsz axis from font-size in typographic points (CSS default)
+    css_fos_none    // do not adjust the opsz axis
 };
 
 /// font-family property values
@@ -253,11 +257,18 @@ enum css_value_type_t {
     css_val_em,   // relative to font size of the current element
     css_val_ex,   // 1ex =~ 0.5em in many fonts (https://developer.mozilla.org/en-US/docs/Web/CSS/length)
     css_val_ch,   // 1ch assumed to be 0.5em for widths when impractical to determine (same url)
-    css_val_rem,  // 'root em', relative to font-size of the root element (typically <html>)
+    css_val_rem,  // 'root em', relative to font-size of the document root element (typically <html>)
+    css_val_urem, // relative to the engine/user root font size (document default font)
     css_val_vw,   // 1 percent of the screen width
     css_val_vh,   // 1 percent of the screen height
     css_val_vmin, // maximum of 1 percent of the screen height or width
     css_val_vmax, // minimum of 1 percent of the screen height or width
+    css_val_q,    // quarter-millimeter, 40q = 1cm
+    css_val_rex,  // root ex, approximated like ex from the document root element font size
+    css_val_rch,  // root ch, approximated like ch from the document root element font size
+    css_val_lh,   // relative to the computed line-height of the current element
+    css_val_rlh,  // relative to the computed line-height of the root element
+    css_val_urlh, // relative to the engine/user root line-height (document default font + interline)
     css_val_percent,
     css_val_screen_px, // screen px, for already scaled values
     css_val_color
@@ -285,18 +296,6 @@ enum css_background_repeat_value_t {
     css_background_no_repeat,
     css_background_r_inherit
 };
-enum css_background_position_value_t {
-    css_background_left_top = 0,
-    css_background_left_center,
-    css_background_left_bottom,
-    css_background_right_top,
-    css_background_right_center,
-    css_background_right_bottom,
-    css_background_center_top,
-    css_background_center_center,
-    css_background_center_bottom = 8,
-    css_background_p_inherit = 9
-};
 
 enum css_border_collapse_value_t {
     css_border_c_inherit,
@@ -322,7 +321,9 @@ enum css_float_t {
     css_f_inherit,
     css_f_none,
     css_f_left,
-    css_f_right
+    css_f_right,
+    css_f_inline_start,
+    css_f_inline_end
 };
 
 /// clear property values
@@ -331,6 +332,8 @@ enum css_clear_t {
     css_c_none,
     css_c_left,
     css_c_right,
+    css_c_inline_start,
+    css_c_inline_end,
     css_c_both
 };
 
@@ -384,6 +387,14 @@ enum css_caption_side_t {
     css_cs_bottom
 };
 
+/// ruby-position property values
+enum css_ruby_position_t {
+    css_rp_inherit,
+    css_rp_alternate,
+    css_rp_over,
+    css_rp_under
+};
+
 enum css_generic_value_t {
     css_generic_auto = -1,         // (css_val_unspecified, css_generic_auto), for "margin: auto"
     css_generic_normal = -2,       // (css_val_unspecified, css_generic_normal), for "line-height: normal"
@@ -394,6 +405,7 @@ enum css_generic_value_t {
     css_generic_none = -7,         // (css_val_unspecified, css_generic_none), for "max-width: none"
     css_generic_cr_special = -8,   // (css_val_unspecified, css_generic_cr_special), for "padding-left: -cr-special"
                                              //  (could be used with other properties for other special behaviours)
+    css_generic_fit_content = -9   // (css_val_unspecified, css_generic_fit_content), for "width/height: fit-content"
 };
 
 // color 'transparent' is transparent black rgba(0,0,0,0) per specs
@@ -425,6 +437,12 @@ enum css_generic_value_t {
 // Can also be set explicitely on elements, but it Will reduce the specificity of selectors
 // containing it in their declaration so they get applied at the earliest.
 #define CSS_CR_HINT_NO_PRESENTATIONAL_CSS   0x00000010 // -cr-hint: no-presentational
+
+// By default, crengine will ensure an image (+its own and its containers' margins/border/padding
+// does not overflow the screen (in some cases, reducing its size more than actually needed).
+// One can use this hint on IMG to avoid any such resize, trusting the publisher's CSS to do
+// the right things to avoid any overflow.
+#define CSS_CR_HINT_NO_CAP_IMAGE_SIZE       0x00000020 // -cr-hint: no-cap-image-size
 
 // A node with these should be considered as TOC item of level N when building alternate TOC
 #define CSS_CR_HINT_TOC_LEVEL1              0x00000100 // -cr-hint: toc-level1
@@ -464,6 +482,11 @@ enum css_generic_value_t {
                                                        //                           footnote block container)
 #define CSS_CR_HINT_FOOTNOTE_IGNORE         0x08000000 // -cr-hint: footnote-ignore block is not a footnote (even if
                                                        //                           everything else indicates it is)
+
+// To be set on a block element: it may be considered a continuation of an inpage footnote
+// and will be displayed as part of it on the bottom of pages that contain a link to it
+// (see `-cr-hint: footnote-inpage` above)
+#define CSS_CR_HINT_EXTEND_FOOTNOTE_INPAGE  0x10000000 // -cr-hint: extend-footnote-inpage
 
 // A few of them are inheritable, most are not.
 #define CSS_CR_HINT_INHERITABLE_MASK        0x0000000E

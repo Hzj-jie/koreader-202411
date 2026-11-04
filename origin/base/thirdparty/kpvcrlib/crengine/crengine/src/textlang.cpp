@@ -1,6 +1,8 @@
 // IMPORTANT : when making changes in language detection logic and per-language
 // rules here, be sure to also bump FORMATTING_VERSION_ID in src/lvtinydom.cpp
 
+#include "crsetup.h"
+
 #include "../include/lvtypes.h"
 #include "../include/lvstring.h"
 #include "../include/lvtinydom.h"
@@ -83,6 +85,7 @@ static struct {
     { "lv",    "Latvian",       "Latvian.pattern",       2, 2 },
     { "lt",    "Lithuanian",    "Lithuanian.pattern",    2, 2 },
     { "mk",    "Macedonian",    "Macedonian.pattern",    2, 2 },
+    { "ml",    "Malayalam",     "Malayalam.pattern",     3, 4 },
     { "no",    "Norwegian",     "Norwegian.pattern",     2, 2 },
     { "oc",    "Occitan",       "Occitan.pattern",       2, 2 },
     { "pms",   "Piedmontese",   "Piedmontese.pattern",   2, 2 },
@@ -126,6 +129,7 @@ bool TextLangMan::_overridden_hyph_method =   !TEXTLANG_DEFAULT_HYPHENATION_ENAB
 // These will be set when we can
 HyphMethod * TextLangMan::_no_hyph_method = NULL;
 HyphMethod * TextLangMan::_algo_hyph_method = NULL;
+HyphMethod * TextLangMan::_grapheme_hyph_method = NULL;
 HyphMethod * TextLangMan::_soft_hyphens_method = NULL;
 
 TextLangMan::TextLangMan() {
@@ -984,6 +988,7 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
         TextLangMan::_no_hyph_method = HyphMan::getHyphMethodForDictionary(HYPH_DICT_ID_NONE);
         TextLangMan::_soft_hyphens_method = HyphMan::getHyphMethodForDictionary(HYPH_DICT_ID_SOFTHYPHENS);
         TextLangMan::_algo_hyph_method = HyphMan::getHyphMethodForDictionary(HYPH_DICT_ID_ALGORITHM);
+        TextLangMan::_grapheme_hyph_method = HyphMan::getHyphMethodForDictionary(HYPH_DICT_ID_ALGORITHM_GRAPHEME);
     }
 
     // Keep as our id the provided and non-lowercase'd lang_tag (with possibly bogus #@algorithm)
@@ -1026,6 +1031,75 @@ TextLangCfg::TextLangCfg( lString32 lang_tag ) {
     // https://unicode.org/reports/tr14/#Hyphen : in Polish and Portuguese,
     // a real hyphen at end of line must be duplicated at start of next line.
     _duplicate_real_hyphen_on_next_line = false;
+
+    // These orthographies normally break words without a visible hyphen.
+    // https://r12a.github.io/scripts/mlym/ml.html#linebreak
+    // https://r12a.github.io/scripts/taml/ta.html#linebreak
+    // An explicit different script (e.g. ml-Latn) keeps the usual marker.
+    static const struct {
+        const char * lang;
+        const char * script;
+    } unmarked_hyphenation[] = {
+        { "ml", "mlym" },
+        { "ta", "taml" },
+        { NULL, NULL }
+    };
+    lString32 script;
+    int script_start = lang_tag.pos("-") + 1;
+    if ( script_start > 0 && lang_tag.length() >= script_start + 4
+            && (lang_tag.length() == script_start + 4 || lang_tag[script_start + 4] == '-') ) {
+        bool is_script = true;
+        for ( int i=script_start; i<script_start + 4; i++ ) {
+            if ( lang_tag[i] < 'a' || lang_tag[i] > 'z' )
+                is_script = false;
+        }
+        if ( is_script )
+            script = lang_tag.substr(script_start, 4);
+    }
+    _hide_hyphenation_mark = false;
+    for ( int i=0; unmarked_hyphenation[i].lang; i++ ) {
+        if ( langStartsWith(lang_tag, unmarked_hyphenation[i].lang)
+                && (script.empty() || script == lString32(unmarked_hyphenation[i].script)) ) {
+            _hide_hyphenation_mark = true;
+            break;
+        }
+    }
+
+    // Our base AlgoHyph handles only Latin/Greek/Cyrillic vowels and consonnants.
+    // Its alternative use_grapheme=true code can achieve something similar for Indic scripts.
+    _use_grapheme_based_hyphenation = false;
+#if USE_UTF8PROC==1
+#if UTF8PROC_VERSION_MAJOR > 2 || (UTF8PROC_VERSION_MAJOR == 2 && UTF8PROC_VERSION_MINOR >= 9)
+    // Unicode 15.1 grapheme rules protect conjuncts in these scripts.
+    // Tamil, Kannada and Gurmukhi need additional tailoring before enabling this fallback.
+    static const struct {
+        const char * lang;
+        const char * script;
+    } grapheme_hyphenation[] = {
+        { "hi", "deva" },
+        { "mr", "deva" },
+        { "ne", "deva" },
+        { "sa", "deva" },
+        { "bn", "beng" },
+        { "as", "beng" },
+        { "gu", "gujr" },
+        { "or", "orya" },
+        { "ml", "mlym" },
+        { "te", "telu" },
+        { NULL, NULL }
+    };
+    for ( int i=0; grapheme_hyphenation[i].lang; i++ ) {
+        if ( script.empty() ? langStartsWith(lang_tag, grapheme_hyphenation[i].lang)
+                            : script == lString32(grapheme_hyphenation[i].script) ) {
+            _use_grapheme_based_hyphenation = true;
+            break;
+        }
+    }
+#endif
+#endif
+    if ( _use_grapheme_based_hyphenation && _hyph_method == TextLangMan::_algo_hyph_method ) {
+        _hyph_method = TextLangMan::_grapheme_hyph_method;
+    }
 
     // getCssLbCharSub(), possibly called on each glyph, has some different behaviours with 'ja' and 'zh'
     _is_ja_zh = false;

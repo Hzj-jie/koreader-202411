@@ -22,12 +22,20 @@
 #if !defined(__FB2_DEF_H_INCLUDED__) || defined(XS_IMPLEMENT_SCHEME)
 #define __FB2_DEF_H_INCLUDED__
 
+#include "crsetup.h"
+
 #include "dtddef.h"
 
 //=====================================================
 // el_ definitions
 //=====================================================
 XS_BEGIN_TAGS
+
+// Internal element created for ::first-line DOM cloning
+// (clones of source element/text nodes inside pseudoElem[FirstLine])
+// Keep this one first (so its enum value is 1 and we can use it hardcoded
+// in ldomNode::*Effective* methods in lvtinydom.h to allow inlining)
+XS_TAG1D( cloneNode, false, css_d_none, css_ws_inherit )
 
 // Boxing elements (inserted in the DOM tree between original parent and children):
 //
@@ -267,6 +275,9 @@ XS_TAG1I( switch )  // <epub:switch>
 XS_TAG1I( case )    // <epub:case required-namespace="...">
 XS_TAG1I( default ) // <epub:default>
 
+// MOBI elements
+XS_TAG1I( pagebreak ) // <mbp:pagebreak/>
+
 // FB2 elements
 XS_TAG1( FictionBook )
 XS_TAG1( annotation )
@@ -442,9 +453,14 @@ XS_ATTR2( required_namespace, "required-namespace" ) // <epub:case required-name
 // we explicitely set while building the DOM. So, for our internal elements
 // needs, let's use some uppercase to avoid conflicts with HTML content
 // and the risk to have them matched by publishers CSS selectors.
-XS_ATTR( T )      // to flag subtype of boxing internal elements if needed
+XS_ATTR( T )      // to flag subtype of boxing internal elements if needed (and cloneNode of text nodes)
 XS_ATTR( Before ) // for pseudoElem internal element
 XS_ATTR( After )  // for pseudoElem internal element
+XS_ATTR( FirstLetter )    // for pseudoElem internal element (the actual first-letter holder)
+XS_ATTR( HasFirstLetter ) // on elements matched by ::first-letter that will get an inner pseudoElem[FirstLetter]
+XS_ATTR( FirstLine )      // for pseudoElem internal element (the ::first-line style carrier)
+XS_ATTR( HasFirstLine )   // on elements matched by ::first-line that will get an inner pseudoElem[FirstLine]
+XS_ATTR( SrcId )        // for cloneNode: stores the data index of the source node
 XS_ATTR( ParserHint )   // HTML parser hints (used for Lib.ru support)
 XS_ATTR( NonLinear )    // for non-linear items in EPUB
 XS_ATTR( Source )       // set on DocFragment to the path of the file in the EPUB, for info
@@ -507,6 +523,11 @@ XS_ATTR( text )
 XS_ATTR( vlink )
 XS_ATTR( vspace )
 XS_ATTR( wrap )
+
+// Misc other attributes commonly found in books (ie. with cover SVG wrappers)
+XS_ATTR( viewBox )
+XS_ATTR( preserveAspectRatio )
+XS_ATTR2( aria_hidden, "aria-hidden" )
 
 #if MATHML_SUPPORT==1
 // Various MathML attributes for internal rendering

@@ -10,6 +10,8 @@
     See LICENSE file for details.
 */
 
+#include "crsetup.h"
+
 #include "../include/lvpagesplitter.h"
 #include "../include/lvtinydom.h"
 #include <time.h>
@@ -113,7 +115,7 @@ void LVRendPageContext::addLink( lString32 id, int pos )
     }
     if ( lines.empty() )
         return;
-    LVFootNoteRef note = getOrCreateFootNote( id, false ); // not yet actual
+    LVFootNoteRef note = getOrCreateFootNote( id, false, false ); // not yet actual
     lines.last()->addLink(note.get(), pos);
 }
 
@@ -127,10 +129,10 @@ void LVRendPageContext::enterFootNote( lString32 id )
         CRLog::error("Nested entering note" );
         return;
     }
-    curr_note = getOrCreateFootNote( id ).get();
+    curr_note = getOrCreateFootNote( id, true, false ).get();
 }
 
-void LVRendPageContext::enterFootNote( lString32Collection & ids )
+void LVRendPageContext::enterFootNote( lString32Collection & ids, bool appending )
 {
     if ( !page_list )
         return;
@@ -138,7 +140,8 @@ void LVRendPageContext::enterFootNote( lString32Collection & ids )
         CRLog::error("Nested entering note" );
         return;
     }
-    curr_note = getOrCreateFootNote( ids ).get();
+    curr_note = getOrCreateFootNote( ids, appending ).get();
+    curr_note_id = curr_note->getId();
 }
 
 /// mark end of foot note
@@ -151,6 +154,9 @@ void LVRendPageContext::leaveFootNote()
         CRLog::error("leaveFootNote() w/o current note set");
     }
     curr_note = NULL;
+    // Don't reset curr_note_id here but when the next line is passed to AddLine
+    // This allows appending to the footnote from the next consecutive block via
+    // -cr-hint: extend-footnote-inpage
 }
 
 void LVRendPageContext::newFlow( bool nonlinear )
@@ -189,6 +195,10 @@ void LVRendPageContext::AddLine( int starty, int endy, int flags )
     if ( curr_note != NULL ) {
         //CRLog::trace("adding line to note (%d)", line->start);
         curr_note->addLine( line );
+    }
+    else {
+        // Once we add a non-footnote line we can't append to the last footnote anymore
+        curr_note_id.clear();
     }
 }
 
@@ -1033,8 +1043,13 @@ public:
                 // that lines of main content text (and small headings), that
                 // can't fit in what's left on a page, are pushed uncut to
                 // the next page, avoiding cutted lines of text.
-                if ( (line->getHeight() <= page_height) &&
-                     (getCurPageMaxBottom()-cur_page_bottom < doc_font_size*2) ) {
+                // if ( (line->getHeight() <= page_height) &&
+                //      (getCurPageMaxBottom()-cur_page_bottom < doc_font_size*2) )
+                // This idea didn't get good feedback:
+                // https://github.com/koreader/koreader/issues/14500#issuecomment-3662306954
+                // It feels better (and per-specs) to avoid any image truncation by
+                // pushing the image to a new page if it fits, and live with the blank.
+                if ( (line->getHeight() <= page_height) ) {
                     flushCurrentPage(false);
                     push_delayed_footnotes = true; // as done above
                     cur_page_flow = line->flow;
@@ -1166,8 +1181,13 @@ public:
             LVRendLineInfo * line = lines[i];
             if ( !line->getLinks() )
                 continue;
-            for ( int j=0; j<line->getLinks()->length(); j++ ) {
-                LVFootNote* note = line->getLinks()->get(j);
+            // disable footnotes for footnotes
+            if (line->flags & RN_SPLIT_FOOT_NOTE)
+                continue;
+
+            LVFootNoteList * notes = line->getLinks();
+            for ( int j=0; j<notes->length(); j++ ) {
+                LVFootNote* note = notes->get(j);
                 if ( note->empty() )
                     continue;
                 if ( cur_page_seen_footnotes.indexOf(note) >= 0 )
@@ -1175,6 +1195,32 @@ public:
                 LVFootNote * actual_footnote = note->getActualFootnote();
                 if ( actual_footnote && cur_page_seen_footnotes.indexOf(actual_footnote) >= 0 )
                     continue;
+                // Collect all nested footnotes and add them to the current line's list
+                // of footnotes links (avoiding duplicates) so we can just process them
+                // as if they were regular notes on that line.
+                // Needs to happen before we decide if the notes are added to this page
+                // or delayed so delayed footnotes does not have to check for nested
+                // footnotes and duplicates again.
+                int nb_nested_notes = 0;
+                for ( int nl=0; nl<note->length(); nl++ ) {
+                    LVRendLineInfo * nested_line = note->getLine(nl);
+                    if ( ! nested_line->getLinks() || nested_line->getLinks()->length() == 0 ) {
+                        continue;
+                    }
+                    for ( int nn=0; nn<nested_line->getLinks()->length(); nn++ ) {
+                        LVFootNote * nested_note = nested_line->getLinks()->get(nn);
+                        if ( notes->indexOf(nested_note) >= 0 )
+                            continue; // Already referenced among the current lines notes
+                        LVFootNote * actual_footnote = nested_note->getActualFootnote();
+                        if ( actual_footnote && notes->indexOf(actual_footnote) >= 0 )
+                            continue;
+                        if ( nested_note->length() ) {
+                            // Add all new nested footnotes depth-first in order of
+                            // appearance to the links on the original line
+                            notes->insert(j+1+(nb_nested_notes++), nested_note);
+                        }
+                    }
+                }
                 if ( !delayed_footnotes.empty() ) {
                     // Already some delayed footnotes
                     if ( delayed_footnotes.indexOf(note) < 0 )

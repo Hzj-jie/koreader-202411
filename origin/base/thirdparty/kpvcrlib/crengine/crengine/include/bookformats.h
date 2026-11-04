@@ -1,6 +1,8 @@
 #ifndef BOOKFORMATS_H
 #define BOOKFORMATS_H
 
+#include "crsetup.h"
+
 #include "lvtypes.h"
 #include "lvstring.h"
 
@@ -20,7 +22,8 @@ typedef enum {
     doc_format_pdb,
     doc_format_odt,
     doc_format_svg,
-    doc_format_max = doc_format_svg
+    doc_format_md,
+    doc_format_max = doc_format_md
     // don't forget update getDocFormatName() when changing this enum
 } doc_format_t;
 

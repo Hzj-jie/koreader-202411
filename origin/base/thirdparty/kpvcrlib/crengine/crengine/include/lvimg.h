@@ -14,6 +14,8 @@
 #ifndef __LVIMG_H_INCLUDED__
 #define __LVIMG_H_INCLUDED__
 
+#include "crsetup.h"
+
 #include "lvtypes.h"
 #include "lvref.h"
 #include "lvstream.h"
@@ -108,7 +110,9 @@ enum ImageTransform {
 
 
 /// creates image which stretches source image by filling center with pixels at splitX, splitY
-LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform=IMG_TRANSFORM_SPLIT, ImageTransform vTransform=IMG_TRANSFORM_SPLIT, int splitX=-1, int splitY=-1 );
+/// (smooth only applies to a genuine two-axis IMG_TRANSFORM_STRETCH; it's ignored for
+/// split/tile transforms)
+LVImageSourceRef LVCreateStretchFilledTransform( LVImageSourceRef src, int newWidth, int newHeight, ImageTransform hTransform=IMG_TRANSFORM_SPLIT, ImageTransform vTransform=IMG_TRANSFORM_SPLIT, int splitX=-1, int splitY=-1, bool smooth=false );
 /// creates image which fills area with tiled copy
 LVImageSourceRef LVCreateTileTransform( LVImageSourceRef src, int newWidth, int newHeight, int offsetX, int offsetY );
 /// creates XPM image
@@ -145,13 +149,8 @@ class LVDrawBuf;
 // if no icons provided, battery will be drawn
 void LVDrawBatteryIcon( LVDrawBuf * drawbuf, const lvRect & batteryRc, int percent, bool charging, LVRefVec<LVImageSource> icons, LVFont * font );
 
+#if (USE_STB_IMAGE==1)
 unsigned char * convertSVGtoPNG(const unsigned char *svg_data, int svg_data_size, float zoom_factor, int *png_data_len);
-
-#define IMAGE_SOURCE_FROM_BYTES( imgvar , bufvar ) \
-    extern unsigned char bufvar []; \
-    extern int bufvar ## _size ; \
-    LVImageSourceRef imgvar = LVCreateStreamImageSource( \
-        LVCreateMemoryStream( bufvar , bufvar ## _size ) )
-
+#endif
 
 #endif

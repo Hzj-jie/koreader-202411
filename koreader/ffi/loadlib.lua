@@ -30,7 +30,9 @@ local monolibtic = {
     .. "/libkoreader-monolibtic."
     .. (ffi.os == "OSX" and "dylib" or "so"),
   redirects = {
+    ["archive"] = true,
     ["blitbuffer"] = true,
+    ["crypto"] = true,
     ["czmq"] = true,
     ["freetype"] = true,
     ["fribidi"] = true,
@@ -44,6 +46,7 @@ local monolibtic = {
     ["png16"] = true,
     ["sharpyuv"] = true,
     ["sqlite3"] = true,
+    ["ssl"] = true,
     ["tffi_wrap"] = true,
     ["turbojpeg"] = true,
     ["unibreak"] = true,
@@ -51,6 +54,7 @@ local monolibtic = {
     ["webp"] = true,
     ["webpdemux"] = true,
     ["wrap-mupdf"] = true,
+    ["xxhash"] = true,
     ["z"] = true,
     ["zmq"] = true,
     ["zstd"] = true,

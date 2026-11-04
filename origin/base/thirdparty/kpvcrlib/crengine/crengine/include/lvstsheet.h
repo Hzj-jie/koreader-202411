@@ -44,6 +44,8 @@
 #ifndef __LVSTSHEET_H_INCLUDED__
 #define __LVSTSHEET_H_INCLUDED__
 
+#include "crsetup.h"
+
 #include "lvtypes.h"
 #include "cssdef.h"
 #include "lvstyles.h"
@@ -255,6 +257,20 @@ public:
     \sa LVCssDeclaration
 */
 class LVStyleSheet {
+public:
+    // @font-face declaration stored so that the stylesheet cache can replay
+    // registrations with the correct fragment index on subsequent DocFragments
+    // that link the same CSS file.
+    struct LVFontFaceDecl {
+        lString32 url;
+        lString8  face;
+        int       weight;
+        int       width;    // font-width descriptor in tenths of a percent
+        bool      italic;
+        bool      isLocal;
+    };
+
+private:
     lxmlDocBase * _doc;
     bool _nested;
 
@@ -279,7 +295,33 @@ class LVStyleSheet {
 
     void set(LVPtrVector<LVCssSelector> & v );
 
+    LVArray<LVFontFaceDecl> _fontFaceDecls;
+    // Off by default. Two distinct consumers opt a given LVStyleSheet
+    // instance in:
+    // - the per-file LVStyleSheet objects that LVImportStylesheetParser
+    //   builds for StyleSheetCache need to remember their @font-face decls
+    //   to replay registrations on a cache hit for a later DocFragment
+    //   reusing the same file;
+    // - the document's live stylesheet (_ua_stylesheet) needs them so that
+    //   getHash() changes when a style tweak's @font-face rule changes
+    // Any other LVStyleSheet (author stylesheet merge destinations, nested
+    // at-rule scratch sheets, etc) is never used as a cache key or fed into
+    // getHash(), so nothing would ever read decls recorded into it; leaving
+    // tracking off avoids accumulating decls nobody consumes.
+    bool _trackFontFaceDecls = false;
+
 public:
+
+    void addFontFaceDecl(lString32 url, lString8 face, int weight, int width, bool italic, bool isLocal) {
+        if ( !_trackFontFaceDecls )
+            return;
+        LVFontFaceDecl d;
+        d.url = url; d.face = face; d.weight = weight; d.width = width; d.italic = italic; d.isLocal = isLocal;
+        _fontFaceDecls.add(d);
+    }
+    const LVArray<LVFontFaceDecl> & getFontFaceDecls() const { return _fontFaceDecls; }
+    /// enable recording of @font-face decls added via addFontFaceDecl()/merge()
+    void enableFontFaceDeclTracking() { _trackFontFaceDecls = true; }
 
     // save current state of stylesheet
     void push()
@@ -310,6 +352,7 @@ public:
         _selector_count_stack.clear();
         _selectors.clear();
         _stack.clear();
+        _fontFaceDecls.clear();
     }
     /// set document to retrieve ID values from
     void setDocument( lxmlDocBase * doc ) { _doc = doc; }
@@ -343,6 +386,7 @@ bool parse_number_value( const char * & str, css_length_t & value,
                                     bool accept_unspecified=false,
                                     bool accept_contain_cover=false,
                                     bool accept_cr_special=false,
+                                    bool accept_fit_content=false,
                                     bool is_font_size=false );
 
 /// parse color value like #334455, #345 or red
