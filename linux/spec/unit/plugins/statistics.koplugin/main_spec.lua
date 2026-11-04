@@ -85,6 +85,11 @@ describe("ReaderStatistics plugin main spec", function()
             return "12345678901234567890123456789012"
           end
         end,
+        readTable = function(self, key)
+          if key == "stats" then
+            return { performance_in_pages = {} }
+          end
+        end,
         readTableRef = function(self, key, default)
           if key == "stats" then
             return default or { performance_in_pages = {} }

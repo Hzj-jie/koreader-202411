@@ -198,6 +198,9 @@ describe("FileManagerHistory", function()
         read = function()
           return nil
         end,
+        readTable = function()
+          return nil
+        end,
       }
     end)
     package.loaded["docsettings"] = mock_docsettings

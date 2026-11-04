@@ -361,6 +361,9 @@ describe("ReaderHandmade module", function()
       read = function(self, k)
         return data[k]
       end,
+      readTable = function(self, k)
+        return data[k]
+      end,
       readTableRef = function(self, k)
         return data[k]
       end,

@@ -46,7 +46,7 @@ end
 function Stats:load()
   local ok, settings = pcall(LuaSettings.open, LuaSettings, self.stats_path)
   if ok and settings then
-    local data = settings:read("stats")
+    local data = settings:readTable("stats")
     if data then
       local defaults = self:getDefaults()
       for k, v in pairs(defaults) do
