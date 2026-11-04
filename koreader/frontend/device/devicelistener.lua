@@ -369,9 +369,9 @@ function DeviceListener:onExitKOReader(callback)
   self.ui.menu:exitOrRestart(callback)
 end
 
-function DeviceListener:onRestart()
+function DeviceListener:onRestart(exit_code)
   self.ui.menu:exitOrRestart(function()
-    UIManager:restartKOReader()
+    UIManager:restartKOReader(exit_code)
   end)
 end
 
