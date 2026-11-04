@@ -624,4 +624,22 @@ describe("InputText widget module", function()
       assert.is_false(input:_handleControlKeys(back_key))
     end)
   end)
+
+  describe("onClose repaint cleanup", function()
+    it("clears pending UIManager dirty repaint when closed", function()
+      local UIManager = require("ui/uimanager")
+      local input = require("ui/widget/inputtext"):new({
+        text = "sample",
+      })
+      UIManager:show(input)
+      finally(function()
+        UIManager:close(input)
+      end)
+      UIManager:setDirty(input, "ui")
+      assert.is_true(UIManager._dirty[input] ~= nil)
+
+      input:onClose()
+      assert.is_nil(UIManager._dirty[input])
+    end)
+  end)
 end)
