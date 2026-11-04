@@ -65,12 +65,12 @@ source ./prepare_sandbox_env.sh "$PLATFORM_DIR"
 export SDL_VIDEODRIVER=dummy
 if [ -n "$TEST_FILE" ]; then
     exit_code=0
-    ./luajit $LUAFLAGS test_runner.lua "$TEST_FILE" || exit_code=$?
+    ${LUA:-./luajit} $LUAFLAGS test_runner.lua "$TEST_FILE" || exit_code=$?
     exit $exit_code
 else
     exit_code=0
     start_time=$(date +%s)
-    ./luajit $LUAFLAGS test_runner.lua || exit_code=$?
+    ${LUA:-./luajit} $LUAFLAGS test_runner.lua || exit_code=$?
     end_time=$(date +%s)
     elapsed=$((end_time - start_time))
     echo "========================================================================="

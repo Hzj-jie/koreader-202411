@@ -40,6 +40,7 @@ REMOVED_FILES=(
   "plugins/backgroundrunner.koplugin/keyed_job_filter.lua"
   "zsync2"
   "spinning_zsync"
+  "ffi.so"
   "libs/libcurl.so.4"
   "libs/libturbojpeg.so.0.3.0"
   "libs/libunibreak.so.6"

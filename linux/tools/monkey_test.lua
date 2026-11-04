@@ -31,8 +31,14 @@ if ip == "127.0.0.1" or ip == "localhost" then
     env_vars = env_vars .. " SDL_VIDEODRIVER=dummy"
   end
   
+  local i = 0
+  while arg[i - 1] do
+    i = i - 1
+  end
+  local lua_bin = arg[i] or "./luajit"
+
   -- Start KOReader from the parent directory
-  local cmd = string.format("%s ./luajit reader.lua -d > /tmp/koreader_emu_monkey.log 2>&1 & echo $!", env_vars)
+  local cmd = string.format("%s %s reader.lua -d > /tmp/koreader_emu_monkey.log 2>&1 & echo $!", env_vars, lua_bin)
   local pipe = io.popen(cmd)
   spawned_pid = tonumber(pipe:read("*line"))
   pipe:close()
@@ -42,6 +48,7 @@ if ip == "127.0.0.1" or ip == "localhost" then
   end
 
   -- Wait for httpinspector.port to be created and read it
+  port = nil
   print("[*] Waiting for httpinspector to bind a port...")
   for i = 1, 50 do
     socket.select(nil, nil, 0.2) -- sleep 200ms

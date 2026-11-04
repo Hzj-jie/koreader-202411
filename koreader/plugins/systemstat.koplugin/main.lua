@@ -13,6 +13,7 @@ local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local time = require("ui/time")
 local util = require("util")
+local Version = require("version")
 local T = ffiUtil.template
 
 local function systemInfo()
@@ -238,6 +239,10 @@ function SystemStat:appendCounters()
       datetime.secondsToDateTime(time.to_s(self.discharge_time), nil, true),
     })
   end
+  self:put({
+    "  " .. gettext("Runtime"),
+    Version:getRuntime(),
+  })
   self:put({
     "  " .. gettext("Device model"),
     Device.model,
