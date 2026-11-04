@@ -331,7 +331,10 @@ function FileManagerHistory:onShowHist(search_info)
       self.files_updated = nil
     end
     self.statuses_fetched = nil
-    UIManager:close(self.hist_menu)
+    -- Selecting a book in onMenuChoice closes ReaderUI/FileManager first,
+    -- whose uimanagedCleanUp already closes and nils out self.hist_menu
+    -- before Menu:onMenuSelect invokes close_callback.
+    UIManager:closeIfNotNil(self.hist_menu)
     self.hist_menu = nil
     G_reader_settings:save("history_filter", self.filter, "all")
   end
