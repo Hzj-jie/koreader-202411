@@ -89,7 +89,7 @@ function SettingsWidget:buildPlayerSection()
     return VerticalGroup:new({
       width = w,
       TextWidget:new({ text = label_text, face = Font:getFace("cfont", 22) }),
-      VerticalSpan:new({ width = Size.padding.small }),
+      VerticalSpan:new({ height = Size.padding.small }),
       radios,
     })
   end
@@ -97,7 +97,7 @@ function SettingsWidget:buildPlayerSection()
   self.playerSection = VerticalGroup:new({
     width = w,
     makeRow(1, gettext("Black:")),
-    VerticalSpan:new({ width = Size.padding.large }),
+    VerticalSpan:new({ height = Size.padding.large }),
     makeRow(2, gettext("White:")),
   })
 end
@@ -132,7 +132,7 @@ function SettingsWidget:buildDifficultySection()
   self.difficultySection = VerticalGroup:new({
     width = w,
     self.difficultyLabel,
-    VerticalSpan:new({ width = Size.padding.small }),
+    VerticalSpan:new({ height = Size.padding.small }),
     self.difficultyProgress,
   })
 end
@@ -149,7 +149,7 @@ function SettingsWidget:assembleContent()
       align = "left",
       D.title_bar,
 
-      VerticalSpan:new({ width = Size.padding.large }),
+      VerticalSpan:new({ height = Size.padding.large }),
 
       CenterContainer:new({
         dimen = Geometry:new({
@@ -159,7 +159,7 @@ function SettingsWidget:assembleContent()
         self.playerSection,
       }),
 
-      VerticalSpan:new({ width = Size.padding.large }),
+      VerticalSpan:new({ height = Size.padding.large }),
 
       CenterContainer:new({
         dimen = Geometry:new({
@@ -169,7 +169,7 @@ function SettingsWidget:assembleContent()
         self.difficultySection,
       }),
 
-      VerticalSpan:new({ width = Size.padding.large }),
+      VerticalSpan:new({ height = Size.padding.large }),
 
       CenterContainer:new({
         dimen = Geometry:new({
@@ -179,7 +179,7 @@ function SettingsWidget:assembleContent()
         D.button_table,
       }),
 
-      VerticalSpan:new({ width = Size.padding.small }),
+      VerticalSpan:new({ height = Size.padding.small }),
     }),
   })
   D.movable = MovableContainer:new({ content })

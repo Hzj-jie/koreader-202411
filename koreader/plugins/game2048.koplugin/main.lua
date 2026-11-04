@@ -452,7 +452,7 @@ function Game2048Screen:init()
   self._body[#self._body + 1] = self._buttons
 
   self._body[#self._body + 1] = VerticalSpan:new({
-    width = SCREEN_PADDING,
+    height = SCREEN_PADDING,
   })
 
   self._info_board = {
@@ -496,7 +496,7 @@ function Game2048Screen:init()
   })
 
   self._body[#self._body + 1] = VerticalSpan:new({
-    width = SCREEN_PADDING,
+    height = SCREEN_PADDING,
   })
 
   self._body[#self._body + 1] = HorizontalGroup:new({
@@ -508,7 +508,7 @@ function Game2048Screen:init()
   })
 
   self._body[#self._body + 1] = VerticalSpan:new({
-    width = SCREEN_PADDING,
+    height = SCREEN_PADDING,
   })
 
   -- Game widget

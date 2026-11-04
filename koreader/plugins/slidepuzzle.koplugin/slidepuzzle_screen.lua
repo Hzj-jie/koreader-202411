@@ -158,17 +158,17 @@ function Screen:buildLayout()
   })
   self.layout = VerticalGroup:new({
     align = "center",
-    VerticalSpan:new({ width = Size.span.vertical_default }),
+    VerticalSpan:new({ height = Size.span.vertical_default }),
     self.header_text,
-    VerticalSpan:new({ width = Size.span.vertical_small }),
+    VerticalSpan:new({ height = Size.span.vertical_small }),
     self.best_text,
-    VerticalSpan:new({ width = Size.span.vertical_default }),
+    VerticalSpan:new({ height = Size.span.vertical_default }),
     board_frame,
-    VerticalSpan:new({ width = Size.span.vertical_small }),
+    VerticalSpan:new({ height = Size.span.vertical_small }),
     self.message_text,
-    VerticalSpan:new({ width = Size.span.vertical_small }),
+    VerticalSpan:new({ height = Size.span.vertical_small }),
     button_table,
-    VerticalSpan:new({ width = Size.span.vertical_small }),
+    VerticalSpan:new({ height = Size.span.vertical_small }),
   })
   self[1] = self.layout
 end
