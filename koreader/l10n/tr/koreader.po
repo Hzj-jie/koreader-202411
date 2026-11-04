@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 14:39-0800\n"
+"POT-Creation-Date: 2026-11-03 22:03-0800\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -8773,6 +8773,12 @@ msgstr ""
 msgid "Advanced settings"
 msgstr "Gelişmiş ayarlar"
 
+msgid "Switch to Lua"
+msgstr ""
+
+msgid "Switch to LuaJIT"
+msgstr ""
+
 msgid "Help"
 msgstr "Yardım"
 
@@ -8856,6 +8862,9 @@ msgstr ""
 msgid ""
 "Running version may not match source code version %1.\n"
 "Please consider restarting KOReader at the ealiest convenience."
+msgstr ""
+
+msgid "Binary versions"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -16535,6 +16544,9 @@ msgid "Time in suspend"
 msgstr "Beklemeye geçme süresi"
 
 msgid "Start discharging at"
+msgstr ""
+
+msgid "Runtime"
 msgstr ""
 
 msgid "Device model"
