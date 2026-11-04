@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 14:39-0800\n"
+"POT-Creation-Date: 2026-11-03 22:03-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -7495,6 +7495,12 @@ msgstr ""
 msgid "Advanced settings"
 msgstr ""
 
+msgid "Switch to Lua"
+msgstr ""
+
+msgid "Switch to LuaJIT"
+msgstr ""
+
 msgid "Help"
 msgstr ""
 
@@ -7560,6 +7566,9 @@ msgstr ""
 msgid ""
 "Running version may not match source code version %1.\n"
 "Please consider restarting KOReader at the ealiest convenience."
+msgstr ""
+
+msgid "Binary versions"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -14220,6 +14229,9 @@ msgid "Time in suspend"
 msgstr ""
 
 msgid "Start discharging at"
+msgstr ""
+
+msgid "Runtime"
 msgstr ""
 
 msgid "Device model"

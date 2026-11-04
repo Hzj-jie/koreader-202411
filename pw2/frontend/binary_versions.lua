@@ -1,0 +1,1 @@
+../../koreader/frontend/binary_versions.lua

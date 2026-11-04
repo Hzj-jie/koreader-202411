@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 14:39-0800\n"
+"POT-Creation-Date: 2026-11-03 22:03-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -8385,6 +8385,12 @@ msgstr "下載資料夾為唯讀。請選擇一個可寫入的資料夾。"
 msgid "Advanced settings"
 msgstr "進階設定"
 
+msgid "Switch to Lua"
+msgstr "切換到 Lua"
+
+msgid "Switch to LuaJIT"
+msgstr "切換到 LuaJIT"
+
 msgid "Help"
 msgstr "幫助"
 
@@ -8470,6 +8476,9 @@ msgid ""
 msgstr ""
 "執行版本可能與原始碼版本 %1 不匹配。\n"
 "請考慮儘早重新啟動 KOReader。"
+
+msgid "Binary versions"
+msgstr "二進位檔案版本"
 
 msgid "Start %1 reader app"
 msgstr "啟動 %1 閱讀器應用程式"
@@ -15932,6 +15941,9 @@ msgstr "休眠時間"
 
 msgid "Start discharging at"
 msgstr "開始放電於"
+
+msgid "Runtime"
+msgstr "執行時期"
 
 msgid "Device model"
 msgstr "裝置型號"
