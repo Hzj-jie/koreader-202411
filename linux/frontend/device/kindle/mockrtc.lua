@@ -1,1 +1,0 @@
-../../../../koreader/frontend/device/kindle/mockrtc.lua
