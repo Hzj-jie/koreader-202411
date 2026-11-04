@@ -17,6 +17,8 @@ TARGET="$1"
 TARGET_DIR="${2%/}"
 
 REMOVED_FILES=(
+  "frontend/device/kindle/mockrtc.lua"
+  "frontend/device/wakeupmgr.lua"
   "frontend/ui/data/onetime_migration.lua"
   "frontend/ui/data/settings_migration.lua"
   "frontend/ui/elements/avoid_flashing_ui.lua"
