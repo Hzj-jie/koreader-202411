@@ -112,7 +112,6 @@ describe("VirtualKeyboard component", function()
       scrollDown = function()
         actions.scroll_down_called = actions.scroll_down_called + 1
       end,
-      scheduleRepaint = function() end,
     }
 
     return mock_inputbox, actions
@@ -562,5 +561,26 @@ describe("VirtualKeyboard component", function()
   it("should expose PhysicalKeyboard class safely", function()
     local PhysicalKeyboard = require("ui/widget/physicalkeyboard")
     assert.is_table(PhysicalKeyboard)
+  end)
+
+  it("schedules repaint on vk itself when shown and refreshed", function()
+    local mock_inputbox = createMockInputbox()
+    local vk = VirtualKeyboard:new({
+      inputbox = mock_inputbox,
+      width = 600,
+      height = 300,
+    })
+    UIManager:show(vk)
+    finally(function()
+      UIManager:close(vk)
+    end)
+
+    UIManager._dirty[vk] = nil
+    vk:setLayer("Shift")
+    assert.is_true(UIManager._dirty[vk])
+
+    UIManager._dirty[vk] = nil
+    vk:setKeyboardLayout("en")
+    assert.is_true(UIManager._dirty[vk])
   end)
 end)
