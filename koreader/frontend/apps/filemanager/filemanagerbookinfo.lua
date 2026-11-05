@@ -131,7 +131,7 @@ function BookInfo:extract(doc_settings_or_file, book_props)
   if custom_metadata_file then
     self.custom_doc_settings =
       DocSettings.openSettingsFile(custom_metadata_file)
-    custom_props = self.custom_doc_settings:read("custom_props")
+    custom_props = self.custom_doc_settings:readTable("custom_props")
   end
   local values_lang, callback
   for _i, prop_key in ipairs(self.props) do
@@ -292,14 +292,14 @@ function BookInfo.getDocProps(file, book_props, no_open_document)
     if not book_props then
       -- Files opened after 20170701 have a "doc_props" setting with
       -- complete metadata and "doc_pages" with accurate nb of pages
-      book_props = doc_settings:read("doc_props")
+      book_props = doc_settings:readTable("doc_props")
     end
     if not book_props then
       -- File last opened before 20170701 may have a "stats" setting.
       -- with partial metadata, or empty metadata if statistics plugin
       -- was not enabled when book was read (we can guess that from
       -- the fact that stats.page = 0)
-      local stats = doc_settings:read("stats")
+      local stats = doc_settings:readTable("stats")
       if stats and stats.pages ~= 0 then
         -- title, authors, series, series_index, language
         book_props = Document:getProps(stats)
@@ -318,7 +318,7 @@ function BookInfo.getDocProps(file, book_props, no_open_document)
     local custom_metadata_file = DocSettings:findCustomMetadataFile(file)
     if custom_metadata_file then
       book_props = DocSettings.openSettingsFile(custom_metadata_file)
-        :read("doc_props")
+        :readTable("doc_props")
     end
   end
 
@@ -529,7 +529,7 @@ function BookInfo:setCustomMetadata(file, book_props, prop_key, prop_value)
     no_custom_metadata = true
   else
     if book_props.pages then -- keep a copy of original 'pages' up to date
-      local original_props = custom_doc_settings:read("doc_props")
+      local original_props = custom_doc_settings:readTableRef("doc_props")
       original_props.pages = book_props.pages
     end
     custom_doc_settings:flushCustomMetadata(file)

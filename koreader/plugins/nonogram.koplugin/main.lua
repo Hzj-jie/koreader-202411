@@ -1083,11 +1083,11 @@ function NonogramScreen:buildLayout()
 
   self.content_layout = VerticalGroup:new({
     align = "center",
-    VerticalSpan:new({ width = Size.span.vertical_default }),
+    VerticalSpan:new({ height = Size.span.vertical_default }),
     top_buttons,
-    VerticalSpan:new({ width = Size.span.vertical_default }),
+    VerticalSpan:new({ height = Size.span.vertical_default }),
     board_frame,
-    VerticalSpan:new({ width = Size.span.vertical_default }),
+    VerticalSpan:new({ height = Size.span.vertical_default }),
   })
   local scrolling_height = Screen:getHeight()
     - 2 * layout_vertical_margin

@@ -295,4 +295,20 @@ describe("SortWidget widget", function()
     widget:onSwipe(nil, { direction = "south" })
     assert.is_true(exit_called)
   end)
+
+  it("only marks UIManager dirty when SortWidget is in window stack", function()
+    local items = createMockItems(5)
+    local widget = SortWidget:new({
+      title = "Dirty Guard",
+      item_table = items,
+      width = 400,
+      height = 400,
+    })
+    assert.is_nil(UIManager._dirty[widget])
+
+    showWidget(widget)
+    UIManager._dirty[widget] = nil
+    widget:goToPage(1)
+    assert.is_true(UIManager._dirty[widget] ~= nil)
+  end)
 end)

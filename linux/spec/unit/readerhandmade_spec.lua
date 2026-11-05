@@ -361,6 +361,9 @@ describe("ReaderHandmade module", function()
       read = function(self, k)
         return data[k]
       end,
+      readTable = function(self, k)
+        return data[k]
+      end,
       readTableRef = function(self, k)
         return data[k]
       end,
@@ -381,5 +384,123 @@ describe("ReaderHandmade module", function()
     handmade:onReadSettings(config)
     assert.is_not_nil(handmade.toc)
     assert.is_not_nil(handmade.flow_points)
+  end)
+
+  it("persists non-empty toc and flow_points in onSaveSettings without warnings", function()
+    local LuaSettings = require("luasettings")
+    local logger = require("logger")
+    local tmp_file = os.tmpname()
+    local info_spy = spy.on(logger, "info")
+    finally(function()
+      info_spy:revert()
+      os.remove(tmp_file)
+    end)
+
+    local doc_settings = LuaSettings:open(tmp_file)
+    local handmade = ReaderHandmade:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+        doc_settings = doc_settings,
+      },
+    })
+
+    handmade:onReadSettings(doc_settings)
+    table.insert(handmade.toc, { title = "Ch1", page = 1 })
+    table.insert(handmade.flow_points, { page = 2, hidden = true })
+    handmade:onSaveSettings()
+
+    assert.are.equal(handmade.toc, doc_settings.data["handmade_toc"])
+    assert.are.equal(1, #doc_settings.data["handmade_toc"])
+    assert.are.equal(
+      handmade.flow_points,
+      doc_settings.data["handmade_flow_points"]
+    )
+    assert.are.equal(1, #doc_settings.data["handmade_flow_points"])
+    for _, call in ipairs(info_spy.calls) do
+      local msg = table.concat(call.vals, " ")
+      assert.is_nil(msg:match("FixMe"))
+    end
+  end)
+
+  it("deletes empty toc and flow_points from doc_settings in onSaveSettings", function()
+    local LuaSettings = require("luasettings")
+    local tmp_file = os.tmpname()
+    finally(function()
+      os.remove(tmp_file)
+    end)
+
+    local doc_settings = LuaSettings:open(tmp_file)
+    local handmade = ReaderHandmade:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+        doc_settings = doc_settings,
+      },
+    })
+
+    handmade:onReadSettings(doc_settings)
+    assert.are.equal(0, #handmade.toc)
+    assert.are.equal(0, #handmade.flow_points)
+    handmade:onSaveSettings()
+
+    assert.is_nil(doc_settings.data["handmade_toc"])
+    assert.is_nil(doc_settings.data["handmade_flow_points"])
+  end)
+
+  it("deletes toc and flow_points from doc_settings when cleared via ConfirmBox ok_callback", function()
+    local LuaSettings = require("luasettings")
+    local gettext = require("gettext")
+    local tmp_file = os.tmpname()
+    finally(function()
+      os.remove(tmp_file)
+    end)
+
+    local doc_settings = LuaSettings:open(tmp_file)
+    local shown_widgets = {}
+    local handmade = ReaderHandmade:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+        doc_settings = doc_settings,
+        annotation = { setNeedsUpdateFlag = function() end },
+        highlight = {
+          addToHighlightDialog = function() end,
+          removeFromHighlightDialog = function() end,
+        },
+      },
+    })
+    handmade.showWidget = function(_, w)
+      table.insert(shown_widgets, w)
+    end
+    handmade.updateDocFlows = function() end
+
+    handmade:onReadSettings(doc_settings)
+    table.insert(handmade.toc, { title = "Ch1", page = 1 })
+    table.insert(handmade.flow_points, { page = 2, hidden = true })
+    handmade:onSaveSettings()
+    assert.is_not_nil(doc_settings.data["handmade_toc"])
+    assert.is_not_nil(doc_settings.data["handmade_flow_points"])
+
+    local menu_items = {}
+    handmade:addToMainMenu(menu_items)
+    local settings_sub = menu_items.handmade_settings.sub_item_table_func()
+    for _, item in ipairs(settings_sub) do
+      if
+        item.text == gettext("Clear custom table of contents")
+        or item.text == gettext("Clear all marked pages")
+      then
+        item.callback({ updateItems = function() end })
+      end
+    end
+
+    assert.are.equal(2, #shown_widgets)
+    for _, w in ipairs(shown_widgets) do
+      w.ok_callback()
+    end
+
+    assert.are.equal(0, #handmade.toc)
+    assert.are.equal(0, #handmade.flow_points)
+
+    handmade:onSaveSettings()
+    assert.is_nil(doc_settings.data["handmade_toc"])
+    assert.is_nil(doc_settings.data["handmade_flow_points"])
   end)
 end)

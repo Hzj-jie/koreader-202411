@@ -177,15 +177,22 @@ describe("TitleBar", function()
           title = "Initial",
           align = "left",
         })
-        tb_single:setTitle("Updated Single")
-        assert.is_true(dirty_called)
-
         -- Multiline TextBoxWidget
-        dirty_called = false
         local tb_multi = TitleBar:new({
           title = "Initial Multi",
           title_multilines = true,
         })
+        UIManager:show(tb_single)
+        UIManager:show(tb_multi)
+        finally(function()
+          UIManager:close(tb_single)
+          UIManager:close(tb_multi)
+        end)
+
+        tb_single:setTitle("Updated Single")
+        assert.is_true(dirty_called)
+
+        dirty_called = false
         tb_multi:setTitle("Updated Multi Title")
         assert.is_true(dirty_called)
       end
@@ -202,6 +209,10 @@ describe("TitleBar", function()
         subtitle = "Initial Subtitle",
         align = "left",
       })
+      UIManager:show(tb)
+      finally(function()
+        UIManager:close(tb)
+      end)
       tb:setSubTitle("Updated Subtitle")
       assert.is_true(dirty_called)
     end)
@@ -219,6 +230,10 @@ describe("TitleBar", function()
           left_icon = "appbar.menu",
           right_icon = "search",
         })
+        UIManager:show(tb)
+        finally(function()
+          UIManager:close(tb)
+        end)
 
         tb:setLeftIcon("star")
         assert.are.equal("star", tb.left_button.icon)
@@ -229,5 +244,31 @@ describe("TitleBar", function()
         assert.are.equal(2, dirty_count)
       end
     )
+  end)
+
+  describe("setDirty window stack guard", function()
+    it("only marks UIManager dirty when TitleBar is in window stack", function()
+      local dirty_widgets = {}
+      UIManager.setDirty = function(_self, widget)
+        table.insert(dirty_widgets, widget)
+      end
+      local titlebar = TitleBar:new({
+        width = 400,
+        title = "Initial",
+        subtitle = "Sub",
+      })
+
+      titlebar:setTitle("Updated")
+      titlebar:setSubTitle("Updated Sub")
+      assert.are.equal(0, #dirty_widgets)
+
+      UIManager:show(titlebar)
+      finally(function()
+        UIManager:close(titlebar)
+      end)
+      titlebar:setTitle("Shown")
+      assert.are.equal(1, #dirty_widgets)
+      assert.are.equal(titlebar, dirty_widgets[1])
+    end)
   end)
 end)

@@ -364,7 +364,16 @@ describe("Readerdictionary module", function()
         end
 
         -- Test showDict with empty/nil results
+        local close_spy = spy.on(UIManager, "close")
+        finally(function()
+          if close_spy then
+            close_spy:revert()
+          end
+        end)
         dictionary:showDict("word", nil)
+        assert.spy(close_spy).was_not_called()
+        close_spy:revert()
+        close_spy = nil
         top = UIManager._window_stack[#UIManager._window_stack]
         if top and top.widget and top.widget ~= readerui then
           UIManager:close(top.widget)

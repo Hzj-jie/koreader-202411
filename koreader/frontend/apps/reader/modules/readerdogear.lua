@@ -101,7 +101,7 @@ function ReaderDogear:updateDogearOffset()
   -- Update components heights and positionnings
   if self[1] then
     self[1].dimen.h = self.dogear_y_offset + self.dogear_size
-    self.top_pad.width = self.dogear_y_offset
+    self.top_pad.height = self.dogear_y_offset
     self.vgroup:resetLayout()
   end
 end

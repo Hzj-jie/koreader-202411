@@ -195,8 +195,10 @@ function Screensaver:expandSpecial(message, fallback)
     else
       percent = Math.round(Math.clamp(percent * 100, 1, 99))
     end
-    props =
-      FileManagerBookInfo.extendProps(doc_settings:read("doc_props"), lastfile)
+    props = FileManagerBookInfo.extendProps(
+      doc_settings:readTable("doc_props"),
+      lastfile
+    )
     -- Unable to set time_left_chapter and time_left_document without ReaderUI, so leave N/A
   end
   if props then

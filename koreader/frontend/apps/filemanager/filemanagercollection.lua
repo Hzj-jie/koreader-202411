@@ -156,7 +156,7 @@ function FileManagerCollection:onMenuHold(item)
     if DocSettings:hasSidecarFile(file) then
       doc_settings_or_file = DocSettings:open(file)
       if not self.book_props then
-        local props = doc_settings_or_file:read("doc_props")
+        local props = doc_settings_or_file:readTable("doc_props")
         self.book_props = self.ui.bookinfo.extendProps(props, file)
         self.book_props.has_cover = true
       end
