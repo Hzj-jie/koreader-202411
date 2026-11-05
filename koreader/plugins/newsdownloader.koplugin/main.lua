@@ -1,4 +1,6 @@
 local BD = require("ui/bidi")
+local BackgroundJobs = require("background_jobs")
+local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 --local DownloadBackend = require("plugins/newsdownloader.koplugin/internaldownloadbackend")
 --local DownloadBackend = require("luahttpdownloadbackend")
@@ -12,6 +14,7 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local LuaSettings = require("frontend/luasettings")
 local MultiConfirmBox = require("ui/widget/multiconfirmbox")
 local NetworkMgr = require("ui/network/manager")
+local Notification = require("ui/widget/notification")
 local Persist = require("persist")
 local ReadHistory = require("readhistory")
 local UIManager = require("ui/uimanager")
@@ -22,6 +25,13 @@ local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local util = require("util")
 local T = FFIUtil.template
+
+local current_sync_config = {}
+
+local function backgroundSyncAction()
+  local NewsDownloader = require("plugins/newsdownloader.koplugin/main")
+  return NewsDownloader:processFeedsInBackground(current_sync_config)
+end
 
 local NewsDownloader = WidgetContainer:extend({
   name = "news_downloader",
@@ -106,10 +116,8 @@ function NewsDownloader:getSubMenuItems()
     {
       text = gettext("Sync news feeds"),
       keep_menu_open = true,
-      callback = function(menu)
-        NetworkMgr:runWhenOnline(function()
-          self:loadConfigAndProcessFeedsWithUI(menu)
-        end)
+      callback = function()
+        self:syncNewsFeeds(false)
       end,
     },
     {
@@ -217,6 +225,165 @@ function NewsDownloader:lazyInitialization()
     end
     self.initialized = true
   end
+end
+
+function NewsDownloader:syncNewsFeeds(is_silent)
+  self:lazyInitialization()
+  local ok, feed_config = pcall(dofile, self.feed_config_path)
+  if not ok or type(feed_config) ~= "table" then
+    if not is_silent then
+      UIManager:show(InfoMessage:new({
+        text = T(
+          gettext("Invalid configuration file. Detailed error message:\n%1"),
+          feed_config
+        ),
+      }))
+    end
+    return
+  end
+  if #feed_config <= 0 then
+    logger.err("NewsDownloader: empty feed list.", self.feed_config_path)
+    if not is_silent then
+      UIManager:show(ConfirmBox:new({
+        text = gettext(
+          "Feed list is empty. If you want to download news, you'll have to add a feed first."
+        ),
+        ok_text = gettext("Edit feed list"),
+        cancel_text = gettext("Close"),
+        ok_callback = function()
+          local feed_item_vc = FeedView:getItem(
+            1,
+            self.empty_feed,
+            function(id, edit_key, value)
+              self:editFeedAttribute(id, edit_key, value)
+            end
+          )
+          self:viewFeedItem(feed_item_vc)
+        end,
+      }))
+    end
+    return
+  end
+
+  if not is_silent then
+    NetworkMgr:runWhenOnline(function()
+      self:_syncNewsFeeds(false)
+    end)
+  else
+    if NetworkMgr:isOnline() then
+      self:_syncNewsFeeds(true)
+    end
+  end
+end
+
+function NewsDownloader:_syncNewsFeeds(is_silent)
+  current_sync_config = {
+    feed_config_path = self.feed_config_path,
+    download_dir = self.download_dir,
+    never_download_images = self.settings:isTrue("never_download_images"),
+    file_extension = self.file_extension,
+  }
+
+  local enqueued = BackgroundJobs.insertKeyed({
+    executable = "fork",
+    action = backgroundSyncAction,
+    callback = function(job)
+      self:_onSyncFinished(job, is_silent)
+    end,
+  })
+
+  if not enqueued then
+    if not is_silent then
+      Notification:notify(gettext("Sync is already in progress."))
+    end
+    return
+  end
+
+  if not is_silent then
+    Notification:notify(gettext("Synchronizing news feeds…"))
+  end
+end
+
+function NewsDownloader:_onSyncFinished(job, is_silent)
+  self.settings:save("last_sync_time", os.time())
+  self.settings:flush()
+
+  local res = job and job.result
+  if type(res) == "table" and res.ok then
+    if not is_silent then
+      Notification:notify(gettext("Downloading news finished."))
+    end
+  else
+    if type(res) == "table" and res.unsupported_feeds_urls then
+      for _, err_entry in ipairs(res.unsupported_feeds_urls) do
+        logger.warn("NewsDownloader: feed error:", err_entry[1], err_entry[2])
+      end
+    else
+      logger.warn("NewsDownloader: background sync failed with result:", res)
+    end
+    if not is_silent then
+      Notification:notify(gettext("Downloading news finished with errors."))
+    end
+  end
+end
+
+function NewsDownloader:processFeedsInBackground(config)
+  local ok, feed_config = pcall(dofile, config.feed_config_path)
+  if not ok or type(feed_config) ~= "table" or #feed_config == 0 then
+    return {
+      ok = false,
+      unsupported_feeds_urls = {
+        { config.feed_config_path or "", "Invalid or empty feed config" },
+      },
+      count = 0,
+    }
+  end
+
+  local dummy_inst = setmetatable({
+    download_dir = config.download_dir,
+    file_extension = config.file_extension or ".epub",
+  }, { __index = NewsDownloader })
+
+  local unsupported_feeds_urls = {}
+  local total_downloaded = 0
+  for idx, feed in ipairs(feed_config) do
+    local url = feed[1]
+    local limit = feed.limit
+    local download_full_article = feed.download_full_article == nil
+      or feed.download_full_article
+    local include_images = not config.never_download_images and feed.include_images
+    local enable_filter = feed.enable_filter or feed.enable_filter == nil
+    local filter_element = feed.filter_element or feed.filter_element == nil
+    local credentials = feed.credentials
+    if url and limit then
+      local feed_message = T(
+        gettext("Processing %1/%2:\n%3"),
+        idx,
+        #feed_config,
+        BD.url(url)
+      )
+      dummy_inst:processFeedSource(
+        url,
+        credentials,
+        tonumber(limit),
+        unsupported_feeds_urls,
+        download_full_article,
+        include_images,
+        feed_message,
+        enable_filter,
+        filter_element
+      )
+      total_downloaded = total_downloaded + 1
+    else
+      logger.warn("NewsDownloader: invalid feed config entry.", feed)
+    end
+  end
+
+  return {
+    ok = (#unsupported_feeds_urls == 0),
+    unsupported_feeds_urls = unsupported_feeds_urls,
+    count = total_downloaded,
+  }
 end
 
 function NewsDownloader:loadConfigAndProcessFeeds(menu)

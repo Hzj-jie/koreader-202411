@@ -580,4 +580,184 @@ describe("NewsDownloader main plugin module", function()
       assert.is_true(epub_created)
     end
   )
+
+  it(
+    "should delegate news sync to non-blocking background fork job with preflight validation and deduplication (issue #157)",
+    function()
+      local BackgroundJobs = require("background_jobs")
+      local NetworkMgr = require("ui/network/manager")
+      local Notification = require("ui/widget/notification")
+      local gettext = require("gettext")
+
+      local tmp_dir = os.tmpname()
+      os.remove(tmp_dir)
+      require("libs/libkoreader-lfs").mkdir(tmp_dir)
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(self_ui, widget)
+        table.insert(shown_widgets, widget)
+      end
+
+      local notifications = {}
+      local orig_notify = Notification.notify
+      Notification.notify = function(self_n, text, ...)
+        table.insert(notifications, text)
+      end
+
+      local orig_run_when_online = NetworkMgr.runWhenOnline
+      NetworkMgr.runWhenOnline = function(self_nm, callback)
+        callback()
+      end
+
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local inst = NewsDownloader:new({
+        ui = mock_ui,
+        path = "plugins/newsdownloader.koplugin",
+        download_dir = tmp_dir .. "/",
+        feed_config_path = tmp_dir .. "/feed_config.lua",
+      })
+      inst.initialized = true
+      inst.settings =
+        require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+
+      finally(function()
+        UIManager.show = orig_show
+        Notification.notify = orig_notify
+        NetworkMgr.runWhenOnline = orig_run_when_online
+      end)
+
+      -- 1. Preflight: invalid feed config syntax shows InfoMessage
+      local invalid_file = io.open(inst.feed_config_path, "w")
+      invalid_file:write("invalid lua syntax {[[")
+      invalid_file:close()
+
+      shown_widgets = {}
+      inst:syncNewsFeeds(false)
+      assert.are.equal(1, #shown_widgets)
+      assert.is_not_nil(shown_widgets[1].text:find("Invalid configuration file"))
+
+      -- 2. Preflight: empty feed config shows ConfirmBox
+      inst:saveConfig({})
+      shown_widgets = {}
+      inst:syncNewsFeeds(false)
+      assert.are.equal(1, #shown_widgets)
+      assert.are.equal(
+        gettext(
+          "Feed list is empty. If you want to download news, you'll have to add a feed first."
+        ),
+        shown_widgets[1].text
+      )
+      assert.are.equal(gettext("Edit feed list"), shown_widgets[1].ok_text)
+
+      -- 3. Valid config dispatches BackgroundJobs.insertKeyed with fork
+      local valid_config = {
+        {
+          [1] = "https://example.com/feed.xml",
+          limit = 2,
+          download_full_article = true,
+          include_images = false,
+        },
+      }
+      inst:saveConfig(valid_config)
+
+      local captured_job = nil
+      local insert_result = true
+      local orig_insert = BackgroundJobs.insertKeyed
+      BackgroundJobs.insertKeyed = function(job)
+        captured_job = job
+        return insert_result
+      end
+
+      finally(function()
+        BackgroundJobs.insertKeyed = orig_insert
+      end)
+
+      notifications = {}
+      inst:syncNewsFeeds(false)
+
+      assert.is_not_nil(captured_job)
+      assert.are.equal("fork", captured_job.executable)
+      assert.is_function(captured_job.action)
+      assert.is_function(captured_job.callback)
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Synchronizing news feeds…"),
+        notifications[1]
+      )
+
+      -- 4. Deduplication: when job is already in progress, insertKeyed returns false
+      insert_result = false
+      notifications = {}
+      inst:syncNewsFeeds(false)
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Sync is already in progress."),
+        notifications[1]
+      )
+
+      -- 5. Test background action execution with mock feed processing
+      local orig_process = NewsDownloader.processFeedSource
+      local processed_urls = {}
+      NewsDownloader.processFeedSource = function(
+        self_p,
+        url,
+        creds,
+        limit,
+        unsupported,
+        full_art,
+        images,
+        msg,
+        enable_filter,
+        filter_elem
+      )
+        table.insert(processed_urls, url)
+      end
+
+      finally(function()
+        NewsDownloader.processFeedSource = orig_process
+      end)
+
+      local bg_result = captured_job.action()
+      assert.is_table(bg_result)
+      assert.is_true(bg_result.ok)
+      assert.are.equal(1, #processed_urls)
+      assert.are.equal("https://example.com/feed.xml", processed_urls[1])
+
+      -- 6. Callback updates last_sync_time and notifies on success
+      notifications = {}
+      captured_job.callback({ result = bg_result })
+      assert.is_number(inst.settings:read("last_sync_time"))
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Downloading news finished."),
+        notifications[1]
+      )
+
+      -- 7. Callback handles error result gracefully
+      notifications = {}
+      captured_job.callback({
+        result = {
+          ok = false,
+          unsupported_feeds_urls = { { "https://broken.com", "404" } },
+        },
+      })
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Downloading news finished with errors."),
+        notifications[1]
+      )
+
+      -- 8. Callback handles non-table sentinels (e.g. fork failure or exit code) without crash
+      notifications = {}
+      assert.has_no.errors(function()
+        captured_job.callback({ result = false })
+        captured_job.callback({ result = 222 })
+        captured_job.callback(nil)
+      end)
+      assert.are.equal(3, #notifications)
+    end
+  )
 end)

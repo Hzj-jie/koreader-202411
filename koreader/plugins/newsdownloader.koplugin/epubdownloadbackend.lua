@@ -726,11 +726,20 @@ function EpubDownloadBackend:createEpub(
         epub:add("OEBPS/" .. img.imgpath, content, no_compression)
         logger.dbg("Adding OEBPS/" .. img.imgpath)
       else
-        go_on = UI:confirm(
-          T(gettext("Downloading image %1 failed. Continue anyway?"), inum),
-          gettext("Stop"),
-          gettext("Continue")
-        )
+        if coroutine.running() then
+          go_on = UI:confirm(
+            T(gettext("Downloading image %1 failed. Continue anyway?"), inum),
+            gettext("Stop"),
+            gettext("Continue")
+          )
+        else
+          logger.warn(
+            "NewsDownloader: Downloading image "
+              .. inum
+              .. " failed. Continuing anyway."
+          )
+          go_on = true
+        end
         if not go_on then
           cancelled = true
           break
@@ -741,15 +750,17 @@ function EpubDownloadBackend:createEpub(
 
   -- Done with adding files
   if cancelled then
-    if
-      UI:confirm(
+    local create_with_downloaded = false
+    if coroutine.running() then
+      create_with_downloaded = UI:confirm(
         gettext(
           "Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"
         ),
         gettext("Don't create"),
         gettext("Create")
       )
-    then
+    end
+    if create_with_downloaded then
       cancelled = false
     end
   end
