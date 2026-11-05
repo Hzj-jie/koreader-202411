@@ -1,5 +1,5 @@
 describe("EpubDownloadBackend module", function()
-  local EpubDownloadBackend, http
+  local EpubDownloadBackend, http, lfs
 
   setup(function()
     require("commonrequire")
@@ -7,6 +7,7 @@ describe("EpubDownloadBackend module", function()
     require("document/canvascontext"):init(require("device"))
 
     http = require("socket.http")
+    lfs = require("libs/libkoreader-lfs")
     EpubDownloadBackend =
       require("plugins/newsdownloader.koplugin/epubdownloadbackend")
   end)
@@ -292,14 +293,12 @@ describe("EpubDownloadBackend module", function()
   )
 
   it(
-    "should handle image download failure and cancellation in createEpub",
+    "should continue and create epub when image download fails with HTTP 404 in createEpub",
     function()
       local tmp_epub = os.tmpname() .. ".epub"
       local html =
         '<html><head><title>Failed Img</title></head><body><img src="http://example.com/missing.png" width="80" height="80"/></body></html>'
 
-      local Trapper = require("ui/trapper")
-      local old_confirm = Trapper.confirm
       local old_request = http.request
 
       -- Simulate image HTTP 404
@@ -307,42 +306,17 @@ describe("EpubDownloadBackend module", function()
         return nil, 404, {}, "404 Not Found"
       end
 
-      -- User chooses not to continue when image fails, and not to create epub
-      Trapper.confirm = function(self_trapper, msg, btn1, btn2)
-        return false
-      end
-
       local result = EpubDownloadBackend:createEpub(
         tmp_epub,
         html,
         "http://example.com/fail",
         true,
-        "Downloading...",
-        false
-      )
-      assert.is_false(result)
-
-      -- User chooses to create epub with partial images
-      Trapper.confirm = function(self_trapper, msg, btn1, btn2)
-        if msg:find("Continue anyway") then
-          return false
-        else
-          return true -- Create with already downloaded images
-        end
-      end
-
-      result = EpubDownloadBackend:createEpub(
-        tmp_epub,
-        html,
-        "http://example.com/fail2",
-        true,
-        "Downloading...",
         false
       )
       assert.is_true(result)
+      assert.are.equal("file", lfs.attributes(tmp_epub, "mode"))
 
       os.remove(tmp_epub)
-      Trapper.confirm = old_confirm
       http.request = old_request
     end
   )
