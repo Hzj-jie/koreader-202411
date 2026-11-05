@@ -969,9 +969,9 @@ describe("BackgroundRunner widget tests", function()
       table.insert(PluginShare.backgroundJobs, job_pass)
       notifyBackgroundJobsUpdated()
 
-      MockTime:increase(2)
+      MockTime:increase(1)
       UIManager:handleInput()
-      MockTime:increase(2)
+      MockTime:increase(60)
       UIManager:handleInput()
       assert.is_false(job_pass.timeout)
 
@@ -984,9 +984,9 @@ describe("BackgroundRunner widget tests", function()
       table.insert(PluginShare.backgroundJobs, job_timeout)
       notifyBackgroundJobsUpdated()
 
-      MockTime:increase(2)
+      MockTime:increase(1)
       UIManager:handleInput()
-      MockTime:increase(2)
+      MockTime:increase(60)
       UIManager:handleInput()
       assert.is_true(job_timeout.timeout)
     end
@@ -1397,4 +1397,139 @@ describe("BackgroundRunner widget tests", function()
 
     io.popen = old_popen
   end)
+
+  it(
+    "handles when = 'idle' jobs with 300s threshold, 60s cooldown, priority deferral, and queue ordering",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+
+      local orig_idle = UIManager.timeSinceLastUserAction
+      local orig_pending = CommandRunner.pending
+      local orig_device_idling = PluginShare.DeviceIdling
+      local orig_monotonic = time.monotonic
+
+      local idle_seconds = 100
+      local current_monotonic = time.s(1000)
+      local is_pending = false
+
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(idle_seconds)
+      end
+      CommandRunner.pending = function()
+        return is_pending
+      end
+      PluginShare.DeviceIdling = false
+      time.monotonic = function()
+        return current_monotonic
+      end
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_idle
+        CommandRunner.pending = orig_pending
+        PluginShare.DeviceIdling = orig_device_idling
+        time.monotonic = orig_monotonic
+        PluginShare.backgroundJobs = {}
+      end)
+
+      local executed_count = 0
+      local test_job = {
+        when = "idle",
+        repeated = true,
+        executable = function()
+          executed_count = executed_count + 1
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, test_job)
+
+      -- 1. Device not idle (<300s and DeviceIdling=false): should not run
+      idle_seconds = 200
+      BackgroundRunner:_execute()
+      assert.are.equal(0, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 2. Device idle (>=300s), but less than 60s since insert_time: should defer
+      idle_seconds = 300
+      current_monotonic = current_monotonic + time.s(30)
+      BackgroundRunner:_execute()
+      assert.are.equal(0, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 3. Device idle (>=300s), 60s elapsed since insert, but CommandRunner:pending()=true: should defer
+      current_monotonic = current_monotonic + time.s(30)
+      is_pending = true
+      BackgroundRunner:_execute()
+      assert.are.equal(0, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 4. Device idle (>=300s), 60s elapsed, and not pending: executes once
+      is_pending = false
+      BackgroundRunner:_execute()
+      assert.are.equal(1, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs) -- repeated job cloned back
+
+      -- 5. Next tick immediately (less than 60s since new insert_time): skips
+      current_monotonic = current_monotonic + time.s(10)
+      BackgroundRunner:_execute()
+      assert.are.equal(1, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 6. 60s elapsed after execution: executes second time
+      current_monotonic = current_monotonic + time.s(50)
+      BackgroundRunner:_execute()
+      assert.are.equal(2, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 7. Low priority gating: deferred when non-idle job is ready (even if idle job is ahead in queue)
+      -- and at most one idle job executes per tick
+      PluginShare.backgroundJobs = {}
+      local asap_runs = 0
+      local idle1_runs = 0
+      local idle2_runs = 0
+
+      -- Note queue order: idle jobs placed BEFORE asap job
+      table.insert(PluginShare.backgroundJobs, {
+        when = "idle",
+        insert_time = current_monotonic - time.s(100),
+        executable = function()
+          idle1_runs = idle1_runs + 1
+        end,
+      })
+      table.insert(PluginShare.backgroundJobs, {
+        when = "idle",
+        insert_time = current_monotonic - time.s(100),
+        executable = function()
+          idle2_runs = idle2_runs + 1
+        end,
+      })
+      table.insert(PluginShare.backgroundJobs, {
+        when = "asap",
+        executable = function()
+          asap_runs = asap_runs + 1
+        end,
+      })
+
+      -- Pass A: asap job runs first, idle jobs are deferred despite being ahead in queue
+      BackgroundRunner:_execute()
+      assert.are.equal(1, asap_runs)
+      assert.are.equal(0, idle1_runs)
+      assert.are.equal(0, idle2_runs)
+      assert.are.equal(2, #PluginShare.backgroundJobs)
+
+      -- Pass B: no non-idle jobs, only ONE idle job executes in this tick
+      BackgroundRunner:_execute()
+      assert.are.equal(1, idle1_runs)
+      assert.are.equal(0, idle2_runs)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- Pass C: second idle job executes in next tick
+      BackgroundRunner:_execute()
+      assert.are.equal(1, idle1_runs)
+      assert.are.equal(1, idle2_runs)
+      assert.are.equal(0, #PluginShare.backgroundJobs)
+    end
+  )
 end)
