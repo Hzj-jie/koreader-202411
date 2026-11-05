@@ -233,7 +233,6 @@ describe("EpubDownloadBackend module", function()
         html,
         "http://example.com/full",
         true,
-        "Downloading...",
         true,
         "article"
       )
@@ -298,7 +297,6 @@ describe("EpubDownloadBackend module", function()
         html,
         "http://example.com/article",
         false,
-        "Downloading...",
         false
       )
       assert.is_true(ok)

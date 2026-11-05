@@ -227,7 +227,6 @@ describe("NewsDownloader main plugin module", function()
         unsupported,
         true,
         false,
-        "Msg",
         false,
         ""
       )
@@ -241,7 +240,6 @@ describe("NewsDownloader main plugin module", function()
         unsupported,
         false,
         false,
-        "Msg",
         false,
         ""
       )
@@ -258,7 +256,6 @@ describe("NewsDownloader main plugin module", function()
         unsupported,
         true,
         false,
-        "Msg",
         false,
         ""
       )
@@ -377,7 +374,7 @@ describe("NewsDownloader main plugin module", function()
         if url == "https://example.com/rss" then
           return [[<rss version="2.0"><channel><title>Single Item RSS</title><item><title>Article 1</title><link>https://example.com/art1</link><description>Desc 1</description></item></channel></rss>]]
         end
-        return nil
+        error("Download failed for: " .. tostring(url))
       end
       DownloadBackend.loadPage = function()
         return "<html><body>Content</body></html>"
@@ -525,7 +522,6 @@ describe("NewsDownloader main plugin module", function()
           unsupported,
           true,
           false,
-          "Msg",
           false,
           ""
         )
@@ -555,7 +551,6 @@ describe("NewsDownloader main plugin module", function()
         unsupported_rss,
         true,
         false,
-        "Msg",
         false,
         ""
       )
@@ -650,7 +645,13 @@ describe("NewsDownloader main plugin module", function()
       shown_widgets = {}
       inst:syncNewsFeeds()
       assert.are.equal(1, #shown_widgets)
-      assert.is_not_nil(shown_widgets[1].text:find(gettext("Invalid configuration file")))
+      assert.is_not_nil(
+        shown_widgets[1].text:find(
+          gettext("Invalid configuration file. Detailed error message:\n%1"):gsub("%%1.*", ""),
+          1,
+          true
+        )
+      )
 
       -- 2. Preflight: empty feed config shows ConfirmBox
       inst:saveConfig({})
@@ -770,7 +771,17 @@ describe("NewsDownloader main plugin module", function()
       stub(NewsDownloader, "getSettings").returns(inst.settings)
 
       local NetworkMgr = require("ui/network/manager")
+      local time = require("ui/time")
       local orig_online = NetworkMgr.isOnline
+      local orig_monotonic = time.monotonic
+      local orig_since = time.since
+      local fake_now = 0
+      time.monotonic = function()
+        return fake_now
+      end
+      time.since = function(t)
+        return fake_now - t
+      end
       local is_online = true
       NetworkMgr.isOnline = function()
         return is_online
@@ -791,6 +802,8 @@ describe("NewsDownloader main plugin module", function()
 
       finally(function()
         NetworkMgr.isOnline = orig_online
+        time.monotonic = orig_monotonic
+        time.since = orig_since
         BackgroundJobs.insertKeyed = orig_insert
         NewsDownloader.processFeedSource = orig_process
         NewsDownloader.getSettings:revert()
@@ -811,17 +824,20 @@ describe("NewsDownloader main plugin module", function()
 
       -- 1. Does nothing when auto_sync is false/nil
       inst.settings:delete("auto_sync")
+      fake_now = fake_now + time.s(61)
       NewsDownloader.onIdle()
       assert.is_nil(captured_job)
 
       -- 2. Does nothing when network is offline
       inst.settings:save("auto_sync", true)
       is_online = false
+      fake_now = fake_now + time.s(61)
       NewsDownloader.onIdle()
       assert.is_nil(captured_job)
 
       -- 3. Enqueues oldest due feed when online
       is_online = true
+      fake_now = fake_now + time.s(61)
       local now = os.time()
       local times = inst.settings:readTableRef("feed_last_sync_times")
       times["https://example.com/feed1.xml"] = now - 7200 -- 2 hours ago (due)
@@ -831,6 +847,13 @@ describe("NewsDownloader main plugin module", function()
       NewsDownloader.onIdle()
       assert.is_not_nil(captured_job)
       assert.are.equal("fork", captured_job.executable)
+
+      -- Verify throttle suppresses duplicate runs within 60s
+      local saved_job = captured_job
+      captured_job = nil
+      NewsDownloader.onIdle()
+      assert.is_nil(captured_job)
+      captured_job = saved_job
 
       -- Verify it selected feed1 (the due feed)
       local bg_res = captured_job.action()
@@ -843,6 +866,7 @@ describe("NewsDownloader main plugin module", function()
       assert.is_true(times["https://example.com/feed1.xml"] >= now)
 
       -- 4. When all feeds are recent (<3600s), onIdle enqueues nothing
+      fake_now = fake_now + time.s(61)
       captured_job = nil
       times["https://example.com/feed1.xml"] = os.time() - 500
       times["https://example.com/feed2.xml"] = os.time() - 500
@@ -855,14 +879,22 @@ describe("NewsDownloader main plugin module", function()
     "verifies standing idle job registration in BackgroundJobs",
     function()
       local PluginShare = require("pluginshare")
-      local found = false
+      local found_job = nil
       for _, job in ipairs(PluginShare.backgroundJobs) do
         if job.when == "idle" and job.repeated == true then
-          found = true
+          found_job = job
           break
         end
       end
-      assert.is_true(found)
+      assert.is_not_nil(found_job)
+      local called = false
+      local orig_onIdle = NewsDownloader.onIdle
+      NewsDownloader.onIdle = function()
+        called = true
+      end
+      found_job.executable()
+      NewsDownloader.onIdle = orig_onIdle
+      assert.is_true(called)
     end
   )
 end)

@@ -23,6 +23,7 @@ local dateparser = require("plugins/newsdownloader.koplugin/lib/dateparser")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local time = require("ui/time")
 local util = require("util")
 local T = FFIUtil.template
 
@@ -52,6 +53,7 @@ local _feed_queue = {}
 local _is_manual_sync = false
 local _manual_sync_has_errors = false
 local _current_fork_feed = nil
+local _last_idle_time = nil
 
 local _news_settings = nil
 function NewsDownloader.getSettings()
@@ -98,7 +100,7 @@ local function backgroundSingleFeedCallback(job)
   assert(finished_item and finished_item == _current_fork_feed and finished_item.url)
   saveFeedSyncTime(finished_item.url, os.time())
 
-  local res = job and job.result
+  local res = job.result
   if not (type(res) == "table" and res.ok) then
     _manual_sync_has_errors = true
     if type(res) == "table" and res.unsupported_feeds_urls then
@@ -201,7 +203,7 @@ function NewsDownloader:getSubMenuItems()
       text = gettext("Sync news feeds"),
       keep_menu_open = true,
       callback = function()
-        self:syncNewsFeeds(false)
+        self:syncNewsFeeds()
       end,
     },
     {
@@ -403,7 +405,7 @@ function NewsDownloader:processSingleFeedInBackground(item)
 
   local dummy_inst = setmetatable({
     download_dir = item.download_dir,
-    file_extension = item.file_extension or ".epub",
+    file_extension = item.file_extension,
   }, { __index = NewsDownloader })
 
   local download_full_article = item.download_full_article == nil
@@ -432,6 +434,11 @@ function NewsDownloader:processSingleFeedInBackground(item)
 end
 
 function NewsDownloader.onIdle()
+  if _last_idle_time and time.since(_last_idle_time) < time.s(60) then
+    return
+  end
+  _last_idle_time = time.monotonic()
+
   local settings = NewsDownloader.getSettings()
   if not settings:isTrue("auto_sync") then
     return
@@ -522,14 +529,14 @@ function NewsDownloader:processFeedSource(
   end)
   local feeds
   -- Check to see if a response is available to deserialize.
-  if ok and response then
+  if ok then
     feeds = self:deserializeXMLString(response)
   end
   -- If the response is not available (for a reason that we don't know),
   -- add the URL to the unsupported feeds list.
   if not ok or not feeds then
     local error_message
-    if not ok or not response then
+    if not ok then
       error_message = gettext("(Reason: Failed to download content)")
     else
       error_message = gettext("(Reason: Error during feed deserialization)")

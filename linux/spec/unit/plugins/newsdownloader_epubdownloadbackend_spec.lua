@@ -113,7 +113,6 @@ describe("EpubDownloadBackend module", function()
         html,
         "http://example.com/article",
         false,
-        "Downloading...",
         true,
         ".content"
       )
@@ -132,7 +131,6 @@ describe("EpubDownloadBackend module", function()
         html_no_title,
         "http://example.com/no_title",
         false,
-        "Downloading...",
         true,
         ".content"
       )
@@ -150,7 +148,6 @@ describe("EpubDownloadBackend module", function()
         html_multiline,
         "http://example.com/multiline",
         false,
-        "Downloading...",
         true,
         ".content"
       )
@@ -280,7 +277,6 @@ describe("EpubDownloadBackend module", function()
           html,
           "http://example.com/article/full",
           true, -- include_images
-          "Downloading with images...",
           true, -- filter_enable
           "article"
         )
