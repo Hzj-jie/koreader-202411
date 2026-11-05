@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 15:12-0800\n"
+"POT-Creation-Date: 2026-11-05 15:30-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -14133,27 +14133,6 @@ msgid "Moves/copies current book to archive folder"
 msgstr ""
 
 #, fuzzy
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr "Eraikitzen EPUB..."
-
-#, fuzzy
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr "Irudia eskuratzen %1 / %2 ..."
-
-#, fuzzy
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr "EPUBa paketatzen..."
-
-#, fuzzy
 msgid "URL"
 msgstr "RTL"
 
@@ -14176,6 +14155,14 @@ msgid "Delete feed"
 msgstr "Ezabatu fitxategia"
 
 #, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "Deskargatu berriak"
+
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "Deskargatu berriak"
+
+#, fuzzy
 msgid "News downloader (RSS/Atom)"
 msgstr "Berrien deskargatzailea"
 
@@ -14192,6 +14179,9 @@ msgstr "Editatu fitxategi huts berria"
 #, fuzzy
 msgid "Set download folder"
 msgstr "Deskarga karpetara joan"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -14235,34 +14225,11 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Editatu jario zerrenda"
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
-msgstr ""
-"%1/%2 prozesatzen:\n"
-"%3"
-
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "Deskargatu berriak"
-
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "Deskargatu berriak"
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
+msgid "Sync is already in progress."
 msgstr ""
 
-#, fuzzy
-msgid "Go to download folder?"
-msgstr "Deskarga karpetara joan"
-
-#, fuzzy
-msgid "Go to downloads"
-msgstr "Deskarga karpetara joan"
+msgid "Synchronizing news feeds…"
+msgstr ""
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -14273,19 +14240,6 @@ msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
 msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
-msgstr ""
-"%1\n"
-"%2"
 
 msgid ""
 "This is just a description of the feed. To download the full article "
@@ -15389,9 +15343,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -16571,6 +16522,49 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Kokapena"
+
+#, fuzzy
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Building EPUB…"
+#~ msgstr "Eraikitzen EPUB..."
+
+#, fuzzy
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Retrieving image %2 / %3 …"
+#~ msgstr "Irudia eskuratzen %1 / %2 ..."
+
+#, fuzzy
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Packing EPUB…"
+#~ msgstr "EPUBa paketatzen..."
+
+#~ msgid ""
+#~ "Processing %1/%2:\n"
+#~ "%3"
+#~ msgstr ""
+#~ "%1/%2 prozesatzen:\n"
+#~ "%3"
+
+#, fuzzy
+#~ msgid "Go to download folder?"
+#~ msgstr "Deskarga karpetara joan"
+
+#, fuzzy
+#~ msgid "Go to downloads"
+#~ msgstr "Deskarga karpetara joan"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "%2"
+#~ msgstr ""
+#~ "%1\n"
+#~ "%2"
 
 #, fuzzy
 #~ msgid "Autoshutdown timeout: %1"
