@@ -73,21 +73,13 @@ end
 function ReaderHandMade:onSaveSettings()
   self.ui.doc_settings:save("handmade_toc_enabled", self.toc_enabled)
   self.ui.doc_settings:save("handmade_toc_edit_enabled", self.toc_edit_enabled)
-  if #self.toc > 0 then
-    self.ui.doc_settings:save("handmade_toc", self.toc)
-  else
-    self.ui.doc_settings:delete("handmade_toc")
-  end
+  self.ui.doc_settings:save("handmade_toc", self.toc, {})
   self.ui.doc_settings:save("handmade_flows_enabled", self.flows_enabled)
   self.ui.doc_settings:save(
     "handmade_flows_edit_enabled",
     self.flows_edit_enabled
   )
-  if #self.flow_points > 0 then
-    self.ui.doc_settings:save("handmade_flow_points", self.flow_points)
-  else
-    self.ui.doc_settings:delete("handmade_flow_points")
-  end
+  self.ui.doc_settings:save("handmade_flow_points", self.flow_points, {})
 end
 
 function ReaderHandMade:isHandmadeTocEnabled()
