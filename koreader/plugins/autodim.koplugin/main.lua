@@ -5,16 +5,13 @@ Plugin for automatic dimming of the frontlight after an idle period.
 --]]
 --
 
-local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local Device = require("device")
-local PluginShare = require("pluginshare")
 local SpinWidget = require("ui/widget/spinwidget")
 local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local gettext = require("gettext")
-local time = require("ui/time")
 local C_ = gettext.pgettext
 local Powerd = Device.powerd
 local T = require("ffi/util").template
@@ -31,12 +28,6 @@ local HELP_TEXT = require("plugins/autodim.koplugin/_meta").description
 
 local AutoDim = WidgetContainer:extend({
   name = "autodim",
-  -- Copied from SwitchPlugin.
-  settings_id = math.floor(os.clock() * 1000),
-  -- For BackgroundTaskPlugin
-  enabled = true,
-  -- Check once per 10 seconds, it's less critical.
-  when = 10,
 })
 
 function AutoDim:init()
@@ -44,13 +35,6 @@ function AutoDim:init()
     or -1
 
   self.ui.menu:registerToMainMenu(self)
-
-  -- For BackgroundTaskPlugin
-  self.executable = function()
-    self:_executable()
-  end
-
-  self:_scheduleAutoDimTask()
 end
 
 function AutoDim:addToMainMenu(menu_items)
@@ -98,14 +82,12 @@ function AutoDim:addToMainMenu(menu_items)
           end
           self.autodim_starttime_m = spin.value
           G_reader_settings:save("autodim_starttime_minutes", spin.value, -1)
-          self:_scheduleAutoDimTask()
           menu:updateItems()
         end,
         extra_text = gettext("Disable"),
         extra_callback = function()
           self.autodim_starttime_m = -1
           G_reader_settings:save("autodim_starttime_minutes", -1, -1)
-          self:_scheduleAutoDimTask()
           menu:updateItems()
         end,
       })
@@ -116,16 +98,6 @@ function AutoDim:addToMainMenu(menu_items)
   }
 end
 
-function AutoDim:_scheduleAutoDimTask()
-  self.settings_id = self.settings_id + 1
-  -- Technically speaking, it's possible to start the autodim
-  -- "as soon as possible".
-  if self.autodim_starttime_m >= 0 then
-    -- A slightly hacky, but very lua way of running the task.
-    BackgroundTaskPlugin._start(self)
-  end
-end
-
 function AutoDim:_restoreFrontlight()
   if self.origin_fl then
     Powerd:setIntensity(self.origin_fl)
@@ -133,38 +105,53 @@ function AutoDim:_restoreFrontlight()
   end
 end
 
+function AutoDim:onDeviceIdling()
+  if self.trap_widget or self.autodim_starttime_m <= 0 or Powerd:isFrontlightOff() then
+    return
+  end
+
+  self.origin_fl = self.origin_fl or Powerd:frontlightIntensity()
+  local fl_diff = self.origin_fl - AUTODIM_END_FL
+  if fl_diff <= 0 then
+    self.origin_fl = nil
+    return
+  end
+
+  self.trap_widget = TrapWidget:new({
+    name = "AutoDim",
+    dismiss_callback = function()
+      self:_restoreFrontlight()
+      self.trap_widget = nil
+    end,
+  })
+  UIManager:show(self.trap_widget)
+  UIManager:unschedule(AutoDim._rampTask)
+  self:_rampTask(fl_diff, math.max(AUTODIM_DURATION_S / fl_diff, 0.001))
+end
+
+function AutoDim:onDeviceBusy()
+  UIManager:unschedule(AutoDim._rampTask)
+end
+
 function AutoDim:onResume()
   if not self.trap_widget then
     return
   end
-  -- But ensure the self.trap_widget flag can be posted to the ramp down
-  -- task.
   local trap_widget = self.trap_widget
   self.trap_widget = nil
   UIManager:nextTick(function()
-    self:_clearIdling()
     self:_restoreFrontlight()
     UIManager:close(trap_widget)
   end)
 end
 
-function AutoDim:_clearIdling()
-  PluginShare.DeviceIdling = false
-end
-
-function AutoDim:onExit()
-  BackgroundTaskPlugin.onExit(self)
-end
-
 function AutoDim:onClose()
   UIManager:unschedule(AutoDim._rampTask)
-  self:_clearIdling()
   self:_restoreFrontlight()
   if self.trap_widget then
     UIManager:closeIfShown(self.trap_widget)
     self.trap_widget = nil
   end
-  BackgroundTaskPlugin.onClose(self)
 end
 
 function AutoDim:onFrontlightTurnedOff()
@@ -176,57 +163,9 @@ function AutoDim:onFrontlightTurnedOff()
   Powerd.fl_intensity = self.origin_fl or Powerd.fl_intensity
   self.origin_fl = nil
   if self.trap_widget then
-    self:_clearIdling()
     UIManager:close(self.trap_widget) -- don't swallow input events from now
     self.trap_widget = nil
   end
-end
-
-function AutoDim:_shouldNotDim()
-  if self.autodim_starttime_m <= 0 then
-    return true
-  end
-  return UIManager:timeSinceLastUserAction()
-    < time.s(self.autodim_starttime_m * 60)
-end
-
-function AutoDim:_executable()
-  if self.trap_widget then
-    return
-  end -- already dimmed.
-  if self:_shouldNotDim() then
-    return
-  end
-  -- Do not ramp down if the frontlight is off.
-  if Powerd:isFrontlightOff() then
-    return
-  end
-
-  self.origin_fl = self.origin_fl or Powerd:frontlightIntensity()
-  local fl_diff = self.origin_fl - AUTODIM_END_FL
-  if fl_diff <= 0 then
-    -- Well, this is likely impossible, but in case the combination of the
-    -- configurations is weird.
-    self.origin_fl = nil
-    return
-  end
-
-  -- Start ramp down
-  assert(not self.trap_widget)
-  self.trap_widget = TrapWidget:new({
-    name = "AutoDim",
-    dismiss_callback = function()
-      self:_clearIdling()
-      self:_restoreFrontlight()
-      self.trap_widget = nil
-    end,
-  })
-  UIManager:show(self.trap_widget) -- suppress taps during dimming
-  PluginShare.DeviceIdling = true
-
-  -- BackgroundTaskRunner isn't designed to run rapid jobs.
-  UIManager:unschedule(AutoDim._rampTask)
-  self:_rampTask(fl_diff, math.max(AUTODIM_DURATION_S / fl_diff, 0.001))
 end
 
 function AutoDim:_rampTask(fl_diff, delay)
@@ -234,20 +173,11 @@ function AutoDim:_rampTask(fl_diff, delay)
   if not self.trap_widget then
     return
   end
-  -- Stops the ramp down when the device is suspending. This condition likely
-  -- shouldn't be triggered, since the UIManager would stop running tasks, but
-  -- in case the _rampTask is happening during the onSuspend procedure.
+  -- Stops the ramp down when the device is suspending.
   if Device.screen_saver_mode then
     return
   end
-  -- User actions, likely won't happen, but in case the user action was
-  -- triggered by not dismissing the TrapWidget.
-  if self:_shouldNotDim() then
-    return
-  end
   local fl_level = Powerd:frontlightIntensity()
-  -- Well, something else may happened as well, e.g. some other logic changed
-  -- the frontlight level.
   if fl_level <= AUTODIM_END_FL then
     if Device:hasEinkScreen() then
       UIManager:broadcastEvent("UpdateFooter")
@@ -256,8 +186,6 @@ function AutoDim:_rampTask(fl_diff, delay)
   end
   fl_level = fl_level - 1
   Powerd:setIntensity(fl_level)
-  -- Reduce the frequency of firing frontlight level change event on
-  -- eink devices.
   if not Device:hasEinkScreen() then
     UIManager:broadcastEvent("UpdateFooter")
   end

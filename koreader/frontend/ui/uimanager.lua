@@ -5,6 +5,7 @@ This module manages widgets.
 local Device = require("device")
 local Event = require("ui/event")
 local Geom = require("ui/geometry")
+local PluginShare = require("pluginshare")
 local dbg = require("dbg")
 local dump = require("dump")
 local ffiUtil = require("ffi/util")
@@ -954,6 +955,10 @@ function UIManager:updateLastUserActionTime()
   if Device:isKindle() then
     -- Always reset the timeout timer when processing input event, even it's fake.
     Device:getPowerDevice():resetT1Timeout()
+  end
+  if PluginShare.DeviceIdling then
+    PluginShare.DeviceIdling = false
+    self:broadcastEvent(Event:new("DeviceBusy"))
   end
 end
 

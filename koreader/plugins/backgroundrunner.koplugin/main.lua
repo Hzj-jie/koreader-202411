@@ -10,6 +10,7 @@ end
 local ALLOW_BLOCKING_JOBS = false
 
 local CommandRunner = require("plugins/backgroundrunner.koplugin/commandrunner")
+local Event = require("ui/event")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -226,9 +227,16 @@ function BackgroundRunner:_execute()
   end
   self:_poll()
 
-  local ran_job = false
-  local idle_jobs = {}
-  local pending_jobs = {}
+  if not PluginShare.DeviceIdling then
+    local idle_m = G_reader_settings:read("autodim_starttime_minutes")
+    if not idle_m or idle_m <= 0 then
+      idle_m = 5
+    end
+    if UIManager:timeSinceLastUserAction() >= time.s(idle_m * 60) then
+      PluginShare.DeviceIdling = true
+      UIManager:broadcastEvent(Event:new("DeviceIdling"))
+    end
+  end
 
   -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
   -- simple.
@@ -237,15 +245,6 @@ function BackgroundRunner:_execute()
     if job.insert_time == nil then
       job.insert_time = time.monotonic()
     end
-    if job.when == "idle" then
-      table.insert(idle_jobs, job)
-    else
-      table.insert(pending_jobs, job)
-    end
-  end
-
-  -- Pass 1: evaluate non-idle jobs
-  for _, job in ipairs(pending_jobs) do
     local should_execute = false
     assert(
       type(job.when) == "function"
@@ -268,12 +267,14 @@ function BackgroundRunner:_execute()
       end
       should_execute = (time.since(job.insert_time) >= time.s(job.when))
     elseif type(job.when) == "string" then
-      assert(job.when == "asap" or job.when == "best-effort")
+      assert(job.when == "asap" or job.when == "best-effort" or job.when == "idle")
       if job.when == "asap" then
         should_execute = true
       elseif job.when == "best-effort" then
         -- TODO: Implement a better best-effort strategy.
         should_execute = (time.monotonic() - job.insert_time >= time.s(60))
+      else
+        should_execute = PluginShare.DeviceIdling
       end
     end
 
@@ -286,38 +287,11 @@ function BackgroundRunner:_execute()
     end
 
     if should_execute then
-      ran_job = true
       logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
       self:_executeJob(job)
     else
       -- _finishJob would insert a clone, so this insert is only needed if the
       -- job wasn't executed.
-      table.insert(PluginShare.backgroundJobs, job)
-    end
-  end
-
-  -- Pass 2: evaluate idle jobs
-  local ran_idle_job = false
-  local can_run_idle = not ran_job
-    and not CommandRunner:pending()
-    and (PluginShare.DeviceIdling or UIManager:timeSinceLastUserAction() >= time.s(300))
-
-  for _, job in ipairs(idle_jobs) do
-    local should_execute = false
-    if can_run_idle and not ran_idle_job then
-      if time.since(job.insert_time) >= time.s(60) then
-        should_execute = true
-        if type(job.executable) == "string" then
-          should_execute = CommandRunner:canStart()
-        end
-      end
-    end
-
-    if should_execute then
-      ran_idle_job = true
-      logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
-      self:_executeJob(job)
-    else
       table.insert(PluginShare.backgroundJobs, job)
     end
   end
@@ -330,8 +304,12 @@ function BackgroundRunner:schedule()
     logger.dbg("BackgroundRunnerWidget: a schedule is pending")
     return
   end
-  if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() then
-    logger.dbg("BackgroundRunnerWidget: no job, not running")
+  if PluginShare.stopBackgroundRunner == true then
+    logger.dbg("BackgroundRunnerWidget: stopped, not running")
+    return
+  end
+  if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() and PluginShare.DeviceIdling then
+    logger.dbg("BackgroundRunnerWidget: no job and already idle, not running")
     return
   end
   logger.dbg("BackgroundRunnerWidget: start running")
@@ -367,6 +345,11 @@ function BackgroundRunnerWidget:onResume()
   -- inserted.
   BackgroundRunner:resetInsertTime()
   self:init()
+end
+
+function BackgroundRunnerWidget:onDeviceBusy()
+  logger.dbg("BackgroundRunnerWidget:onDeviceBusy()")
+  BackgroundRunner:schedule()
 end
 
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
