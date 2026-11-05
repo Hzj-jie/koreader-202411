@@ -298,11 +298,9 @@ function BackgroundRunner:_execute()
 
   -- Pass 2: evaluate idle jobs
   local ran_idle_job = false
-  local is_idle = PluginShare.DeviceIdling
-    or (UIManager:timeSinceLastUserAction() >= time.s(300))
   local can_run_idle = not ran_job
     and not CommandRunner:pending()
-    and is_idle
+    and (PluginShare.DeviceIdling or UIManager:timeSinceLastUserAction() >= time.s(300))
 
   for _, job in ipairs(idle_jobs) do
     local should_execute = false
