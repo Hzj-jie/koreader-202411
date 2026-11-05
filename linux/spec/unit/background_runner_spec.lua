@@ -1483,6 +1483,16 @@ describe("BackgroundRunner widget tests", function()
       assert.are.equal(2, executed_count)
       assert.are.equal(1, #PluginShare.backgroundJobs)
 
+      -- 6b. DeviceIdling = true makes device idle even when user action was recent (<300s)
+      idle_seconds = 50
+      PluginShare.DeviceIdling = true
+      current_monotonic = current_monotonic + time.s(60)
+      BackgroundRunner:_execute()
+      assert.are.equal(3, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+      PluginShare.DeviceIdling = false
+      idle_seconds = 300
+
       -- 7. Low priority gating: deferred when non-idle job is ready (even if idle job is ahead in queue)
       -- and at most one idle job executes per tick
       PluginShare.backgroundJobs = {}
