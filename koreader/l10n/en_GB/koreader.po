@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Chris Heywood <cheywood@users.noreply.hosted.weblate.org>\n"
 "Language-Team: English (United Kingdom) <https://hosted.weblate.org/projects/"
@@ -15090,6 +15090,12 @@ msgstr "Filter element"
 msgid "Delete feed"
 msgstr "Delete feed"
 
+msgid "Downloading news finished with errors."
+msgstr "Downloading news finished with errors."
+
+msgid "Downloading news finished."
+msgstr "Downloading news finished."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "News downloader (RSS/Atom)"
 
@@ -15104,6 +15110,9 @@ msgstr "Edit news feeds"
 
 msgid "Set download folder"
 msgstr "Set download folder"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "Never download images"
@@ -15146,18 +15155,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Edit feed list"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Processing %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "Downloading news finished."
-
-msgid "Downloading news finished with errors."
-msgstr "Downloading news finished with errors."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16266,9 +16275,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

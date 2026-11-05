@@ -622,11 +622,17 @@ describe("NewsDownloader main plugin module", function()
       inst.initialized = true
       inst.settings =
         require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+      NewsDownloader.settings = inst.settings
+      NewsDownloader.download_dir = inst.download_dir
+      NewsDownloader.feed_config_path = inst.feed_config_path
 
       finally(function()
         UIManager.show = orig_show
         Notification.notify = orig_notify
         NetworkMgr.runWhenOnline = orig_run_when_online
+        NewsDownloader.settings = nil
+        NewsDownloader.download_dir = nil
+        NewsDownloader.feed_config_path = nil
       end)
 
       -- 1. Preflight: invalid feed config syntax shows InfoMessage
@@ -726,17 +732,19 @@ describe("NewsDownloader main plugin module", function()
       assert.are.equal(1, #processed_urls)
       assert.are.equal("https://example.com/feed.xml", processed_urls[1])
 
-      -- 6. Callback updates last_sync_time and notifies on success
+      -- 6. Callback updates feed timestamp and notifies on success
       notifications = {}
       captured_job.callback({ result = bg_result })
-      assert.is_number(inst.settings:read("last_sync_time"))
+      local times = inst.settings:readTableRef("feed_last_sync_times")
+      assert.is_number(times["https://example.com/feed.xml"])
       assert.are.equal(1, #notifications)
       assert.are.equal(
         gettext("Downloading news finished."),
         notifications[1]
       )
 
-      -- 7. Callback handles error result gracefully
+      -- 7. Multi-feed error handling: queue another feed and callback with error
+      inst:syncNewsFeeds(false)
       notifications = {}
       captured_job.callback({
         result = {
@@ -751,13 +759,135 @@ describe("NewsDownloader main plugin module", function()
       )
 
       -- 8. Callback handles non-table sentinels (e.g. fork failure or exit code) without crash
-      notifications = {}
       assert.has_no.errors(function()
         captured_job.callback({ result = false })
         captured_job.callback({ result = 222 })
         captured_job.callback(nil)
       end)
-      assert.are.equal(3, #notifications)
+    end
+  )
+
+  it(
+    "handles automatic news sync when idle via BackgroundJobs",
+    function()
+      local BackgroundJobs = require("background_jobs")
+      local tmp_dir = os.tmpname()
+      os.remove(tmp_dir)
+      require("libs/libkoreader-lfs").mkdir(tmp_dir)
+
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local inst = NewsDownloader:new({
+        ui = mock_ui,
+        path = "plugins/newsdownloader.koplugin",
+        download_dir = tmp_dir .. "/",
+        feed_config_path = tmp_dir .. "/feed_config.lua",
+      })
+      inst.initialized = true
+      inst.settings =
+        require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+      NewsDownloader.settings = inst.settings
+      NewsDownloader.download_dir = inst.download_dir
+      NewsDownloader.feed_config_path = inst.feed_config_path
+
+      local NetworkMgr = require("ui/network/manager")
+      local orig_online = NetworkMgr.isOnline
+      local is_online = true
+      NetworkMgr.isOnline = function()
+        return is_online
+      end
+
+      local captured_job = nil
+      local orig_insert = BackgroundJobs.insertKeyed
+      BackgroundJobs.insertKeyed = function(job)
+        captured_job = job
+        return true
+      end
+
+      finally(function()
+        NetworkMgr.isOnline = orig_online
+        BackgroundJobs.insertKeyed = orig_insert
+        NewsDownloader.settings = nil
+        NewsDownloader.download_dir = nil
+        NewsDownloader.feed_config_path = nil
+      end)
+
+      local test_config = {
+        {
+          [1] = "https://example.com/feed1.xml",
+          limit = 2,
+        },
+        {
+          [1] = "https://example.com/feed2.xml",
+          limit = 3,
+        },
+      }
+      inst:saveConfig(test_config)
+
+      -- 1. Does nothing when auto_sync is false/nil
+      inst.settings:delete("auto_sync")
+      NewsDownloader.onIdle()
+      assert.is_nil(captured_job)
+
+      -- 2. Does nothing when network is offline
+      inst.settings:save("auto_sync", true)
+      is_online = false
+      NewsDownloader.onIdle()
+      assert.is_nil(captured_job)
+
+      -- 3. Enqueues oldest due feed when online
+      is_online = true
+      local now = os.time()
+      local times = inst.settings:readTableRef("feed_last_sync_times")
+      times["https://example.com/feed1.xml"] = now - 7200 -- 2 hours ago (due)
+      times["https://example.com/feed2.xml"] = now - 1800 -- 30 mins ago (not due)
+      inst.settings:flush()
+
+      NewsDownloader.onIdle()
+      assert.is_not_nil(captured_job)
+      assert.are.equal("fork", captured_job.executable)
+
+      -- Verify it selected feed1 (the due feed)
+      local orig_process = NewsDownloader.processFeedSource
+      local processed_urls = {}
+      NewsDownloader.processFeedSource = function(self_p, url)
+        table.insert(processed_urls, url)
+      end
+      finally(function()
+        NewsDownloader.processFeedSource = orig_process
+      end)
+
+      local bg_res = captured_job.action()
+      assert.is_true(bg_res.ok)
+      assert.are.equal(1, #processed_urls)
+      assert.are.equal("https://example.com/feed1.xml", processed_urls[1])
+
+      -- Callback updates feed1 timestamp for both success and error
+      captured_job.callback({ result = bg_res })
+      assert.is_true(times["https://example.com/feed1.xml"] >= now)
+
+      -- 4. When all feeds are recent (<3600s), onIdle enqueues nothing
+      captured_job = nil
+      times["https://example.com/feed1.xml"] = os.time() - 500
+      times["https://example.com/feed2.xml"] = os.time() - 500
+      NewsDownloader.onIdle()
+      assert.is_nil(captured_job)
+    end
+  )
+
+  it(
+    "verifies standing idle job registration in BackgroundJobs",
+    function()
+      local PluginShare = require("pluginshare")
+      local found = false
+      for _, job in ipairs(PluginShare.backgroundJobs) do
+        if job.when == "idle" and job.repeated == true then
+          found = true
+          break
+        end
+      end
+      assert.is_true(found)
     end
   )
 end)

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-05-24 07:40+0000\n"
 "Last-Translator: Monirzadeh <Monirzadeh@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/koreader/"
@@ -14327,6 +14327,12 @@ msgstr ""
 msgid "Delete feed"
 msgstr "حذف فید"
 
+msgid "Downloading news finished with errors."
+msgstr "دریافت اخبار همراه با چند خطا پایان یافت."
+
+msgid "Downloading news finished."
+msgstr "دریافت اخبار پایان یافت."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "دریافت کننده اخبار (RSS/Atom)"
 
@@ -14341,6 +14347,9 @@ msgstr "ویرایش فید‌های اخبار"
 
 msgid "Set download folder"
 msgstr "تعیین پوشه دریافت"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "هرگر تصاویر را دریافت نکن"
@@ -14377,18 +14386,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "ویرایش لیست فید"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "درحال پردازش %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "دریافت اخبار پایان یافت."
-
-msgid "Downloading news finished with errors."
-msgstr "دریافت اخبار همراه با چند خطا پایان یافت."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -15513,9 +15522,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2022-08-10 20:21+0000\n"
 "Last-Translator: Erasmus Montanus <kbmdoyxnkwbhcozgvr@kvhrs.com>\n"
 "Language-Team: Danish <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -13337,6 +13337,12 @@ msgstr ""
 msgid "Delete feed"
 msgstr ""
 
+msgid "Downloading news finished with errors."
+msgstr ""
+
+msgid "Downloading news finished."
+msgstr ""
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13350,6 +13356,9 @@ msgid "Edit news feeds"
 msgstr ""
 
 msgid "Set download folder"
+msgstr ""
+
+msgid "Automatically sync when idle"
 msgstr ""
 
 msgid "Never download images"
@@ -13383,15 +13392,15 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
-msgstr ""
-
-msgid "Downloading news finished."
-msgstr ""
-
-msgid "Downloading news finished with errors."
 msgstr ""
 
 msgid ""
@@ -14450,9 +14459,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

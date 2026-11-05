@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-11-14 04:33+0000\n"
 "Last-Translator: Juan Comesaña Fernández <xan.comesana@gmail.com>\n"
 "Language-Team: Galician <https://hosted.weblate.org/projects/koreader/"
@@ -15216,6 +15216,12 @@ msgstr "Filtrar elemento"
 msgid "Delete feed"
 msgstr "Borrar canle"
 
+msgid "Downloading news finished with errors."
+msgstr "A descarga de novas rematou con erros."
+
+msgid "Downloading news finished."
+msgstr "Rematou a descarga de novas."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "Descargador de novas (RSS/Atom)"
 
@@ -15230,6 +15236,9 @@ msgstr "Editar as canles de novas"
 
 msgid "Set download folder"
 msgstr "Configurar o cartafol de descarga"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "Non descargar nunca imaxes"
@@ -15272,18 +15281,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Editar a lista de canles"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "A procesar %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "Rematou a descarga de novas."
-
-msgid "Downloading news finished with errors."
-msgstr "A descarga de novas rematou con erros."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16408,9 +16417,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

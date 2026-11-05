@@ -27,7 +27,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Artem Kaznelson <nook.artem@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/koreader/"
@@ -15312,6 +15312,12 @@ msgstr "Элемент фильтра"
 msgid "Delete feed"
 msgstr "Удалить ленту"
 
+msgid "Downloading news finished with errors."
+msgstr "Загрузка новостей завершилась с ошибками."
+
+msgid "Downloading news finished."
+msgstr "Загрузка новостей завершена."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "Загрузчик новостей RSS/Atom"
 
@@ -15326,6 +15332,9 @@ msgstr "Редактировать ленты новостей"
 
 msgid "Set download folder"
 msgstr "Задать папку для загрузки"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "Никогда не загружать изображения"
@@ -15370,18 +15379,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Редактировать список лент"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Обработка %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "Загрузка новостей завершена."
-
-msgid "Downloading news finished with errors."
-msgstr "Загрузка новостей завершилась с ошибками."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16522,9 +16531,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

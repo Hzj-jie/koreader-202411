@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-01-13 01:11+0000\n"
 "Last-Translator: Arnab Wahid <arnabwahid@gmail.com>\n"
 "Language-Team: Bengali <https://hosted.weblate.org/projects/koreader/"
@@ -13825,6 +13825,14 @@ msgstr ""
 msgid "Delete feed"
 msgstr "মুছুন"
 
+#, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "ফাইল ডাউনলোড করুন"
+
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "ফাইল ডাউনলোড করুন"
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13840,6 +13848,9 @@ msgstr ""
 #, fuzzy
 msgid "Set download folder"
 msgstr "ডাউনলোড সঞ্চয় করার ফোল্ডার চয়ন করুন"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -13874,18 +13885,16 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
-
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "ফাইল ডাউনলোড করুন"
-
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "ফাইল ডাউনলোড করুন"
 
 msgid ""
 "Could not process some feeds.\n"
@@ -14949,9 +14958,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

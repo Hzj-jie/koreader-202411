@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: kr <harum@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -14800,6 +14800,12 @@ msgstr "필터 요소"
 msgid "Delete feed"
 msgstr "피드 삭제"
 
+msgid "Downloading news finished with errors."
+msgstr "뉴스 다운로드가 오류와 함께 완료되었습니다."
+
+msgid "Downloading news finished."
+msgstr "뉴스 다운로드가 완료되었습니다."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "뉴스 다운로더 (RSS/Atom)"
 
@@ -14814,6 +14820,9 @@ msgstr "뉴스 피드 편집"
 
 msgid "Set download folder"
 msgstr "다운로드 폴더 설정"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "이미지를 다운로드하지 않기"
@@ -14855,18 +14864,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "피드 목록 편집"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "%1/%2 진행 중:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "뉴스 다운로드가 완료되었습니다."
-
-msgid "Downloading news finished with errors."
-msgstr "뉴스 다운로드가 오류와 함께 완료되었습니다."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -15958,9 +15967,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

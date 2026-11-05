@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-09-11 05:09+0000\n"
 "Last-Translator: Marek <marek@pavelka.xyz>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -14964,6 +14964,12 @@ msgstr "Prvek filtru"
 msgid "Delete feed"
 msgstr "Smazat novinkový kanál"
 
+msgid "Downloading news finished with errors."
+msgstr "Stahování novinek bylo dokončeno s chybami."
+
+msgid "Downloading news finished."
+msgstr "Stahování novinek bylo dokončeno."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "Stahování novinek (RSS/Atom)"
 
@@ -14978,6 +14984,9 @@ msgstr "Upravit novinkové kanály"
 
 msgid "Set download folder"
 msgstr "Nastavit složku pro stahování"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "Nikdy nestahovat obrázky"
@@ -15022,18 +15031,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Upravit seznam novinkových kanálů"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Zpracovávání %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "Stahování novinek bylo dokončeno."
-
-msgid "Downloading news finished with errors."
-msgstr "Stahování novinek bylo dokončeno s chybami."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16188,9 +16197,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

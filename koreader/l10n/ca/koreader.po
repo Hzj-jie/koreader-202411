@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-10-31 18:39+0000\n"
 "Last-Translator: \"Joan O.\" <ccumwusl@sharklasers.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/koreader/"
@@ -15175,6 +15175,12 @@ msgstr "Filtrar element"
 msgid "Delete feed"
 msgstr "Esborrar canal"
 
+msgid "Downloading news finished with errors."
+msgstr "La descàrrega de notícies ha finalitzat amb errors."
+
+msgid "Downloading news finished."
+msgstr "Descàrrega de notícies finalitzada."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "Descarregador de notícies (RSS / Atom)"
 
@@ -15189,6 +15195,9 @@ msgstr "Editar canals de notícies"
 
 msgid "Set download folder"
 msgstr "Establir la carpeta de descàrrega"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "No descarregar mai les imatges"
@@ -15232,18 +15241,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Editar la llista de canals"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Processant %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "Descàrrega de notícies finalitzada."
-
-msgid "Downloading news finished with errors."
-msgstr "La descàrrega de notícies ha finalitzat amb errors."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16382,9 +16391,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

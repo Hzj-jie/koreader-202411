@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -15064,6 +15064,12 @@ msgstr "フィルター要素"
 msgid "Delete feed"
 msgstr "フィードを削除"
 
+msgid "Downloading news finished with errors."
+msgstr "ニュースをダウンロードしましたが、エラーが発生しました。"
+
+msgid "Downloading news finished."
+msgstr "ニュースをダウンロードしました。"
+
 msgid "News downloader (RSS/Atom)"
 msgstr "ニュース ダウンローダー (RSS/Atom)"
 
@@ -15078,6 +15084,9 @@ msgstr "ニュースフィードを編集"
 
 msgid "Set download folder"
 msgstr "ダウンロードフォルダーを設定"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "常に画像をダウンロードしない"
@@ -15121,18 +15130,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "フィードリストを編集"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "処理中 %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "ニュースをダウンロードしました。"
-
-msgid "Downloading news finished with errors."
-msgstr "ニュースをダウンロードしましたが、エラーが発生しました。"
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16250,9 +16259,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

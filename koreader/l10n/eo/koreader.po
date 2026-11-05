@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-01-31 04:14+0000\n"
 "Last-Translator: Radoŝ Porka <animatorzPolski@gmail.com>\n"
 "Language-Team: Esperanto <https://hosted.weblate.org/projects/koreader/"
@@ -13675,6 +13675,14 @@ msgstr ""
 msgid "Delete feed"
 msgstr "Forigi"
 
+#, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "Elŝuti dosieron"
+
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "Elŝuti dosieron"
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13690,6 +13698,9 @@ msgstr ""
 #, fuzzy
 msgid "Set download folder"
 msgstr "Elekti elŝutan dosierujon"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -13724,18 +13735,16 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
-
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "Elŝuti dosieron"
-
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "Elŝuti dosieron"
 
 msgid ""
 "Could not process some feeds.\n"
@@ -14809,9 +14818,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

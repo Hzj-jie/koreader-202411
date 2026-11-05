@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-11-18 15:26+0000\n"
 "Last-Translator: Ichnilatis <sophronios.sp@gmail.com>\n"
 "Language-Team: Greek <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -15455,6 +15455,12 @@ msgstr "Στοιχείο φίλτρου"
 msgid "Delete feed"
 msgstr "Διαγραφή ροής"
 
+msgid "Downloading news finished with errors."
+msgstr "Η λήψη των ειδήσεων ολοκληρώθηκε με σφάλματα."
+
+msgid "Downloading news finished."
+msgstr "Η λήψη των ειδήσεων ολοκληρώθηκε."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "Πρόγραμμα λήψης ειδήσεων (RSS/Atom)"
 
@@ -15469,6 +15475,9 @@ msgstr "Επεξεργασία ροών ειδήσεων"
 
 msgid "Set download folder"
 msgstr "Ορισμός φακέλου λήψης"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "Να μη γίνεται ποτέ λήψη εικόνων"
@@ -15513,18 +15522,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Επεξεργασία καταλόγου ροών"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Επεξεργασία %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "Η λήψη των ειδήσεων ολοκληρώθηκε."
-
-msgid "Downloading news finished with errors."
-msgstr "Η λήψη των ειδήσεων ολοκληρώθηκε με σφάλματα."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16658,9 +16667,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

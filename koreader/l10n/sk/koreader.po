@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:03-0800\n"
+"POT-Creation-Date: 2026-11-05 11:22-0800\n"
 "PO-Revision-Date: 2024-11-14 04:33+0000\n"
 "Last-Translator: sonix-github <sonix.internet@gmail.com>\n"
 "Language-Team: Slovak <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -15321,6 +15321,12 @@ msgstr "Filtrovať články"
 msgid "Delete feed"
 msgstr "Odstrániť informačný kanál"
 
+msgid "Downloading news finished with errors."
+msgstr "Sťahovanie noviniek skončilo chybami."
+
+msgid "Downloading news finished."
+msgstr "Sťahovanie noviniek bolo dokončené."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "Sťahovač správ (RSS/Atom)"
 
@@ -15335,6 +15341,9 @@ msgstr "Upraviť informačné kanály"
 
 msgid "Set download folder"
 msgstr "Nastaviť priečinok na sťahovanie"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "Nikdy nesťahovať obrázky"
@@ -15378,18 +15387,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Upraviť zoznam informačných kanálov"
 
+msgid "Sync is already in progress."
+msgstr ""
+
+msgid "Synchronizing news feeds…"
+msgstr ""
+
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Spracovanie %1/%2:\n"
 "%3"
-
-msgid "Downloading news finished."
-msgstr "Sťahovanie noviniek bolo dokončené."
-
-msgid "Downloading news finished with errors."
-msgstr "Sťahovanie noviniek skončilo chybami."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16538,9 +16547,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
