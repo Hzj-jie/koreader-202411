@@ -1397,4 +1397,138 @@ describe("BackgroundRunner widget tests", function()
 
     io.popen = old_popen
   end)
+
+  it(
+    "handles when = 'idle' jobs with 300s threshold, once-per-period gating, and priority deferral",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+
+      local orig_idle = UIManager.timeSinceLastUserAction
+      local orig_last_action = UIManager.lastUserActionTime
+      local orig_pending = CommandRunner.pending
+      local orig_device_idling = PluginShare.DeviceIdling
+
+      local idle_seconds = 100
+      local last_action_time = 1000
+      local is_pending = false
+
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(idle_seconds)
+      end
+      UIManager.lastUserActionTime = function()
+        return last_action_time
+      end
+      CommandRunner.pending = function()
+        return is_pending
+      end
+      PluginShare.DeviceIdling = false
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_idle
+        UIManager.lastUserActionTime = orig_last_action
+        CommandRunner.pending = orig_pending
+        PluginShare.DeviceIdling = orig_device_idling
+        PluginShare.backgroundJobs = {}
+      end)
+
+      local executed_count = 0
+      local test_job = {
+        when = "idle",
+        repeated = true,
+        executable = function()
+          executed_count = executed_count + 1
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, test_job)
+
+      -- 1. Device not idle (<300s and DeviceIdling=false): should not run
+      idle_seconds = 200
+      BackgroundRunner:_execute()
+      assert.are.equal(0, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 2. Device idle (>=300s), but CommandRunner:pending()=true: should defer
+      idle_seconds = 300
+      is_pending = true
+      BackgroundRunner:_execute()
+      assert.are.equal(0, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 3. Device idle (>=300s) and not pending: executes once
+      is_pending = false
+      BackgroundRunner:_execute()
+      assert.are.equal(1, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs) -- repeated job cloned back
+      assert.are.equal(
+        last_action_time,
+        PluginShare.backgroundJobs[1].last_user_action_time
+      )
+
+      -- 4. Next tick while still in same idle period (lastUserActionTime unchanged): skips
+      BackgroundRunner:_execute()
+      assert.are.equal(1, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 5. User acts (lastUserActionTime updates), but not yet 300s idle: skips
+      last_action_time = 2000
+      idle_seconds = 150
+      BackgroundRunner:_execute()
+      assert.are.equal(1, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+
+      -- 6. User idle for 300s after the new action: executes second time
+      idle_seconds = 300
+      BackgroundRunner:_execute()
+      assert.are.equal(2, executed_count)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+      assert.are.equal(
+        last_action_time,
+        PluginShare.backgroundJobs[1].last_user_action_time
+      )
+
+      -- 7. Low priority gating: at most one idle job runs per pass, and only when nothing else ran
+      PluginShare.backgroundJobs = {}
+      local job1_runs = 0
+      local job2_runs = 0
+      local asap_runs = 0
+
+      table.insert(PluginShare.backgroundJobs, {
+        when = "asap",
+        executable = function()
+          asap_runs = asap_runs + 1
+        end,
+      })
+      table.insert(PluginShare.backgroundJobs, {
+        when = "idle",
+        executable = function()
+          job1_runs = job1_runs + 1
+        end,
+      })
+      table.insert(PluginShare.backgroundJobs, {
+        when = "idle",
+        executable = function()
+          job2_runs = job2_runs + 1
+        end,
+      })
+
+      last_action_time = 3000
+      idle_seconds = 350
+      -- Pass A: asap job runs, idle jobs deferred
+      BackgroundRunner:_execute()
+      assert.are.equal(1, asap_runs)
+      assert.are.equal(0, job1_runs)
+      assert.are.equal(0, job2_runs)
+      assert.are.equal(2, #PluginShare.backgroundJobs)
+
+      -- Pass B: job1 runs (at most one idle job per pass), job2 deferred
+      BackgroundRunner:_execute()
+      assert.are.equal(1, job1_runs)
+      assert.are.equal(0, job2_runs)
+      assert.are.equal(1, #PluginShare.backgroundJobs)
+    end
+  )
 end)

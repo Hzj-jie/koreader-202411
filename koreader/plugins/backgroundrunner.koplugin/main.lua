@@ -107,6 +107,7 @@ local function _clone(job)
   result.callback = job.callback
   result.environment = job.environment
   result.catch_exception = job.catch_exception
+  result.last_user_action_time = job.last_user_action_time
   result.insert_time = time.monotonic()
   return result
 end
@@ -226,6 +227,8 @@ function BackgroundRunner:_execute()
   end
   self:_poll()
 
+  local ran_job_in_pass = false
+
   -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
   -- simple.
   for _ = 1, #PluginShare.backgroundJobs do
@@ -262,7 +265,17 @@ function BackgroundRunner:_execute()
         -- TODO: Implement a better best-effort strategy.
         should_execute = (time.monotonic() - job.insert_time >= time.s(60))
       else
-        should_execute = PluginShare.DeviceIdling
+        local is_idle = PluginShare.DeviceIdling
+          or (UIManager:timeSinceLastUserAction() >= time.s(300))
+        local last_action = UIManager:lastUserActionTime()
+        if
+          is_idle
+          and not CommandRunner:pending()
+          and not ran_job_in_pass
+          and job.last_user_action_time ~= last_action
+        then
+          should_execute = true
+        end
       end
     end
 
@@ -275,6 +288,10 @@ function BackgroundRunner:_execute()
     end
 
     if should_execute then
+      ran_job_in_pass = true
+      if job.when == "idle" then
+        job.last_user_action_time = UIManager:lastUserActionTime()
+      end
       logger.dbg("BackgroundRunner: run job ", _debugJobStr(job))
       self:_executeJob(job)
     else
