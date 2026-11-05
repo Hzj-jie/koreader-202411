@@ -26,7 +26,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-11-11 14:00+0000\n"
 "Last-Translator: Ghassen <ghassen-dhokkar@hotmail.fr>\n"
 "Language-Team: French <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -12382,7 +12382,7 @@ msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 "Ce plugin permet de diminuer l'éclairage après une période d'inactivité."
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15300,12 +15300,6 @@ msgstr "Élément de filtrage"
 msgid "Delete feed"
 msgstr "Supprimer le flux"
 
-msgid "Downloading news finished with errors."
-msgstr "Le téléchargement des nouvelles s’est terminé avec des erreurs."
-
-msgid "Downloading news finished."
-msgstr "Le téléchargement des nouvelles est terminé."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Téléchargeur de nouvelles (RSS/Atom)"
 
@@ -15320,9 +15314,6 @@ msgstr "Modifier les flux d’actualité"
 
 msgid "Set download folder"
 msgstr "Définir le dossier de téléchargement"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Ne jamais télécharger d’images"
@@ -15367,18 +15358,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Modifier la liste de flux"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Traitement %1/%2\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Le téléchargement des nouvelles est terminé."
+
+msgid "Downloading news finished with errors."
+msgstr "Le téléchargement des nouvelles s’est terminé avec des erreurs."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16535,6 +16526,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

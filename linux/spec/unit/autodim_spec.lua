@@ -27,6 +27,8 @@ describe("AutoDim widget tests", function()
     require("document/canvascontext"):init(require("device"))
   end)
 
+  local mock_ui
+
   before_each(function()
     Device = require("device")
     stub(Device, "isKindle")
@@ -49,13 +51,18 @@ describe("AutoDim widget tests", function()
     UIManager:quit()
 
     requireBackgroundRunner()
-    class = dofile("plugins/autodim.koplugin/main.lua")
-    local mock_ui = {
+    local Geom = require("ui/geometry")
+    local WidgetContainer = require("ui/widget/container/widgetcontainer")
+    mock_ui = WidgetContainer:new({
+      dimen = Geom:new({ w = 600, h = 800 }),
       menu = {
         registerToMainMenu = function() end,
       },
-    }
+    })
+    class = dofile("plugins/autodim.koplugin/main.lua")
     AutoDim = class:new({ ui = mock_ui })
+    table.insert(mock_ui, AutoDim)
+    UIManager:show(mock_ui)
     notifyBackgroundJobsUpdated()
 
     MockTime:increase(2)
@@ -63,10 +70,12 @@ describe("AutoDim widget tests", function()
   end)
 
   after_each(function()
+    UIManager:close(mock_ui)
     AutoDim:onClose()
     MockTime:increase(2)
     UIManager:handleInput()
     AutoDim = nil
+    mock_ui = nil
     stopBackgroundRunner()
     Device.isKindle:revert()
     Device.hasEinkScreen:revert()
@@ -138,14 +147,44 @@ describe("AutoDim widget tests", function()
   end)
 
   it(
-    "_shouldNotDim returns true when AutoDim is disabled (autodim_starttime_m = -1)",
+    "onDeviceIdling does nothing when AutoDim is disabled (autodim_starttime_m = -1)",
     function()
       AutoDim.autodim_starttime_m = -1
+      AutoDim:onDeviceIdling()
+      assert.is_nil(AutoDim.trap_widget)
+    end
+  )
+
+  it(
+    "broadcasts DeviceBusy exactly once on user action while idle, and never when not idle",
+    function()
+      local PluginShare = require("pluginshare")
+      local events = {}
+      local orig_broadcast = UIManager.broadcastEvent
+      UIManager.broadcastEvent = function(self, ev)
+        local name = type(ev) == "table" and (ev.handler and ev.handler:gsub("^on", "") or ev.action) or ev
+        table.insert(events, name)
+        return orig_broadcast(self, ev)
+      end
+      finally(function()
+        UIManager.broadcastEvent = orig_broadcast
+      end)
+
+      -- 1. When not idle (PluginShare.DeviceIdling is false)
+      PluginShare.DeviceIdling = false
       UIManager:updateLastUserActionTime()
-      assert.is_true(
-        AutoDim:_shouldNotDim(),
-        "_shouldNotDim should return true (do not dim) when AutoDim is disabled"
-      )
+      assert.are.equal(0, #events)
+
+      -- 2. When idle (PluginShare.DeviceIdling is true)
+      PluginShare.DeviceIdling = true
+      UIManager:updateLastUserActionTime()
+      assert.is_false(PluginShare.DeviceIdling)
+      assert.are.equal(1, #events)
+      assert.are.equal("DeviceBusy", events[1])
+
+      -- 3. Consecutive user action while already busy does not broadcast again
+      UIManager:updateLastUserActionTime()
+      assert.are.equal(1, #events)
     end
   )
 
@@ -162,19 +201,12 @@ describe("AutoDim widget tests", function()
 
       -- Touch-down bumps last user action time before tap dismiss
       UIManager:updateLastUserActionTime()
-      assert.is_true(AutoDim:_shouldNotDim())
+      assert.is_false(PluginShare.DeviceIdling)
 
-      -- _rampTask leaves trap_widget shown, intensity unchanged
-      AutoDim:_rampTask(9, 0.15)
-      assert.is_not_nil(AutoDim.trap_widget)
-      assert.are.equal(9, Device:getPowerDevice():frontlightIntensity())
-      assert.is_true(PluginShare.DeviceIdling)
-
-      -- Tap dismiss restores intensity and clears DeviceIdling
+      -- Tap dismiss restores intensity
       AutoDim.trap_widget:onTapDismiss()
       assert.is_nil(AutoDim.trap_widget)
       assert.are.equal(10, Device:getPowerDevice():frontlightIntensity())
-      assert.is_false(PluginShare.DeviceIdling)
     end
   )
 end)

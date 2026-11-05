@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-02-27 20:00+0000\n"
 "Last-Translator: shetozz <a.teama3317@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -12419,7 +12419,7 @@ msgstr "صغير"
 msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15261,12 +15261,6 @@ msgstr ""
 msgid "Delete feed"
 msgstr "حذف الخلاصة"
 
-msgid "Downloading news finished with errors."
-msgstr "انتهى تنزيل الأخبار مع وجود أخطاء."
-
-msgid "Downloading news finished."
-msgstr "تم الانتهاء من تنزيل الأخبار."
-
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -15281,9 +15275,6 @@ msgstr "تحرير موجز الأخبار"
 
 msgid "Set download folder"
 msgstr "تعيين مجلد التنزيل"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -15319,18 +15310,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "تتم الآن معالجة: %1/%2: \n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "تم الانتهاء من تنزيل الأخبار."
+
+msgid "Downloading news finished with errors."
+msgstr "انتهى تنزيل الأخبار مع وجود أخطاء."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16469,6 +16460,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

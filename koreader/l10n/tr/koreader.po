@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -12306,7 +12306,7 @@ msgstr ""
 "Bu uygulama eki, ön aydınlatmanın bir bekleme süresinden sonra kısılmasını "
 "sağlar."
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15186,12 +15186,6 @@ msgstr "Süzgeç bileşeni"
 msgid "Delete feed"
 msgstr "Akışı sil"
 
-msgid "Downloading news finished with errors."
-msgstr "Haberler indirildi ancak bazı sorunlar çıktı."
-
-msgid "Downloading news finished."
-msgstr "Haberler indirildi."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Haber indirici (RSS/Atom)"
 
@@ -15206,9 +15200,6 @@ msgstr "Haber akışlarını düzenle"
 
 msgid "Set download folder"
 msgstr "İndirme klasörünü ayarla"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Görseller asla indirilmesin"
@@ -15252,18 +15243,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Akış listesini düzenle"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "İşleniyor %1/%2:\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Haberler indirildi."
+
+msgid "Downloading news finished with errors."
+msgstr "Haberler indirildi ancak bazı sorunlar çıktı."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16400,6 +16391,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

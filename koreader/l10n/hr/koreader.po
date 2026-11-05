@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -11123,7 +11123,7 @@ msgstr "min"
 msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -13820,12 +13820,6 @@ msgstr "Filtriraj element"
 msgid "Delete feed"
 msgstr "Izbriži kanal"
 
-msgid "Downloading news finished with errors."
-msgstr "Preuzimanje novosti završeno s greškama."
-
-msgid "Downloading news finished."
-msgstr "Preuzimanje novosti završeno."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Preuzimanje novosti (RSS/Atom)"
 
@@ -13840,9 +13834,6 @@ msgstr "Uredi kanale novosti"
 
 msgid "Set download folder"
 msgstr "Postavi mapu za preuzimanja"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Nikada ne preuzimaj slike"
@@ -13875,18 +13866,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Uredi popis kanala"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Obrada %1/%2:\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Preuzimanje novosti završeno."
+
+msgid "Downloading news finished with errors."
+msgstr "Preuzimanje novosti završeno s greškama."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -14967,6 +14958,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

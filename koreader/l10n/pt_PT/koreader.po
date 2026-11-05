@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-10-16 17:13+0000\n"
 "Last-Translator: Horus68 <horus68@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Portuguese (Portugal) <https://hosted.weblate.org/projects/"
@@ -12158,7 +12158,7 @@ msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 "Este plugin permite reduzir a luz frontal após um período de inatividade."
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15055,12 +15055,6 @@ msgstr "Filtrar elemento"
 msgid "Delete feed"
 msgstr "Apagar canal"
 
-msgid "Downloading news finished with errors."
-msgstr "Erro ao descarregar notícias ."
-
-msgid "Downloading news finished."
-msgstr "Notícias descarregadas."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Descarregador de notícias (RSS/Atom)"
 
@@ -15075,9 +15069,6 @@ msgstr "Editar canais de notícias"
 
 msgid "Set download folder"
 msgstr "Definir pasta de download"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Nunca descarregar imagens"
@@ -15122,18 +15113,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Editar lista de canais"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Processando %1/%2:\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Notícias descarregadas."
+
+msgid "Downloading news finished with errors."
+msgstr "Erro ao descarregar notícias ."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16272,6 +16263,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

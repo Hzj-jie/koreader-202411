@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-10-02 07:35+0000\n"
 "Last-Translator: Sari Gabor <sarigaborj@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/koreader/"
@@ -12221,7 +12221,7 @@ msgstr ""
 "Ez a bővítmény lehetővé teszi az elülső világítás elhalványulását "
 "inaktivitás után."
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15122,12 +15122,6 @@ msgstr "Szűrő elem"
 msgid "Delete feed"
 msgstr "Hírcsatorna törlése"
 
-msgid "Downloading news finished with errors."
-msgstr "A hírek letöltése hibával fejeződött be."
-
-msgid "Downloading news finished."
-msgstr "Hírek letöltése befejeződött."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Hírletöltő (RSS/Atom)"
 
@@ -15142,9 +15136,6 @@ msgstr "Hírcsatorna szerkesztése"
 
 msgid "Set download folder"
 msgstr "Letöltési mappa beállítása"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Ne töltse le a képeket"
@@ -15188,18 +15179,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Hírcsatorna lista szerkesztése"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Feldolgozás %1/%2:\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Hírek letöltése befejeződött."
+
+msgid "Downloading news finished with errors."
+msgstr "A hírek letöltése hibával fejeződött be."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16344,6 +16335,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

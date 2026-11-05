@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-11-13 19:39+0000\n"
 "Last-Translator: eevan78 <ivan.pesic@gmail.com>\n"
 "Language-Team: Serbian <https://hosted.weblate.org/projects/koreader/"
@@ -12305,7 +12305,7 @@ msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 "Овај додатак омогућава замрачивање предњег светла након периода неактивности."
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15195,12 +15195,6 @@ msgstr "Филтрирај елемент"
 msgid "Delete feed"
 msgstr "Обриши вест"
 
-msgid "Downloading news finished with errors."
-msgstr "Преузимање вести је завршено са грешкама."
-
-msgid "Downloading news finished."
-msgstr "Завршено је преузимање вести."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Преузимач вести (RSS/Atom)"
 
@@ -15215,9 +15209,6 @@ msgstr "Уреди објаве вести"
 
 msgid "Set download folder"
 msgstr "Постави директоријум за преузимање"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Никада не преузимај слике"
@@ -15261,18 +15252,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Уреди листу објава"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Обрађује се %1/%2:\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Завршено је преузимање вести."
+
+msgid "Downloading news finished with errors."
+msgstr "Преузимање вести је завршено са грешкама."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16406,6 +16397,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

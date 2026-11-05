@@ -30,6 +30,8 @@ describe("AutoDim widget tests", function()
     require("document/canvascontext"):init(require("device"))
   end)
 
+  local mock_ui
+
   before_each(function()
     Device = require("device")
     stub(Device, "isKindle")
@@ -52,13 +54,18 @@ describe("AutoDim widget tests", function()
     UIManager:quit()
 
     requireBackgroundRunner()
-    class = dofile("plugins/autodim.koplugin/main.lua")
-    local mock_ui = {
+    local Geom = require("ui/geometry")
+    local WidgetContainer = require("ui/widget/container/widgetcontainer")
+    mock_ui = WidgetContainer:new({
+      dimen = Geom:new({ w = 600, h = 800 }),
       menu = {
         registerToMainMenu = function() end,
       },
-    }
+    })
+    class = dofile("plugins/autodim.koplugin/main.lua")
     AutoDim = class:new({ ui = mock_ui })
+    table.insert(mock_ui, AutoDim)
+    UIManager:show(mock_ui)
     notifyBackgroundJobsUpdated()
 
     MockTime:increase(2)
@@ -66,6 +73,7 @@ describe("AutoDim widget tests", function()
   end)
 
   after_each(function()
+    UIManager:close(mock_ui)
     if AutoDim and AutoDim.trap_widget then
       UIManager:close(AutoDim.trap_widget)
       AutoDim.trap_widget = nil
@@ -75,6 +83,7 @@ describe("AutoDim widget tests", function()
     MockTime:increase(2)
     UIManager:handleInput()
     AutoDim = nil
+    mock_ui = nil
     stopBackgroundRunner()
     Device.isKindle:revert()
     Device.hasEinkScreen:revert()
@@ -145,6 +154,38 @@ describe("AutoDim widget tests", function()
     assert.is_nil(AutoDim.origin_fl)
   end)
 
+  it(
+    "broadcasts DeviceBusy exactly once on user action while idle, and never when not idle",
+    function()
+      local events = {}
+      local orig_broadcast = UIManager.broadcastEvent
+      UIManager.broadcastEvent = function(self, ev)
+        local name = type(ev) == "table" and (ev.handler and ev.handler:gsub("^on", "") or ev.action) or ev
+        table.insert(events, name)
+        return orig_broadcast(self, ev)
+      end
+      finally(function()
+        UIManager.broadcastEvent = orig_broadcast
+      end)
+
+      -- 1. When not idle (PluginShare.DeviceIdling is false)
+      PluginShare.DeviceIdling = false
+      UIManager:updateLastUserActionTime()
+      assert.are.equal(0, #events)
+
+      -- 2. When idle (PluginShare.DeviceIdling is true)
+      PluginShare.DeviceIdling = true
+      UIManager:updateLastUserActionTime()
+      assert.is_false(PluginShare.DeviceIdling)
+      assert.are.equal(1, #events)
+      assert.are.equal("DeviceBusy", events[1])
+
+      -- 3. Consecutive user action while already busy does not broadcast again
+      UIManager:updateLastUserActionTime()
+      assert.are.equal(1, #events)
+    end
+  )
+
   describe("Main menu and spin dialog configuration", function()
     it("should register menu item with text and checked functions", function()
       local menu_items = {}
@@ -202,15 +243,13 @@ describe("AutoDim widget tests", function()
   end)
 
   describe("TrapWidget dismiss callback", function()
-    it("should clear idling and restore frontlight upon dismissal", function()
+    it("should restore frontlight upon dismissal", function()
       Device:getPowerDevice():setIntensity(2)
       AutoDim.origin_fl = 10
-      PluginShare.DeviceIdling = true
       local dismissed = false
       AutoDim.trap_widget = TrapWidget:new({
         name = "AutoDim",
         dismiss_callback = function()
-          AutoDim:_clearIdling()
           AutoDim:_restoreFrontlight()
           AutoDim.trap_widget = nil
           dismissed = true
@@ -220,33 +259,32 @@ describe("AutoDim widget tests", function()
       AutoDim.trap_widget.dismiss_callback()
       assert.is_true(dismissed)
       assert.is_nil(AutoDim.trap_widget)
-      assert.is_false(PluginShare.DeviceIdling)
       assert.are.equal(10, Device:getPowerDevice():frontlightIntensity())
     end)
   end)
 
-  describe("Executable guards", function()
+  describe("onDeviceIdling guards", function()
     it(
-      "should return early from _executable when frontlight is already off or diff <= 0",
+      "should return early from onDeviceIdling when frontlight is already off or diff <= 0",
       function()
         -- Frontlight off
         stub(Device:getPowerDevice(), "isFrontlightOff")
         Device:getPowerDevice().isFrontlightOff.returns(true)
-        AutoDim:_executable()
+        AutoDim:onDeviceIdling()
         assert.is_nil(AutoDim.trap_widget)
         Device:getPowerDevice().isFrontlightOff:revert()
 
         -- Frontlight intensity <= AUTODIM_END_FL (1)
         Device:getPowerDevice():setIntensity(1)
-        AutoDim:_executable()
+        AutoDim:onDeviceIdling()
         assert.is_nil(AutoDim.trap_widget)
         assert.is_nil(AutoDim.origin_fl)
       end
     )
 
-    it("should return early from _executable when already dimmed", function()
+    it("should return early from onDeviceIdling when already dimmed", function()
       AutoDim.trap_widget = TrapWidget:new({ name = "AutoDim" })
-      AutoDim:_executable()
+      AutoDim:onDeviceIdling()
       assert.are.equal("AutoDim", AutoDim.trap_widget.name)
       AutoDim.trap_widget = nil
     end)
@@ -259,12 +297,10 @@ describe("AutoDim widget tests", function()
         Device:getPowerDevice():setIntensity(3)
         AutoDim.origin_fl = 10
         AutoDim.trap_widget = TrapWidget:new({ name = "AutoDim" })
-        PluginShare.DeviceIdling = true
 
         AutoDim:onClose()
 
         assert.is_nil(AutoDim.trap_widget)
-        assert.is_false(PluginShare.DeviceIdling)
         assert.are.equal(10, Device:getPowerDevice():frontlightIntensity())
       end
     )

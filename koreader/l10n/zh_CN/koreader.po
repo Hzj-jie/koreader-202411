@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -11828,8 +11828,8 @@ msgstr "分钟"
 msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr "此插件允许在一段时间不活动后调暗前光。"
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
-msgstr "当前光变暗时，KOReader 处于空闲模式。"
+msgid "KOReader enters idle mode after the configured period of inactivity."
+msgstr "在配置的不活动时间后，KOReader 将进入空闲模式。"
 
 msgid "Auto frontlight"
 msgstr "自动前光"
@@ -14623,12 +14623,6 @@ msgstr "过滤元素"
 msgid "Delete feed"
 msgstr "删除订阅源"
 
-msgid "Downloading news finished with errors."
-msgstr "新闻下载完毕，但遇到了一些错误。"
-
-msgid "Downloading news finished."
-msgstr "下载新闻已毕。"
-
 msgid "News downloader (RSS/Atom)"
 msgstr "新闻下载器 （RSS/Atom）"
 
@@ -14643,9 +14637,6 @@ msgstr "编辑新闻源"
 
 msgid "Set download folder"
 msgstr "设置下载文件夹"
-
-msgid "Automatically sync when idle"
-msgstr "空闲时自动同步"
 
 msgid "Never download images"
 msgstr "不要下载图像"
@@ -14685,18 +14676,18 @@ msgstr "源列表为空。如果你想下载新闻，你必须先添加一个源
 msgid "Edit feed list"
 msgstr "编辑源列表"
 
-msgid "Sync is already in progress."
-msgstr "同步已在进行中。"
-
-msgid "Synchronizing news feeds…"
-msgstr "正在同步新闻源…"
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "正在处理 %1/%2：\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "下载新闻已毕。"
+
+msgid "Downloading news finished with errors."
+msgstr "新闻下载完毕，但遇到了一些错误。"
 
 msgid ""
 "Could not process some feeds.\n"
@@ -15791,6 +15782,9 @@ msgstr "同步阅读统计失败。"
 
 msgid "Syncing book statistics in the background"
 msgstr "正在后台同步阅读统计"
+
+msgid "Sync is already in progress."
+msgstr "同步已在进行中。"
 
 msgid "Keeps and displays your reading statistics."
 msgstr "保留并显示你的阅读统计信息。"
@@ -16999,6 +16993,9 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "注释"
+
+#~ msgid "KOReader is in idle mode when the frontlight is dimmed."
+#~ msgstr "当前光变暗时，KOReader 处于空闲模式。"
 
 #~ msgid "Autoshutdown timeout: %1"
 #~ msgstr "自动关机超时：%1"

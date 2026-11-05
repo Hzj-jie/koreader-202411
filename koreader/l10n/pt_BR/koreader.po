@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Denilson Sousa <deni.sousa09@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
@@ -12356,7 +12356,7 @@ msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 "Este plugin permite reduzir a iluminação após um período de inatividade."
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15245,12 +15245,6 @@ msgstr "Filtrar elemento"
 msgid "Delete feed"
 msgstr "Excluir canal"
 
-msgid "Downloading news finished with errors."
-msgstr "Erro ao baixar notícias ."
-
-msgid "Downloading news finished."
-msgstr "Download de notícias concluído."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Transferidor de notícias (RSS/Atom)"
 
@@ -15265,9 +15259,6 @@ msgstr "Editar canais de notícias"
 
 msgid "Set download folder"
 msgstr "Definir pasta de download"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Nunca baixar imagens"
@@ -15312,18 +15303,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Editar lista de canais"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Processando %1/%2:\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Download de notícias concluído."
+
+msgid "Downloading news finished with errors."
+msgstr "Erro ao baixar notícias ."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16449,6 +16440,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

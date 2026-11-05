@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2019-12-30 15:24+0000\n"
 "Last-Translator: Frans de Jonge <fransdejonge@gmail.com>\n"
 "Language-Team: Afrikaans (South Africa) (http://www.transifex.com/houqp/"
@@ -10409,7 +10409,7 @@ msgstr ""
 msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -13012,12 +13012,6 @@ msgstr ""
 msgid "Delete feed"
 msgstr ""
 
-msgid "Downloading news finished with errors."
-msgstr ""
-
-msgid "Downloading news finished."
-msgstr ""
-
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13031,9 +13025,6 @@ msgid "Edit news feeds"
 msgstr ""
 
 msgid "Set download folder"
-msgstr ""
-
-msgid "Automatically sync when idle"
 msgstr ""
 
 msgid "Never download images"
@@ -13067,15 +13058,15 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
+msgstr ""
+
+msgid "Downloading news finished."
+msgstr ""
+
+msgid "Downloading news finished with errors."
 msgstr ""
 
 msgid ""
@@ -14094,6 +14085,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."

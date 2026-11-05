@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 11:22-0800\n"
+"POT-Creation-Date: 2026-11-05 15:12-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Mihai Vasiliu <mihai.vasiliu.93@gmail.com>\n"
 "Language-Team: Moldavian <https://hosted.weblate.org/projects/koreader/"
@@ -12348,7 +12348,7 @@ msgstr ""
 "Acest plugin permite diminuarea luminozității după o perioadă de "
 "inactivitate."
 
-msgid "KOReader is in idle mode when the frontlight is dimmed."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15244,12 +15244,6 @@ msgstr "Element filtrare"
 msgid "Delete feed"
 msgstr "Șterge flux"
 
-msgid "Downloading news finished with errors."
-msgstr "Descărcarea știrilor s-a terminat cu erori."
-
-msgid "Downloading news finished."
-msgstr "Descărcarea știrilor s-a terminat."
-
 msgid "News downloader (RSS/Atom)"
 msgstr "Descărcător știri (RSS/Atom)"
 
@@ -15264,9 +15258,6 @@ msgstr "Editează fluxurile de știri"
 
 msgid "Set download folder"
 msgstr "Alege dosarul de știri"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 msgid "Never download images"
 msgstr "Nu descărca niciodată imaginile"
@@ -15310,18 +15301,18 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Editează lista de fluxuri"
 
-msgid "Sync is already in progress."
-msgstr ""
-
-msgid "Synchronizing news feeds…"
-msgstr ""
-
 msgid ""
 "Processing %1/%2:\n"
 "%3"
 msgstr ""
 "Se procesează %1/%2:\n"
 "%3"
+
+msgid "Downloading news finished."
+msgstr "Descărcarea știrilor s-a terminat."
+
+msgid "Downloading news finished with errors."
+msgstr "Descărcarea știrilor s-a terminat cu erori."
 
 msgid ""
 "Could not process some feeds.\n"
@@ -16452,6 +16443,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
