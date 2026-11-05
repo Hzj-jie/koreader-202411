@@ -92,7 +92,7 @@ end
 ---@param state Game2048State  Game state
 function Game2048Storage:readState(state)
   -- Settings
-  state.settings:merge(self._settings:read("settings"))
+  state.settings:merge(self._settings:readTable("settings"))
   state.profile = state.settings.profile
   return self:readGameState(state.profile, state)
 end
@@ -101,7 +101,7 @@ end
 ---@param profile string Name of the state to save
 ---@param state Game2048State Game state
 function Game2048Storage:readGameState(profile, state)
-  local state_dump = self._settings:read("state_" .. profile)
+  local state_dump = self._settings:readTable("state_" .. profile)
   if state_dump then
     state.settings:merge(state_dump.settings)
     if
@@ -452,7 +452,7 @@ function Game2048Screen:init()
   self._body[#self._body + 1] = self._buttons
 
   self._body[#self._body + 1] = VerticalSpan:new({
-    width = SCREEN_PADDING,
+    height = SCREEN_PADDING,
   })
 
   self._info_board = {
@@ -496,7 +496,7 @@ function Game2048Screen:init()
   })
 
   self._body[#self._body + 1] = VerticalSpan:new({
-    width = SCREEN_PADDING,
+    height = SCREEN_PADDING,
   })
 
   self._body[#self._body + 1] = HorizontalGroup:new({
@@ -508,7 +508,7 @@ function Game2048Screen:init()
   })
 
   self._body[#self._body + 1] = VerticalSpan:new({
-    width = SCREEN_PADDING,
+    height = SCREEN_PADDING,
   })
 
   -- Game widget

@@ -986,8 +986,7 @@ function VirtualKeyboard:_refresh(want_flash, fullscreen)
     UIManager:setDirty("all", refresh_type)
     return
   end
-  -- TOOD: Why does the inputbox need to be repainted?
-  self.inputbox:scheduleRepaint()
+  self:scheduleRepaint()
 end
 
 function VirtualKeyboard:onShow()

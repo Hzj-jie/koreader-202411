@@ -1052,15 +1052,15 @@ function SudokuScreen:buildLayout()
   self.undo_button = keypad:getButtonById("undo_button")
   self.layout = VerticalGroup:new({
     align = "center",
-    VerticalSpan:new({ width = Size.span.vertical_large }),
+    VerticalSpan:new({ height = Size.span.vertical_large }),
     top_buttons,
-    VerticalSpan:new({ width = Size.span.vertical_large }),
+    VerticalSpan:new({ height = Size.span.vertical_large }),
     board_frame,
-    VerticalSpan:new({ width = Size.span.vertical_large }),
+    VerticalSpan:new({ height = Size.span.vertical_large }),
     self.status_text,
-    VerticalSpan:new({ width = Size.span.vertical_large }),
+    VerticalSpan:new({ height = Size.span.vertical_large }),
     keypad,
-    VerticalSpan:new({ width = Size.span.vertical_large }),
+    VerticalSpan:new({ height = Size.span.vertical_large }),
   })
   self[1] = self.layout
   self:ensureShowButtonState()

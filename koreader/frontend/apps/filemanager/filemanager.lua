@@ -279,7 +279,7 @@ function FileManager:setupLayout()
         if has_sidecar then
           doc_settings_or_file = DocSettings:open(file)
           if not self.book_props then
-            local props = doc_settings_or_file:read("doc_props")
+            local props = doc_settings_or_file:readTable("doc_props")
             self.book_props = FileManagerBookInfo.extendProps(props, file)
             self.book_props.has_cover = true -- to enable "Book cover" button, we do not know if cover exists
           end

@@ -41,10 +41,10 @@ function ReaderHandMade:onReadSettings(config)
     end
   else
     if self.ui.rolling and config:has("handmade_toc_rolling") then
-      self.toc = config:read("handmade_toc_rolling")
+      self.toc = config:readTable("handmade_toc_rolling")
       config:delete("handmade_toc_rolling")
     elseif self.ui.paging and config:has("handmade_toc_paging") then
-      self.toc = config:read("handmade_toc_paging")
+      self.toc = config:readTable("handmade_toc_paging")
       config:delete("handmade_toc_paging")
     end
   end
@@ -61,10 +61,10 @@ function ReaderHandMade:onReadSettings(config)
     end
   else
     if self.ui.rolling and config:has("handmade_flow_points_rolling") then
-      self.flow_points = config:read("handmade_flow_points_rolling")
+      self.flow_points = config:readTable("handmade_flow_points_rolling")
       config:delete("handmade_flow_points_rolling")
     elseif self.ui.paging and config:has("handmade_flow_points_paging") then
-      self.flow_points = config:read("handmade_flow_points_paging")
+      self.flow_points = config:readTable("handmade_flow_points_paging")
       config:delete("handmade_flow_points_paging")
     end
   end
@@ -73,21 +73,13 @@ end
 function ReaderHandMade:onSaveSettings()
   self.ui.doc_settings:save("handmade_toc_enabled", self.toc_enabled)
   self.ui.doc_settings:save("handmade_toc_edit_enabled", self.toc_edit_enabled)
-  if #self.toc > 0 then
-    self.ui.doc_settings:save("handmade_toc", self.toc)
-  else
-    self.ui.doc_settings:delete("handmade_toc")
-  end
+  self.ui.doc_settings:save("handmade_toc", self.toc, {})
   self.ui.doc_settings:save("handmade_flows_enabled", self.flows_enabled)
   self.ui.doc_settings:save(
     "handmade_flows_edit_enabled",
     self.flows_edit_enabled
   )
-  if #self.flow_points > 0 then
-    self.ui.doc_settings:save("handmade_flow_points", self.flow_points)
-  else
-    self.ui.doc_settings:delete("handmade_flow_points")
-  end
+  self.ui.doc_settings:save("handmade_flow_points", self.flow_points, {})
 end
 
 function ReaderHandMade:isHandmadeTocEnabled()

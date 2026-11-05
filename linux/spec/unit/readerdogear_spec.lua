@@ -31,6 +31,8 @@ describe("ReaderDogear module", function()
 
       dogear:updateDogearOffset()
       assert.are.equal(20, dogear.dogear_y_offset)
+      assert.are.equal(20, dogear.top_pad.height)
+      assert.is_nil(dogear.top_pad.width)
     end
   )
 

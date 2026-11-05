@@ -33,8 +33,8 @@ function SlidePuzzle:init()
   then
     self.active_size = Game.getMinSize()
   end
-  self.states = self.settings:read("states") or {}
-  self.stats = self.settings:read("stats") or {}
+  self.states = self.settings:readTableRef("states")
+  self.stats = self.settings:readTableRef("stats")
   -- Resolve and apply the chosen language as early as possible so any
   -- subsequent UI strings (menu text included) use it.
   I18n.setActive(self.settings:read("language") or "default")
@@ -74,8 +74,6 @@ end
 
 function SlidePuzzle:_saveAll()
   self.settings:save("active_size", self.active_size)
-  self.settings:save("states", self.states)
-  self.settings:save("stats", self.stats)
   self.settings:flush()
 end
 

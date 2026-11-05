@@ -198,6 +198,9 @@ describe("FileManagerHistory", function()
         read = function()
           return nil
         end,
+        readTable = function()
+          return nil
+        end,
       }
     end)
     package.loaded["docsettings"] = mock_docsettings
@@ -877,9 +880,15 @@ describe("FileManagerHistory", function()
       mock_uimanager.closeIfShown = spy.new(function(self, widget)
         self:close(widget)
       end)
+      mock_uimanager.closeIfNotNil = spy.new(function(self, widget)
+        if widget ~= nil then
+          self:close(widget)
+        end
+      end)
     end)
     after_each(function()
       mock_uimanager.closeIfShown = nil
+      mock_uimanager.closeIfNotNil = nil
     end)
     it("closes histfile_dialog and hist_menu automatically", function()
       local ui_mock = { menu = mock_menu }
@@ -905,6 +914,46 @@ describe("FileManagerHistory", function()
       assert
         .spy(mock_uimanager.close)
         .was_called_with(mock_uimanager, match.is_ref(dummy_menu))
+    end)
+
+    it("makes hist_menu.close_callback idempotent when invoked twice", function()
+      local ui_mock = { menu = mock_menu }
+      local fmh = FileManagerHistory:new({ ui = ui_mock })
+
+      fmh:onShowHist()
+      local hist_menu = fmh.hist_menu
+      assert.is_not_nil(hist_menu)
+
+      hist_menu.close_callback()
+      assert.is_nil(fmh.hist_menu)
+      assert.spy(mock_uimanager.closeIfNotNil).was_called(1)
+      assert
+        .spy(mock_uimanager.closeIfNotNil)
+        .was_called_with(mock_uimanager, match.is_ref(hist_menu))
+
+      hist_menu.close_callback()
+      assert.is_nil(fmh.hist_menu)
+      assert.spy(mock_uimanager.closeIfNotNil).was_called(2)
+      assert.spy(mock_uimanager.close).was_called(1)
+    end)
+
+    it("allows uimanagedCleanUp before hist_menu.close_callback without error", function()
+      local ui_mock = { menu = mock_menu }
+      local fmh = FileManagerHistory:new({ ui = ui_mock })
+
+      fmh:onShowHist()
+      local hist_menu = fmh.hist_menu
+      assert.is_not_nil(hist_menu)
+
+      fmh:uimanagedCleanUp()
+      assert.is_nil(fmh.hist_menu)
+
+      hist_menu.close_callback()
+      assert.is_nil(fmh.hist_menu)
+      assert.spy(mock_uimanager.closeIfNotNil).was_called(1)
+      assert
+        .spy(mock_uimanager.closeIfNotNil)
+        .was_called_with(mock_uimanager, nil)
     end)
   end)
 end)

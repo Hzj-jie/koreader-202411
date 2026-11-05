@@ -160,6 +160,9 @@ describe("BookInfo", function()
         read = function(self, _key)
           return nil
         end,
+        readTable = function(self, _key)
+          return nil
+        end,
         readTableRef = function(self, _key)
           return {}
         end,
@@ -171,6 +174,9 @@ describe("BookInfo", function()
     mock_docsettings.open = spy.new(function()
       return {
         read = function(self, _key)
+          return nil
+        end,
+        readTable = function(self, _key)
           return nil
         end,
       }
@@ -576,13 +582,16 @@ describe("BookInfo", function()
         mock_docsettings.open = spy.new(function()
           return {
             read = function(_, key)
+              if key == "doc_pages" then
+                return 320
+              end
+            end,
+            readTable = function(_, key)
               if key == "doc_props" then
                 return {
                   title = "Sidecar Title",
                   authors = "Sidecar Author",
                 }
-              elseif key == "doc_pages" then
-                return 320
               end
             end,
           }
@@ -602,10 +611,13 @@ describe("BookInfo", function()
       mock_docsettings.open = spy.new(function()
         return {
           read = function(_, key)
+            if key == "doc_pages" then
+              return 250
+            end
+          end,
+          readTable = function(_, key)
             if key == "stats" then
               return { pages = 200 }
-            elseif key == "doc_pages" then
-              return 250
             end
           end,
         }
@@ -638,7 +650,7 @@ describe("BookInfo", function()
         mock_docsettings.openSettingsFile = spy.new(function(metafile)
           assert.are.equal("/metadata/book.lua", metafile)
           return {
-            read = function(_, key)
+            readTable = function(_, key)
               if key == "doc_props" then
                 return {
                   title = "Custom Meta Title",
@@ -969,6 +981,11 @@ describe("BookInfo", function()
         file = "/metadata/book.lua",
         save = spy.new(function() end),
         read = spy.new(function(_, k)
+          if k == "doc_props" then
+            return {}
+          end
+        end),
+        readTable = spy.new(function(_, k)
           if k == "doc_props" then
             return {}
           end

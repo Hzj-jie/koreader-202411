@@ -46,6 +46,7 @@ describe("MultiInputDialog widget", function()
       },
       width = Screen:getWidth(),
     })
+    assert.is_nil(UIManager._dirty[dialog])
 
     UIManager:show(dialog)
     UIManager:forceRepaint()
@@ -147,6 +148,7 @@ describe("MultiInputDialog widget", function()
       },
       width = Screen:getWidth(),
     })
+    assert.is_nil(UIManager._dirty[dialog])
 
     UIManager:show(dialog)
     UIManager:forceRepaint()
@@ -186,6 +188,7 @@ describe("MultiInputDialog widget", function()
       },
       width = Screen:getWidth(),
     })
+    assert.is_nil(UIManager._dirty[dialog])
 
     UIManager:show(dialog)
     UIManager:forceRepaint()

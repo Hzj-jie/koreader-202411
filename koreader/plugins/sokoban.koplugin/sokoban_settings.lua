@@ -145,17 +145,17 @@ function SettingsWidget:init()
   local content = VerticalGroup:new({
     align = "center",
     title_bar,
-    VerticalSpan:new({ width = Size.padding.large }),
+    VerticalSpan:new({ height = Size.padding.large }),
     CenterContainer:new({
       dimen = Geom:new({ w = self.width, h = set_table:getSize().h }),
       set_table,
     }),
-    VerticalSpan:new({ width = Size.padding.large }),
+    VerticalSpan:new({ height = Size.padding.large }),
     CenterContainer:new({
       dimen = Geom:new({ w = self.width, h = level_nav:getSize().h }),
       level_nav,
     }),
-    VerticalSpan:new({ width = Size.padding.large }),
+    VerticalSpan:new({ height = Size.padding.large }),
     CenterContainer:new({
       dimen = Geom:new({ w = self.width, h = play_btn:getSize().h }),
       play_btn,
