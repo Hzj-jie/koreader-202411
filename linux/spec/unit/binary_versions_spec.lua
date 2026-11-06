@@ -27,7 +27,8 @@ describe("BinaryVersions", function()
   end)
 
   it("resolves dynamic versions and marks known-unknown libraries", function()
-    local unknown = gettext("Unknown")
+    local T = require("ffi/util").template
+    local lfs = require("libs/libkoreader-lfs")
     local known_unknown = {
       ["libs/libblitbuffer.so"] = true,
       ["libs/libgif.so.7"] = true,
@@ -45,9 +46,13 @@ describe("BinaryVersions", function()
       assert.is_string(ver)
       assert.is_true(#ver > 0)
       if known_unknown[path] then
-        assert.are.equal(unknown, ver)
+        local expected = T(
+          gettext("Last modified: %1"),
+          os.date("%Y-%m-%d %H:%M", lfs.attributes(path, "modification"))
+        )
+        assert.are.equal(expected, ver)
       else
-        assert.are_not.equal(unknown, ver)
+        assert.is_nil(ver:find(T(gettext("Last modified: %1"), ""), 1, true))
       end
     end
 
@@ -63,6 +68,41 @@ describe("BinaryVersions", function()
     assert.is_truthy(by_path["libs/libxxhash.so.0"]:match("^%d+%.%d+%.%d+$"))
     assert.are.equal(require("ffi/mupdf").version, by_path["libs/libwrap-mupdf.so"])
     assert.is_truthy(by_path["libs/libjpeg.so.8"]:match("^libjpeg%-turbo version "))
+  end)
+
+  it("falls back to file modification time when binary version is unknown", function()
+    local T = require("ffi/util").template
+    local lfs = require("libs/libkoreader-lfs")
+    local tmp_dir = os.tmpname()
+    os.remove(tmp_dir)
+    lfs.mkdir(tmp_dir)
+    lfs.mkdir(tmp_dir .. "/common")
+    lfs.mkdir(tmp_dir .. "/libs")
+    local tmp_file = tmp_dir .. "/libs/libdummy_unknown.so"
+    local f = io.open(tmp_file, "w")
+    f:write("\x7fELF")
+    f:close()
+    local fixed_time = 1700000000
+    lfs.touch(tmp_file, fixed_time, fixed_time)
+
+    local old_dir = lfs.currentdir()
+    lfs.chdir(tmp_dir)
+    finally(function()
+      lfs.chdir(old_dir)
+      os.remove(tmp_file)
+      lfs.rmdir(tmp_dir .. "/libs")
+      lfs.rmdir(tmp_dir .. "/common")
+      lfs.rmdir(tmp_dir)
+    end)
+
+    local expected = T(
+      gettext("Last modified: %1"),
+      os.date("%Y-%m-%d %H:%M", fixed_time)
+    )
+    local kv_pairs = BinaryVersions:getKeyValuePairs()
+    assert.are.equal(1, #kv_pairs)
+    assert.are.equal("libs/libdummy_unknown.so", kv_pairs[1][1])
+    assert.are.equal(expected, kv_pairs[1][2])
   end)
 
   it("shows Binary versions button in About dialog and opens KeyValuePage", function()
