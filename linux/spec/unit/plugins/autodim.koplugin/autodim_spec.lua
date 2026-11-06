@@ -168,7 +168,7 @@ describe("AutoDim widget tests", function()
         UIManager.broadcastEvent = orig_broadcast
       end)
 
-      -- 1. When not idle (PluginShare.DeviceIdling is false)
+      -- 1. When not idle (UIManager.DeviceIdling is false)
       UIManager.DeviceIdling = false
       UIManager:updateLastUserActionTime()
       assert.are.equal(0, #events)
