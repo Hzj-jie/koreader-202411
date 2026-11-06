@@ -202,7 +202,9 @@ local function add_sync_time()
     return
   end
 
+  local BackgroundJobs = require("background_jobs")
   local NetworkMgr = require("ui/network/manager")
+  local time = require("ui/time")
 
   local function currentTime()
     local std_out = io.popen("date")
@@ -237,11 +239,15 @@ local function add_sync_time()
     return txt
   end
 
+  local last_sync_time = nil
+
   local function syncNTP()
     local txt
     UIManager:runWith(function()
       txt = syncNTPOnly()
     end, gettext("Synchronizing time. This may take several seconds."))
+
+    last_sync_time = time.monotonic()
 
     UIManager:show(InfoMessage:new({
       text = txt,
@@ -250,12 +256,44 @@ local function add_sync_time()
   end
 
   table.insert(menu.sub_item_table, {
-    text = gettext("Synchronize time"),
+    text = gettext("Automatically synchronize time"),
     keep_menu_open = true,
+    checked_func = function()
+      return G_reader_settings:isTrue("auto_sync_time")
+    end,
     callback = function()
-      NetworkMgr:runWhenOnline(function()
-        syncNTP()
-      end)
+      G_reader_settings:flipNilOrFalse("auto_sync_time")
+      if G_reader_settings:isTrue("auto_sync_time") then
+        NetworkMgr:runWhenOnline(function()
+          syncNTP()
+        end)
+      end
+    end,
+  })
+
+  BackgroundJobs.insert({
+    when = "idle",
+    repeated = true,
+    executable = function()
+      if not G_reader_settings:isTrue("auto_sync_time") then
+        return
+      end
+
+      if last_sync_time and time.since(last_sync_time) < time.s(86400) then
+        return
+      end
+
+      if not NetworkMgr:isOnline() then
+        return
+      end
+
+      BackgroundJobs.insertKeyed({
+        executable = "fork",
+        action = syncNTPOnly,
+        callback = function()
+          last_sync_time = time.monotonic()
+        end,
+      })
     end,
   })
 end
