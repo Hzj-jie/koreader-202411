@@ -9,7 +9,7 @@ local gettext = require("gettext")
 
 local ReaderCoptListener = EventListener:extend({})
 
-local CRE_HEADER_DEFAULT_SIZE = 20
+local CRE_HEADER_DEFAULT_SIZE = CreUtil.CRE_HEADER_DEFAULT_SIZE
 
 function ReaderCoptListener:init()
   self.additional_header_content = {} -- place, where additional header content can be inserted.
@@ -545,7 +545,7 @@ function ReaderCoptListener:getAltStatusBarMenu()
             value = start_size,
             value_min = 8,
             value_max = 36,
-            default_value = 14,
+            default_value = CRE_HEADER_DEFAULT_SIZE,
             keep_shown_on_apply = true,
             title_text = gettext("Size of top status bar"),
             ok_text = gettext("Set size"),
