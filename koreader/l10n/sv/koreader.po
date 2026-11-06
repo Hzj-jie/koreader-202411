@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-05 19:11-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -5392,6 +5392,10 @@ msgstr ""
 "Misslyckades med att känna igen eller analysera den här filen: otillräckligt "
 "eller ogiltigt dokument.\n"
 "KOReader kommer att avsluta nu."
+
+#, fuzzy
+msgid "Last modified: %1"
+msgstr "datum ändrat"
 
 #, fuzzy
 msgid "Jan"
@@ -11344,10 +11348,6 @@ msgstr[0] "Teckenstorlek"
 msgstr[1] "Teckenstorlek"
 
 #, fuzzy
-msgid "Last modified: %1"
-msgstr "datum ändrat"
-
-#, fuzzy
 msgid "Choose this folder?"
 msgstr ""
 "Välj denna fil?\n"
@@ -14722,33 +14722,6 @@ msgstr "Katalogen %1 finns redan. Vill du skriva över den?"
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-"%1\n"
-"\n"
-"Bygger EPUB…"
-
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr ""
-"%1\n"
-"\n"
-"Hämtar bild %2 / %3 …"
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-"%1\n"
-"\n"
-"Packar EPUB…"
-
 #, fuzzy
 msgid "URL"
 msgstr "RTL"
@@ -14772,6 +14745,14 @@ msgid "Delete feed"
 msgstr "Ta bort fil"
 
 #, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "Hämta nyheter"
+
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "Hämta nyheter"
+
+#, fuzzy
 msgid "News downloader (RSS/Atom)"
 msgstr "Nyhetshämtaren"
 
@@ -14788,6 +14769,9 @@ msgstr "Redigera en ny tom fil"
 #, fuzzy
 msgid "Set download folder"
 msgstr "Gå till hämtningsmappen"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -14832,34 +14816,11 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
-msgstr ""
-"Bearbetar %1/%2:\n"
-"%3"
-
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "Hämta nyheter"
-
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "Hämta nyheter"
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
+msgid "Sync is already in progress."
 msgstr ""
 
-#, fuzzy
-msgid "Go to download folder?"
-msgstr "Gå till hämtningsmappen"
-
-#, fuzzy
-msgid "Go to downloads"
-msgstr "Gå till hämtningsmappen"
+msgid "Synchronizing news feeds…"
+msgstr ""
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -14870,22 +14831,6 @@ msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
 msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-"%1\n"
-"\n"
-"Hämta artikel %2/%3:"
-
-msgid ""
-"%1\n"
-"%2"
-msgstr ""
-"%1\n"
-"%2"
 
 msgid ""
 "This is just a description of the feed. To download the full article "
@@ -16014,9 +15959,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -17265,6 +17207,64 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plats"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Building EPUB…"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Bygger EPUB…"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Retrieving image %2 / %3 …"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Hämtar bild %2 / %3 …"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Packing EPUB…"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Packar EPUB…"
+
+#~ msgid ""
+#~ "Processing %1/%2:\n"
+#~ "%3"
+#~ msgstr ""
+#~ "Bearbetar %1/%2:\n"
+#~ "%3"
+
+#, fuzzy
+#~ msgid "Go to download folder?"
+#~ msgstr "Gå till hämtningsmappen"
+
+#, fuzzy
+#~ msgid "Go to downloads"
+#~ msgstr "Gå till hämtningsmappen"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Fetching article %2/%3:"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Hämta artikel %2/%3:"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "%2"
+#~ msgstr ""
+#~ "%1\n"
+#~ "%2"
 
 #, fuzzy
 #~ msgid "Autoshutdown timeout: %1"
