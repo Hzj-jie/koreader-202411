@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-05 19:11-0800\n"
 "PO-Revision-Date: 2024-01-13 01:11+0000\n"
 "Last-Translator: Arnab Wahid <arnabwahid@gmail.com>\n"
 "Language-Team: Bengali <https://hosted.weblate.org/projects/koreader/"
@@ -5203,6 +5203,10 @@ msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
 msgstr ""
+
+#, fuzzy
+msgid "Last modified: %1"
+msgstr "পরিবর্তন করার তারিখ"
 
 msgid "Jan"
 msgstr ""
@@ -10649,10 +10653,6 @@ msgstr[0] "হরফের আকার (%1)"
 msgstr[1] "হরফের আকার (%1)"
 
 #, fuzzy
-msgid "Last modified: %1"
-msgstr "পরিবর্তন করার তারিখ"
-
-#, fuzzy
 msgid "Choose this folder?"
 msgstr ""
 "এই ফোল্ডারটি চয়ন করবেন?\n"
@@ -13785,25 +13785,6 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-
-#, fuzzy
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr "ফাইল পুনরুদ্ধার করা হচ্ছে…"
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-
 msgid "URL"
 msgstr ""
 
@@ -13825,6 +13806,14 @@ msgstr ""
 msgid "Delete feed"
 msgstr "মুছুন"
 
+#, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "ফাইল ডাউনলোড করুন"
+
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "ফাইল ডাউনলোড করুন"
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13840,6 +13829,9 @@ msgstr ""
 #, fuzzy
 msgid "Set download folder"
 msgstr "ডাউনলোড সঞ্চয় করার ফোল্ডার চয়ন করুন"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -13874,32 +13866,11 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
+msgid "Sync is already in progress."
 msgstr ""
 
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "ফাইল ডাউনলোড করুন"
-
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "ফাইল ডাউনলোড করুন"
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
+msgid "Synchronizing news feeds…"
 msgstr ""
-
-#, fuzzy
-msgid "Go to download folder?"
-msgstr "ডাউনলোড সঞ্চয় করার ফোল্ডার চয়ন করুন"
-
-#, fuzzy
-msgid "Go to downloads"
-msgstr "ডাউনলোড করুন"
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -13909,17 +13880,6 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
 msgstr ""
 
 msgid ""
@@ -14949,9 +14909,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -16063,6 +16020,21 @@ msgstr "ওয়ালাব্যাগে যোগ করুন"
 #, fuzzy
 msgid "annotations"
 msgstr "বইয়ের মার্জিনের সমান"
+
+#, fuzzy
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Retrieving image %2 / %3 …"
+#~ msgstr "ফাইল পুনরুদ্ধার করা হচ্ছে…"
+
+#, fuzzy
+#~ msgid "Go to download folder?"
+#~ msgstr "ডাউনলোড সঞ্চয় করার ফোল্ডার চয়ন করুন"
+
+#, fuzzy
+#~ msgid "Go to downloads"
+#~ msgstr "ডাউনলোড করুন"
 
 #, fuzzy
 #~ msgid "About alt status bar"

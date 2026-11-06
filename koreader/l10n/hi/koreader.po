@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-05 19:11-0800\n"
 "PO-Revision-Date: 2022-06-11 19:41+0000\n"
 "Last-Translator: অনিকেত চট্টোপাধ্যায় <aniket.chatterjee@gmail.com>\n"
 "Language-Team: Hindi <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -4754,6 +4754,9 @@ msgstr ""
 msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
+msgstr ""
+
+msgid "Last modified: %1"
 msgstr ""
 
 msgid "Jan"
@@ -10089,9 +10092,6 @@ msgid_plural "File size: %1 bytes"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Last modified: %1"
-msgstr ""
-
 #, fuzzy
 msgid "Choose this folder?"
 msgstr ""
@@ -13154,24 +13154,6 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-
 msgid "URL"
 msgstr ""
 
@@ -13190,6 +13172,12 @@ msgstr ""
 msgid "Delete feed"
 msgstr ""
 
+msgid "Downloading news finished with errors."
+msgstr ""
+
+msgid "Downloading news finished."
+msgstr "समाचार डाउनलोड पुरा हुआ।"
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13203,6 +13191,9 @@ msgid "Edit news feeds"
 msgstr ""
 
 msgid "Set download folder"
+msgstr ""
+
+msgid "Automatically sync when idle"
 msgstr ""
 
 msgid "Never download images"
@@ -13236,27 +13227,10 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
+msgid "Sync is already in progress."
 msgstr ""
 
-msgid "Downloading news finished."
-msgstr "समाचार डाउनलोड पुरा हुआ।"
-
-msgid "Downloading news finished with errors."
-msgstr ""
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
-msgstr ""
-
-msgid "Go to download folder?"
-msgstr "डाउनलोड फोल्डर पर जाएं?"
-
-msgid "Go to downloads"
+msgid "Synchronizing news feeds…"
 msgstr ""
 
 #, fuzzy
@@ -13267,17 +13241,6 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
 msgstr ""
 
 msgid ""
@@ -14278,9 +14241,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -15366,6 +15326,9 @@ msgstr ""
 
 msgid "annotations"
 msgstr ""
+
+#~ msgid "Go to download folder?"
+#~ msgstr "डाउनलोड फोल्डर पर जाएं?"
 
 #, fuzzy
 #~ msgid "Document settings"

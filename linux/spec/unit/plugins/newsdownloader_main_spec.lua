@@ -227,7 +227,6 @@ describe("NewsDownloader main plugin module", function()
         unsupported,
         true,
         false,
-        "Msg",
         false,
         ""
       )
@@ -241,7 +240,6 @@ describe("NewsDownloader main plugin module", function()
         unsupported,
         false,
         false,
-        "Msg",
         false,
         ""
       )
@@ -258,7 +256,6 @@ describe("NewsDownloader main plugin module", function()
         unsupported,
         true,
         false,
-        "Msg",
         false,
         ""
       )
@@ -334,33 +331,14 @@ describe("NewsDownloader main plugin module", function()
   end)
 
   it(
-    "should handle loadConfigAndProcessFeedsWithUI under various configuration states",
+    "should handle feed configuration and processing states",
     function()
-      local UI = require("ui/trapper")
-      local info_called = 0
-      local confirm_called = 0
-      local orig_info = UI.info
-      local orig_confirm = UI.confirm
-      local orig_clear = UI.clear
-      local orig_reset = UI.reset
-
-      UI.info = function()
-        info_called = info_called + 1
-      end
-      UI.confirm = function()
-        confirm_called = confirm_called + 1
-        return true
-      end
-      UI.clear = function() end
-      UI.reset = function() end
+      local DownloadMgr = require("ui/downloadmgr")
 
       local tmp_dir = os.tmpname()
       os.remove(tmp_dir)
       require("libs/libkoreader-lfs").mkdir(tmp_dir)
 
-      local mock_menu = {
-        closeMenu = function() end,
-      }
       local mock_ui = {
         menu = { registerToMainMenu = function() end },
       }
@@ -370,30 +348,40 @@ describe("NewsDownloader main plugin module", function()
         download_dir = tmp_dir .. "/",
         feed_config_path = tmp_dir .. "/feed_config.lua",
       })
+      inst.initialized = true
       inst.settings =
         require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+      inst.settings:save(NewsDownloader.config_key_custom_dl_dir, tmp_dir .. "/")
+      stub(NewsDownloader, "getSettings").returns(inst.settings)
 
-      -- 1. Non-existent / invalid feed config file
-      local ok, err = xpcall(function()
-        inst:loadConfigAndProcessFeeds(mock_menu)
-      end, debug.traceback)
-      if not ok then
-        print("LOAD ERROR 1:", err)
+      local DownloadBackend =
+        require("plugins/newsdownloader.koplugin/epubdownloadbackend")
+      local orig_get = DownloadBackend.getResponseAsString
+      local orig_load = DownloadBackend.loadPage
+      local orig_create = DownloadBackend.createEpub
+      local orig_dm_new = DownloadMgr.new
+
+      finally(function()
+        NewsDownloader.getSettings:revert()
+        DownloadBackend.getResponseAsString = orig_get
+        DownloadBackend.loadPage = orig_load
+        DownloadBackend.createEpub = orig_create
+        DownloadMgr.new = orig_dm_new
+        require("libs/libkoreader-lfs").rmdir(tmp_dir)
+      end)
+
+      DownloadBackend.getResponseAsString = function(self_db, url)
+        if url == "https://example.com/rss" then
+          return [[<rss version="2.0"><channel><title>Single Item RSS</title><item><title>Article 1</title><link>https://example.com/art1</link><description>Desc 1</description></item></channel></rss>]]
+        end
+        error("Download failed for: " .. tostring(url))
       end
-
-      -- 2. Empty feed config
-      local orig_view_item = inst.viewFeedItem
-      inst.viewFeedItem = function() end
-      inst:saveConfig({})
-      local ok2, err2 = xpcall(function()
-        inst:loadConfigAndProcessFeeds(mock_menu)
-      end, debug.traceback)
-      if not ok2 then
-        print("LOAD ERROR 2:", err2)
+      DownloadBackend.loadPage = function()
+        return "<html><body>Content</body></html>"
       end
-      inst.viewFeedItem = orig_view_item
+      DownloadBackend.createEpub = function() end
 
-      -- 3. Valid feed config with mock processing
+      -- 1. Valid feed config with mock processing
       local valid_config = {
         {
           [1] = "https://example.com/rss",
@@ -404,36 +392,35 @@ describe("NewsDownloader main plugin module", function()
       }
       inst:saveConfig(valid_config)
 
-      local orig_process = inst.processFeedSource
-      local orig_open = inst.openDownloadsFolder
-      inst.openDownloadsFolder = function() end
-      inst.processFeedSource = function(
-        self_inst,
-        url,
-        creds,
-        limit,
-        unsupported
+      local unsupported_valid = {}
+      inst:processFeedSource(
+        "https://example.com/rss",
+        nil,
+        2,
+        unsupported_valid,
+        true,
+        false,
+        false,
+        ""
       )
-        -- simulate success
-      end
+      assert.are.equal(0, #unsupported_valid)
 
-      inst:loadConfigAndProcessFeeds(mock_menu)
-
-      -- 4. Feed config resulting in errors
-      inst.processFeedSource = function(
-        self_inst,
-        url,
-        creds,
-        limit,
-        unsupported
+      -- 2. Feed config resulting in errors
+      local unsupported_urls = {}
+      inst:processFeedSource(
+        "https://invalid.example.com",
+        nil,
+        2,
+        unsupported_urls,
+        false,
+        false,
+        false,
+        ""
       )
-        table.insert(unsupported, { url, "Failed" })
-      end
-      inst:loadConfigAndProcessFeeds(mock_menu)
+      assert.are.equal(1, #unsupported_urls)
+      assert.are.equal("https://invalid.example.com", unsupported_urls[1][1])
 
-      -- 5. setCustomDownloadDirectory
-      local DownloadMgr = require("ui/downloadmgr")
-      local orig_dm_new = DownloadMgr.new
+      -- 3. setCustomDownloadDirectory
       DownloadMgr.new = function(cls, opts)
         return {
           chooseDir = function(self_dm, curr_dir)
@@ -445,13 +432,6 @@ describe("NewsDownloader main plugin module", function()
       end
 
       inst:setCustomDownloadDirectory()
-
-      DownloadMgr.new = orig_dm_new
-      inst.processFeedSource = orig_process
-      UI.info = orig_info
-      UI.confirm = orig_confirm
-      UI.clear = orig_clear
-      UI.reset = orig_reset
     end
   )
 
@@ -542,7 +522,6 @@ describe("NewsDownloader main plugin module", function()
           unsupported,
           true,
           false,
-          "Msg",
           false,
           ""
         )
@@ -572,12 +551,358 @@ describe("NewsDownloader main plugin module", function()
         unsupported_rss,
         true,
         false,
-        "Msg",
         false,
         ""
       )
       assert.are.equal(0, #unsupported_rss)
       assert.is_true(epub_created)
+    end
+  )
+
+  it(
+    "should delegate news sync to non-blocking background fork job with preflight validation and deduplication (issue #157)",
+    function()
+      local BackgroundJobs = require("background_jobs")
+      local NetworkMgr = require("ui/network/manager")
+      local Notification = require("ui/widget/notification")
+      local gettext = require("gettext")
+
+      local tmp_dir = os.tmpname()
+      os.remove(tmp_dir)
+      require("libs/libkoreader-lfs").mkdir(tmp_dir)
+
+      local shown_widgets = {}
+      local orig_show = UIManager.show
+      UIManager.show = function(self_ui, widget)
+        table.insert(shown_widgets, widget)
+      end
+
+      local notifications = {}
+      local orig_notify = Notification.notify
+      Notification.notify = function(self_n, text, ...)
+        table.insert(notifications, text)
+      end
+
+      local orig_run_when_online = NetworkMgr.runWhenOnline
+      NetworkMgr.runWhenOnline = function(self_nm, callback)
+        callback()
+      end
+
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local inst = NewsDownloader:new({
+        ui = mock_ui,
+        path = "plugins/newsdownloader.koplugin",
+        download_dir = tmp_dir .. "/",
+        feed_config_path = tmp_dir .. "/feed_config.lua",
+      })
+      inst.initialized = true
+      inst.settings =
+        require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+      inst.settings:save(NewsDownloader.config_key_custom_dl_dir, tmp_dir .. "/")
+      stub(NewsDownloader, "getSettings").returns(inst.settings)
+
+      local captured_job
+      local insert_result = true
+      local orig_insert = BackgroundJobs.insertKeyed
+      BackgroundJobs.insertKeyed = function(job)
+        captured_job = job
+        return insert_result
+      end
+
+      local orig_process = NewsDownloader.processFeedSource
+      local processed_urls = {}
+      NewsDownloader.processFeedSource = function(
+        self_p,
+        url,
+        creds,
+        limit,
+        unsupported,
+        full_art,
+        images,
+        enable_filter,
+        filter_elem
+      )
+        table.insert(processed_urls, url)
+      end
+
+      finally(function()
+        UIManager.show = orig_show
+        Notification.notify = orig_notify
+        NetworkMgr.runWhenOnline = orig_run_when_online
+        BackgroundJobs.insertKeyed = orig_insert
+        NewsDownloader.processFeedSource = orig_process
+        NewsDownloader.getSettings:revert()
+        require("libs/libkoreader-lfs").rmdir(tmp_dir)
+      end)
+
+      -- 1. Preflight: invalid feed config syntax shows InfoMessage
+      local invalid_file = io.open(inst.feed_config_path, "w")
+      invalid_file:write("invalid lua syntax {[[")
+      invalid_file:close()
+
+      shown_widgets = {}
+      inst:syncNewsFeeds()
+      assert.are.equal(1, #shown_widgets)
+      assert.is_not_nil(
+        shown_widgets[1].text:find(
+          gettext("Invalid configuration file. Detailed error message:\n%1"):gsub("%%1.*", ""),
+          1,
+          true
+        )
+      )
+
+      -- 2. Preflight: empty feed config shows ConfirmBox
+      inst:saveConfig({})
+      shown_widgets = {}
+      inst:syncNewsFeeds()
+      assert.are.equal(1, #shown_widgets)
+      assert.are.equal(
+        gettext(
+          "Feed list is empty. If you want to download news, you'll have to add a feed first."
+        ),
+        shown_widgets[1].text
+      )
+      assert.are.equal(gettext("Edit feed list"), shown_widgets[1].ok_text)
+
+      -- 3. Valid config dispatches BackgroundJobs.insertKeyed with fork
+      local valid_config = {
+        {
+          [1] = "https://example.com/feed.xml",
+          limit = 2,
+          download_full_article = true,
+          include_images = false,
+        },
+      }
+      inst:saveConfig(valid_config)
+
+      captured_job = nil
+      notifications = {}
+      inst:syncNewsFeeds()
+
+      assert.is_not_nil(captured_job)
+      assert.are.equal("fork", captured_job.executable)
+      assert.is_function(captured_job.action)
+      assert.is_function(captured_job.callback)
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Synchronizing news feeds…"),
+        notifications[1]
+      )
+
+      -- 4. Deduplication: when job is already in progress, insertKeyed returns false
+      insert_result = false
+      notifications = {}
+      inst:syncNewsFeeds()
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Sync is already in progress."),
+        notifications[1]
+      )
+      insert_result = true
+
+      -- 5. Test background action execution with mock feed processing
+      local bg_result = captured_job.action()
+      assert.is_table(bg_result)
+      assert.is_true(bg_result.ok)
+      assert.are.equal(1, #processed_urls)
+      assert.are.equal("https://example.com/feed.xml", processed_urls[1])
+
+      -- 6. Callback updates feed timestamp and notifies on success
+      notifications = {}
+      captured_job.callback({ result = bg_result })
+      local times = inst.settings:readTableRef("feed_last_sync_times")
+      assert.is_number(times["https://example.com/feed.xml"])
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Downloading news finished."),
+        notifications[1]
+      )
+
+      -- 7. Multi-feed error handling: queue another feed and callback with error
+      captured_job = nil
+      inst:syncNewsFeeds()
+      assert.is_not_nil(captured_job)
+      notifications = {}
+      captured_job.callback({
+        result = {
+          ok = false,
+          unsupported_feeds_urls = { { "https://broken.com", "404" } },
+        },
+      })
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Downloading news finished with errors."),
+        notifications[1]
+      )
+
+      -- 8. Callback handles non-table sentinels (e.g. fork failure or exit code) without crash
+      captured_job = nil
+      inst:syncNewsFeeds()
+      assert.is_not_nil(captured_job)
+      assert.has_no.errors(function()
+        captured_job.callback({ result = false })
+      end)
+    end
+  )
+
+  it(
+    "handles automatic news sync when idle via BackgroundJobs",
+    function()
+      local BackgroundJobs = require("background_jobs")
+      local tmp_dir = os.tmpname()
+      os.remove(tmp_dir)
+      require("libs/libkoreader-lfs").mkdir(tmp_dir)
+
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local inst = NewsDownloader:new({
+        ui = mock_ui,
+        path = "plugins/newsdownloader.koplugin",
+        download_dir = tmp_dir .. "/",
+        feed_config_path = tmp_dir .. "/feed_config.lua",
+      })
+      inst.initialized = true
+      inst.settings =
+        require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+      inst.settings:save(NewsDownloader.config_key_custom_dl_dir, tmp_dir .. "/")
+      stub(NewsDownloader, "getSettings").returns(inst.settings)
+
+      local NetworkMgr = require("ui/network/manager")
+      local time = require("ui/time")
+      local orig_online = NetworkMgr.isOnline
+      local orig_monotonic = time.monotonic
+      local orig_since = time.since
+      local fake_now = 0
+      time.monotonic = function()
+        return fake_now
+      end
+      time.since = function(t)
+        return fake_now - t
+      end
+      local is_online = true
+      local online_call_count = 0
+      NetworkMgr.isOnline = function()
+        online_call_count = online_call_count + 1
+        return is_online
+      end
+
+      local captured_job = nil
+      local orig_insert = BackgroundJobs.insertKeyed
+      BackgroundJobs.insertKeyed = function(job)
+        captured_job = job
+        return true
+      end
+
+      local orig_process = NewsDownloader.processFeedSource
+      local processed_urls = {}
+      NewsDownloader.processFeedSource = function(self_p, url)
+        table.insert(processed_urls, url)
+      end
+
+      finally(function()
+        NetworkMgr.isOnline = orig_online
+        time.monotonic = orig_monotonic
+        time.since = orig_since
+        BackgroundJobs.insertKeyed = orig_insert
+        NewsDownloader.processFeedSource = orig_process
+        NewsDownloader.getSettings:revert()
+        require("libs/libkoreader-lfs").rmdir(tmp_dir)
+      end)
+
+      local test_config = {
+        {
+          [1] = "https://example.com/feed1.xml",
+          limit = 2,
+        },
+        {
+          [1] = "https://example.com/feed2.xml",
+          limit = 3,
+        },
+      }
+      inst:saveConfig(test_config)
+
+      -- 1. Does nothing when auto_sync is false/nil
+      inst.settings:delete("auto_sync")
+      fake_now = fake_now + time.s(61)
+      NewsDownloader.onIdle()
+      assert.is_nil(captured_job)
+
+      -- 2. Does nothing when network is offline
+      inst.settings:save("auto_sync", true)
+      is_online = false
+      fake_now = fake_now + time.s(61)
+      NewsDownloader.onIdle()
+      assert.is_nil(captured_job)
+
+      -- 3. Enqueues oldest due feed when online
+      is_online = true
+      fake_now = fake_now + time.s(61)
+      online_call_count = 0
+      local now = os.time()
+      local times = inst.settings:readTableRef("feed_last_sync_times")
+      times["https://example.com/feed1.xml"] = now - 7200 -- 2 hours ago (due)
+      times["https://example.com/feed2.xml"] = now - 1800 -- 30 mins ago (not due)
+      inst.settings:flush()
+
+      NewsDownloader.onIdle()
+      assert.are.equal(1, online_call_count)
+      assert.is_not_nil(captured_job)
+      assert.are.equal("fork", captured_job.executable)
+
+      -- Verify throttle suppresses duplicate runs within 60s
+      local saved_job = captured_job
+      captured_job = nil
+      NewsDownloader.onIdle()
+      assert.are.equal(1, online_call_count)
+      assert.is_nil(captured_job)
+      captured_job = saved_job
+
+      -- Verify it selected feed1 (the due feed)
+      local bg_res = captured_job.action()
+      assert.is_true(bg_res.ok)
+      assert.are.equal(1, #processed_urls)
+      assert.are.equal("https://example.com/feed1.xml", processed_urls[1])
+
+      -- Callback updates feed1 timestamp for both success and error
+      captured_job.callback({ result = bg_res })
+      assert.is_true(times["https://example.com/feed1.xml"] >= now)
+
+      -- 4. When all feeds are recent (<3600s), onIdle enqueues nothing, but checks online after 60s
+      fake_now = fake_now + time.s(61)
+      captured_job = nil
+      times["https://example.com/feed1.xml"] = os.time() - 500
+      times["https://example.com/feed2.xml"] = os.time() - 500
+      NewsDownloader.onIdle()
+      assert.are.equal(2, online_call_count)
+      assert.is_nil(captured_job)
+    end
+  )
+
+  it(
+    "verifies standing idle job registration in BackgroundJobs",
+    function()
+      local PluginShare = require("pluginshare")
+      local call_count = 0
+      local orig_onIdle = NewsDownloader.onIdle
+      NewsDownloader.onIdle = function()
+        call_count = call_count + 1
+      end
+      finally(function()
+        NewsDownloader.onIdle = orig_onIdle
+      end)
+
+      local found_count = 0
+      for _, job in ipairs(PluginShare.backgroundJobs) do
+        if job.when == "idle" and job.repeated == true then
+          found_count = found_count + 1
+          job.executable()
+        end
+      end
+      assert.is_true(found_count > 0)
+      assert.are.equal(1, call_count)
     end
   )
 end)

@@ -1,14 +1,10 @@
 local Version = require("version")
-local ffiutil = require("ffi/util")
-local gettext = require("gettext")
 local http = require("socket.http")
-local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
 local ltn12 = require("ltn12")
 local socket = require("socket")
 local socket_url = require("socket.url")
 local socketutil = require("socketutil")
-local T = ffiutil.template
 
 local EpubDownloadBackend = {
   -- Can be set so HTTP requests will be done under Trapper and
@@ -358,19 +354,13 @@ function EpubDownloadBackend:createEpub(
   html,
   url,
   include_images,
-  message,
   filter_enable,
   filter_element
 )
   logger.dbg("EpubDownloadBackend:createEpub(", epub_path, ")")
-  -- Use Trapper to display progress and ask questions through the UI.
-  -- We need to have been Trapper.wrap()'ed for UI to be used, otherwise
-  -- Trapper:info() and Trapper:confirm() will just use logger.
-  local UI = require("ui/trapper")
   -- We may need to build absolute urls for non-absolute links and images urls
   local base_url = socket_url.parse(url)
 
-  local cancelled = false
   local page_htmltitle = html:match([[<title[^>]*>([%s%S]-)</title>]])
   if page_htmltitle then
     page_htmltitle = page_htmltitle:gsub("%s+", " "):match("^%s*(.-)%s*$")
@@ -494,7 +484,6 @@ function EpubDownloadBackend:createEpub(
     -- the images he chose to not get.
   end
 
-  UI:info(T(gettext("%1\n\nBuilding EPUB…"), message))
   -- Open the zip file (with .tmp for now, as crengine may still
   -- have a handle to the final epub_path, and we don't want to
   -- delete a good one if we fail/cancel later)
@@ -686,25 +675,7 @@ function EpubDownloadBackend:createEpub(
   -- ----------------------------------------------------------------
   -- OEBPS/images/*
   if include_images then
-    local nb_images = #images
     for inum, img in ipairs(images) do
-      -- Process can be interrupted at this point between each image download
-      -- by tapping while the InfoMessage is displayed
-      -- We use the fast_refresh option from image #2 for a quicker download
-      local go_on = UI:info(
-        T(
-          gettext("%1\n\nRetrieving image %2 / %3 …"),
-          message,
-          inum,
-          nb_images
-        ),
-        inum >= 2
-      )
-      if not go_on then
-        logger.dbg("cancelled")
-        cancelled = true
-        break
-      end
       local src = img.src
       if use_img_2x and img.src2x then
         src = img.src2x
@@ -714,10 +685,6 @@ function EpubDownloadBackend:createEpub(
       -- success, content = getUrlContent(src..".unexistant") -- to simulate failure
       if success then
         logger.dbg("success, size:", #content)
-      else
-        logger.dbg("failed fetching:", src)
-      end
-      if success then
         -- Images do not need to be compressed, so spare some cpu cycles
         local no_compression = true
         if img.mimetype == "image/svg+xml" then -- except for SVG images (which are XML text)
@@ -726,47 +693,16 @@ function EpubDownloadBackend:createEpub(
         epub:add("OEBPS/" .. img.imgpath, content, no_compression)
         logger.dbg("Adding OEBPS/" .. img.imgpath)
       else
-        go_on = UI:confirm(
-          T(gettext("Downloading image %1 failed. Continue anyway?"), inum),
-          gettext("Stop"),
-          gettext("Continue")
+        logger.warn(
+          "NewsDownloader: Downloading image "
+            .. inum
+            .. " failed. Continuing anyway."
         )
-        if not go_on then
-          cancelled = true
-          break
-        end
       end
     end
   end
 
-  -- Done with adding files
-  if cancelled then
-    if
-      UI:confirm(
-        gettext(
-          "Download did not complete.\nDo you want to create an EPUB with the already downloaded images?"
-        ),
-        gettext("Don't create"),
-        gettext("Create")
-      )
-    then
-      cancelled = false
-    end
-  end
-  if cancelled then
-    UI:info(gettext("Canceled. Cleaning up…"))
-  else
-    UI:info(T(gettext("%1\n\nPacking EPUB…"), message))
-  end
   epub:close()
-
-  if cancelled then
-    -- Build was cancelled, remove half created .epub
-    if lfs.attributes(epub_path_tmp, "mode") == "file" then
-      os.remove(epub_path_tmp)
-    end
-    return false
-  end
 
   -- Finally move the .tmp to the final file
   os.rename(epub_path_tmp, epub_path)
