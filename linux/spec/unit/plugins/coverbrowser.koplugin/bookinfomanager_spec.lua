@@ -402,7 +402,7 @@ describe("Coverbrowser BookInfoManager module", function()
     )
 
     it(
-      "should initialize cre cache with storage size factor capped at 10 during extractBookInfo",
+      "should initialize cre cache with storage size factor capped at 5 during extractBookInfo",
       function()
         local cre_lib = require("libs/libkoreader-cre")
         local orig_initCache = cre_lib.initCache
@@ -432,7 +432,7 @@ describe("Coverbrowser BookInfoManager module", function()
         local sample_file = "spec/front/unit/data/leaves.epub"
 
         BookInfoManager:extractBookInfo(sample_file, nil)
-        assert.are.equal(10, captured_factor)
+        assert.are.equal(5, captured_factor)
       end
     )
 
