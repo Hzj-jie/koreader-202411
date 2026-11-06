@@ -39,7 +39,7 @@ end
 
 function AutoTurn:_action()
   if
-    PluginShare.DeviceIdling == true
+    UIManager.DeviceIdling == true
     or not self:_enabled()
     or (UIManager:getTopmostVisibleWidget() or {}).name ~= "ReaderUI"
   then
