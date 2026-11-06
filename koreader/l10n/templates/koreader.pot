@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 16:24-0800\n"
+"POT-Creation-Date: 2026-11-05 16:36-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12976,24 +12976,6 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-
 msgid "URL"
 msgstr ""
 
@@ -13012,6 +12994,12 @@ msgstr ""
 msgid "Delete feed"
 msgstr ""
 
+msgid "Downloading news finished with errors."
+msgstr ""
+
+msgid "Downloading news finished."
+msgstr ""
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13025,6 +13013,9 @@ msgid "Edit news feeds"
 msgstr ""
 
 msgid "Set download folder"
+msgstr ""
+
+msgid "Automatically sync when idle"
 msgstr ""
 
 msgid "Never download images"
@@ -13058,27 +13049,10 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
+msgid "Sync is already in progress."
 msgstr ""
 
-msgid "Downloading news finished."
-msgstr ""
-
-msgid "Downloading news finished with errors."
-msgstr ""
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
-msgstr ""
-
-msgid "Go to download folder?"
-msgstr ""
-
-msgid "Go to downloads"
+msgid "Synchronizing news feeds…"
 msgstr ""
 
 msgid "(Reason: Failed to download content)"
@@ -13088,17 +13062,6 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
 msgstr ""
 
 msgid ""
@@ -14085,9 +14048,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
