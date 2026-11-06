@@ -98,15 +98,15 @@ end
 
 -- crengine various in-memory caches max-sizes are rather small
 -- (2.5 / 4.5 / 4.5 / 1 MB), and we can avoid some bugs if we
--- increase them. Let's multiply them by up to 10 (each cache would
+-- increase them. Let's multiply them by up to 5 (each cache would
 -- grow only when needed, depending on book characteristics).
 -- People who would get out of memory crashes with big books on
 -- older devices can decrease that with setting:
---   "cre_storage_size_factor"=1  (or 2, or 5)
+--   "cre_storage_size_factor"=1  (or 2)
 -- TODO: Remove cre_storage_size_factor configuration in the long run
 -- (note: libkoreader-cre still prints a warning suggesting increasing it).
 function CreDocument.getStorageSizeFactor()
-  return math.min(G_reader_settings:read("cre_storage_size_factor") or 10, 10)
+  return math.min(G_reader_settings:read("cre_storage_size_factor") or 5, 5)
 end
 
 function CreDocument:cacheInit()
