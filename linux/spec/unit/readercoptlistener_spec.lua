@@ -286,5 +286,39 @@ describe("ReaderCoptListener module", function()
         listener:updatePageInfoOverride(5)
       end
     )
+
+    it(
+      "should configure Alt status bar font size with CRE_HEADER_DEFAULT_SIZE default",
+      function()
+        local listener = createMockListener()
+        local menu = listener:getAltStatusBarMenu()
+
+        local font_size_item = nil
+        for _, item in ipairs(menu.sub_item_table) do
+          if item.text_func and not item.sub_item_table then
+            local text = item.text_func()
+            if text:find(require("gettext")("Font size:")) then
+              font_size_item = item
+              break
+            end
+          end
+        end
+
+        assert.is_not_nil(font_size_item)
+        assert.are.equal(
+          require("ffi/util").template(require("gettext")("Font size: %1"), 20),
+          font_size_item.text_func()
+        )
+
+        local shown_widget = nil
+        listener.showWidget = function(self_l, widget)
+          shown_widget = widget
+        end
+
+        font_size_item.callback()
+        assert.is_not_nil(shown_widget)
+        assert.are.equal(20, shown_widget.default_value)
+      end
+    )
   end)
 end)

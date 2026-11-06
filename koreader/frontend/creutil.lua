@@ -1,11 +1,12 @@
 local Device = require("device")
 
-local CreUtil = {}
+local CreUtil = {
+  CRE_HEADER_DEFAULT_SIZE = 20,
+}
 
 function CreUtil.font_size(value)
-  -- CRE does not respect the DPI setting in koreader, the font size needs to be
-  -- adjusted to match the real size.
-  return value * Device.screen:getDPI() / 160
+  -- Scale like the document font (Screen:scaleBySize), so header size N matches document size N.
+  return Device.screen:scaleBySize(value or CreUtil.CRE_HEADER_DEFAULT_SIZE)
 end
 
 return CreUtil
