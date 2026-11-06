@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-05 18:26-0800\n"
 "PO-Revision-Date: 2021-02-16 16:09+0000\n"
 "Last-Translator: Beka Arabuli <arabulibeqa@gmail.com>\n"
 "Language-Team: Georgian <https://hosted.weblate.org/projects/koreader/"
@@ -4935,6 +4935,9 @@ msgstr ""
 msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
+msgstr ""
+
+msgid "Last modified: %1"
 msgstr ""
 
 msgid "Jan"
@@ -10369,9 +10372,6 @@ msgid_plural "File size: %1 bytes"
 msgstr[0] "სინათლის ინტენსივობა - %1."
 msgstr[1] "სინათლის ინტენსივობა - %1."
 
-msgid "Last modified: %1"
-msgstr ""
-
 #, fuzzy
 msgid "Choose this folder?"
 msgstr ""
@@ -13495,24 +13495,6 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-
 #, fuzzy
 msgid "URL"
 msgstr "RTL"
@@ -13535,6 +13517,14 @@ msgstr ""
 msgid "Delete feed"
 msgstr "წაშლა"
 
+#, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "ფაილის ჩამოტვირთვა"
+
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "ფაილის ჩამოტვირთვა"
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -13550,6 +13540,9 @@ msgstr ""
 #, fuzzy
 msgid "Set download folder"
 msgstr "აირჩიეთ დირექტორია ჩამოსატვირთად"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -13584,30 +13577,10 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
+msgid "Sync is already in progress."
 msgstr ""
 
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "ფაილის ჩამოტვირთვა"
-
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "ფაილის ჩამოტვირთვა"
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
-msgstr ""
-
-#, fuzzy
-msgid "Go to download folder?"
-msgstr "აირჩიეთ დირექტორია ჩამოსატვირთად"
-
-msgid "Go to downloads"
+msgid "Synchronizing news feeds…"
 msgstr ""
 
 #, fuzzy
@@ -13618,17 +13591,6 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
 msgstr ""
 
 msgid ""
@@ -14649,9 +14611,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -15754,6 +15713,10 @@ msgstr ""
 #, fuzzy
 msgid "annotations"
 msgstr "ბრუნვა"
+
+#, fuzzy
+#~ msgid "Go to download folder?"
+#~ msgstr "აირჩიეთ დირექტორია ჩამოსატვირთად"
 
 #, fuzzy
 #~ msgid "Document settings"

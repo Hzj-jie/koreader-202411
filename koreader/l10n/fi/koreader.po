@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-05 18:26-0800\n"
 "PO-Revision-Date: 2024-08-30 10:09+0000\n"
 "Last-Translator: Mikko Peltonen <mikkopee9@gmail.com>\n"
 "Language-Team: Finnish <https://hosted.weblate.org/projects/koreader/"
@@ -5412,6 +5412,9 @@ msgstr ""
 "Tämän tiedoston tunnistaminen tai jäsentäminen epäonnistui: asiakirjaa ei "
 "tueta tai se on virheellinen.\n"
 "KOReader poistuu nyt."
+
+msgid "Last modified: %1"
+msgstr ""
 
 msgid "Jan"
 msgstr "Tammi"
@@ -10867,9 +10870,6 @@ msgid_plural "File size: %1 bytes"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Last modified: %1"
-msgstr ""
-
 #, fuzzy
 msgid "Choose this folder?"
 msgstr ""
@@ -13969,27 +13969,6 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-"%1\n"
-"\n"
-"Kootaan EPUBia…"
-
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-
 msgid "URL"
 msgstr "URL"
 
@@ -14010,6 +13989,12 @@ msgstr ""
 msgid "Delete feed"
 msgstr "Poista"
 
+msgid "Downloading news finished with errors."
+msgstr ""
+
+msgid "Downloading news finished."
+msgstr ""
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -14023,6 +14008,9 @@ msgid "Edit news feeds"
 msgstr ""
 
 msgid "Set download folder"
+msgstr ""
+
+msgid "Automatically sync when idle"
 msgstr ""
 
 msgid "Never download images"
@@ -14056,30 +14044,11 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
+msgid "Sync is already in progress."
 msgstr ""
 
-msgid "Downloading news finished."
+msgid "Synchronizing news feeds…"
 msgstr ""
-
-msgid "Downloading news finished with errors."
-msgstr ""
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
-msgstr ""
-
-#, fuzzy
-msgid "Go to download folder?"
-msgstr "Tallenna"
-
-#, fuzzy
-msgid "Go to downloads"
-msgstr "Tallenna"
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -14089,17 +14058,6 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
 msgstr ""
 
 msgid ""
@@ -15124,9 +15082,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -16224,6 +16179,23 @@ msgstr ""
 #, fuzzy
 msgid "annotations"
 msgstr "Kierto"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Building EPUB…"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Kootaan EPUBia…"
+
+#, fuzzy
+#~ msgid "Go to download folder?"
+#~ msgstr "Tallenna"
+
+#, fuzzy
+#~ msgid "Go to downloads"
+#~ msgstr "Tallenna"
 
 #~ msgid "About alt status bar"
 #~ msgstr "Tietoja vaihtoehtoisesta tilapalkista"

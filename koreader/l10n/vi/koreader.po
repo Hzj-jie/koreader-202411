@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-05 18:26-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -5362,6 +5362,10 @@ msgstr ""
 "Không thể nhận dạng hoặc phân tích cú pháp tệp này: tài liệu không được hỗ "
 "trợ hoặc không hợp lệ.\n"
 "KOReader sẽ thoát ngay bây giờ."
+
+#, fuzzy
+msgid "Last modified: %1"
+msgstr "ngày sửa đổi"
 
 #, fuzzy
 msgid "Jan"
@@ -11308,10 +11312,6 @@ msgid_plural "File size: %1 bytes"
 msgstr[0] "Kích cỡ phông chữ: %1"
 
 #, fuzzy
-msgid "Last modified: %1"
-msgstr "ngày sửa đổi"
-
-#, fuzzy
 msgid "Choose this folder?"
 msgstr ""
 "Chọn thư mục này?\n"
@@ -14626,25 +14626,6 @@ msgstr "Thư mục %1 đã tồn tại. Bạn có muốn ghi đè lên nó khôn
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-
-#, fuzzy
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr "Đang lấy tập tin…"
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-
 #, fuzzy
 msgid "URL"
 msgstr "URL"
@@ -14668,6 +14649,14 @@ msgstr ""
 msgid "Delete feed"
 msgstr "Đã xóa %1"
 
+#, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "Tải tập tin"
+
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "Tải tập tin"
+
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -14683,6 +14672,9 @@ msgstr ""
 #, fuzzy
 msgid "Set download folder"
 msgstr "Chọn thư mục tải về"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -14719,32 +14711,11 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
+msgid "Sync is already in progress."
 msgstr ""
 
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "Tải tập tin"
-
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "Tải tập tin"
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
+msgid "Synchronizing news feeds…"
 msgstr ""
-
-#, fuzzy
-msgid "Go to download folder?"
-msgstr "Chọn thư mục tải về"
-
-#, fuzzy
-msgid "Go to downloads"
-msgstr "Tải về"
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -14754,17 +14725,6 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
-msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
 msgstr ""
 
 msgid ""
@@ -15845,9 +15805,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -17057,6 +17014,21 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "chú giải"
+
+#, fuzzy
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Retrieving image %2 / %3 …"
+#~ msgstr "Đang lấy tập tin…"
+
+#, fuzzy
+#~ msgid "Go to download folder?"
+#~ msgstr "Chọn thư mục tải về"
+
+#, fuzzy
+#~ msgid "Go to downloads"
+#~ msgstr "Tải về"
 
 #~ msgid "Autoshutdown timeout"
 #~ msgstr "Tự động tắt nguồn sau"
