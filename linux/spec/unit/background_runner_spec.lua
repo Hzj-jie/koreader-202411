@@ -1480,7 +1480,7 @@ describe("BackgroundRunner widget tests", function()
   )
 
   it(
-    "respects configurable autodim_starttime_minutes and falls back to 5 minutes when nil or <= 0",
+    "respects configurable autodim_starttime_minutes and falls back to 5 minutes when unset",
     function()
       local BackgroundRunner = getBackgroundRunner()
       local UIManager = require("ui/uimanager")
@@ -1516,18 +1516,8 @@ describe("BackgroundRunner widget tests", function()
       BackgroundRunner:_execute()
       assert.is_true(UIManager.DeviceIdling)
 
-      -- 2. Fallback: nil falls back to 5 minutes (300s)
+      -- 2. Fallback: unset falls back to default 5 minutes (300s)
       G_reader_settings:delete("autodim_starttime_minutes")
-      UIManager.DeviceIdling = false
-      idle_seconds = 299
-      BackgroundRunner:_execute()
-      assert.is_false(UIManager.DeviceIdling)
-      idle_seconds = 301
-      BackgroundRunner:_execute()
-      assert.is_true(UIManager.DeviceIdling)
-
-      -- 3. Fallback: -1 (disabled) falls back to 5 minutes (300s)
-      G_reader_settings:save("autodim_starttime_minutes", -1)
       UIManager.DeviceIdling = false
       idle_seconds = 299
       BackgroundRunner:_execute()

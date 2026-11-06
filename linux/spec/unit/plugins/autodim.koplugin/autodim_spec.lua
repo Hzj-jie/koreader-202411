@@ -168,7 +168,7 @@ describe("AutoDim widget tests", function()
         UIManager.broadcastEvent = orig_broadcast
       end)
 
-      -- 1. When not idle (PluginShare.DeviceIdling is false)
+      -- 1. When not idle (UIManager.DeviceIdling is false)
       UIManager.DeviceIdling = false
       UIManager:updateLastUserActionTime()
       assert.are.equal(0, #events)
@@ -193,11 +193,11 @@ describe("AutoDim widget tests", function()
       assert.is_table(menu_items.autodim)
       local item = menu_items.autodim
 
-      AutoDim.autodim_starttime_m = 5
+      G_named_settings.set.autodim_starttime_minutes(5)
       assert.is_true(item.checked_func())
       assert.is_true(item.text_func():find("5") ~= nil)
 
-      AutoDim.autodim_starttime_m = -1
+      G_named_settings.set.autodim_starttime_minutes(nil)
       assert.is_false(item.checked_func())
       assert.is_true(item.text_func():find("disabled") ~= nil)
     end)
@@ -228,13 +228,14 @@ describe("AutoDim widget tests", function()
 
         -- SpinWidget save callback
         shown_dialog.callback({ value = 3.5 })
-        assert.are.equal(3.5, AutoDim.autodim_starttime_m)
+        assert.are.equal(3.5, G_named_settings.autodim_starttime_minutes())
+        assert.is_true(G_named_settings.has.autodim_starttime_minutes())
         assert.is_true(menu_updated)
 
         -- SpinWidget extra_callback (disable)
         menu_updated = false
         shown_dialog.extra_callback()
-        assert.are.equal(-1, AutoDim.autodim_starttime_m)
+        assert.is_false(G_named_settings.has.autodim_starttime_minutes())
         assert.is_true(menu_updated)
 
         UIManager.show = orig_show

@@ -147,9 +147,9 @@ describe("AutoDim widget tests", function()
   end)
 
   it(
-    "onDeviceIdling does nothing when AutoDim is disabled (autodim_starttime_m = -1)",
+    "onDeviceIdling does nothing when AutoDim is disabled",
     function()
-      AutoDim.autodim_starttime_m = -1
+      G_named_settings.set.autodim_starttime_minutes(nil)
       AutoDim:onDeviceIdling()
       assert.is_nil(AutoDim.trap_widget)
     end

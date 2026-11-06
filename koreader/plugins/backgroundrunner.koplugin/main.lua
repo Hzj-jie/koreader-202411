@@ -226,15 +226,13 @@ function BackgroundRunner:_execute()
   end
   self:_poll()
 
-  if not UIManager.DeviceIdling then
-    local idle_m = G_named_settings.autodim_starttime_minutes()
-    if idle_m <= 0 then
-      idle_m = G_named_settings.default.autodim_starttime_minutes()
-    end
-    if UIManager:timeSinceLastUserAction() >= time.s(idle_m * 60) then
-      UIManager.DeviceIdling = true
-      UIManager:broadcastEvent("DeviceIdling")
-    end
+  if
+    not UIManager.DeviceIdling
+    and UIManager:timeSinceLastUserAction()
+      >= time.s(G_named_settings.autodim_starttime_minutes() * 60)
+  then
+    UIManager.DeviceIdling = true
+    UIManager:broadcastEvent("DeviceIdling")
   end
 
   -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
