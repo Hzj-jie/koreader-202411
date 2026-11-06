@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:26-0800\n"
+"POT-Creation-Date: 2026-11-05 18:16-0800\n"
 "PO-Revision-Date: 2023-11-21 21:04+0000\n"
 "Last-Translator: Laurynas <laurynastautvydas11@gmail.com>\n"
 "Language-Team: Lithuanian <https://hosted.weblate.org/projects/koreader/"
@@ -5218,10 +5218,6 @@ msgid ""
 "Failed recognizing or parsing this file: unsupported or invalid document.\n"
 "KOReader will exit now."
 msgstr ""
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "keitimo data"
 
 #, fuzzy
 msgid "Jan"
@@ -10879,6 +10875,10 @@ msgstr[2] "Šrifto dydis: %1"
 msgstr[3] "Šrifto dydis: %1"
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "keitimo data"
+
+#, fuzzy
 msgid "Choose this folder?"
 msgstr ""
 "Pasirinkti šį aplanką?\n"
@@ -14055,6 +14055,25 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
+msgid ""
+"%1\n"
+"\n"
+"Building EPUB…"
+msgstr ""
+
+#, fuzzy
+msgid ""
+"%1\n"
+"\n"
+"Retrieving image %2 / %3 …"
+msgstr "Gaunami failai…"
+
+msgid ""
+"%1\n"
+"\n"
+"Packing EPUB…"
+msgstr ""
+
 #, fuzzy
 msgid "URL"
 msgstr "Iš dešinės į kairę"
@@ -14077,14 +14096,6 @@ msgstr ""
 msgid "Delete feed"
 msgstr "Ištrinti"
 
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "Atsisiųsti failą"
-
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "Atsisiųsti failą"
-
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -14103,9 +14114,6 @@ msgstr ""
 "Pasirinkti šį aplanką?\n"
 "\n"
 "%1"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -14142,11 +14150,35 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid "Sync is already in progress."
+msgid ""
+"Processing %1/%2:\n"
+"%3"
 msgstr ""
 
-msgid "Synchronizing news feeds…"
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "Atsisiųsti failą"
+
+#, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "Atsisiųsti failą"
+
+msgid ""
+"Could not process some feeds.\n"
+"Unsupported format in: %1. Please\n"
+"review your feed configuration file."
 msgstr ""
+
+#, fuzzy
+msgid "Go to download folder?"
+msgstr ""
+"Pasirinkti šį aplanką?\n"
+"\n"
+"%1"
+
+#, fuzzy
+msgid "Go to downloads"
+msgstr "Atsisiųsti"
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -14159,6 +14191,17 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
+msgstr ""
+
+msgid ""
+"%1\n"
+"\n"
+"Fetching article %2/%3:"
+msgstr ""
+
+msgid ""
+"%1\n"
+"%2"
 msgstr ""
 
 msgid ""
@@ -15208,6 +15251,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -16317,24 +16363,6 @@ msgstr ""
 #, fuzzy
 msgid "annotations"
 msgstr "Pasukimas"
-
-#, fuzzy
-#~ msgid ""
-#~ "%1\n"
-#~ "\n"
-#~ "Retrieving image %2 / %3 …"
-#~ msgstr "Gaunami failai…"
-
-#, fuzzy
-#~ msgid "Go to download folder?"
-#~ msgstr ""
-#~ "Pasirinkti šį aplanką?\n"
-#~ "\n"
-#~ "%1"
-
-#, fuzzy
-#~ msgid "Go to downloads"
-#~ msgstr "Atsisiųsti"
 
 #, fuzzy
 #~ msgid "About alt status bar"
