@@ -21,8 +21,6 @@ local T = require("ffi/util").template
 -- easier.
 local AUTODIM_DURATION_S = 1
 local AUTODIM_END_FL = 1
--- Kindle auto-shuts off in roughly 10 minutes, cut it into half.
-local DEFAULT_AUTODIM_STARTTIME_M = 5
 -- Avoid caching the common _meta.lua file name as a module.
 local HELP_TEXT = require("plugins/autodim.koplugin/_meta").description
 
@@ -31,8 +29,7 @@ local AutoDim = WidgetContainer:extend({
 })
 
 function AutoDim:init()
-  self.autodim_starttime_m = G_reader_settings:read("autodim_starttime_minutes")
-    or -1
+  self.autodim_starttime_m = G_named_settings.autodim_starttime_minutes()
 
   self.ui.menu:registerToMainMenu(self)
 end
@@ -66,8 +63,8 @@ function AutoDim:addToMainMenu(menu_items)
           "Start the dimmer after the designated period of inactivity."
         ),
         value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m
-          or DEFAULT_AUTODIM_STARTTIME_M,
-        default_value = DEFAULT_AUTODIM_STARTTIME_M,
+          or G_named_settings.default.autodim_starttime_minutes(),
+        default_value = G_named_settings.default.autodim_starttime_minutes(),
         value_min = 0.5,
         -- kindle auto-shuts off in roughly 10 minutes.
         value_max = Device:isKindle() and 8 or 60,
@@ -81,13 +78,13 @@ function AutoDim:addToMainMenu(menu_items)
             return
           end
           self.autodim_starttime_m = spin.value
-          G_reader_settings:save("autodim_starttime_minutes", spin.value, -1)
+          G_named_settings.set.autodim_starttime_minutes(spin.value)
           menu:updateItems()
         end,
         extra_text = gettext("Disable"),
         extra_callback = function()
           self.autodim_starttime_m = -1
-          G_reader_settings:save("autodim_starttime_minutes", -1, -1)
+          G_named_settings.set.autodim_starttime_minutes(-1)
           menu:updateItems()
         end,
       })

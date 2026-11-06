@@ -170,15 +170,15 @@ describe("AutoDim widget tests", function()
         UIManager.broadcastEvent = orig_broadcast
       end)
 
-      -- 1. When not idle (PluginShare.DeviceIdling is false)
-      PluginShare.DeviceIdling = false
+      -- 1. When not idle (UIManager.DeviceIdling is false)
+      UIManager.DeviceIdling = false
       UIManager:updateLastUserActionTime()
       assert.are.equal(0, #events)
 
-      -- 2. When idle (PluginShare.DeviceIdling is true)
-      PluginShare.DeviceIdling = true
+      -- 2. When idle (UIManager.DeviceIdling is true)
+      UIManager.DeviceIdling = true
       UIManager:updateLastUserActionTime()
-      assert.is_false(PluginShare.DeviceIdling)
+      assert.is_false(UIManager.DeviceIdling)
       assert.are.equal(1, #events)
       assert.are.equal("DeviceBusy", events[1])
 
@@ -191,17 +191,16 @@ describe("AutoDim widget tests", function()
   it(
     "_rampTask leaves trap_widget shown on user action until tap dismiss",
     function()
-      local PluginShare = require("pluginshare")
       Device:getPowerDevice():setIntensity(10)
 
       MockTime:increase(301)
       UIManager:handleInput()
       assert.is_not_nil(AutoDim.trap_widget)
-      assert.is_true(PluginShare.DeviceIdling)
+      assert.is_true(UIManager.DeviceIdling)
 
       -- Touch-down bumps last user action time before tap dismiss
       UIManager:updateLastUserActionTime()
-      assert.is_false(PluginShare.DeviceIdling)
+      assert.is_false(UIManager.DeviceIdling)
 
       local fl_after_busy = Device:getPowerDevice():frontlightIntensity()
       MockTime:increase(1)

@@ -7,7 +7,7 @@ then
 end
 
 local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
-local PluginShare = require("pluginshare")
+local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
 local logger = require("logger")
 local T = require("ffi/util").template
@@ -37,7 +37,7 @@ function AutoFrontlightPlugin:new(o)
 end
 
 function AutoFrontlightPlugin:_action()
-  if PluginShare.DeviceIdling == true then
+  if UIManager.DeviceIdling == true then
     return
   end
   local current_level = Device:ambientBrightnessLevel()
