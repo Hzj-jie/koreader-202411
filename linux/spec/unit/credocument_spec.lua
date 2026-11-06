@@ -443,4 +443,47 @@ describe("CreDocument unit tests", function()
       end
     )
   end)
+
+  describe("setupDefaultView", function()
+    it(
+      "should set crengine.page.header.font.size using CreUtil.font_size unconditionally",
+      function()
+        local set_props = {}
+        local mock_cre_doc = setmetatable({
+          _document = {
+            readDefaults = function() end,
+            adjustFontSizes = function() end,
+            setIntProperty = function(self_d, key, val)
+              set_props[key] = val
+            end,
+            setStringProperty = function() end,
+          },
+          setAdjustedFallbackFontSizes = function() end,
+          setMonospaceFontScaling = function() end,
+          setBackgroundColor = function() end,
+          setBackgroundImage = function() end,
+        }, { __index = CreDocument })
+
+        -- 1. When setting is nil, sets default font size unconditionally
+        G_reader_settings:delete("cre_header_status_font_size")
+        mock_cre_doc:setupDefaultView()
+        local CreUtil = require("creutil")
+        assert.are.equal(
+          CreUtil.font_size(20),
+          set_props["crengine.page.header.font.size"]
+        )
+
+        -- 2. When setting is configured (e.g. 16), sets custom font size
+        G_reader_settings:save("cre_header_status_font_size", 16)
+        finally(function()
+          G_reader_settings:delete("cre_header_status_font_size")
+        end)
+        mock_cre_doc:setupDefaultView()
+        assert.are.equal(
+          CreUtil.font_size(16),
+          set_props["crengine.page.header.font.size"]
+        )
+      end
+    )
+  end)
 end)
