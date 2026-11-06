@@ -783,7 +783,9 @@ describe("NewsDownloader main plugin module", function()
         return fake_now - t
       end
       local is_online = true
+      local online_call_count = 0
       NetworkMgr.isOnline = function()
+        online_call_count = online_call_count + 1
         return is_online
       end
 
@@ -838,6 +840,7 @@ describe("NewsDownloader main plugin module", function()
       -- 3. Enqueues oldest due feed when online
       is_online = true
       fake_now = fake_now + time.s(61)
+      online_call_count = 0
       local now = os.time()
       local times = inst.settings:readTableRef("feed_last_sync_times")
       times["https://example.com/feed1.xml"] = now - 7200 -- 2 hours ago (due)
@@ -845,6 +848,7 @@ describe("NewsDownloader main plugin module", function()
       inst.settings:flush()
 
       NewsDownloader.onIdle()
+      assert.are.equal(1, online_call_count)
       assert.is_not_nil(captured_job)
       assert.are.equal("fork", captured_job.executable)
 
@@ -852,6 +856,7 @@ describe("NewsDownloader main plugin module", function()
       local saved_job = captured_job
       captured_job = nil
       NewsDownloader.onIdle()
+      assert.are.equal(1, online_call_count)
       assert.is_nil(captured_job)
       captured_job = saved_job
 
@@ -865,12 +870,13 @@ describe("NewsDownloader main plugin module", function()
       captured_job.callback({ result = bg_res })
       assert.is_true(times["https://example.com/feed1.xml"] >= now)
 
-      -- 4. When all feeds are recent (<3600s), onIdle enqueues nothing
+      -- 4. When all feeds are recent (<3600s), onIdle enqueues nothing, but checks online after 60s
       fake_now = fake_now + time.s(61)
       captured_job = nil
       times["https://example.com/feed1.xml"] = os.time() - 500
       times["https://example.com/feed2.xml"] = os.time() - 500
       NewsDownloader.onIdle()
+      assert.are.equal(2, online_call_count)
       assert.is_nil(captured_job)
     end
   )
@@ -879,22 +885,24 @@ describe("NewsDownloader main plugin module", function()
     "verifies standing idle job registration in BackgroundJobs",
     function()
       local PluginShare = require("pluginshare")
-      local found_job = nil
-      for _, job in ipairs(PluginShare.backgroundJobs) do
-        if job.when == "idle" and job.repeated == true then
-          found_job = job
-          break
-        end
-      end
-      assert.is_not_nil(found_job)
-      local called = false
+      local call_count = 0
       local orig_onIdle = NewsDownloader.onIdle
       NewsDownloader.onIdle = function()
-        called = true
+        call_count = call_count + 1
       end
-      found_job.executable()
-      NewsDownloader.onIdle = orig_onIdle
-      assert.is_true(called)
+      finally(function()
+        NewsDownloader.onIdle = orig_onIdle
+      end)
+
+      local found_count = 0
+      for _, job in ipairs(PluginShare.backgroundJobs) do
+        if job.when == "idle" and job.repeated == true then
+          found_count = found_count + 1
+          job.executable()
+        end
+      end
+      assert.is_true(found_count > 0)
+      assert.are.equal(1, call_count)
     end
   )
 end)

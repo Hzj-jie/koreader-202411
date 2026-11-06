@@ -434,15 +434,15 @@ function NewsDownloader:processSingleFeedInBackground(item)
 end
 
 function NewsDownloader.onIdle()
-  if _last_idle_time and time.since(_last_idle_time) < time.s(60) then
-    return
-  end
-  _last_idle_time = time.monotonic()
-
   local settings = NewsDownloader.getSettings()
   if not settings:isTrue("auto_sync") then
     return
   end
+
+  if _last_idle_time and time.since(_last_idle_time) < time.s(60) then
+    return
+  end
+  _last_idle_time = time.monotonic()
 
   if not NetworkMgr:isOnline() then
     return
