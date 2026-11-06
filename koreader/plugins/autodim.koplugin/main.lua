@@ -29,8 +29,6 @@ local AutoDim = WidgetContainer:extend({
 })
 
 function AutoDim:init()
-  self.autodim_starttime_m = G_named_settings.autodim_starttime_minutes()
-
   self.ui.menu:registerToMainMenu(self)
 end
 
@@ -40,12 +38,12 @@ function AutoDim:addToMainMenu(menu_items)
       return gettext("Automatic dimmer")
         .. ": "
         .. (
-          self.autodim_starttime_m <= 0 and gettext("disabled")
+          not G_named_settings.has.autodim_starttime_minutes() and gettext("disabled")
           or T(
             gettext("after %1"),
             datetime.secondsToClockDuration(
               "letters",
-              self.autodim_starttime_m * 60,
+              G_named_settings.autodim_starttime_minutes() * 60,
               false,
               false,
               true
@@ -54,7 +52,7 @@ function AutoDim:addToMainMenu(menu_items)
         )
     end,
     checked_func = function()
-      return self.autodim_starttime_m > 0
+      return G_named_settings.has.autodim_starttime_minutes()
     end,
     callback = function(menu)
       local idle_dialog = SpinWidget:new({
@@ -62,8 +60,7 @@ function AutoDim:addToMainMenu(menu_items)
         info_text = gettext(
           "Start the dimmer after the designated period of inactivity."
         ),
-        value = self.autodim_starttime_m >= 0 and self.autodim_starttime_m
-          or G_named_settings.default.autodim_starttime_minutes(),
+        value = G_named_settings.autodim_starttime_minutes(),
         default_value = G_named_settings.default.autodim_starttime_minutes(),
         value_min = 0.5,
         -- kindle auto-shuts off in roughly 10 minutes.
@@ -77,14 +74,12 @@ function AutoDim:addToMainMenu(menu_items)
           if not spin then
             return
           end
-          self.autodim_starttime_m = spin.value
           G_named_settings.set.autodim_starttime_minutes(spin.value)
           menu:updateItems()
         end,
         extra_text = gettext("Disable"),
         extra_callback = function()
-          self.autodim_starttime_m = -1
-          G_named_settings.set.autodim_starttime_minutes(-1)
+          G_named_settings.set.autodim_starttime_minutes(nil)
           menu:updateItems()
         end,
       })
@@ -103,7 +98,7 @@ function AutoDim:_restoreFrontlight()
 end
 
 function AutoDim:onDeviceIdling()
-  if self.trap_widget or self.autodim_starttime_m <= 0 or Powerd:isFrontlightOff() then
+  if self.trap_widget or not G_named_settings.has.autodim_starttime_minutes() or Powerd:isFrontlightOff() then
     return
   end
 
