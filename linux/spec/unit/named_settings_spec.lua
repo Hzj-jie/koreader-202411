@@ -53,6 +53,7 @@ describe("named_settings", function()
       "show_bottom_menu",
       "avoid_flashing_ui",
       "BookShortcuts_directory_action",
+      "autodim_starttime_minutes",
     }
     for _, key in ipairs(keys) do
       G_reader_settings:delete(key)
@@ -250,6 +251,19 @@ describe("named_settings", function()
 
       G_reader_settings:save("show_bottom_menu", true)
       assert.is_true(named_settings.show_bottom_menu())
+    end)
+  end)
+
+  describe("autodim_starttime_minutes", function()
+    it("should handle autodim_starttime_minutes correctly", function()
+      assert.are.same(5, named_settings.default.autodim_starttime_minutes())
+      assert.are.same(-1, named_settings.autodim_starttime_minutes())
+
+      named_settings.set.autodim_starttime_minutes(10)
+      assert.are.same(10, named_settings.autodim_starttime_minutes())
+
+      named_settings.set.autodim_starttime_minutes(-1)
+      assert.are.same(-1, named_settings.autodim_starttime_minutes())
     end)
   end)
 end)

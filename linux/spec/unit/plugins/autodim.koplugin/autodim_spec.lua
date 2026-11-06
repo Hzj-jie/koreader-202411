@@ -78,7 +78,7 @@ describe("AutoDim widget tests", function()
       UIManager:close(AutoDim.trap_widget)
       AutoDim.trap_widget = nil
     end
-    PluginShare.DeviceIdling = false
+    UIManager.DeviceIdling = false
     AutoDim:onClose()
     MockTime:increase(2)
     UIManager:handleInput()
@@ -169,14 +169,14 @@ describe("AutoDim widget tests", function()
       end)
 
       -- 1. When not idle (PluginShare.DeviceIdling is false)
-      PluginShare.DeviceIdling = false
+      UIManager.DeviceIdling = false
       UIManager:updateLastUserActionTime()
       assert.are.equal(0, #events)
 
-      -- 2. When idle (PluginShare.DeviceIdling is true)
-      PluginShare.DeviceIdling = true
+      -- 2. When idle (UIManager.DeviceIdling is true)
+      UIManager.DeviceIdling = true
       UIManager:updateLastUserActionTime()
-      assert.is_false(PluginShare.DeviceIdling)
+      assert.is_false(UIManager.DeviceIdling)
       assert.are.equal(1, #events)
       assert.are.equal("DeviceBusy", events[1])
 

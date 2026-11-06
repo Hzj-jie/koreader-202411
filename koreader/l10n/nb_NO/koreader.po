@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 17:04-0800\n"
+"POT-Creation-Date: 2026-11-05 18:16-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -11399,9 +11399,7 @@ msgstr "mini"
 msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 
-msgid ""
-"KOReader enters idle mode after the dimmer's idle time, or after 5 minutes "
-"when the dimmer is disabled."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -14149,6 +14147,27 @@ msgid "Moves/copies current book to archive folder"
 msgstr ""
 
 #, fuzzy
+msgid ""
+"%1\n"
+"\n"
+"Building EPUB…"
+msgstr "Pakker EPUB…"
+
+#, fuzzy
+msgid ""
+"%1\n"
+"\n"
+"Retrieving image %2 / %3 …"
+msgstr "Henter filer …"
+
+#, fuzzy
+msgid ""
+"%1\n"
+"\n"
+"Packing EPUB…"
+msgstr "Pakker EPUB…"
+
+#, fuzzy
 msgid "URL"
 msgstr "HTV"
 
@@ -14170,14 +14189,6 @@ msgstr ""
 msgid "Delete feed"
 msgstr "Slett fil"
 
-#, fuzzy
-msgid "Downloading news finished with errors."
-msgstr "Lagre fil"
-
-#, fuzzy
-msgid "Downloading news finished."
-msgstr "Lagre fil"
-
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -14193,9 +14204,6 @@ msgstr ""
 #, fuzzy
 msgid "Set download folder"
 msgstr "Velg nedlastingsmappe"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -14230,11 +14238,32 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid "Sync is already in progress."
+msgid ""
+"Processing %1/%2:\n"
+"%3"
 msgstr ""
 
-msgid "Synchronizing news feeds…"
+#, fuzzy
+msgid "Downloading news finished."
+msgstr "Lagre fil"
+
+#, fuzzy
+msgid "Downloading news finished with errors."
+msgstr "Lagre fil"
+
+msgid ""
+"Could not process some feeds.\n"
+"Unsupported format in: %1. Please\n"
+"review your feed configuration file."
 msgstr ""
+
+#, fuzzy
+msgid "Go to download folder?"
+msgstr "Velg nedlastingsmappe"
+
+#, fuzzy
+msgid "Go to downloads"
+msgstr "Last ned"
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -14244,6 +14273,17 @@ msgid "(Reason: Error during feed deserialization)"
 msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
+msgstr ""
+
+msgid ""
+"%1\n"
+"\n"
+"Fetching article %2/%3:"
+msgstr ""
+
+msgid ""
+"%1\n"
+"%2"
 msgstr ""
 
 msgid ""
@@ -15312,6 +15352,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -16443,35 +16486,6 @@ msgstr "Legg til i Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plassering"
-
-#, fuzzy
-#~ msgid ""
-#~ "%1\n"
-#~ "\n"
-#~ "Building EPUB…"
-#~ msgstr "Pakker EPUB…"
-
-#, fuzzy
-#~ msgid ""
-#~ "%1\n"
-#~ "\n"
-#~ "Retrieving image %2 / %3 …"
-#~ msgstr "Henter filer …"
-
-#, fuzzy
-#~ msgid ""
-#~ "%1\n"
-#~ "\n"
-#~ "Packing EPUB…"
-#~ msgstr "Pakker EPUB…"
-
-#, fuzzy
-#~ msgid "Go to download folder?"
-#~ msgstr "Velg nedlastingsmappe"
-
-#, fuzzy
-#~ msgid "Go to downloads"
-#~ msgstr "Last ned"
 
 #, fuzzy
 #~ msgid "Autostandby timeout: %1"

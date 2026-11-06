@@ -210,4 +210,23 @@ describe("AutoFrontlight widget tests", function()
       Device.isEmulator = orig_isEmulator
     end
   )
+
+  it(
+    "skips action when UIManager.DeviceIdling is true",
+    function()
+      local orig_idling = UIManager.DeviceIdling
+      UIManager.DeviceIdling = true
+      finally(function()
+        UIManager.DeviceIdling = orig_idling
+      end)
+
+      Device:getPowerDevice():turnOffFrontlight()
+      assertFrontlightLevel(0)
+
+      -- In dark environment, AutoFrontlight would normally turn frontlight on to level 2.
+      -- When DeviceIdling is true, it skips action and leaves frontlight off.
+      setAmbientBrightnessAndRun(0)
+      assertFrontlightLevel(0)
+    end
+  )
 end)

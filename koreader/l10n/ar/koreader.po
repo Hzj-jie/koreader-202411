@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 17:04-0800\n"
+"POT-Creation-Date: 2026-11-05 18:16-0800\n"
 "PO-Revision-Date: 2024-02-27 20:00+0000\n"
 "Last-Translator: shetozz <a.teama3317@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -12419,9 +12419,7 @@ msgstr "صغير"
 msgid "This plugin allows dimming the frontlight after a period of inactivity."
 msgstr ""
 
-msgid ""
-"KOReader enters idle mode after the dimmer's idle time, or after 5 minutes "
-"when the dimmer is disabled."
+msgid "KOReader enters idle mode after the configured period of inactivity."
 msgstr ""
 
 msgid "Auto frontlight"
@@ -15222,6 +15220,29 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr ""
 
+#, fuzzy
+msgid ""
+"%1\n"
+"\n"
+"Building EPUB…"
+msgstr "ُجارٍ بناء EPUB…"
+
+#, fuzzy
+msgid ""
+"%1\n"
+"\n"
+"Retrieving image %2 / %3 …"
+msgstr "جارٍ جلب الصورة رقم %1 من أصل %2 …"
+
+msgid ""
+"%1\n"
+"\n"
+"Packing EPUB…"
+msgstr ""
+"%1\n"
+"\n"
+"حَزْمٌ ملفِّ EPUB…"
+
 msgid "URL"
 msgstr "عنوان URL"
 
@@ -15240,12 +15261,6 @@ msgstr ""
 msgid "Delete feed"
 msgstr "حذف الخلاصة"
 
-msgid "Downloading news finished with errors."
-msgstr "انتهى تنزيل الأخبار مع وجود أخطاء."
-
-msgid "Downloading news finished."
-msgstr "تم الانتهاء من تنزيل الأخبار."
-
 msgid "News downloader (RSS/Atom)"
 msgstr ""
 
@@ -15260,9 +15275,6 @@ msgstr "تحرير موجز الأخبار"
 
 msgid "Set download folder"
 msgstr "تعيين مجلد التنزيل"
-
-msgid "Automatically sync when idle"
-msgstr ""
 
 #, fuzzy
 msgid "Never download images"
@@ -15298,11 +15310,30 @@ msgstr ""
 msgid "Edit feed list"
 msgstr ""
 
-msgid "Sync is already in progress."
+msgid ""
+"Processing %1/%2:\n"
+"%3"
+msgstr ""
+"تتم الآن معالجة: %1/%2: \n"
+"%3"
+
+msgid "Downloading news finished."
+msgstr "تم الانتهاء من تنزيل الأخبار."
+
+msgid "Downloading news finished with errors."
+msgstr "انتهى تنزيل الأخبار مع وجود أخطاء."
+
+msgid ""
+"Could not process some feeds.\n"
+"Unsupported format in: %1. Please\n"
+"review your feed configuration file."
 msgstr ""
 
-msgid "Synchronizing news feeds…"
-msgstr ""
+msgid "Go to download folder?"
+msgstr "إذهب إلى مجلّد التنزيلات؟"
+
+msgid "Go to downloads"
+msgstr "انتقل إلى التنزيلات"
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -15313,6 +15344,19 @@ msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
 msgstr ""
+
+msgid ""
+"%1\n"
+"\n"
+"Fetching article %2/%3:"
+msgstr ""
+
+msgid ""
+"%1\n"
+"%2"
+msgstr ""
+"%1\n"
+"%2"
 
 msgid ""
 "This is just a description of the feed. To download the full article "
@@ -16416,6 +16460,9 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
+msgstr ""
+
+msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -17589,49 +17636,6 @@ msgstr "والا باغ"
 #, fuzzy
 msgid "annotations"
 msgstr "دوران"
-
-#, fuzzy
-#~ msgid ""
-#~ "%1\n"
-#~ "\n"
-#~ "Building EPUB…"
-#~ msgstr "ُجارٍ بناء EPUB…"
-
-#, fuzzy
-#~ msgid ""
-#~ "%1\n"
-#~ "\n"
-#~ "Retrieving image %2 / %3 …"
-#~ msgstr "جارٍ جلب الصورة رقم %1 من أصل %2 …"
-
-#~ msgid ""
-#~ "%1\n"
-#~ "\n"
-#~ "Packing EPUB…"
-#~ msgstr ""
-#~ "%1\n"
-#~ "\n"
-#~ "حَزْمٌ ملفِّ EPUB…"
-
-#~ msgid ""
-#~ "Processing %1/%2:\n"
-#~ "%3"
-#~ msgstr ""
-#~ "تتم الآن معالجة: %1/%2: \n"
-#~ "%3"
-
-#~ msgid "Go to download folder?"
-#~ msgstr "إذهب إلى مجلّد التنزيلات؟"
-
-#~ msgid "Go to downloads"
-#~ msgstr "انتقل إلى التنزيلات"
-
-#~ msgid ""
-#~ "%1\n"
-#~ "%2"
-#~ msgstr ""
-#~ "%1\n"
-#~ "%2"
 
 #~ msgid "Autoshutdown timeout: %1"
 #~ msgstr "مهلة إيقاف التشغيل التلقائي: %1"

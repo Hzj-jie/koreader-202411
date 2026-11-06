@@ -10,7 +10,6 @@ end
 local ALLOW_BLOCKING_JOBS = false
 
 local CommandRunner = require("plugins/backgroundrunner.koplugin/commandrunner")
-local Event = require("ui/event")
 local PluginShare = require("pluginshare")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -227,14 +226,14 @@ function BackgroundRunner:_execute()
   end
   self:_poll()
 
-  if not PluginShare.DeviceIdling then
-    local idle_m = G_reader_settings:read("autodim_starttime_minutes")
-    if not idle_m or idle_m <= 0 then
-      idle_m = 5
+  if not UIManager.DeviceIdling then
+    local idle_m = G_named_settings.autodim_starttime_minutes()
+    if idle_m <= 0 then
+      idle_m = G_named_settings.default.autodim_starttime_minutes()
     end
     if UIManager:timeSinceLastUserAction() >= time.s(idle_m * 60) then
-      PluginShare.DeviceIdling = true
-      UIManager:broadcastEvent(Event:new("DeviceIdling"))
+      UIManager.DeviceIdling = true
+      UIManager:broadcastEvent("DeviceIdling")
     end
   end
 
@@ -274,7 +273,7 @@ function BackgroundRunner:_execute()
         -- TODO: Implement a better best-effort strategy.
         should_execute = (time.monotonic() - job.insert_time >= time.s(60))
       else
-        should_execute = PluginShare.DeviceIdling
+        should_execute = UIManager.DeviceIdling
       end
     end
 
@@ -302,10 +301,6 @@ end
 function BackgroundRunner:schedule()
   if self.scheduled then
     logger.dbg("BackgroundRunnerWidget: a schedule is pending")
-    return
-  end
-  if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() and PluginShare.DeviceIdling then
-    logger.dbg("BackgroundRunnerWidget: no job and already idle, not running")
     return
   end
   logger.dbg("BackgroundRunnerWidget: start running")
@@ -341,11 +336,6 @@ function BackgroundRunnerWidget:onResume()
   -- inserted.
   BackgroundRunner:resetInsertTime()
   self:init()
-end
-
-function BackgroundRunnerWidget:onDeviceBusy()
-  logger.dbg("BackgroundRunnerWidget:onDeviceBusy()")
-  BackgroundRunner:schedule()
 end
 
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
