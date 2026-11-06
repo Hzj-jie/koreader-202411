@@ -1177,7 +1177,7 @@ function UIManager:_decideRefreshMode(refresh)
 
   -- Handle downgrading flashing modes to non-flashing modes, according to user settings.
   -- NOTE: Do it before "full" promotion and collision checks/update_mode.
-  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
+  if G_named_settings.avoid_flashing_ui() then
     if mode == "flashui" then
       logger.dbg("_refresh: downgraded flashui refresh to ui")
       return "ui"
@@ -1335,7 +1335,7 @@ function UIManager:waitForScreenRefresh()
   if not Device:hasEinkScreen() then
     return
   end
-  if G_reader_settings:nilOrTrue("avoid_flashing_ui") then
+  if G_named_settings.avoid_flashing_ui() then
     ffiUtil.usleep(1000)
   else
     Screen:refreshWaitForLast()
