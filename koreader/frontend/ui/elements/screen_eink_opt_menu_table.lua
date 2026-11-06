@@ -32,10 +32,10 @@ table.insert(eink_settings_table.sub_item_table, {
     "Fully rendering a black area can be slow and increase the blur on the E-ink, avoiding full refreshes of the black areas may improve the device responsiveness in exchange of potentially observing partially rendered black areas, especially on menus and buttons."
   ),
   checked_func = function()
-    return G_reader_settings:nilOrTrue("avoid_flashing_ui")
+    return G_named_settings.avoid_flashing_ui()
   end,
   callback = function()
-    G_reader_settings:flipNilOrTrue("avoid_flashing_ui")
+    G_named_settings.flip.avoid_flashing_ui()
   end,
 })
 

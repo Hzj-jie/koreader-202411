@@ -2,9 +2,12 @@ describe("named_settings", function()
   local named_settings
   local Device, Util
   local orig_hasEinkScreen, orig_isTouchDevice, orig_backup_dir
+  local orig_isKindle, orig_isKobo
 
   local mock_has_eink = false
   local mock_is_touch = true
+  local mock_is_kindle = false
+  local mock_is_kobo = false
 
   setup(function()
     require("commonrequire")
@@ -13,6 +16,8 @@ describe("named_settings", function()
 
     orig_hasEinkScreen = Device.hasEinkScreen
     orig_isTouchDevice = Device.isTouchDevice
+    orig_isKindle = Device.isKindle
+    orig_isKobo = Device.isKobo
     orig_backup_dir = Util.backup_dir
 
     named_settings = require("named_settings")
@@ -23,6 +28,12 @@ describe("named_settings", function()
     Device.isTouchDevice = function()
       return mock_is_touch
     end
+    Device.isKindle = function()
+      return mock_is_kindle
+    end
+    Device.isKobo = function()
+      return mock_is_kobo
+    end
     Util.backup_dir = function()
       return "/mock/backup/dir"
     end
@@ -31,10 +42,14 @@ describe("named_settings", function()
   teardown(function()
     Device.hasEinkScreen = orig_hasEinkScreen
     Device.isTouchDevice = orig_isTouchDevice
+    Device.isKindle = orig_isKindle
+    Device.isKobo = orig_isKobo
     Util.backup_dir = orig_backup_dir
   end)
 
   before_each(function()
+    mock_is_kindle = false
+    mock_is_kobo = false
     local keys = {
       "home_dir",
       "lastdir",
@@ -209,12 +224,48 @@ describe("named_settings", function()
       assert.is_false(named_settings.low_pan_rate())
     end)
 
-    it("should handle full_refresh_count correctly", function()
+    it("should handle full_refresh_count correctly based on device", function()
+      -- Generic device
       assert.are.same(24, named_settings.default.full_refresh_count())
       assert.are.same(24, named_settings.full_refresh_count())
 
+      -- Kindle device
+      mock_is_kindle = true
+      assert.are.same(0, named_settings.default.full_refresh_count())
+      assert.are.same(0, named_settings.full_refresh_count())
+      mock_is_kindle = false
+
+      -- Explicitly set value overrides default
       named_settings.set.full_refresh_count(15)
       assert.are.same(15, named_settings.full_refresh_count())
+    end)
+
+    it("should handle avoid_flashing_ui and flip correctly based on device", function()
+      -- Generic / Kindle device
+      assert.is_true(named_settings.default.avoid_flashing_ui())
+      assert.is_true(named_settings.avoid_flashing_ui())
+
+      named_settings.flip.avoid_flashing_ui()
+      assert.is_false(named_settings.avoid_flashing_ui())
+      assert.is_false(G_reader_settings:read("avoid_flashing_ui"))
+
+      named_settings.flip.avoid_flashing_ui()
+      assert.is_true(named_settings.avoid_flashing_ui())
+      assert.is_nil(G_reader_settings:read("avoid_flashing_ui"))
+
+      -- Kobo device
+      mock_is_kobo = true
+      assert.is_false(named_settings.default.avoid_flashing_ui())
+      assert.is_false(named_settings.avoid_flashing_ui())
+
+      named_settings.flip.avoid_flashing_ui()
+      assert.is_true(named_settings.avoid_flashing_ui())
+      assert.is_true(G_reader_settings:read("avoid_flashing_ui"))
+
+      named_settings.flip.avoid_flashing_ui()
+      assert.is_false(named_settings.avoid_flashing_ui())
+      assert.is_nil(G_reader_settings:read("avoid_flashing_ui"))
+      mock_is_kobo = false
     end)
 
     it("should return correct fast_screen_refresh status", function()
@@ -232,6 +283,19 @@ describe("named_settings", function()
 
       named_settings.set.full_refresh_count(10)
       assert.is_true(named_settings.fast_screen_refresh())
+
+      -- Kindle device with e-ink and avoid_flashing_ui enabled:
+      -- default full_refresh_count is 0 (< 24), so fast_screen_refresh is true
+      mock_is_kindle = true
+      G_reader_settings:delete("full_refresh_count")
+      assert.is_true(named_settings.fast_screen_refresh())
+
+      named_settings.set.full_refresh_count(24)
+      assert.is_false(named_settings.fast_screen_refresh())
+
+      named_settings.set.full_refresh_count(4)
+      assert.is_true(named_settings.fast_screen_refresh())
+      mock_is_kindle = false
     end)
   end)
 
