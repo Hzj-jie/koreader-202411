@@ -26,6 +26,9 @@ describe("VirtualKeyboard component", function()
       save = function(self, key, val)
         settings_store[key] = val
       end,
+      has = function(self, key)
+        return settings_store[key] ~= nil
+      end,
       nilOrTrue = function(self, key)
         return settings_store[key] ~= false
       end,
