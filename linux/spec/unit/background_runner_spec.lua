@@ -955,9 +955,9 @@ describe("BackgroundRunner widget tests", function()
   it(
     "should use doubled 2-second timeout threshold for idle function executable",
     function()
-      PluginShare.DeviceIdling = true
+      UIManager.DeviceIdling = true
       finally(function()
-        PluginShare.DeviceIdling = nil
+        UIManager.DeviceIdling = nil
       end)
 
       local job_pass = {
@@ -1397,4 +1397,179 @@ describe("BackgroundRunner widget tests", function()
 
     io.popen = old_popen
   end)
+
+  it(
+    "transitions DeviceIdling and DeviceBusy and executes when = 'idle' jobs",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+
+      local orig_idle = UIManager.timeSinceLastUserAction
+      local orig_device_idling = UIManager.DeviceIdling
+      local orig_val = G_reader_settings:read("autodim_starttime_minutes")
+
+      local idle_seconds = 100
+      local broadcasted_events = {}
+      local orig_broadcast = UIManager.broadcastEvent
+      UIManager.broadcastEvent = function(self, ev)
+        local name = type(ev) == "table" and (ev.handler and ev.handler:gsub("^on", "") or ev.action) or ev
+        table.insert(broadcasted_events, name)
+        return orig_broadcast(self, ev)
+      end
+
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(idle_seconds)
+      end
+
+      G_reader_settings:save("autodim_starttime_minutes", 5)
+      UIManager.DeviceIdling = false
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_idle
+        UIManager.broadcastEvent = orig_broadcast
+        UIManager.DeviceIdling = orig_device_idling
+        if orig_val ~= nil then
+          G_reader_settings:save("autodim_starttime_minutes", orig_val)
+        else
+          G_reader_settings:delete("autodim_starttime_minutes")
+        end
+        PluginShare.backgroundJobs = {}
+      end)
+
+      local executed_count = 0
+      local test_job = {
+        when = "idle",
+        repeated = true,
+        executable = function()
+          executed_count = executed_count + 1
+        end,
+      }
+      table.insert(PluginShare.backgroundJobs, test_job)
+
+      -- 1. Device not idle (<300s and DeviceIdling=false): should not run, no event
+      idle_seconds = 200
+      BackgroundRunner:_execute()
+      assert.are.equal(0, executed_count)
+      assert.is_false(UIManager.DeviceIdling)
+      assert.are.equal(0, #broadcasted_events)
+
+      -- 2. Device reaches idle threshold (>=300s): sets DeviceIdling and broadcasts DeviceIdling
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.are.equal(1, executed_count)
+      assert.is_true(UIManager.DeviceIdling)
+      assert.are.equal(1, #broadcasted_events)
+      assert.are.equal("DeviceIdling", broadcasted_events[1])
+
+      -- 3. While idle continues, idle job executes
+      BackgroundRunner:_execute()
+      assert.are.equal(2, executed_count)
+      assert.is_true(UIManager.DeviceIdling)
+
+      -- 4. User action resets DeviceIdling to false and broadcasts DeviceBusy
+      UIManager:updateLastUserActionTime()
+      assert.is_false(UIManager.DeviceIdling)
+      assert.are.equal("DeviceBusy", broadcasted_events[#broadcasted_events])
+
+      -- 5. Next execution pass while not idle does not run idle job
+      idle_seconds = 50
+      BackgroundRunner:_execute()
+      assert.are.equal(2, executed_count)
+    end
+  )
+
+  it(
+    "respects configurable autodim_starttime_minutes and falls back to 5 minutes when unset",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+
+      local orig_idle = UIManager.timeSinceLastUserAction
+      local orig_device_idling = UIManager.DeviceIdling
+      local orig_val = G_reader_settings:read("autodim_starttime_minutes")
+
+      local idle_seconds = 0
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(idle_seconds)
+      end
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_idle
+        UIManager.DeviceIdling = orig_device_idling
+        if orig_val ~= nil then
+          G_reader_settings:save("autodim_starttime_minutes", orig_val)
+        else
+          G_reader_settings:delete("autodim_starttime_minutes")
+        end
+        PluginShare.backgroundJobs = {}
+      end)
+
+      -- 1. Non-default: 10 minutes (600s)
+      G_reader_settings:save("autodim_starttime_minutes", 10)
+      UIManager.DeviceIdling = false
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.is_false(UIManager.DeviceIdling)
+      idle_seconds = 601
+      BackgroundRunner:_execute()
+      assert.is_true(UIManager.DeviceIdling)
+
+      -- 2. Fallback: unset falls back to default 5 minutes (300s)
+      G_reader_settings:delete("autodim_starttime_minutes")
+      UIManager.DeviceIdling = false
+      idle_seconds = 299
+      BackgroundRunner:_execute()
+      assert.is_false(UIManager.DeviceIdling)
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.is_true(UIManager.DeviceIdling)
+    end
+  )
+
+  it(
+    "continues schedule when queue is empty and idling",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+
+      local orig_idle = UIManager.timeSinceLastUserAction
+      local orig_device_idling = UIManager.DeviceIdling
+      local orig_val = G_reader_settings:read("autodim_starttime_minutes")
+
+      local idle_seconds = 0
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(idle_seconds)
+      end
+
+      G_reader_settings:save("autodim_starttime_minutes", 5)
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_idle
+        UIManager.DeviceIdling = orig_device_idling
+        if orig_val ~= nil then
+          G_reader_settings:save("autodim_starttime_minutes", orig_val)
+        else
+          G_reader_settings:delete("autodim_starttime_minutes")
+        end
+        PluginShare.backgroundJobs = {}
+      end)
+
+      PluginShare.backgroundJobs = {}
+      UIManager.DeviceIdling = false
+
+      -- When not idle and empty queue, schedule() schedules
+      BackgroundRunner:schedule()
+      assert.is_true(BackgroundRunner.scheduled)
+
+      -- Execute tick: becomes idle
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.is_true(UIManager.DeviceIdling)
+      -- Schedule remains true even when empty queue and idling
+      assert.is_true(BackgroundRunner.scheduled)
+    end
+  )
 end)
