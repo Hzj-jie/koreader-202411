@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 17:01-0800\n"
+"POT-Creation-Date: 2026-11-05 17:04-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -13777,33 +13777,6 @@ msgstr ""
 msgid "Moves/copies current book to archive folder"
 msgstr "Premješta/kopira trenutačnu knjigu u arhivsku mapu"
 
-msgid ""
-"%1\n"
-"\n"
-"Building EPUB…"
-msgstr ""
-"%1\n"
-"\n"
-"Izgradnja EPUB-a …"
-
-msgid ""
-"%1\n"
-"\n"
-"Retrieving image %2 / %3 …"
-msgstr ""
-"%1\n"
-"\n"
-"Dohvaćanje slike %2 / %3 …"
-
-msgid ""
-"%1\n"
-"\n"
-"Packing EPUB…"
-msgstr ""
-"%1\n"
-"\n"
-"Pakiranje EPUB-a …"
-
 msgid "URL"
 msgstr "URL"
 
@@ -13822,6 +13795,12 @@ msgstr "Filtriraj element"
 msgid "Delete feed"
 msgstr "Izbriži kanal"
 
+msgid "Downloading news finished with errors."
+msgstr "Preuzimanje novosti završeno s greškama."
+
+msgid "Downloading news finished."
+msgstr "Preuzimanje novosti završeno."
+
 msgid "News downloader (RSS/Atom)"
 msgstr "Preuzimanje novosti (RSS/Atom)"
 
@@ -13836,6 +13815,9 @@ msgstr "Uredi kanale novosti"
 
 msgid "Set download folder"
 msgstr "Postavi mapu za preuzimanja"
+
+msgid "Automatically sync when idle"
+msgstr ""
 
 msgid "Never download images"
 msgstr "Nikada ne preuzimaj slike"
@@ -13868,31 +13850,11 @@ msgstr ""
 msgid "Edit feed list"
 msgstr "Uredi popis kanala"
 
-msgid ""
-"Processing %1/%2:\n"
-"%3"
-msgstr ""
-"Obrada %1/%2:\n"
-"%3"
-
-msgid "Downloading news finished."
-msgstr "Preuzimanje novosti završeno."
-
-msgid "Downloading news finished with errors."
-msgstr "Preuzimanje novosti završeno s greškama."
-
-msgid ""
-"Could not process some feeds.\n"
-"Unsupported format in: %1. Please\n"
-"review your feed configuration file."
+msgid "Sync is already in progress."
 msgstr ""
 
-#, fuzzy
-msgid "Go to download folder?"
-msgstr "Želiš li ići na mapu za preuzimanja?"
-
-msgid "Go to downloads"
-msgstr "Idi na preuzimanja"
+msgid "Synchronizing news feeds…"
+msgstr ""
 
 #, fuzzy
 msgid "(Reason: Failed to download content)"
@@ -13903,19 +13865,6 @@ msgstr ""
 
 msgid "(Reason: Couldn't process feed)"
 msgstr ""
-
-msgid ""
-"%1\n"
-"\n"
-"Fetching article %2/%3:"
-msgstr ""
-
-msgid ""
-"%1\n"
-"%2"
-msgstr ""
-"%1\n"
-"%2"
 
 msgid ""
 "This is just a description of the feed. To download the full article "
@@ -14960,9 +14909,6 @@ msgid "Failed to sync book statistics."
 msgstr ""
 
 msgid "Syncing book statistics in the background"
-msgstr ""
-
-msgid "Sync is already in progress."
 msgstr ""
 
 msgid "Keeps and displays your reading statistics."
@@ -16090,6 +16036,54 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Okretanje"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Building EPUB…"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Izgradnja EPUB-a …"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Retrieving image %2 / %3 …"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Dohvaćanje slike %2 / %3 …"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "\n"
+#~ "Packing EPUB…"
+#~ msgstr ""
+#~ "%1\n"
+#~ "\n"
+#~ "Pakiranje EPUB-a …"
+
+#~ msgid ""
+#~ "Processing %1/%2:\n"
+#~ "%3"
+#~ msgstr ""
+#~ "Obrada %1/%2:\n"
+#~ "%3"
+
+#, fuzzy
+#~ msgid "Go to download folder?"
+#~ msgstr "Želiš li ići na mapu za preuzimanja?"
+
+#~ msgid "Go to downloads"
+#~ msgstr "Idi na preuzimanja"
+
+#~ msgid ""
+#~ "%1\n"
+#~ "%2"
+#~ msgstr ""
+#~ "%1\n"
+#~ "%2"
 
 #, fuzzy
 #~ msgid "Autostandby timeout: %1"
