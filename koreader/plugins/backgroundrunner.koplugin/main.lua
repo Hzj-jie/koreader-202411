@@ -304,10 +304,6 @@ function BackgroundRunner:schedule()
     logger.dbg("BackgroundRunnerWidget: a schedule is pending")
     return
   end
-  if PluginShare.stopBackgroundRunner == true then
-    logger.dbg("BackgroundRunnerWidget: stopped, not running")
-    return
-  end
   if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() and PluginShare.DeviceIdling then
     logger.dbg("BackgroundRunnerWidget: no job and already idle, not running")
     return

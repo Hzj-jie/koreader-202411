@@ -969,9 +969,9 @@ describe("BackgroundRunner widget tests", function()
       table.insert(PluginShare.backgroundJobs, job_pass)
       notifyBackgroundJobsUpdated()
 
-      MockTime:increase(1)
+      MockTime:increase(2)
       UIManager:handleInput()
-      MockTime:increase(60)
+      MockTime:increase(2)
       UIManager:handleInput()
       assert.is_false(job_pass.timeout)
 
@@ -984,9 +984,9 @@ describe("BackgroundRunner widget tests", function()
       table.insert(PluginShare.backgroundJobs, job_timeout)
       notifyBackgroundJobsUpdated()
 
-      MockTime:increase(1)
+      MockTime:increase(2)
       UIManager:handleInput()
-      MockTime:increase(60)
+      MockTime:increase(2)
       UIManager:handleInput()
       assert.is_true(job_timeout.timeout)
     end
@@ -1407,7 +1407,7 @@ describe("BackgroundRunner widget tests", function()
 
       local orig_idle = UIManager.timeSinceLastUserAction
       local orig_device_idling = PluginShare.DeviceIdling
-      local orig_settings = G_reader_settings
+      local orig_val = G_reader_settings:read("autodim_starttime_minutes")
 
       local idle_seconds = 100
       local broadcasted_events = {}
@@ -1422,21 +1422,18 @@ describe("BackgroundRunner widget tests", function()
         return time.s(idle_seconds)
       end
 
-      G_reader_settings = {
-        read = function(_, key)
-          if key == "autodim_starttime_minutes" then
-            return 5
-          end
-        end,
-      }
-
+      G_reader_settings:save("autodim_starttime_minutes", 5)
       PluginShare.DeviceIdling = false
 
       finally(function()
         UIManager.timeSinceLastUserAction = orig_idle
         UIManager.broadcastEvent = orig_broadcast
         PluginShare.DeviceIdling = orig_device_idling
-        G_reader_settings = orig_settings
+        if orig_val ~= nil then
+          G_reader_settings:save("autodim_starttime_minutes", orig_val)
+        else
+          G_reader_settings:delete("autodim_starttime_minutes")
+        end
         PluginShare.backgroundJobs = {}
       end)
 
@@ -1479,6 +1476,119 @@ describe("BackgroundRunner widget tests", function()
       idle_seconds = 50
       BackgroundRunner:_execute()
       assert.are.equal(2, executed_count)
+    end
+  )
+
+  it(
+    "respects configurable autodim_starttime_minutes and falls back to 5 minutes when nil or <= 0",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+
+      local orig_idle = UIManager.timeSinceLastUserAction
+      local orig_device_idling = PluginShare.DeviceIdling
+      local orig_val = G_reader_settings:read("autodim_starttime_minutes")
+
+      local idle_seconds = 0
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(idle_seconds)
+      end
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_idle
+        PluginShare.DeviceIdling = orig_device_idling
+        if orig_val ~= nil then
+          G_reader_settings:save("autodim_starttime_minutes", orig_val)
+        else
+          G_reader_settings:delete("autodim_starttime_minutes")
+        end
+        PluginShare.backgroundJobs = {}
+      end)
+
+      -- 1. Non-default: 10 minutes (600s)
+      G_reader_settings:save("autodim_starttime_minutes", 10)
+      PluginShare.DeviceIdling = false
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.is_false(PluginShare.DeviceIdling)
+      idle_seconds = 601
+      BackgroundRunner:_execute()
+      assert.is_true(PluginShare.DeviceIdling)
+
+      -- 2. Fallback: nil falls back to 5 minutes (300s)
+      G_reader_settings:delete("autodim_starttime_minutes")
+      PluginShare.DeviceIdling = false
+      idle_seconds = 299
+      BackgroundRunner:_execute()
+      assert.is_false(PluginShare.DeviceIdling)
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.is_true(PluginShare.DeviceIdling)
+
+      -- 3. Fallback: -1 (disabled) falls back to 5 minutes (300s)
+      G_reader_settings:save("autodim_starttime_minutes", -1)
+      PluginShare.DeviceIdling = false
+      idle_seconds = 299
+      BackgroundRunner:_execute()
+      assert.is_false(PluginShare.DeviceIdling)
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.is_true(PluginShare.DeviceIdling)
+    end
+  )
+
+  it(
+    "restarts schedule on onDeviceBusy when queue is empty and idling",
+    function()
+      local BackgroundRunner = getBackgroundRunner()
+      local widget = requireBackgroundRunner()
+      local UIManager = require("ui/uimanager")
+      local time = require("ui/time")
+
+      local orig_idle = UIManager.timeSinceLastUserAction
+      local orig_device_idling = PluginShare.DeviceIdling
+      local orig_val = G_reader_settings:read("autodim_starttime_minutes")
+
+      local idle_seconds = 0
+      UIManager.timeSinceLastUserAction = function()
+        return time.s(idle_seconds)
+      end
+
+      G_reader_settings:save("autodim_starttime_minutes", 5)
+
+      finally(function()
+        UIManager.timeSinceLastUserAction = orig_idle
+        PluginShare.DeviceIdling = orig_device_idling
+        if orig_val ~= nil then
+          G_reader_settings:save("autodim_starttime_minutes", orig_val)
+        else
+          G_reader_settings:delete("autodim_starttime_minutes")
+        end
+        PluginShare.backgroundJobs = {}
+        UIManager:unschedule(BackgroundRunner._execute)
+        BackgroundRunner.scheduled = false
+      end)
+
+      PluginShare.backgroundJobs = {}
+      PluginShare.DeviceIdling = false
+
+      -- When not idle and empty queue, schedule() schedules
+      BackgroundRunner:schedule()
+      assert.is_true(BackgroundRunner.scheduled)
+
+      -- Execute tick: becomes idle
+      idle_seconds = 301
+      BackgroundRunner:_execute()
+      assert.is_true(PluginShare.DeviceIdling)
+      -- Because queue is empty and DeviceIdling is true, schedule() stops rescheduling
+      assert.is_false(BackgroundRunner.scheduled)
+
+      -- User action occurs: onDeviceBusy triggers schedule()
+      UIManager:updateLastUserActionTime()
+      assert.is_false(PluginShare.DeviceIdling)
+      widget:onDeviceBusy()
+      assert.is_true(BackgroundRunner.scheduled)
     end
   )
 end)

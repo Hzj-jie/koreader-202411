@@ -203,6 +203,11 @@ describe("AutoDim widget tests", function()
       UIManager:updateLastUserActionTime()
       assert.is_false(PluginShare.DeviceIdling)
 
+      local fl_after_busy = Device:getPowerDevice():frontlightIntensity()
+      MockTime:increase(1)
+      UIManager:handleInput()
+      assert.are.equal(fl_after_busy, Device:getPowerDevice():frontlightIntensity())
+
       -- Tap dismiss restores intensity
       AutoDim.trap_widget:onTapDismiss()
       assert.is_nil(AutoDim.trap_widget)
