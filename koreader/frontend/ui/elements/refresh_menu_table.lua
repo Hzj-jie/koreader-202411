@@ -41,16 +41,10 @@ return {
   {
     text = gettext("Balance between responsiveness and quality"),
     checked_func = function()
-      return G_named_settings.full_refresh_count()
-        == G_named_settings.default.full_refresh_count()
+      return G_named_settings.full_refresh_count() == 24
     end,
     callback = function()
-      UIManager:broadcastEvent(
-        Event:new(
-          "SetRefreshRate",
-          G_named_settings.default.full_refresh_count()
-        )
-      )
+      UIManager:broadcastEvent(Event:new("SetRefreshRate", 24))
     end,
     radio = true,
   },

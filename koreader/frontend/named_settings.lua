@@ -88,7 +88,7 @@ function named_settings.flip.low_pan_rate()
 end
 
 function named_settings.default.full_refresh_count()
-  return 24
+  return require("device"):isKindle() and 0 or 24
 end
 
 function named_settings.full_refresh_count()
@@ -104,13 +104,31 @@ function named_settings.set.full_refresh_count(rate)
   )
 end
 
+function named_settings.default.avoid_flashing_ui()
+  return not require("device"):isKobo()
+end
+
+function named_settings.avoid_flashing_ui()
+  if G_reader_settings:has("avoid_flashing_ui") then
+    return G_reader_settings:read("avoid_flashing_ui")
+  end
+  return named_settings.default.avoid_flashing_ui()
+end
+
+function named_settings.flip.avoid_flashing_ui()
+  return G_reader_settings:save(
+    "avoid_flashing_ui",
+    not named_settings.avoid_flashing_ui(),
+    named_settings.default.avoid_flashing_ui()
+  )
+end
+
 function named_settings.fast_screen_refresh()
   if not named_settings.low_pan_rate() then
     return true
   end
-  return G_reader_settings:isFalse("avoid_flashing_ui")
-    or named_settings.full_refresh_count()
-      < G_named_settings.default.full_refresh_count()
+  return not named_settings.avoid_flashing_ui()
+    or named_settings.full_refresh_count() < 24
 end
 
 function named_settings.collate()
