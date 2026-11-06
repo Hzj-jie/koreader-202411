@@ -2,6 +2,7 @@ local bit = require("bit")
 local ffi = require("ffi")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
+local T = require("ffi/util").template
 
 require("ffi/freetype_h")
 require("ffi/utf8proc_h")
@@ -286,7 +287,10 @@ local function resolveVersion(path)
       break
     end
   end
-  return gettext("Unknown")
+  return T(
+    gettext("Last modified: %1"),
+    os.date("%Y-%m-%d %H:%M", lfs.attributes(path, "modification"))
+  )
 end
 
 function BinaryVersions:getKeyValuePairs()
