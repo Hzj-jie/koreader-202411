@@ -1566,8 +1566,6 @@ describe("BackgroundRunner widget tests", function()
           G_reader_settings:delete("autodim_starttime_minutes")
         end
         PluginShare.backgroundJobs = {}
-        UIManager:unschedule(BackgroundRunner._execute)
-        BackgroundRunner.scheduled = false
       end)
 
       PluginShare.backgroundJobs = {}
