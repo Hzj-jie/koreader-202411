@@ -45,7 +45,7 @@ describe("CreDocument unit tests", function()
   end)
 
   describe("getStorageSizeFactor", function()
-    it("should return 10 by default when unset", function()
+    it("should return 5 by default when unset", function()
       local orig_read = G_reader_settings.read
       finally(function()
         G_reader_settings.read = orig_read
@@ -56,24 +56,24 @@ describe("CreDocument unit tests", function()
         end
         return orig_read(self_settings, key)
       end
-      assert.are.equal(10, CreDocument.getStorageSizeFactor())
+      assert.are.equal(5, CreDocument.getStorageSizeFactor())
     end)
 
-    it("should return the configured factor when <= 10", function()
+    it("should return the configured factor when <= 5", function()
       local orig_read = G_reader_settings.read
       finally(function()
         G_reader_settings.read = orig_read
       end)
       G_reader_settings.read = function(self_settings, key)
         if key == "cre_storage_size_factor" then
-          return 5
+          return 2
         end
         return orig_read(self_settings, key)
       end
-      assert.are.equal(5, CreDocument.getStorageSizeFactor())
+      assert.are.equal(2, CreDocument.getStorageSizeFactor())
     end)
 
-    it("should cap the factor at 10 when configured > 10", function()
+    it("should cap the factor at 5 when configured > 5", function()
       local orig_read = G_reader_settings.read
       finally(function()
         G_reader_settings.read = orig_read
@@ -84,7 +84,7 @@ describe("CreDocument unit tests", function()
         end
         return orig_read(self_settings, key)
       end
-      assert.are.equal(10, CreDocument.getStorageSizeFactor())
+      assert.are.equal(5, CreDocument.getStorageSizeFactor())
     end)
   end)
 
@@ -126,7 +126,7 @@ describe("CreDocument unit tests", function()
           require("datastorage"):getCacheDir() .. "/cr3cache",
           captured_dir
         )
-        assert.are.equal(10, captured_factor)
+        assert.are.equal(5, captured_factor)
 
         G_reader_settings.read = function(self_settings, key)
           if key == "cre_storage_size_factor" then
@@ -135,7 +135,7 @@ describe("CreDocument unit tests", function()
           return orig_read(self_settings, key)
         end
         doc:cacheInit()
-        assert.are.equal(10, captured_factor)
+        assert.are.equal(5, captured_factor)
       end
     )
 
