@@ -955,6 +955,10 @@ function UIManager:updateLastUserActionTime()
     -- Always reset the timeout timer when processing input event, even it's fake.
     Device:getPowerDevice():resetT1Timeout()
   end
+  if self.DeviceIdling then
+    self.DeviceIdling = false
+    self:broadcastEvent("DeviceBusy")
+  end
 end
 
 function UIManager:timeSinceLastUserAction()

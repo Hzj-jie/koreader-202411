@@ -226,6 +226,15 @@ function BackgroundRunner:_execute()
   end
   self:_poll()
 
+  if
+    not UIManager.DeviceIdling
+    and UIManager:timeSinceLastUserAction()
+      >= time.s(G_named_settings.autodim_starttime_minutes() * 60)
+  then
+    UIManager.DeviceIdling = true
+    UIManager:broadcastEvent("DeviceIdling")
+  end
+
   -- Change of #PluginShare.backgroundJobs during the loop is very rare, make it
   -- simple.
   for _ = 1, #PluginShare.backgroundJobs do
@@ -262,7 +271,7 @@ function BackgroundRunner:_execute()
         -- TODO: Implement a better best-effort strategy.
         should_execute = (time.monotonic() - job.insert_time >= time.s(60))
       else
-        should_execute = PluginShare.DeviceIdling
+        should_execute = UIManager.DeviceIdling
       end
     end
 
@@ -290,10 +299,6 @@ end
 function BackgroundRunner:schedule()
   if self.scheduled then
     logger.dbg("BackgroundRunnerWidget: a schedule is pending")
-    return
-  end
-  if #PluginShare.backgroundJobs == 0 and not CommandRunner:pending() then
-    logger.dbg("BackgroundRunnerWidget: no job, not running")
     return
   end
   logger.dbg("BackgroundRunnerWidget: start running")

@@ -148,7 +148,7 @@ describe("AutoTurn plugin tests", function()
     stopBackgroundRunner()
     package.unload("plugins/autoturn.koplugin/main")
     PluginShare.pause_auto_suspend = nil
-    PluginShare.DeviceIdling = nil
+    UIManager.DeviceIdling = nil
   end)
 
   it("should load settings and register to menu on init", function()
@@ -265,7 +265,7 @@ describe("AutoTurn plugin tests", function()
     runBackgroundTasks(2)
 
     -- Set device idling
-    PluginShare.DeviceIdling = true
+    UIManager.DeviceIdling = true
 
     runBackgroundTasks(10)
 
