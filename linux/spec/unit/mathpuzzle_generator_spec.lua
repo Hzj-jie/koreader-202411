@@ -395,7 +395,9 @@ describe("MathPuzzle Generator module", function()
       for i, prob in ipairs(problems) do
         assert.are.equal(i, prob.id)
         assert.is_number(prob.answer)
-        assert.is_string(prob.text)
+        if mode.type ~= "math_snake" then
+          assert.is_string(prob.text)
+        end
         assert.is_false(prob.checked)
         assert.is_nil(prob.is_correct)
         assert.are.equal("", prob.user_answer)
@@ -432,4 +434,166 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(problems[4].is_correct)
     end
   )
+
+  it("should expose math_snake_100 at the end of registered modes", function()
+    local modes = Generator.getModes()
+    local snake_mode = Generator.getModeById("math_snake_100")
+    assert.is_table(snake_mode)
+    assert.are.equal("math_snake_100", modes[#modes].id)
+    assert.are.equal("math_snake", snake_mode.type)
+    assert.are.equal(100, snake_mode.max)
+    assert.are.equal(11, snake_mode.question_count)
+  end)
+
+  it("should generate valid connected math snake chains within 100", function()
+    local saw_free_addition = false
+    local saw_free_subtraction = false
+
+    for _ = 1, 200 do
+      local probs = Generator.generateProblems("math_snake_100")
+      assert.are.equal(11, #probs)
+      assert.is_true(probs[1].a >= 15 and probs[1].a <= 85)
+
+      for i, prob in ipairs(probs) do
+        assert.are.equal(i, prob.id)
+        assert.is_nil(prob.text)
+        assert.is_nil(prob.snake_start)
+        assert.is_true(prob.op == "+" or prob.op == "-")
+        assert.is_true(prob.a >= 0 and prob.a <= 100)
+        assert.is_true(prob.answer >= 0 and prob.answer <= 100)
+        assert.is_true(prob.b >= 2 and prob.b <= 35)
+        assert.are.equal("", prob.user_answer)
+        assert.is_false(prob.checked)
+        assert.is_nil(prob.is_correct)
+
+        if i > 1 then
+          assert.are.equal(probs[i - 1].answer, prob.a)
+          if prob.op ~= probs[i - 1].op then
+            assert.are_not.equal(probs[i - 1].b, prob.b)
+          end
+        end
+
+        if prob.op == "+" then
+          if prob.a >= 5 then
+            saw_free_addition = true
+          end
+          assert.are.equal(prob.a + prob.b, prob.answer)
+          assert.is_true(100 - prob.a >= 5)
+        else
+          if 100 - prob.a >= 5 then
+            saw_free_subtraction = true
+          end
+          assert.are.equal(prob.a - prob.b, prob.answer)
+          assert.is_true(prob.a >= 5)
+        end
+      end
+    end
+
+    assert.is_true(saw_free_addition)
+    assert.is_true(saw_free_subtraction)
+  end)
+
+  it(
+    "should terminate and enforce boundary constraints under constant min/max random stubs",
+    function()
+      local active_stub
+      finally(function()
+        if active_stub then
+          active_stub:revert()
+        end
+      end)
+
+      local function verifySnakeInvariants(probs, expected_count)
+        assert.are.equal(expected_count, #probs)
+        assert.is_true(probs[1].a >= 15 and probs[1].a <= 85)
+        local hit_boundary_force = false
+        for i, prob in ipairs(probs) do
+          assert.is_true(prob.op == "+" or prob.op == "-")
+          assert.is_true(prob.a >= 0 and prob.a <= 100)
+          assert.is_true(prob.answer >= 0 and prob.answer <= 100)
+          assert.is_true(prob.b >= 2 and prob.b <= 35)
+          if i > 1 then
+            assert.are.equal(probs[i - 1].answer, prob.a)
+            if prob.op ~= probs[i - 1].op then
+              assert.are_not.equal(probs[i - 1].b, prob.b)
+            end
+          end
+          if prob.op == "+" then
+            assert.are.equal(prob.a + prob.b, prob.answer)
+            assert.is_true(100 - prob.a >= 5)
+            if prob.a < 5 then
+              hit_boundary_force = true
+            end
+          else
+            assert.are.equal(prob.a - prob.b, prob.answer)
+            assert.is_true(prob.a >= 5)
+            if 100 - prob.a < 5 then
+              hit_boundary_force = true
+            end
+          end
+        end
+        return hit_boundary_force
+      end
+
+      -- Lower-bound stub forces headroom wall near 100 and anti-cancel shift on reversal
+      active_stub = stub(math, "random", function(lo)
+        if lo then
+          return lo
+        end
+        return 0
+      end)
+      local min_hit = verifySnakeInvariants(
+        Generator.generateProblems("math_snake_100", 50),
+        50
+      )
+      assert.is_true(min_hit)
+      active_stub:revert()
+      active_stub = nil
+
+      -- Upper-bound stub drives chain down to 0 and forces addition back up
+      active_stub = stub(math, "random", function(lo, hi)
+        if hi then
+          return hi
+        elseif lo then
+          return lo
+        end
+        return 1
+      end)
+      local max_hit = verifySnakeInvariants(
+        Generator.generateProblems("math_snake_100", 15),
+        15
+      )
+      assert.is_true(max_hit)
+      active_stub:revert()
+      active_stub = nil
+    end
+  )
+
+  it("should grade math_snake_100 steps strictly in checkAnswers", function()
+    local probs = Generator.generateProblems("math_snake_100")
+    local empty_res = Generator.checkAnswers(probs)
+    assert.are.equal(11, empty_res.total)
+    assert.are.equal(0, empty_res.correct_count)
+    assert.are.equal(0, empty_res.answered_count)
+    assert.is_false(empty_res.all_correct)
+
+    for _, prob in ipairs(probs) do
+      prob.user_answer = tostring(prob.answer)
+    end
+    local full_res = Generator.checkAnswers(probs)
+    assert.are.equal(11, full_res.total)
+    assert.are.equal(11, full_res.correct_count)
+    assert.are.equal(11, full_res.answered_count)
+    assert.is_true(full_res.all_correct)
+
+    probs[4].user_answer = tostring(probs[4].answer + 1)
+    local partial_res = Generator.checkAnswers(probs)
+    assert.are.equal(11, partial_res.total)
+    assert.are.equal(10, partial_res.correct_count)
+    assert.are.equal(11, partial_res.answered_count)
+    assert.is_false(partial_res.all_correct)
+    assert.is_false(probs[4].is_correct)
+    assert.is_true(probs[3].is_correct)
+    assert.is_true(probs[5].is_correct)
+  end)
 end)

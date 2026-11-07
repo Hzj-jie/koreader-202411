@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-07 12:23-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -14499,6 +14499,12 @@ msgstr "100以内等差数列"
 
 msgid "Step up to 10, numbers up to 100"
 msgstr "公差不超过10，数值不超过100"
+
+msgid "Math Snake (+, -) within 100"
+msgstr "100以内算式接龙（加减法）"
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr "100以内的连续加减法接龙计算"
 
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"

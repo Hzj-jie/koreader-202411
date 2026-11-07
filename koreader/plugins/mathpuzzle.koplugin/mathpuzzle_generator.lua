@@ -138,6 +138,14 @@ Generator.MODES = {
     question_count = 5,
     single_column = true,
   },
+  {
+    id = "math_snake_100",
+    title = _("Math Snake (+, -) within 100"),
+    description = _("Chain addition and subtraction steps within 100"),
+    type = "math_snake",
+    max = 100,
+    question_count = 11,
+  },
 }
 
 function Generator.getModes()
@@ -564,10 +572,73 @@ local function generateSingleProblem(mode)
   end
 end
 
+local function generateMathSnakeProblems(mode, count)
+  local max_val = mode.max
+  assert(max_val >= 10)
+
+  local cur = math.random(
+    math.max(10, math.floor(max_val * 0.15)),
+    math.floor(max_val * 0.85)
+  )
+  local problems = {}
+  local prev_op
+  local prev_b
+
+  for i = 1, count do
+    local up_room = max_val - cur
+    local down_room = cur
+    local can_add = up_room >= 5
+    local can_sub = down_room >= 5
+    assert(can_add or can_sub)
+
+    local is_addition
+    if can_add and can_sub then
+      is_addition = math.random(1, 2) == 1
+    else
+      is_addition = can_add
+    end
+
+    local op = is_addition and "+" or "-"
+    local hi = math.min(35, is_addition and up_room or down_room)
+    assert(hi >= 5)
+
+    local b
+    if prev_op and op ~= prev_op and prev_b <= hi then
+      b = math.random(2, hi - 1)
+      if b >= prev_b then
+        b = b + 1
+      end
+    else
+      b = math.random(2, hi)
+    end
+
+    local next_val = is_addition and (cur + b) or (cur - b)
+    assert(next_val >= 0 and next_val <= max_val)
+
+    problems[i] = {
+      id = i,
+      op = op,
+      a = cur,
+      b = b,
+      answer = next_val,
+      user_answer = "",
+      checked = false,
+    }
+    cur = next_val
+    prev_op = op
+    prev_b = b
+  end
+
+  return problems
+end
+
 function Generator.generateProblems(mode_id, count)
   local mode = type(mode_id) == "table" and mode_id
     or Generator.getModeById(mode_id)
   count = count or (mode and mode.question_count) or 10
+  if mode.type == "math_snake" then
+    return generateMathSnakeProblems(mode, count)
+  end
   local problems = {}
   local seen = {}
 
