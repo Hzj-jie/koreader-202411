@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2023-04-24 07:37+0000\n"
 "Last-Translator: Einars Sprugis <einars8@gmail.com>\n"
 "Language-Team: Latvian <https://hosted.weblate.org/projects/koreader/"
@@ -1694,21 +1694,14 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
-"CRE dokumentos alternatīva statusa josla var tikt attēlota ekrāna augšā - ar "
-"vai bez apakšējās statusa joslas.\n"
-"\n"
-"Ieslēdzot alternatīvo statusa joslu - dokumentam individuāli vai pēc "
-"noklusējuma - var izdarīt no apakšējās izvēlnes.\n"
-"\n"
-"Alternatīvā statusa joslu var pielāgot šeit."
 
 msgid "Alt status bar"
 msgstr "Alternatīva statusa josla"
+
+msgid "Enable alt status bar"
+msgstr ""
 
 msgid "Book title"
 msgstr "Grāmatas nosaukums"
@@ -5523,6 +5516,10 @@ msgstr ""
 "KOReader tiks aizvērts."
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "modifikācijas datums"
+
+#, fuzzy
 msgid "Jan"
 msgstr "Kannadu"
 
@@ -8834,6 +8831,21 @@ msgstr ""
 "  kreisā: %3\n"
 "  labā: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  kreisais: %1\n"
+"  labais: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Uzstādīt noklusējuma %1 uz %2?"
+
+msgid "Set as default"
+msgstr "Uzstādīt kā noklusējuma"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -10012,8 +10024,8 @@ msgstr "Neizdevās iegūt laiku no servera. Pārbaudiet tīkla konfigurāciju."
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Sinhronizējam laiku. Tas var aizņemt pāris sekundes."
 
-msgid "Synchronize time"
-msgstr "Sinhronizēt laiku"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr "0. līmenis: augsta kvalitāte, lēnākais"
@@ -11098,23 +11110,8 @@ msgstr "Pāris vārdi par grāmatu"
 msgid "Set values"
 msgstr "Uzstādīt vērtības"
 
-msgid "Set as default"
-msgstr "Uzstādīt kā noklusējuma"
-
-msgid "Set default %1 to %2?"
-msgstr "Uzstādīt noklusējuma %1 uz %2?"
-
 msgid "Set value"
 msgstr "Uzstādīt vērtību"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  kreisais: %1\n"
-"  labais: %2\n"
 
 msgid "no text"
 msgstr "bez teksta"
@@ -11588,10 +11585,6 @@ msgid_plural "File size: %1 bytes"
 msgstr[0] "Fonta izmērs: %1"
 msgstr[1] "Fonta izmērs: %1"
 msgstr[2] "Fonta izmērs: %1"
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "modifikācijas datums"
 
 #, fuzzy
 msgid "Choose this folder?"
@@ -17591,6 +17584,26 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Rotācija"
+
+#~ msgid ""
+#~ "In CRE documents, an alternative status bar can be displayed at the top "
+#~ "of the screen, with or without the regular bottom status bar.\n"
+#~ "\n"
+#~ "Enabling this alt status bar, per document or by default, can be done in "
+#~ "the bottom menu.\n"
+#~ "\n"
+#~ "The alternative status bar can be configured here."
+#~ msgstr ""
+#~ "CRE dokumentos alternatīva statusa josla var tikt attēlota ekrāna augšā - "
+#~ "ar vai bez apakšējās statusa joslas.\n"
+#~ "\n"
+#~ "Ieslēdzot alternatīvo statusa joslu - dokumentam individuāli vai pēc "
+#~ "noklusējuma - var izdarīt no apakšējās izvēlnes.\n"
+#~ "\n"
+#~ "Alternatīvā statusa joslu var pielāgot šeit."
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sinhronizēt laiku"
 
 #, fuzzy
 #~ msgid "Autoshutdown timeout: %1"

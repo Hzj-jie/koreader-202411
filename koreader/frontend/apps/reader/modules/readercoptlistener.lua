@@ -1,3 +1,4 @@
+local CreOptions = require("ui/data/creoptions")
 local CreUtil = require("creutil")
 local Device = require("device")
 local Event = require("ui/event")
@@ -354,16 +355,33 @@ end
 local about_text = gettext([[
 In CRE documents, an alternative status bar can be displayed at the top of the screen, with or without the regular bottom status bar.
 
-Enabling this alt status bar, per document or by default, can be done in the bottom menu.
-
-The alternative status bar can be configured here.]])
+The alternative status bar can be enabled and configured here.]])
 
 function ReaderCoptListener:getAltStatusBarMenu()
+  local function getPosition()
+    return CreOptions.status_line:checkedPosition(self.document.configurable)
+  end
   return {
     text = gettext("Alt status bar"),
     separator = true,
     help_text = about_text,
     sub_item_table = {
+      {
+        text = gettext("Enable alt status bar"),
+        checked_func = function()
+          local values = CreOptions.status_line.values
+          assert(#values == 2 and values[1] == 1 and values[2] == 0)
+          return getPosition() == 2
+        end,
+        callback = function()
+          -- Positions are 1 (off) and 2 (on), so 3 - getPosition() toggles them.
+          CreOptions.status_line:apply(3 - getPosition())
+        end,
+        hold_callback = function()
+          CreOptions.status_line:showDefaultConfirmBox(self.ui, getPosition())
+        end,
+        separator = true,
+      },
       {
         text = gettext("Book title"),
         checked_func = function()

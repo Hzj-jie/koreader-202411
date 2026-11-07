@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -1666,15 +1666,15 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
 
 #, fuzzy
 msgid "Alt status bar"
 msgstr "Egoera-barra"
+
+msgid "Enable alt status bar"
+msgstr ""
 
 #, fuzzy
 msgid "Book title"
@@ -5169,6 +5169,10 @@ msgid ""
 msgstr ""
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "aldatutako data"
+
+#, fuzzy
 msgid "Jan"
 msgstr "Kannada"
 
@@ -8224,6 +8228,19 @@ msgid ""
 "  right: %4"
 msgstr ""
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+
+msgid "Set default %1 to %2?"
+msgstr "Ezarri lehenetsia %1-tik %2-ra?"
+
+#, fuzzy
+msgid "Set as default"
+msgstr "Ezarri lehenetsia"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9352,8 +9369,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Denbora sinkronizatzen. Honek zenbait segundo iraun dezake."
 
-msgid "Synchronize time"
-msgstr "Sinkronizatu ordua"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10387,21 +10404,8 @@ msgstr "Hitz gutxi batzuk liburuari buruz"
 msgid "Set values"
 msgstr "Ezarri data"
 
-#, fuzzy
-msgid "Set as default"
-msgstr "Ezarri lehenetsia"
-
-msgid "Set default %1 to %2?"
-msgstr "Ezarri lehenetsia %1-tik %2-ra?"
-
 msgid "Set value"
 msgstr "Ezarri balioa"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
 
 msgid "no text"
 msgstr "testurik gabe"
@@ -10859,10 +10863,6 @@ msgid "File size: 1 byte"
 msgid_plural "File size: %1 bytes"
 msgstr[0] "Letra-tipoaren tamaina %1-ra ezarrita."
 msgstr[1] "Letra-tipoaren tamaina %1-ra ezarrita."
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "aldatutako data"
 
 #, fuzzy
 msgid "Choose this folder?"
@@ -16577,6 +16577,9 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Kokapena"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sinkronizatu ordua"
 
 #, fuzzy
 #~ msgid "Autoshutdown timeout: %1"

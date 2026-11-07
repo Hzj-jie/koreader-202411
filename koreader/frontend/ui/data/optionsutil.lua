@@ -346,6 +346,15 @@ end
 local Option = {}
 Option.__index = Option
 
+function Option:checkedPosition(configurable)
+  for index, val in ipairs(self.values) do
+    if val == configurable[self.name] then
+      return index
+    end
+  end
+  assert(false)
+end
+
 function Option:apply(position, when_applied_callback)
   if self.values then
     UIManager:broadcastEvent(

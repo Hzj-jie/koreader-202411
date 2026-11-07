@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2023-04-28 22:08+0000\n"
 "Last-Translator: Subham Jena <subhamjena8465@gmail.com>\n"
 "Language-Team: Odia <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -1457,13 +1457,13 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
 
 msgid "Alt status bar"
+msgstr ""
+
+msgid "Enable alt status bar"
 msgstr ""
 
 msgid "Book title"
@@ -4666,6 +4666,9 @@ msgid ""
 "KOReader will exit now."
 msgstr ""
 
+msgid "Last modified: %1"
+msgstr ""
+
 msgid "Jan"
 msgstr ""
 
@@ -7506,6 +7509,18 @@ msgid ""
 "  right: %4"
 msgstr ""
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+
+msgid "Set default %1 to %2?"
+msgstr ""
+
+msgid "Set as default"
+msgstr ""
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -8538,7 +8553,7 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr ""
 
-msgid "Synchronize time"
+msgid "Automatically synchronize time"
 msgstr ""
 
 msgid "Level 0: high quality, slowest"
@@ -9534,19 +9549,7 @@ msgstr ""
 msgid "Set values"
 msgstr ""
 
-msgid "Set as default"
-msgstr ""
-
-msgid "Set default %1 to %2?"
-msgstr ""
-
 msgid "Set value"
-msgstr ""
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
 msgstr ""
 
 msgid "no text"
@@ -9958,9 +9961,6 @@ msgid "File size: 1 byte"
 msgid_plural "File size: %1 bytes"
 msgstr[0] ""
 msgstr[1] ""
-
-msgid "Last modified: %1"
-msgstr ""
 
 #, fuzzy
 msgid "Choose this folder?"

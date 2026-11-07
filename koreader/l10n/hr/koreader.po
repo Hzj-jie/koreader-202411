@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -1584,14 +1584,14 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
 
 msgid "Alt status bar"
 msgstr "Alternativna traka stanja"
+
+msgid "Enable alt status bar"
+msgstr ""
 
 msgid "Book title"
 msgstr ""
@@ -4991,6 +4991,10 @@ msgid ""
 msgstr ""
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "datum promjene"
+
+#, fuzzy
 msgid "Jan"
 msgstr "Kannada"
 
@@ -8060,6 +8064,21 @@ msgstr ""
 "  lijevo:  %3\n"
 "  desno: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  lijevo:  %1\n"
+"  desno: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Postavi standard %1 na %2?"
+
+msgid "Set as default"
+msgstr "Postavi kao standardno"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9145,8 +9164,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr ""
 
-msgid "Synchronize time"
-msgstr "Sinkroniziraj vrijeme"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10162,23 +10181,8 @@ msgstr "Kratki tekst o ovoj knjizi"
 msgid "Set values"
 msgstr "Postavi vrijednosti"
 
-msgid "Set as default"
-msgstr "Postavi kao standardno"
-
-msgid "Set default %1 to %2?"
-msgstr "Postavi standard %1 na %2?"
-
 msgid "Set value"
 msgstr "Postavi vrijednosti"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  lijevo:  %1\n"
-"  desno: %2\n"
 
 msgid "no text"
 msgstr "bez teksta"
@@ -10613,10 +10617,6 @@ msgid_plural "File size: %1 bytes"
 msgstr[0] "Veličina fonta: %1"
 msgstr[1] "Veličina fonta: %1"
 msgstr[2] "Veličina fonta: %1"
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "datum promjene"
 
 #, fuzzy
 msgid "Choose this folder?"
@@ -16094,6 +16094,9 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Okretanje"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sinkroniziraj vrijeme"
 
 #, fuzzy
 #~ msgid "Autostandby timeout: %1"
