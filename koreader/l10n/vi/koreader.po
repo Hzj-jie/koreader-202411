@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:52-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -5753,19 +5753,6 @@ msgid "No default gateway to ping"
 msgstr "Không có cổng mặc định để ping"
 
 msgid ""
-"Couldn't extract archive:\n"
-"\n"
-"%1\n"
-"\n"
-"Unrecognized filename extension."
-msgstr ""
-"Không thể giải nén lưu trữ:\n"
-"\n"
-"%1\n"
-"\n"
-"Phần mở rộng tệp không xác định."
-
-msgid ""
 "Extracting archive failed:\n"
 "\n"
 "%1"
@@ -8689,6 +8676,21 @@ msgstr ""
 "  trái: %3\n"
 "  phải: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  trái:  %1  \n"
+"  phải: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Đặt mặc định %1 thành %2?"
+
+msgid "Set as default"
+msgstr ""
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9806,8 +9808,8 @@ msgstr "Không thể truy xuất thời gian từ máy chủ. Kiểm tra cấu h
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Đang đồng bộ thời gian. Có thể mất vài giây."
 
-msgid "Synchronize time"
-msgstr "Đồng bộ thời gian"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10839,23 +10841,8 @@ msgstr "Đôi từ về sách"
 msgid "Set values"
 msgstr "Đặt mục"
 
-msgid "Set as default"
-msgstr ""
-
-msgid "Set default %1 to %2?"
-msgstr "Đặt mặc định %1 thành %2?"
-
 msgid "Set value"
 msgstr "Đặt giá trị"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  trái:  %1  \n"
-"  phải: %2\n"
 
 msgid "no text"
 msgstr "Không có văn bản"
@@ -14551,6 +14538,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -17014,6 +17007,22 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "chú giải"
+
+#~ msgid ""
+#~ "Couldn't extract archive:\n"
+#~ "\n"
+#~ "%1\n"
+#~ "\n"
+#~ "Unrecognized filename extension."
+#~ msgstr ""
+#~ "Không thể giải nén lưu trữ:\n"
+#~ "\n"
+#~ "%1\n"
+#~ "\n"
+#~ "Phần mở rộng tệp không xác định."
+
+#~ msgid "Synchronize time"
+#~ msgstr "Đồng bộ thời gian"
 
 #, fuzzy
 #~ msgid ""

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:52-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -5368,14 +5368,6 @@ msgid "No default gateway to ping"
 msgstr "Postaviti standardni stil na %1?"
 
 msgid ""
-"Couldn't extract archive:\n"
-"\n"
-"%1\n"
-"\n"
-"Unrecognized filename extension."
-msgstr ""
-
-msgid ""
 "Extracting archive failed:\n"
 "\n"
 "%1"
@@ -8064,6 +8056,21 @@ msgstr ""
 "  lijevo:  %3\n"
 "  desno: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  lijevo:  %1\n"
+"  desno: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Postavi standard %1 na %2?"
+
+msgid "Set as default"
+msgstr "Postavi kao standardno"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9149,8 +9156,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr ""
 
-msgid "Synchronize time"
-msgstr "Sinkroniziraj vrijeme"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10166,23 +10173,8 @@ msgstr "Kratki tekst o ovoj knjizi"
 msgid "Set values"
 msgstr "Postavi vrijednosti"
 
-msgid "Set as default"
-msgstr "Postavi kao standardno"
-
-msgid "Set default %1 to %2?"
-msgstr "Postavi standard %1 na %2?"
-
 msgid "Set value"
 msgstr "Postavi vrijednosti"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  lijevo:  %1\n"
-"  desno: %2\n"
 
 msgid "no text"
 msgstr "bez teksta"
@@ -13696,6 +13688,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -16034,6 +16032,9 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Okretanje"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sinkroniziraj vrijeme"
 
 #~ msgid ""
 #~ "%1\n"

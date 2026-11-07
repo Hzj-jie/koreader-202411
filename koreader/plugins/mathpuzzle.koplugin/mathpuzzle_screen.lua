@@ -1,5 +1,6 @@
 local Blitbuffer = require("ffi/blitbuffer")
 local Button = require("ui/widget/button")
+local CenterContainer = require("ui/widget/container/centercontainer")
 local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
 local Font = require("ui/font")
@@ -277,6 +278,57 @@ function MathPuzzleScreen:_buildUI()
 
   local font_face = Font:getFace("cfont")
 
+  local function createAnswerButton(
+    i,
+    prob,
+    width,
+    height,
+    pad_v,
+    pad_h,
+    blank_idx
+  )
+    local btn_idx = #self.input_buttons + 1
+    local is_focused = (btn_idx == self.focused_idx)
+    local val = blank_idx and (prob.user_answers[blank_idx] or "")
+      or (prob.user_answer or "")
+
+    local input_btn = Button:new({
+      text = val ~= "" and val or (is_focused and "_" or " "),
+      width = width,
+      height = height,
+      bordersize = is_focused and Size.border.bold or Size.border.thin,
+      background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
+        or Blitbuffer.COLOR_WHITE,
+      padding_v = pad_v,
+      padding_h = pad_h,
+      margin = 0,
+      callback = function()
+        self:selectField(btn_idx)
+      end,
+    })
+
+    input_btn.prob_id = i
+    input_btn.blank_idx = blank_idx
+    input_btn.getText = function()
+      if blank_idx then
+        return prob.user_answers[blank_idx] or ""
+      end
+      return prob.user_answer or ""
+    end
+    input_btn.setText = function(_, txt)
+      if blank_idx then
+        prob.user_answers[blank_idx] = tostring(txt)
+      else
+        prob.user_answer = tostring(txt)
+      end
+      self:_clearMark(i)
+      self:_updateInputButton(btn_idx)
+    end
+
+    self.input_buttons[btn_idx] = input_btn
+    return input_btn
+  end
+
   local function buildRow(i)
     local prob = self.problems[i]
 
@@ -309,38 +361,18 @@ function MathPuzzleScreen:_buildUI()
 
       for k = 1, #prob.terms do
         if prob.blanks[k] then
-          local btn_idx = #self.input_buttons + 1
-          local is_focused = (btn_idx == self.focused_idx)
-          local val = prob.user_answers[k] or ""
-
-          local input_btn = Button:new({
-            text = val ~= "" and val or (is_focused and "_" or " "),
-            width = btn_w,
-            height = btn_h,
-            bordersize = is_focused and Size.border.bold or Size.border.thin,
-            background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
-              or Blitbuffer.COLOR_WHITE,
-            padding_v = Screen:scaleBySize(2),
-            padding_h = Screen:scaleBySize(2),
-            margin = 0,
-            callback = function()
-              self:selectField(btn_idx)
-            end,
-          })
-
-          input_btn.prob_id = i
-          input_btn.blank_idx = k
-          input_btn.getText = function()
-            return prob.user_answers[k] or ""
-          end
-          input_btn.setText = function(_, txt)
-            prob.user_answers[k] = tostring(txt)
-            self:_clearMark(i)
-            self:_updateInputButton(btn_idx)
-          end
-
-          self.input_buttons[btn_idx] = input_btn
-          table.insert(row_group, input_btn)
+          table.insert(
+            row_group,
+            createAnswerButton(
+              i,
+              prob,
+              btn_w,
+              btn_h,
+              Screen:scaleBySize(2),
+              Screen:scaleBySize(2),
+              k
+            )
+          )
         else
           local num_widget = TextWidget:new({
             text = tostring(prob.terms[k]),
@@ -364,39 +396,6 @@ function MathPuzzleScreen:_buildUI()
 
       return row_group
     elseif prob.text and prob.text:find("___") then
-      local btn_idx = #self.input_buttons + 1
-      local is_focused = (btn_idx == self.focused_idx)
-      local val = prob.user_answer or ""
-      local btn_w = Screen:scaleBySize(44)
-      local btn_h = Screen:scaleBySize(34)
-
-      local input_btn = Button:new({
-        text = val ~= "" and val or (is_focused and "_" or " "),
-        width = btn_w,
-        height = btn_h,
-        bordersize = is_focused and Size.border.bold or Size.border.thin,
-        background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
-          or Blitbuffer.COLOR_WHITE,
-        padding_v = Screen:scaleBySize(2),
-        padding_h = Screen:scaleBySize(2),
-        margin = 0,
-        callback = function()
-          self:selectField(btn_idx)
-        end,
-      })
-
-      input_btn.prob_id = i
-      input_btn.getText = function()
-        return prob.user_answer or ""
-      end
-      input_btn.setText = function(_, txt)
-        prob.user_answer = tostring(txt)
-        self:_clearMark(i)
-        self:_updateInputButton(btn_idx)
-      end
-
-      self.input_buttons[btn_idx] = input_btn
-
       local prefix, suffix = prob.text:match("^(.-)___(.*)$")
       local row_group = HorizontalGroup:new({ align = "center" })
 
@@ -409,7 +408,17 @@ function MathPuzzleScreen:_buildUI()
         table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(4) }))
       end
 
-      table.insert(row_group, input_btn)
+      table.insert(
+        row_group,
+        createAnswerButton(
+          i,
+          prob,
+          Screen:scaleBySize(44),
+          Screen:scaleBySize(34),
+          Screen:scaleBySize(2),
+          Screen:scaleBySize(2)
+        )
+      )
 
       suffix = suffix:match("^%s*(.-)$")
       if suffix ~= "" then
@@ -425,36 +434,6 @@ function MathPuzzleScreen:_buildUI()
 
       return row_group
     else
-      local btn_idx = #self.input_buttons + 1
-      local is_focused = (btn_idx == self.focused_idx)
-      local val = prob.user_answer or ""
-
-      local input_btn = Button:new({
-        text = val ~= "" and val or (is_focused and "_" or " "),
-        width = input_width,
-        bordersize = is_focused and Size.border.bold or Size.border.thin,
-        background = is_focused and Blitbuffer.COLOR_LIGHT_GRAY
-          or Blitbuffer.COLOR_WHITE,
-        padding_v = Screen:scaleBySize(4),
-        padding_h = Screen:scaleBySize(4),
-        margin = 0,
-        callback = function()
-          self:selectField(btn_idx)
-        end,
-      })
-
-      input_btn.prob_id = i
-      input_btn.getText = function()
-        return prob.user_answer or ""
-      end
-      input_btn.setText = function(_, txt)
-        prob.user_answer = tostring(txt)
-        self:_clearMark(i)
-        self:_updateInputButton(btn_idx)
-      end
-
-      self.input_buttons[btn_idx] = input_btn
-
       return HorizontalGroup:new({
         TextWidget:new({
           text = prob.text,
@@ -463,7 +442,14 @@ function MathPuzzleScreen:_buildUI()
           alignment = "right",
         }),
         HorizontalSpan:new({ width = Screen:scaleBySize(6) }),
-        input_btn,
+        createAnswerButton(
+          i,
+          prob,
+          input_width,
+          nil,
+          Screen:scaleBySize(4),
+          Screen:scaleBySize(4)
+        ),
         HorizontalSpan:new({ width = Screen:scaleBySize(4) }),
         mark_container,
       })
@@ -471,7 +457,128 @@ function MathPuzzleScreen:_buildUI()
   end
 
   local columns_group
-  if is_single_column then
+  if self.mode.type == "math_snake" then
+    local cols = 4
+    assert((count + 1) % cols == 0)
+    local num_rows = (count + 1) / cols
+    local mark_face = Font:getFace("x_smallinfofont")
+    local node_w = Screen:scaleBySize(64)
+    local h_conn_w = Screen:scaleBySize(70)
+    local node_h = Screen:scaleBySize(34)
+    local mark_h = TextWidget:new({ text = " ✓", face = mark_face })
+      :getSize().h
+
+    local function buildConnector(text, w, h)
+      return CenterContainer:new({
+        dimen = Geom:new({ w = w, h = h }),
+        TextWidget:new({
+          text = text,
+          face = mark_face,
+        }),
+      })
+    end
+
+    local step_slots = {}
+    for i = 1, count do
+      local mark_widget = TextWidget:new({
+        text = "",
+        face = mark_face,
+        max_width = node_w,
+      })
+      local mark_container = FrameContainer:new({
+        width = node_w,
+        height = mark_h,
+        background = Blitbuffer.COLOR_WHITE,
+        bordersize = 0,
+        padding = 0,
+        margin = 0,
+        CenterContainer:new({
+          dimen = Geom:new({ w = node_w, h = mark_h }),
+          mark_widget,
+        }),
+      })
+      self.mark_widgets[i] = mark_widget
+      self.mark_containers[i] = mark_container
+
+      step_slots[i] = VerticalGroup:new({
+        align = "center",
+        mark_container,
+        createAnswerButton(
+          i,
+          self.problems[i],
+          node_w,
+          node_h,
+          Screen:scaleBySize(2),
+          Screen:scaleBySize(2)
+        ),
+      })
+    end
+
+    columns_group = VerticalGroup:new({ align = "center" })
+    for r = 1, num_rows do
+      local is_ltr = (r % 2 == 1)
+      local row_group = HorizontalGroup:new({
+        align = "center",
+        allow_mirroring = false,
+      })
+      for c = 1, cols do
+        local p = is_ltr and ((r - 1) * cols + c) or (r * cols - c + 1)
+        table.insert(row_group, p == 1 and VerticalGroup:new({
+          align = "center",
+          VerticalSpan:new({ height = mark_h }),
+          Button:new({
+            text = tostring(self.problems[1].a),
+            width = node_w,
+            height = node_h,
+            bordersize = Size.border.thin,
+            background = Blitbuffer.COLOR_WHITE,
+            padding_v = Screen:scaleBySize(2),
+            padding_h = Screen:scaleBySize(2),
+            margin = 0,
+          }),
+        }) or step_slots[p - 1])
+        if c < cols then
+          local conn_prob = self.problems[is_ltr and p or (p - 1)]
+          table.insert(
+            row_group,
+            VerticalGroup:new({
+              align = "center",
+              VerticalSpan:new({ height = mark_h }),
+              buildConnector(
+                is_ltr and string.format("%s %d →", conn_prob.op, conn_prob.b)
+                  or string.format("← %s %d", conn_prob.op, conn_prob.b),
+                h_conn_w,
+                node_h
+              ),
+            })
+          )
+        end
+      end
+      table.insert(columns_group, row_group)
+
+      if r < num_rows then
+        local turn_prob = self.problems[r * cols]
+        local turn_conn = buildConnector(
+          string.format("%s %d ↓", turn_prob.op, turn_prob.b),
+          node_w,
+          mark_h
+        )
+        local turn_spacer =
+          HorizontalSpan:new({ width = (cols - 1) * (node_w + h_conn_w) })
+        table.insert(columns_group, is_ltr and HorizontalGroup:new({
+          align = "center",
+          allow_mirroring = false,
+          turn_spacer,
+          turn_conn,
+        }) or HorizontalGroup:new({
+          align = "center",
+          allow_mirroring = false,
+          turn_conn,
+          turn_spacer,
+        }))
+      end
+    end
+  elseif is_single_column then
     for i = 1, count do
       table.insert(left_col, buildRow(i))
       if i < count then

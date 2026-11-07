@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:52-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -5642,14 +5642,6 @@ msgid "No default gateway to ping"
 msgstr "Sett forvalgt stil til %1?"
 
 msgid ""
-"Couldn't extract archive:\n"
-"\n"
-"%1\n"
-"\n"
-"Unrecognized filename extension."
-msgstr ""
-
-msgid ""
 "Extracting archive failed:\n"
 "\n"
 "%1"
@@ -8305,6 +8297,19 @@ msgid ""
 "  right: %4"
 msgstr ""
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+
+msgid "Set default %1 to %2?"
+msgstr "Sett forvalg 1% til %2?"
+
+#, fuzzy
+msgid "Set as default"
+msgstr "forvalgt"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9401,8 +9406,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr ""
 
-msgid "Synchronize time"
-msgstr "Synkroniser tid"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10431,20 +10436,7 @@ msgstr "Et par ord om boka"
 msgid "Set values"
 msgstr ""
 
-#, fuzzy
-msgid "Set as default"
-msgstr "forvalgt"
-
-msgid "Set default %1 to %2?"
-msgstr "Sett forvalg 1% til %2?"
-
 msgid "Set value"
-msgstr ""
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
 msgstr ""
 
 msgid "no text"
@@ -14070,6 +14062,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -16441,6 +16439,9 @@ msgstr "Legg til i Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plassering"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Synkroniser tid"
 
 #, fuzzy
 #~ msgid ""
