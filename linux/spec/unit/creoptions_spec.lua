@@ -26,6 +26,8 @@ describe("CreOptions", function()
   it("should have valid CreOptions structure", function()
     assert.are.equal("copt", CreOptions.prefix)
     assert.is_true(#CreOptions > 0)
+    assert.are.equal(findOption("rotation_mode"), CreOptions.rotation_mode)
+    assert.are.equal("copt", CreOptions.rotation_mode.prefix)
   end)
 
   it("should handle rotation_mode item_icons_func and current_func", function()

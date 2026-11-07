@@ -745,13 +745,14 @@ You might need to set it to 1 column if, in a full width document, text is incor
   },
 }
 
+optionsutil.initOptions(KoptOptions)
+
 if BD.mirroredUILayout() then
   -- The justification items {AUTO, LEFT, CENTER, RIGHT, JUSTIFY} will
   -- be mirrored - but that's not enough: we need to swap LEFT and RIGHT,
   -- so they appear in a more expected and balanced order to RTL users:
   -- {JUSTIFY, LEFT, CENTER, RIGHT, AUTO}
-  local j = KoptOptions[4].options[5]
-  assert(j.name == "justification")
+  local j = KoptOptions.justification
   j.item_icons[2], j.item_icons[4] = j.item_icons[4], j.item_icons[2]
   j.values[2], j.values[4] = j.values[4], j.values[2]
   j.labels[2], j.labels[4] = j.labels[4], j.labels[2]
@@ -759,8 +760,7 @@ if BD.mirroredUILayout() then
   -- stay as is, as the RTL directions are at the end of the arrays.
   -- By reverting the mirroring, RTL directions will be on the right,
   -- so, at the start of the options for a RTL reader.
-  j = KoptOptions[3].options[7]
-  assert(j.name == "zoom_direction")
+  j = KoptOptions.zoom_direction
   util.arrayReverse(j.item_icons)
   util.arrayReverse(j.values)
   util.arrayReverse(j.args)

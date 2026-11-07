@@ -105,13 +105,7 @@ function OptionTextItem:onTapSelect()
 end
 
 function OptionTextItem:onHoldSelect()
-  self.config:onMakeDefault(
-    self.name,
-    self.name_text,
-    self.values or self.args,
-    self.values or self.item_text,
-    self.current_item
-  )
+  self.config:onMakeDefault(self.name, self.current_item)
   return true
 end
 
@@ -185,13 +179,7 @@ function OptionIconItem:onTapSelect()
 end
 
 function OptionIconItem:onHoldSelect()
-  self.config:onMakeDefault(
-    self.name,
-    self.name_text,
-    self.values,
-    self.labels or self.values,
-    self.current_item
-  )
+  self.config:onMakeDefault(self.name, self.current_item)
   return true
 end
 
@@ -562,8 +550,6 @@ function ConfigOption:init()
           option_items[d] = option_item
           option_item.items = option_items
           option_item.name = self.options[c].name
-          option_item.name_text = name_text or self.options[c].alt_name_text
-          option_item.item_text = self.options[c].item_text
           option_item.values = self.options[c].values
           option_item.args = self.options[c].args
           option_item.event = self.options[c].event
@@ -616,9 +602,7 @@ function ConfigOption:init()
           option_items[d] = option_item
           option_item.items = option_items
           option_item.name = self.options[c].name
-          option_item.name_text = name_text or self.options[c].alt_name_text
           option_item.values = self.options[c].values
-          option_item.labels = self.options[c].labels
           option_item.args = self.options[c].args
           option_item.event = self.options[c].event
           option_item.current_item = d
@@ -650,7 +634,6 @@ function ConfigOption:init()
           font_face = item_font_face,
           font_size = item_font_size,
           name = self.options[c].name,
-          name_text = name_text,
           toggle = toggle,
           alternate = self.options[c].alternate,
           values = self.options[c].values,
@@ -674,14 +657,10 @@ function ConfigOption:init()
                 self.options[c].more_options_param
                 and self.options[c].more_options_param.names
               then
-                local option1 = self.config:findOptionByName(
-                  self.options[c].more_options_param.names[1]
-                )
-                local option2 = self.config:findOptionByName(
-                  self.options[c].more_options_param.names[2]
-                )
-                default_value_original =
-                  { option1.default_value, option2.default_value }
+                default_value_original = {
+                  self.config.config_options[self.options[c].more_options_param.names[1]].default_value,
+                  self.config.config_options[self.options[c].more_options_param.names[2]].default_value,
+                }
               else
                 default_value_original = self.options[c].default_value
               end
@@ -736,14 +715,10 @@ function ConfigOption:init()
                 self.options[c].more_options_param
                 and self.options[c].more_options_param.names
               then
-                local option1 = self.config:findOptionByName(
-                  self.options[c].more_options_param.names[1]
-                )
-                local option2 = self.config:findOptionByName(
-                  self.options[c].more_options_param.names[2]
-                )
-                default_value_original =
-                  { option1.default_value, option2.default_value }
+                default_value_original = {
+                  self.config.config_options[self.options[c].more_options_param.names[1]].default_value,
+                  self.config.config_options[self.options[c].more_options_param.names[2]].default_value,
+                }
               else
                 default_value_original = self.options[c].default_value
               end
@@ -781,13 +756,7 @@ function ConfigOption:init()
                 arg
               )
             elseif arg ~= "⋮" then
-              self.config:onMakeDefault(
-                self.options[c].name,
-                name_text,
-                self.options[c].values,
-                self.options[c].labels or self.options[c].args,
-                arg
-              )
+              self.config:onMakeDefault(self.options[c].name, arg)
             end
           end,
           enabled = enabled,
@@ -1172,10 +1141,10 @@ function ConfigDialog:onConfigEvent(
 end
 
 function ConfigDialog:onConfigChoose(
-  values,
+  _values,
   name,
-  event,
-  args,
+  _event,
+  _args,
   position,
   hide_on_apply
 )
@@ -1198,13 +1167,7 @@ function ConfigDialog:onConfigChoose(
       when_applied_callback = refresh_dialog_func
       self.skip_paint = true
     end
-    if values then
-      self:onConfigChoice(name, values[position])
-    end
-    if event then
-      args = args or {}
-      self:onConfigEvent(event, args[position], when_applied_callback)
-    end
+    self.config_options[name]:apply(position, when_applied_callback)
     -- Even if each toggle refreshes itself when toggled, we still
     -- need to update and repaint the whole config panel, as other
     -- toggles may have their state (enabled/disabled) modified
@@ -1576,17 +1539,14 @@ function ConfigDialog:onConfigMoreChoose(
             and function()
               when_applied_callback = nil -- prevent bottom menu from being shown (before being hidden again)
               widget:onExit()
-              local option = self:findOptionByName(
-                more_options_param.other_button.other_option
-              )
+              local option =
+                self.config_options[more_options_param.other_button.other_option]
               local default_value_original
               if option.more_options_param.names then
-                local option1 =
-                  self:findOptionByName(option.more_options_param.names[1])
-                local option2 =
-                  self:findOptionByName(option.more_options_param.names[2])
-                default_value_original =
-                  { option1.default_value, option2.default_value }
+                default_value_original = {
+                  self.config_options[option.more_options_param.names[1]].default_value,
+                  self.config_options[option.more_options_param.names[2]].default_value,
+                }
               else
                 default_value_original = option.default_value
               end
@@ -1610,46 +1570,17 @@ function ConfigDialog:onConfigMoreChoose(
   end)
 end
 
-function ConfigDialog:onMakeDefault(name, name_text, values, labels, position)
-  local display_value = labels[position]
+function ConfigDialog:onMakeDefault(name, position)
   if name == "font_fine_tune" then
     return
-    -- known table value, make it pretty
-  elseif name == "h_page_margins" then
-    display_value = T(
-      gettext([[
-
-  left:  %1
-  right: %2
-]]),
-      display_value[1],
-      display_value[2]
-    )
-  end
-  -- generic fallback to support table values
-  if type(display_value) == "table" then
-    display_value = serpent.block(
-      display_value,
-      { maxlevel = 6, indent = "  ", comment = false, nocode = true }
-    )
   end
 
-  self:showWidget(ConfirmBox:new({
-    text = T(
-      gettext("Set default %1 to %2?"),
-      (name_text or ""),
-      display_value
-    ),
-    ok_text = T(gettext("Set as default")),
-    ok_callback = function()
-      name = self.config_options.prefix .. "_" .. name
-      G_reader_settings:save(name, values[position])
-      self:update()
-      UIManager:setDirty(self, function()
-        return "ui", self.dialog_frame.dimen
-      end)
-    end,
-  }))
+  self.config_options[name]:showDefaultConfirmBox(self, position, function()
+    self:update()
+    UIManager:setDirty(self, function()
+      return "ui", self.dialog_frame.dimen
+    end)
+  end)
 end
 
 -- Tweaked variant used with the fine_tune variant of buttonprogress (direction can only be "-" or "+")
@@ -1702,23 +1633,6 @@ function ConfigDialog:onMakeFineTuneDefault(
       end)
     end,
   }))
-end
-
-function ConfigDialog:findOptionByName(name)
-  local option
-  for i = 1, #self.config_options do
-    local options = self.config_options[i].options
-    for j = 1, #options do
-      if options[j].name == name then
-        option = options[j]
-        break
-      end
-    end
-    if option then
-      break
-    end
-  end
-  return option
 end
 
 function ConfigDialog:closeDialog()

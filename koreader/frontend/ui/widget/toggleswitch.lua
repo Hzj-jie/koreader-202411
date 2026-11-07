@@ -249,13 +249,7 @@ function ToggleSwitch:onHoldSelect(arg, gev)
       position == 1 and "-" or "+"
     )
   else
-    self.config:onMakeDefault(
-      self.name,
-      self.name_text,
-      self.values or self.args,
-      self.toggle,
-      position
-    )
+    self.config:onMakeDefault(self.name, position)
   end
   return true
 end

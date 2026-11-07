@@ -5,6 +5,7 @@ local InfoMessage = require("ui/widget/infomessage") -- luacheck:ignore
 local InputContainer = require("ui/widget/container/inputcontainer")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
+local optionsutil = require("ui/data/optionsutil")
 
 local Game2048Settings = {
   ui = nil,
@@ -127,6 +128,7 @@ function Game2048Config:init()
       },
     },
   }
+  optionsutil.initOptions(self.options)
 
   self._did_show_size_notification = false
 end
