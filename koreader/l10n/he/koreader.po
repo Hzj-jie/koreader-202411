@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:50-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8555,6 +8555,21 @@ msgstr ""
 "  שמאל: %3\n"
 "  ימין: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  שמאל: %1\n"
+"  ימין: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "להגדיר את ברירת המחדל %1 ל-%2?"
+
+msgid "Set as default"
+msgstr "שחזר לברירת מחדל"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9697,8 +9712,8 @@ msgstr "חילוץ הזמן מהשרת נכשל. אנא בדוק את הגדרו
 msgid "Synchronizing time. This may take several seconds."
 msgstr "סינכרון זמן. הפעולה עשויה להמשך מספר שניות."
 
-msgid "Synchronize time"
-msgstr "סנכרן זמן"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr "רמה 0: איכות גבוהה, איטית ביותר"
@@ -11086,23 +11101,8 @@ msgstr "כמה מילים על הספר"
 msgid "Set values"
 msgstr "הגדר ערכים"
 
-msgid "Set as default"
-msgstr "שחזר לברירת מחדל"
-
-msgid "Set default %1 to %2?"
-msgstr "להגדיר את ברירת המחדל %1 ל-%2?"
-
 msgid "Set value"
 msgstr "הגדר ערך"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  שמאל: %1\n"
-"  ימין: %2\n"
 
 msgid "no text"
 msgstr "אין טקסט"
@@ -14769,6 +14769,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -17237,6 +17243,9 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "הסברים"
+
+#~ msgid "Synchronize time"
+#~ msgstr "סנכרן זמן"
 
 #~ msgid ""
 #~ "%1\n"

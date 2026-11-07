@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:50-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Mihai Vasiliu <mihai.vasiliu.93@gmail.com>\n"
 "Language-Team: Romanian <https://hosted.weblate.org/projects/koreader/"
@@ -8768,6 +8768,21 @@ msgstr ""
 "  stânga: %3\n"
 "  dreapta: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  stânga: %1\n"
+"dreapta: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Setezi implicit %1 la %2?"
+
+msgid "Set as default"
+msgstr "Setează ca implicit"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9942,8 +9957,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Se sincronizează ora. Asta poate dura câteva secunde."
 
-msgid "Synchronize time"
-msgstr "Sincronizează ora"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr "Nivelul 0: Calitate înaltă, cel mai încet"
@@ -11381,23 +11396,8 @@ msgstr "Câteva cuvinte despre carte"
 msgid "Set values"
 msgstr "Setează valori"
 
-msgid "Set as default"
-msgstr "Setează ca implicit"
-
-msgid "Set default %1 to %2?"
-msgstr "Setezi implicit %1 la %2?"
-
 msgid "Set value"
 msgstr "Setează valoare"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  stânga: %1\n"
-"dreapta: %2\n"
 
 msgid "no text"
 msgstr "fără text"
@@ -15120,6 +15120,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -17622,6 +17628,9 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "adnotări"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sincronizează ora"
 
 #~ msgid ""
 #~ "%1\n"

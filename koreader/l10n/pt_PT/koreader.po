@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:50-0800\n"
 "PO-Revision-Date: 2024-10-16 17:13+0000\n"
 "Last-Translator: Horus68 <horus68@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Portuguese (Portugal) <https://hosted.weblate.org/projects/"
@@ -8626,6 +8626,21 @@ msgstr ""
 "  esquerda: %3\n"
 "  direita: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  esquerda: %1\n"
+"  direita: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Definir o padrão de %1 para %2?"
+
+msgid "Set as default"
+msgstr "Definir como padrão"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9801,8 +9816,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Tempo de sincronização. Isso pode demorar vários segundos."
 
-msgid "Synchronize time"
-msgstr "Sincronizar o tempo"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr "Nível 0: alta qualidade, mais lento"
@@ -11206,23 +11221,8 @@ msgstr "Algumas palavras sobre o livro"
 msgid "Set values"
 msgstr "Definir valores"
 
-msgid "Set as default"
-msgstr "Definir como padrão"
-
-msgid "Set default %1 to %2?"
-msgstr "Definir o padrão de %1 para %2?"
-
 msgid "Set value"
 msgstr "Definir valor"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  esquerda: %1\n"
-"  direita: %2\n"
 
 msgid "no text"
 msgstr "sem texto"
@@ -14932,6 +14932,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -17434,6 +17440,9 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "anotações"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sincronizar o tempo"
 
 #~ msgid ""
 #~ "%1\n"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:50-0800\n"
 "PO-Revision-Date: 2024-03-09 08:01+0000\n"
 "Last-Translator: Software In Interlingua <softinterlingua@gmail.com>\n"
 "Language-Team: Interlingua <https://hosted.weblate.org/projects/koreader/"
@@ -7504,6 +7504,18 @@ msgid ""
 "  right: %4"
 msgstr ""
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+
+msgid "Set default %1 to %2?"
+msgstr ""
+
+msgid "Set as default"
+msgstr ""
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -8535,7 +8547,7 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr ""
 
-msgid "Synchronize time"
+msgid "Automatically synchronize time"
 msgstr ""
 
 msgid "Level 0: high quality, slowest"
@@ -9529,19 +9541,7 @@ msgstr ""
 msgid "Set values"
 msgstr ""
 
-msgid "Set as default"
-msgstr ""
-
-msgid "Set default %1 to %2?"
-msgstr ""
-
 msgid "Set value"
-msgstr ""
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
 msgstr ""
 
 msgid "no text"
@@ -12916,6 +12916,12 @@ msgid "Arithmetic Progression within 100"
 msgstr ""
 
 msgid "Step up to 10, numbers up to 100"
+msgstr ""
+
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
 msgstr ""
 
 #, lua-format

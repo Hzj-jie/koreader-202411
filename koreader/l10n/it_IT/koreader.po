@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:50-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Enrico Segre <enricoalbertoernestosegre@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/koreader/"
@@ -8853,6 +8853,21 @@ msgstr ""
 "  sinistro: %3\n"
 "  destro: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"sinistro: %1\n"
+"destro: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Imposta il predefinito %1 a %2?"
+
+msgid "Set as default"
+msgstr "Imposta come predefinito"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -10033,8 +10048,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Sincronizzazione orario. Potrebbe richiedere alcuni secondi."
 
-msgid "Synchronize time"
-msgstr "Sincronizza orario"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr "Livello 0: alta qualità, più lento"
@@ -11483,23 +11498,8 @@ msgstr "Qualche parola sul libro"
 msgid "Set values"
 msgstr "Imposta valori"
 
-msgid "Set as default"
-msgstr "Imposta come predefinito"
-
-msgid "Set default %1 to %2?"
-msgstr "Imposta il predefinito %1 a %2?"
-
 msgid "Set value"
 msgstr "Imposta valore"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"sinistro: %1\n"
-"destro: %2\n"
 
 msgid "no text"
 msgstr "niente testo"
@@ -15225,6 +15225,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -17721,6 +17727,9 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "annotazioni"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sincronizza orario"
 
 #~ msgid ""
 #~ "%1\n"

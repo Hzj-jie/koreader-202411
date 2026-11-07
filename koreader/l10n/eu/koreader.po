@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:11-0800\n"
+"POT-Creation-Date: 2026-11-07 12:50-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8228,6 +8228,19 @@ msgid ""
 "  right: %4"
 msgstr ""
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+
+msgid "Set default %1 to %2?"
+msgstr "Ezarri lehenetsia %1-tik %2-ra?"
+
+#, fuzzy
+msgid "Set as default"
+msgstr "Ezarri lehenetsia"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9356,8 +9369,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Denbora sinkronizatzen. Honek zenbait segundo iraun dezake."
 
-msgid "Synchronize time"
-msgstr "Sinkronizatu ordua"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10391,21 +10404,8 @@ msgstr "Hitz gutxi batzuk liburuari buruz"
 msgid "Set values"
 msgstr "Ezarri data"
 
-#, fuzzy
-msgid "Set as default"
-msgstr "Ezarri lehenetsia"
-
-msgid "Set default %1 to %2?"
-msgstr "Ezarri lehenetsia %1-tik %2-ra?"
-
 msgid "Set value"
 msgstr "Ezarri balioa"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
 
 msgid "no text"
 msgstr "testurik gabe"
@@ -14054,6 +14054,12 @@ msgstr ""
 msgid "Step up to 10, numbers up to 100"
 msgstr ""
 
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -16522,6 +16528,9 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Kokapena"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Sinkronizatu ordua"
 
 #, fuzzy
 #~ msgid ""
