@@ -2,10 +2,13 @@
 This module contains miscellaneous helper functions for the creoptions and koptoptions.
 ]]
 
+local ConfirmBox = require("ui/widget/confirmbox")
 local Device = require("device")
+local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
 local UIManager = require("ui/uimanager")
 local gettext = require("gettext")
+local serpent = require("ffi/serpent")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
 local logger = require("logger")
@@ -337,6 +340,93 @@ function optionsutil:getOptionText(event, val)
     return text
   else
     return val
+  end
+end
+
+local Option = {}
+Option.__index = Option
+
+function Option:apply(position, when_applied_callback)
+  if self.values then
+    UIManager:broadcastEvent(
+      Event:new("ConfigChange", self.name, self.values[position])
+    )
+  end
+  if self.event then
+    UIManager:broadcastEvent(
+      Event:new(self.event, (self.args or {})[position], when_applied_callback)
+    )
+  end
+end
+
+function Option:showDefaultConfirmBox(owner, position, on_confirm)
+  local name_text = self.name_text_func
+      and self.name_text_func(owner.configurable, owner.document)
+    or self.name_text
+    or self.alt_name_text
+  local display_value = (
+    self.toggle
+    or self.labels
+    or self.values
+    or self.item_text
+    or self.args
+  )[position]
+  -- known table value, make it pretty
+  if self.name == "h_page_margins" then
+    display_value = T(
+      gettext([[
+
+  left:  %1
+  right: %2
+]]),
+      display_value[1],
+      display_value[2]
+    )
+  end
+  -- generic fallback to support table values
+  if type(display_value) == "table" then
+    display_value = serpent.block(
+      display_value,
+      { maxlevel = 6, indent = "  ", comment = false, nocode = true }
+    )
+  end
+
+  owner:showWidget(ConfirmBox:new({
+    text = T(
+      gettext("Set default %1 to %2?"),
+      (name_text or ""),
+      display_value
+    ),
+    ok_text = T(gettext("Set as default")),
+    ok_callback = function()
+      G_reader_settings:save(
+        self.prefix .. "_" .. self.name,
+        (self.values or self.args)[position]
+      )
+      if on_confirm then
+        on_confirm()
+      end
+    end,
+  }))
+end
+
+function optionsutil.initOptions(config_options)
+  assert(
+    type(config_options.prefix) == "string" and config_options.prefix ~= ""
+  )
+  for i = 1, #config_options do
+    for _, option in ipairs(config_options[i].options) do
+      assert(type(option.name) == "string" and option.name ~= "")
+      assert(
+        config_options[option.name] == nil,
+        "Duplicate or colliding config option name: " .. option.name
+      )
+      assert(option.prefix == nil)
+      assert(getmetatable(option) == nil)
+      config_options[option.name] = option
+      option.prefix = config_options.prefix
+      setmetatable(option, Option)
+    end
   end
 end
 
