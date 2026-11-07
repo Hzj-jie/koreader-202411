@@ -248,6 +248,7 @@ describe("OptionsUtil module", function()
       assert.are.equal(opt_b, config_options.opt_b)
       assert.are.equal("test", opt_a.prefix)
       assert.are.equal("test", opt_b.prefix)
+      assert.is_function(opt_a.checkedPosition)
       assert.is_function(opt_a.apply)
       assert.is_function(opt_a.showDefaultConfirmBox)
 
@@ -297,6 +298,49 @@ describe("OptionsUtil module", function()
       end)
     end
   )
+
+  it("should find value position via option:checkedPosition", function()
+    local config_options = {
+      prefix = "test",
+      {
+        options = {
+          { name = "bad" },
+          { name = "status_line", values = { 1, 0 } },
+          { name = "multi", values = { "low", false, "med", "high" } },
+        },
+      },
+    }
+    OptionsUtil.initOptions(config_options)
+
+    assert.are.equal(
+      1,
+      config_options.status_line:checkedPosition({ status_line = 1 })
+    )
+    assert.are.equal(
+      2,
+      config_options.status_line:checkedPosition({ status_line = 0 })
+    )
+    assert.are.equal(1, config_options.multi:checkedPosition({ multi = "low" }))
+    assert.are.equal(2, config_options.multi:checkedPosition({ multi = false }))
+    assert.are.equal(3, config_options.multi:checkedPosition({ multi = "med" }))
+    assert.are.equal(
+      4,
+      config_options.multi:checkedPosition({ multi = "high" })
+    )
+
+    assert.has.errors(function()
+      config_options.bad:checkedPosition({})
+    end)
+    assert.has.errors(function()
+      config_options.status_line:checkedPosition({})
+    end)
+    assert.has.errors(function()
+      config_options.status_line:checkedPosition({ status_line = 2 })
+    end)
+    assert.has.errors(function()
+      config_options.multi:checkedPosition({ multi = "unknown" })
+    end)
+  end)
 
   it("should broadcast events via option:apply", function()
     local events = {}

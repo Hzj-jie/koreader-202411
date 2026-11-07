@@ -1,5 +1,6 @@
 describe("ReaderCoptListener module", function()
-  local ReaderCoptListener, DocumentRegistry, ReaderUI, Screen
+  local ReaderCoptListener, DocumentRegistry, ReaderUI, Screen, UIManager
+  local gettext, T
 
   setup(function()
     require("commonrequire")
@@ -10,6 +11,9 @@ describe("ReaderCoptListener module", function()
     DocumentRegistry = require("document/documentregistry")
     ReaderUI = require("apps/reader/readerui")
     Screen = require("device").screen
+    UIManager = require("ui/uimanager")
+    gettext = require("gettext")
+    T = require("ffi/util").template
   end)
 
   it("should update view_mode using self.ui.view on read settings", function()
@@ -199,6 +203,99 @@ describe("ReaderCoptListener module", function()
         end
       end
     )
+
+    it("should toggle alt status bar and save default on hold", function()
+      local CreOptions = require("ui/data/creoptions")
+      local orig_values = CreOptions.status_line.values
+      local readerui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      finally(function()
+        CreOptions.status_line.values = orig_values
+        G_reader_settings:delete("copt_status_line")
+        for i = #UIManager._window_stack, 1, -1 do
+          local w = UIManager._window_stack[i].widget
+          if w ~= readerui then
+            UIManager:close(w)
+          end
+        end
+        readerui:onExit(true)
+        readerui:onClose()
+      end)
+
+      local menu = readerui.crelistener:getAltStatusBarMenu()
+      local enable_item = menu.sub_item_table[1]
+      assert.is_table(enable_item)
+      assert.are_equal(gettext("Enable alt status bar"), enable_item.text)
+      assert.is_true(enable_item.separator)
+
+      -- Document configurable status_line: 0 = on, 1 = off
+      readerui.document.configurable.status_line = 1
+      readerui.rolling.cre_top_bar_enabled = false
+      assert.is_false(enable_item.checked_func())
+
+      -- Tap to toggle on
+      enable_item.callback()
+      assert.are_equal(0, readerui.document.configurable.status_line)
+      assert.is_true(readerui.rolling.cre_top_bar_enabled)
+      assert.is_true(enable_item.checked_func())
+
+      -- Hold to set as default
+      enable_item.hold_callback()
+      local confirm_box = UIManager:getTopmostVisibleWidget()
+      assert.is_table(confirm_box)
+      assert.are_equal(
+        T(
+          gettext("Set default %1 to %2?"),
+          gettext("Alt Status Bar"),
+          gettext("on")
+        ),
+        confirm_box.text
+      )
+      assert.are_equal(gettext("Set as default"), confirm_box.ok_text)
+      confirm_box.ok_callback()
+      UIManager:close(confirm_box)
+      assert.are_equal(0, G_reader_settings:read("copt_status_line"))
+
+      -- Tap to toggle off
+      enable_item.callback()
+      assert.are_equal(1, readerui.document.configurable.status_line)
+      assert.is_false(readerui.rolling.cre_top_bar_enabled)
+      assert.is_false(enable_item.checked_func())
+
+      -- Hold to set off as default
+      enable_item.hold_callback()
+      local confirm_box_off = UIManager:getTopmostVisibleWidget()
+      assert.is_table(confirm_box_off)
+      assert.are_equal(
+        T(
+          gettext("Set default %1 to %2?"),
+          gettext("Alt Status Bar"),
+          gettext("off")
+        ),
+        confirm_box_off.text
+      )
+      assert.are_equal(gettext("Set as default"), confirm_box_off.ok_text)
+      confirm_box_off.ok_callback()
+      UIManager:close(confirm_box_off)
+      assert.are_equal(1, G_reader_settings:read("copt_status_line"))
+
+      -- Invalid status_line value fails checkedPosition assert
+      readerui.document.configurable.status_line = 2
+      assert.has.errors(enable_item.checked_func)
+      assert.has.errors(enable_item.callback)
+      assert.has.errors(enable_item.hold_callback)
+
+      -- Unexpected values ordering or length fails checked_func assert
+      readerui.document.configurable.status_line = 1
+      CreOptions.status_line.values = { 0, 1 }
+      assert.has.errors(enable_item.checked_func)
+      CreOptions.status_line.values = { 1 }
+      assert.has.errors(enable_item.checked_func)
+      CreOptions.status_line.values = orig_values
+      assert.is_false(enable_item.checked_func())
+    end)
 
     it("should add and remove additional header content", function()
       local listener = createMockListener()

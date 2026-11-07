@@ -208,4 +208,12 @@ describe("CreOptions", function()
     Screen.night_mode = false
     assert.is_false(opt.show_func())
   end)
+
+  it("should provide status_line option without hiding show_func", function()
+    local opt = CreOptions.status_line
+    assert.truthy(opt)
+    assert.is_nil(opt.show_func)
+    assert.are.equal("SetStatusLine", opt.event)
+    assert.are.equal(opt, findOption("status_line"))
+  end)
 end)
