@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -1667,15 +1667,15 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
 
 #, fuzzy
 msgid "Alt status bar"
 msgstr "Statusfelt"
+
+msgid "Enable alt status bar"
+msgstr ""
 
 msgid "Book title"
 msgstr "Boktittel"
@@ -5265,6 +5265,10 @@ msgid ""
 msgstr ""
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "endret dato"
+
+#, fuzzy
 msgid "Jan"
 msgstr "Januar"
 
@@ -8301,6 +8305,19 @@ msgid ""
 "  right: %4"
 msgstr ""
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+
+msgid "Set default %1 to %2?"
+msgstr "Sett forvalg 1% til %2?"
+
+#, fuzzy
+msgid "Set as default"
+msgstr "forvalgt"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9397,8 +9414,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr ""
 
-msgid "Synchronize time"
-msgstr "Synkroniser tid"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10427,20 +10444,7 @@ msgstr "Et par ord om boka"
 msgid "Set values"
 msgstr ""
 
-#, fuzzy
-msgid "Set as default"
-msgstr "forvalgt"
-
-msgid "Set default %1 to %2?"
-msgstr "Sett forvalg 1% til %2?"
-
 msgid "Set value"
-msgstr ""
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
 msgstr ""
 
 msgid "no text"
@@ -10894,10 +10898,6 @@ msgid "File size: 1 byte"
 msgid_plural "File size: %1 bytes"
 msgstr[0] "Skriftstørrelse (%1)"
 msgstr[1] "Skriftstørrelse (%1)"
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "endret dato"
 
 #, fuzzy
 msgid "Choose this folder?"
@@ -16492,6 +16492,9 @@ msgstr "Legg til i Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plassering"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Synkroniser tid"
 
 #, fuzzy
 #~ msgid "Autostandby timeout: %1"

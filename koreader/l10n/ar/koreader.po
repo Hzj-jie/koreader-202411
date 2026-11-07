@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2024-02-27 20:00+0000\n"
 "Last-Translator: shetozz <a.teama3317@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -1745,21 +1745,14 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
-"في مستندات CRE، يمكن عرض شريط حالة بديل في أعلى الشاشة، مع شريط الحالة "
-"السفلي العادي أو بدونه.\n"
-"\n"
-"يمكن تمكين شريط الحالة البديل هذا، لكل مستند أو افتراضيا، في القائمة "
-"السفلية.\n"
-"\n"
-"يمكن تكوين شريط الحالة البديل هنا."
 
 msgid "Alt status bar"
 msgstr "شريط الحالة السفلي"
+
+msgid "Enable alt status bar"
+msgstr ""
 
 msgid "Book title"
 msgstr "عنوان الكتاب"
@@ -5553,6 +5546,10 @@ msgstr ""
 "سيخرج KOReader الآن."
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "تاريخ التعديل"
+
+#, fuzzy
 msgid "Jan"
 msgstr "لغة كاناده"
 
@@ -8872,6 +8869,21 @@ msgstr ""
 "  اليسار: %3\n"
 "  اليمين: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  يسار:  %1\n"
+"  يمين: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "أتريدُ تخزين (%2) كقيمةٍ افتراضيَّةٍ لإعداد (%1)؟"
+
+msgid "Set as default"
+msgstr "تعيين كافتراضي"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -10045,8 +10057,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr "تتم الآن مزامنة الوقت. سيستغرق هذا ثوانٍ."
 
-msgid "Synchronize time"
-msgstr "مزامنة الساعة"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr "المستوى 0: جودة عالية ، أبطأ"
@@ -11408,23 +11420,8 @@ msgstr "بعض الكلمات حول الكتاب"
 msgid "Set values"
 msgstr "تعيين القيم"
 
-msgid "Set as default"
-msgstr "تعيين كافتراضي"
-
-msgid "Set default %1 to %2?"
-msgstr "أتريدُ تخزين (%2) كقيمةٍ افتراضيَّةٍ لإعداد (%1)؟"
-
 msgid "Set value"
 msgstr "تحديد"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  يسار:  %1\n"
-"  يمين: %2\n"
 
 msgid "no text"
 msgstr "لا يوجد نص"
@@ -11871,10 +11868,6 @@ msgstr[2] "حجم الخط: %1"
 msgstr[3] "حجم الخط: %1"
 msgstr[4] "حجم الخط: %1"
 msgstr[5] "حجم الخط: %1"
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "تاريخ التعديل"
 
 #, fuzzy
 msgid "Choose this folder?"
@@ -17642,6 +17635,26 @@ msgstr "والا باغ"
 #, fuzzy
 msgid "annotations"
 msgstr "دوران"
+
+#~ msgid ""
+#~ "In CRE documents, an alternative status bar can be displayed at the top "
+#~ "of the screen, with or without the regular bottom status bar.\n"
+#~ "\n"
+#~ "Enabling this alt status bar, per document or by default, can be done in "
+#~ "the bottom menu.\n"
+#~ "\n"
+#~ "The alternative status bar can be configured here."
+#~ msgstr ""
+#~ "في مستندات CRE، يمكن عرض شريط حالة بديل في أعلى الشاشة، مع شريط الحالة "
+#~ "السفلي العادي أو بدونه.\n"
+#~ "\n"
+#~ "يمكن تمكين شريط الحالة البديل هذا، لكل مستند أو افتراضيا، في القائمة "
+#~ "السفلية.\n"
+#~ "\n"
+#~ "يمكن تكوين شريط الحالة البديل هنا."
+
+#~ msgid "Synchronize time"
+#~ msgstr "مزامنة الساعة"
 
 #~ msgid "Autoshutdown timeout: %1"
 #~ msgstr "مهلة إيقاف التشغيل التلقائي: %1"

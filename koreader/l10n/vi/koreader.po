@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -1603,21 +1603,14 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
-"Trong tài liệu CRE, một thanh trạng thái thay thế có thể được hiển thị ở đầu "
-"màn hình, có hoặc không có thanh trạng thái dưới cùng như thông thường.\n"
-"\n"
-"Thanh trạng thái thay thế này có thể được bật cho các tài liệu khác nhau "
-"hoặc theo mặc định trong menu dưới cùng.\n"
-"\n"
-"Một thanh trạng thái thay thế có thể được định cấu hình tại đây."
 
 msgid "Alt status bar"
 msgstr "Thanh trạng thái thay thế"
+
+msgid "Enable alt status bar"
+msgstr ""
 
 msgid "Book title"
 msgstr "Tiêu đề sách"
@@ -5364,6 +5357,10 @@ msgstr ""
 "KOReader sẽ thoát ngay bây giờ."
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "ngày sửa đổi"
+
+#, fuzzy
 msgid "Jan"
 msgstr "Kannada"
 
@@ -8685,6 +8682,21 @@ msgstr ""
 "  trái: %3\n"
 "  phải: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  trái:  %1  \n"
+"  phải: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Đặt mặc định %1 thành %2?"
+
+msgid "Set as default"
+msgstr ""
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9802,8 +9814,8 @@ msgstr "Không thể truy xuất thời gian từ máy chủ. Kiểm tra cấu h
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Đang đồng bộ thời gian. Có thể mất vài giây."
 
-msgid "Synchronize time"
-msgstr "Đồng bộ thời gian"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10835,23 +10847,8 @@ msgstr "Đôi từ về sách"
 msgid "Set values"
 msgstr "Đặt mục"
 
-msgid "Set as default"
-msgstr ""
-
-msgid "Set default %1 to %2?"
-msgstr "Đặt mặc định %1 thành %2?"
-
 msgid "Set value"
 msgstr "Đặt giá trị"
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  trái:  %1  \n"
-"  phải: %2\n"
 
 msgid "no text"
 msgstr "Không có văn bản"
@@ -11306,10 +11303,6 @@ msgstr ""
 msgid "File size: 1 byte"
 msgid_plural "File size: %1 bytes"
 msgstr[0] "Kích cỡ phông chữ: %1"
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "ngày sửa đổi"
 
 #, fuzzy
 msgid "Choose this folder?"
@@ -17063,6 +17056,27 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "chú giải"
+
+#~ msgid ""
+#~ "In CRE documents, an alternative status bar can be displayed at the top "
+#~ "of the screen, with or without the regular bottom status bar.\n"
+#~ "\n"
+#~ "Enabling this alt status bar, per document or by default, can be done in "
+#~ "the bottom menu.\n"
+#~ "\n"
+#~ "The alternative status bar can be configured here."
+#~ msgstr ""
+#~ "Trong tài liệu CRE, một thanh trạng thái thay thế có thể được hiển thị ở "
+#~ "đầu màn hình, có hoặc không có thanh trạng thái dưới cùng như thông "
+#~ "thường.\n"
+#~ "\n"
+#~ "Thanh trạng thái thay thế này có thể được bật cho các tài liệu khác nhau "
+#~ "hoặc theo mặc định trong menu dưới cùng.\n"
+#~ "\n"
+#~ "Một thanh trạng thái thay thế có thể được định cấu hình tại đây."
+
+#~ msgid "Synchronize time"
+#~ msgstr "Đồng bộ thời gian"
 
 #~ msgid "Autoshutdown timeout"
 #~ msgstr "Tự động tắt nguồn sau"

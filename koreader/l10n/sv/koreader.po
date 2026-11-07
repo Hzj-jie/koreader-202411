@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 12:23-0800\n"
+"POT-Creation-Date: 2026-11-07 12:51-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -1700,15 +1700,15 @@ msgid ""
 "In CRE documents, an alternative status bar can be displayed at the top of "
 "the screen, with or without the regular bottom status bar.\n"
 "\n"
-"Enabling this alt status bar, per document or by default, can be done in the "
-"bottom menu.\n"
-"\n"
-"The alternative status bar can be configured here."
+"The alternative status bar can be enabled and configured here."
 msgstr ""
 
 #, fuzzy
 msgid "Alt status bar"
 msgstr "Statusfält"
+
+msgid "Enable alt status bar"
+msgstr ""
 
 #, fuzzy
 msgid "Book title"
@@ -5394,6 +5394,10 @@ msgstr ""
 "KOReader kommer att avsluta nu."
 
 #, fuzzy
+msgid "Last modified: %1"
+msgstr "datum ändrat"
+
+#, fuzzy
 msgid "Jan"
 msgstr "Kannada"
 
@@ -8671,6 +8675,22 @@ msgstr ""
 "  vänster:  %3\n"
 "  höger: %4"
 
+msgid ""
+"\n"
+"  left:  %1\n"
+"  right: %2\n"
+msgstr ""
+"\n"
+"  vänster:  %1\n"
+"  höger: %2\n"
+
+msgid "Set default %1 to %2?"
+msgstr "Ange standard %1 till %2?"
+
+#, fuzzy
+msgid "Set as default"
+msgstr "Ange standard"
+
 msgid "Download directory is read-only. Please choose a writable directory."
 msgstr ""
 
@@ -9820,8 +9840,8 @@ msgstr ""
 msgid "Synchronizing time. This may take several seconds."
 msgstr "Synkroniserar tid. Detta kan ta flera sekunder."
 
-msgid "Synchronize time"
-msgstr "Synkronisera tid"
+msgid "Automatically synchronize time"
+msgstr ""
 
 msgid "Level 0: high quality, slowest"
 msgstr ""
@@ -10864,24 +10884,8 @@ msgstr "Några få ord om boken"
 msgid "Set values"
 msgstr "Ställ in datum"
 
-#, fuzzy
-msgid "Set as default"
-msgstr "Ange standard"
-
-msgid "Set default %1 to %2?"
-msgstr "Ange standard %1 till %2?"
-
 msgid "Set value"
 msgstr ""
-
-msgid ""
-"\n"
-"  left:  %1\n"
-"  right: %2\n"
-msgstr ""
-"\n"
-"  vänster:  %1\n"
-"  höger: %2\n"
 
 msgid "no text"
 msgstr "ingen text"
@@ -11342,10 +11346,6 @@ msgid "File size: 1 byte"
 msgid_plural "File size: %1 bytes"
 msgstr[0] "Teckenstorlek"
 msgstr[1] "Teckenstorlek"
-
-#, fuzzy
-msgid "Last modified: %1"
-msgstr "datum ändrat"
 
 #, fuzzy
 msgid "Choose this folder?"
@@ -17271,6 +17271,9 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plats"
+
+#~ msgid "Synchronize time"
+#~ msgstr "Synkronisera tid"
 
 #, fuzzy
 #~ msgid "Autoshutdown timeout: %1"

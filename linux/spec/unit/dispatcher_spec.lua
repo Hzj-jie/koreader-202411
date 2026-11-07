@@ -1,6 +1,7 @@
 local Dispatcher
 local UIManager
 local Event
+local gettext
 
 describe("dispatcher", function()
   local captured_inputs = {}
@@ -11,6 +12,7 @@ describe("dispatcher", function()
     UIManager = require("ui/uimanager")
     Event = require("ui/event")
     Dispatcher = require("dispatcher")
+    gettext = require("gettext")
 
     UIManager.userInput = function(_, event)
       if type(event) == "string" then
@@ -411,6 +413,49 @@ describe("dispatcher", function()
       })
       assert.are.equal("medium", Dispatcher:getArgFromValue("test_map", 20))
       Dispatcher:removeAction("test_map")
+    end)
+
+    it("registers CreOptions status_line and executes SetStatusLine", function()
+      local CreOptions = require("ui/data/creoptions")
+      local Configurable = require("configurable")
+
+      local orig_readerui = package.loaded["apps/reader/readerui"]
+      package.loaded["apps/reader/readerui"] = {
+        instance = {
+          paging = false,
+        },
+      }
+      finally(function()
+        package.loaded["apps/reader/readerui"] = orig_readerui
+        G_reader_settings:delete("copt_status_line")
+      end)
+
+      -- Storage claim verification: Configurable:loadDefaults loads copt_status_line
+      G_reader_settings:save("copt_status_line", 0)
+      local conf = Configurable:new()
+      conf:loadDefaults(CreOptions)
+      assert.are.equal(0, conf.status_line)
+
+      -- Dispatcher registration verification
+      assert.are.equal(
+        gettext("Alt Status Bar") .. ": " .. gettext("on"),
+        Dispatcher:getNameFromItem("status_line", { status_line = 0 })
+      )
+      assert.are.equal(
+        gettext("Alt Status Bar") .. ": " .. gettext("off"),
+        Dispatcher:getNameFromItem("status_line", { status_line = 1 })
+      )
+
+      -- Execution sends onSetStatusLine event
+      Dispatcher:execute({ status_line = 0 })
+      local found_set_status_line = false
+      for _, ev in ipairs(captured_inputs) do
+        if ev.handler == "onSetStatusLine" then
+          found_set_status_line = true
+          assert.are.equal(0, ev.args[1])
+        end
+      end
+      assert.is_true(found_set_status_line)
     end)
 
     it("manages order via _addToOrder and _removeFromOrder", function()
