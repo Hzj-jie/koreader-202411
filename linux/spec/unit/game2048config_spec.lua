@@ -64,6 +64,8 @@ describe("Game2048Config module", function()
     assert.is_table(config.options)
     assert.are.equal("game2048", config.options.prefix)
     assert.are.equal(2, #config.options)
+    assert.are.equal(config.options[1].options[1], config.options.size)
+    assert.are.equal("game2048", config.options.size.prefix)
     assert.is_false(config._did_show_size_notification)
   end)
 

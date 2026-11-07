@@ -1,5 +1,6 @@
 describe("ConfigDialog", function()
   local ConfigDialog
+  local OptionsUtil
   local UIManager
   local Geom
 
@@ -9,6 +10,7 @@ describe("ConfigDialog", function()
   setup(function()
     require("commonrequire")
 
+    OptionsUtil = require("ui/data/optionsutil")
     UIManager = require("ui/uimanager")
     Geom = require("ui/geometry")
 
@@ -29,6 +31,7 @@ describe("ConfigDialog", function()
             values = { "s", "m", "l" },
             default_pos = 1,
             event = "SetTextOpt",
+            args = { "arg_s", "arg_m", "arg_l" },
           },
           {
             name = "opt_icon",
@@ -73,12 +76,13 @@ describe("ConfigDialog", function()
           {
             name = "h_page_margins",
             name_text = "Margins",
-            toggle = { "Narrow", "Wide" },
+            buttonprogress = true,
             values = { { 10, 10 }, { 20, 20 } },
           },
         },
       },
     }
+    OptionsUtil.initOptions(mock_options)
 
     mock_configurable = {
       opt_text = "s",
@@ -112,19 +116,6 @@ describe("ConfigDialog", function()
     assert.is_not_nil(dialog.dialog_frame)
     assert.is_not_nil(dialog.config_menubar)
     assert.is_not_nil(dialog.config_panel)
-  end)
-
-  it("should find option by name", function()
-    local dialog = ConfigDialog:new({
-      config_options = mock_options,
-      configurable = mock_configurable,
-    })
-    local opt = dialog:findOptionByName("opt_toggle")
-    assert.is_not_nil(opt)
-    assert.are.equal("Toggle Option", opt.name_text)
-
-    local non_existent = dialog:findOptionByName("non_existent")
-    assert.is_nil(non_existent)
   end)
 
   it("should navigate between configuration panels", function()
@@ -291,24 +282,54 @@ describe("ConfigDialog", function()
     UIManager:show(dialog)
     UIManager:forceRepaint()
 
-    local choice_called = false
-    dialog.onConfigChoice = function(self, _name, _val)
-      choice_called = true
+    local events = {}
+    local orig_broadcast = UIManager.broadcastEvent
+    UIManager.broadcastEvent = function(_self, ev)
+      table.insert(events, ev)
     end
+    finally(function()
+      UIManager.broadcastEvent = orig_broadcast
+    end)
 
     dialog:onConfigChoose(
-      { "val1", "val2" },
+      { "s", "m", "l" },
       "opt_text",
       "SetTextOpt",
-      nil,
-      1,
-      false
+      { "arg_s", "arg_m", "arg_l" },
+      2,
+      true
     )
+
+    assert.are.equal(0, #events)
 
     -- Flush task queue (tickAfterNext)
     UIManager:_checkTasks()
     UIManager:_checkTasks()
-    assert.is_true(choice_called)
+    assert.are.equal(2, #events)
+    assert.are.equal("onConfigChange", events[1].handler)
+    assert.are.equal("opt_text", events[1].args[1])
+    assert.are.equal("m", events[1].args[2])
+    assert.are.equal("onSetTextOpt", events[2].handler)
+    assert.are.equal("arg_m", events[2].args[1])
+    assert.is_function(events[2].args[2])
+    assert.is_true(dialog.skip_paint)
+    events[2].args[2]()
+    assert.is_nil(dialog.skip_paint)
+
+    dialog:onConfigChoose(
+      { "s", "m", "l" },
+      "opt_text",
+      "SetTextOpt",
+      { "arg_s", "arg_m", "arg_l" },
+      3,
+      false
+    )
+    UIManager:_checkTasks()
+    UIManager:_checkTasks()
+    assert.are.equal(4, #events)
+    assert.are.equal("l", events[3].args[2])
+    assert.are.equal("arg_l", events[4].args[1])
+    assert.is_nil(events[4].args[2])
 
     dialog:closeDialog()
   end)
@@ -409,41 +430,26 @@ describe("ConfigDialog", function()
       dialog.showWidget = function(self, widget)
         confirm_box_shown = widget
       end
+      local update_spy = spy.on(dialog, "update")
 
       -- font_fine_tune ignore
-      dialog:onMakeDefault(
-        "font_fine_tune",
-        "Font Fine Tune",
-        { 1 },
-        { "1" },
-        1
-      )
+      dialog:onMakeDefault("font_fine_tune", 1)
       assert.is_nil(confirm_box_shown)
 
       -- h_page_margins
-      dialog:onMakeDefault(
-        "h_page_margins",
-        "Margins",
-        { { 10, 10 } },
-        { { 10, 10 } },
-        1
-      )
+      dialog:onMakeDefault("h_page_margins", 1)
       assert.is_not_nil(confirm_box_shown)
 
       -- Test ok_callback in ConfirmBox
       confirm_box_shown.ok_callback()
+      assert.spy(update_spy).was_called(1)
 
       -- Normal primitive value
       confirm_box_shown = nil
-      dialog:onMakeDefault(
-        "opt_text",
-        "Text Opt",
-        { "s", "m" },
-        { "Small", "Medium" },
-        1
-      )
+      dialog:onMakeDefault("opt_text", 1)
       assert.is_not_nil(confirm_box_shown)
       confirm_box_shown.ok_callback()
+      assert.spy(update_spy).was_called(2)
 
       dialog:closeDialog()
     end
@@ -613,6 +619,8 @@ describe("ConfigDialog", function()
         },
       }
 
+      OptionsUtil.initOptions(custom_options)
+
       local dialog = ConfigDialog:new({
         config_options = custom_options,
         configurable = {
@@ -626,18 +634,15 @@ describe("ConfigDialog", function()
       UIManager:forceRepaint()
 
       assert.is_not_nil(dialog)
-      local opt = dialog:findOptionByName("dyn_name")
+      local opt = dialog.config_options.dyn_name
       assert.is_not_nil(opt)
       if opt.name_text_hold_callback then
         opt.name_text_hold_callback()
       end
       assert.is_true(hold_called)
 
-      local hidden_opt = dialog:findOptionByName("hidden_opt")
-      assert.is_not_nil(hidden_opt)
-
-      local disabled_opt = dialog:findOptionByName("disabled_opt")
-      assert.is_not_nil(disabled_opt)
+      assert.is_not_nil(dialog.config_options.hidden_opt)
+      assert.is_not_nil(dialog.config_options.disabled_opt)
 
       dialog:closeDialog()
     end
@@ -719,6 +724,89 @@ describe("ConfigDialog", function()
       end
 
       dialog:closeDialog()
+    end
+  )
+
+  it(
+    "should preserve name_text_func in onMakeDefault confirmation dialog",
+    function()
+      local gettext = require("gettext")
+      local T = require("ffi/util").template
+      local ToggleSwitch = require("ui/widget/toggleswitch")
+      local rows_label = gettext("Rows")
+      local custom_options = {
+        prefix = "kopt",
+        {
+          icon = "appbar.crop",
+          options = {
+            {
+              name = "zoom_range_number",
+              name_text_func = function(configurable)
+                return configurable.zoom_mode_genus == 1 and rows_label
+                  or "Columns"
+              end,
+              toggle = { "1", "2" },
+              values = { 1, 2 },
+              labels = { "1", "2" },
+              event = "SetZoomRangeNumber",
+            },
+          },
+        },
+      }
+      OptionsUtil.initOptions(custom_options)
+
+      local dialog = ConfigDialog:new({
+        config_options = custom_options,
+        configurable = { zoom_range_number = 2, zoom_mode_genus = 1 },
+      })
+      UIManager:show(dialog)
+      UIManager:forceRepaint()
+
+      local confirm_box_shown = nil
+      dialog.showWidget = function(_self, widget)
+        confirm_box_shown = widget
+      end
+      finally(function()
+        G_reader_settings:delete("kopt_zoom_range_number")
+        dialog:closeDialog()
+      end)
+
+      local function findToggleSwitch(widget)
+        if type(widget) ~= "table" then
+          return nil
+        end
+        if
+          widget.name == "zoom_range_number"
+          and widget.setPosition == ToggleSwitch.setPosition
+        then
+          return widget
+        end
+        for _, child in ipairs(widget) do
+          local res = findToggleSwitch(child)
+          if res then
+            return res
+          end
+        end
+        return nil
+      end
+
+      local switch = findToggleSwitch(dialog.config_panel)
+      assert.is_not_nil(switch)
+      local dimen = switch:getSize()
+      switch:onHoldSelect(nil, {
+        pos = Geom:new({
+          x = dimen.x + dimen.w * 0.75,
+          y = dimen.y + dimen.h * 0.5,
+        }),
+      })
+
+      assert.is_not_nil(confirm_box_shown)
+      assert.are.equal(
+        T(gettext("Set default %1 to %2?"), rows_label, "2"),
+        confirm_box_shown.text
+      )
+      confirm_box_shown.ok_callback()
+      assert.are.equal(2, G_reader_settings:read("kopt_zoom_range_number"))
     end
   )
 end)
