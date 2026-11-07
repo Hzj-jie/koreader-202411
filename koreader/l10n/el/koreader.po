@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:16-0800\n"
+"POT-Creation-Date: 2026-11-07 12:23-0800\n"
 "PO-Revision-Date: 2024-11-18 15:26+0000\n"
 "Last-Translator: Ichnilatis <sophronios.sp@gmail.com>\n"
 "Language-Team: Greek <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -15329,6 +15329,12 @@ msgid "Arithmetic Progression within 100"
 msgstr ""
 
 msgid "Step up to 10, numbers up to 100"
+msgstr ""
+
+msgid "Math Snake (+, -) within 100"
+msgstr ""
+
+msgid "Chain addition and subtraction steps within 100"
 msgstr ""
 
 #, lua-format

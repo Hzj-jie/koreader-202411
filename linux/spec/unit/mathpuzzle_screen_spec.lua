@@ -987,6 +987,14 @@ describe("MathPuzzle Screen and Plugin", function()
       "30以内等差数列（入门）",
       gettext("Arithmetic Progression within 30 (Entry Level)")
     )
+    assert.are.equal(
+      "100以内算式接龙（加减法）",
+      gettext("Math Snake (+, -) within 100")
+    )
+    assert.are.equal(
+      "100以内的连续加减法接龙计算",
+      gettext("Chain addition and subtraction steps within 100")
+    )
 
     gettext.changeLang("zh_TW")
     assert.are.equal(
@@ -997,7 +1005,364 @@ describe("MathPuzzle Screen and Plugin", function()
       "30以內等差數列（入門）",
       gettext("Arithmetic Progression within 30 (Entry Level)")
     )
+    assert.are.equal(
+      "100以內算式接龍（加減法）",
+      gettext("Math Snake (+, -) within 100")
+    )
+    assert.are.equal(
+      "100以內的連續加減法接龍計算",
+      gettext("Chain addition and subtraction steps within 100")
+    )
 
     gettext.changeLang("C")
   end)
+
+  it(
+    "should render math_snake_100 in a 4x3 serpentine layout within screen bounds",
+    function()
+      local Device = require("device")
+      local Font = require("ui/font")
+      local gettext = require("gettext")
+      local Screen = Device.screen
+      local TextWidget = require("ui/widget/textwidget")
+      local screen = createScreen(nil, "math_snake_100")
+      UIManager:show(screen)
+
+      local test_bb = Screen.bb
+        or Blitbuffer.new(Screen:getWidth(), Screen:getHeight())
+      screen:paintTo(test_bb, 0, 0)
+
+      assert.are.equal(11, #screen.problems)
+      assert.are.equal(11, #screen.input_buttons)
+      assert.are.equal(11, #screen.mark_widgets)
+      assert.are.equal(11, #screen.mark_containers)
+
+      local btns = screen.input_buttons
+      -- Row 1 (head, 1, 2, 3): strictly left to right
+      assert.are.equal(btns[1].dimen.y, btns[2].dimen.y)
+      assert.are.equal(btns[2].dimen.y, btns[3].dimen.y)
+      assert.is_true(btns[1].dimen.x < btns[2].dimen.x)
+      assert.is_true(btns[2].dimen.x < btns[3].dimen.x)
+
+      -- Row 2 (7 <- 6 <- 5 <- 4): strictly below row 1, right to left
+      assert.are.equal(btns[4].dimen.y, btns[5].dimen.y)
+      assert.are.equal(btns[5].dimen.y, btns[6].dimen.y)
+      assert.are.equal(btns[6].dimen.y, btns[7].dimen.y)
+      assert.is_true(btns[4].dimen.y > btns[3].dimen.y)
+      assert.are.equal(btns[3].dimen.x, btns[4].dimen.x)
+      assert.is_true(btns[4].dimen.x > btns[5].dimen.x)
+      assert.is_true(btns[5].dimen.x > btns[6].dimen.x)
+      assert.is_true(btns[6].dimen.x > btns[7].dimen.x)
+
+      -- Row 3 (8 -> 9 -> 10 -> 11): strictly below row 2, left to right
+      assert.are.equal(btns[8].dimen.y, btns[9].dimen.y)
+      assert.are.equal(btns[9].dimen.y, btns[10].dimen.y)
+      assert.are.equal(btns[10].dimen.y, btns[11].dimen.y)
+      assert.is_true(btns[8].dimen.y > btns[7].dimen.y)
+      assert.are.equal(btns[7].dimen.x, btns[8].dimen.x)
+      assert.is_true(btns[8].dimen.x < btns[9].dimen.x)
+      assert.is_true(btns[9].dimen.x < btns[10].dimen.x)
+      assert.is_true(btns[10].dimen.x < btns[11].dimen.x)
+
+      -- 4-column vertical alignment
+      assert.is_true(btns[7].dimen.x < btns[1].dimen.x)
+      assert.are.equal(btns[1].dimen.x, btns[6].dimen.x)
+      assert.are.equal(btns[6].dimen.x, btns[9].dimen.x)
+      assert.are.equal(btns[2].dimen.x, btns[5].dimen.x)
+      assert.are.equal(btns[5].dimen.x, btns[10].dimen.x)
+      assert.are.equal(btns[4].dimen.x, btns[11].dimen.x)
+
+      -- Walk painted widget tree for head box, Check button, connectors, and TextWidgets
+      local check_btn
+      local head_btn
+      local text_counts = {}
+      local h_conns = {}
+      local turn_conns = {}
+      local head_text = tostring(screen.problems[1].a)
+      local function collectWidgets(widget, visited)
+        if type(widget) ~= "table" or visited[widget] then
+          return
+        end
+        visited[widget] = true
+        if widget.frame and widget.dimen then
+          if widget.text == gettext("Check") then
+            check_btn = widget
+          elseif widget.text == head_text and not widget.callback then
+            head_btn = widget
+          end
+        elseif not widget.frame and type(widget.text) == "string" then
+          text_counts[widget.text] = (text_counts[widget.text] or 0) + 1
+        elseif
+          widget[1]
+          and type(widget[1].text) == "string"
+          and widget.dimen
+        then
+          local label = widget[1].text
+          if label:match("↓$") then
+            table.insert(turn_conns, widget)
+          elseif label:match("→$") or label:match("^← ") then
+            table.insert(h_conns, widget)
+          end
+        end
+        for _, child in ipairs(widget) do
+          collectWidgets(child, visited)
+        end
+      end
+      collectWidgets(screen[1], {})
+
+      assert.is_not_nil(check_btn)
+      assert.is_not_nil(head_btn)
+      assert.are.equal(btns[1].dimen.w, head_btn.dimen.w)
+      assert.are.equal(btns[1].dimen.h, head_btn.dimen.h)
+      assert.are.equal(btns[1].dimen.y, head_btn.dimen.y)
+      assert.is_true(head_btn.dimen.x < btns[1].dimen.x)
+
+      assert.are.equal(1, text_counts[head_text])
+      local ltr_conn_count = 0
+      local rtl_conn_count = 0
+      local turn_conn_count = 0
+      for text, c in pairs(text_counts) do
+        if text:match("→$") then
+          ltr_conn_count = ltr_conn_count + c
+        elseif text:match("^← ") then
+          rtl_conn_count = rtl_conn_count + c
+        elseif text:match("↓$") then
+          turn_conn_count = turn_conn_count + c
+        end
+      end
+      assert.are.equal(6, ltr_conn_count)
+      assert.are.equal(3, rtl_conn_count)
+      assert.are.equal(2, turn_conn_count)
+      assert.is_nil(text_counts["Start"])
+
+      local expected_labels = {}
+      for i, prob in ipairs(screen.problems) do
+        local label
+        if i == 4 or i == 8 then
+          label = string.format("%s %d ↓", prob.op, prob.b)
+        elseif i >= 5 and i <= 7 then
+          label = string.format("← %s %d", prob.op, prob.b)
+        else
+          label = string.format("%s %d →", prob.op, prob.b)
+        end
+        expected_labels[label] = (expected_labels[label] or 0) + 1
+      end
+      for label, count in pairs(expected_labels) do
+        assert.is_true((text_counts[label] or 0) >= count)
+      end
+
+      assert.are.equal(2, #turn_conns)
+      table.sort(turn_conns, function(a, b)
+        return a.dimen.y < b.dimen.y
+      end)
+      assert.are.equal(
+        string.format("%s %d ↓", screen.problems[4].op, screen.problems[4].b),
+        turn_conns[1][1].text
+      )
+      assert.are.equal(btns[3].dimen.x, turn_conns[1].dimen.x)
+      assert.is_true(turn_conns[1][1]:getSize().w <= turn_conns[1].dimen.w)
+      assert.are.equal(
+        string.format("%s %d ↓", screen.problems[8].op, screen.problems[8].b),
+        turn_conns[2][1].text
+      )
+      assert.are.equal(btns[7].dimen.x, turn_conns[2].dimen.x)
+      assert.is_true(turn_conns[2][1]:getSize().w <= turn_conns[2].dimen.w)
+      for _, hc in ipairs(h_conns) do
+        assert.is_true(hc[1]:getSize().w <= hc.dimen.w)
+      end
+
+      -- Bounds, mark pinning, and mark slot sizing checks
+      local min_mark_h = TextWidget:new({
+        text = " ✓",
+        face = Font:getFace("x_smallinfofont"),
+      })
+        :getSize().h
+      local title_bottom = screen.title_bar.dimen.y + screen.title_bar.dimen.h
+      for i = 1, 11 do
+        local btn = btns[i]
+        local mc = screen.mark_containers[i]
+        assert.is_true(btn.dimen.x >= 0)
+        assert.is_true(btn.dimen.x + btn.dimen.w <= Screen:getWidth())
+        assert.is_true(mc.dimen.x >= 0)
+        assert.is_true(mc.dimen.x + mc.dimen.w <= Screen:getWidth())
+        assert.is_true(mc.dimen.y >= title_bottom)
+        assert.is_true(btn.dimen.y + btn.dimen.h < check_btn.dimen.y)
+        assert.is_true(btn.dimen.y + btn.dimen.h <= Screen:getHeight())
+        assert.are.equal(btn.dimen.x, mc.dimen.x)
+        assert.are.equal(btn.dimen.y, mc.dimen.y + mc.dimen.h)
+        assert.is_true(mc:getSize().w > 0)
+        assert.is_true(mc:getSize().h >= min_mark_h)
+      end
+
+      UIManager:close(screen)
+    end
+  )
+
+  it(
+    "should fit built content and keypad within screen height for every registered mode",
+    function()
+      local Device = require("device")
+      local Screen = Device.screen
+      local test_bb = Screen.bb
+        or Blitbuffer.new(Screen:getWidth(), Screen:getHeight())
+
+      for _, mode in ipairs(Generator.getModes()) do
+        local screen = createScreen(nil, mode.id)
+        UIManager:show(screen)
+        screen:paintTo(test_bb, 0, 0)
+
+        assert.is_true(
+          screen[1][1]:getSize().h <= Screen:getHeight(),
+          mode.id .. " content overflows screen height"
+        )
+
+        local zero_btn
+        local backspace_btn
+        local function findKeypadButtons(widget, visited)
+          if type(widget) ~= "table" or visited[widget] then
+            return
+          end
+          visited[widget] = true
+          if widget.frame and widget.dimen then
+            if widget.text == "0" then
+              zero_btn = widget
+            elseif widget.text == "⌫" then
+              backspace_btn = widget
+            end
+          end
+          for _, child in ipairs(widget) do
+            findKeypadButtons(child, visited)
+          end
+        end
+        findKeypadButtons(screen[1], {})
+
+        assert.is_not_nil(zero_btn)
+        assert.is_not_nil(backspace_btn)
+        assert.is_true(
+          zero_btn.dimen.y + zero_btn.dimen.h <= Screen:getHeight()
+        )
+        assert.is_true(
+          backspace_btn.dimen.y + backspace_btn.dimen.h <= Screen:getHeight()
+        )
+
+        UIManager:close(screen)
+      end
+    end
+  )
+
+  it("should preserve serpentine direction under RTL UI layout", function()
+    local BD = require("ui/bidi")
+    local orig_mirrored = BD.mirroredUILayout
+    finally(function()
+      BD.mirroredUILayout = orig_mirrored
+    end)
+    BD.mirroredUILayout = function()
+      return true
+    end
+
+    local Device = require("device")
+    local Screen = Device.screen
+    local screen = createScreen(nil, "math_snake_100")
+    UIManager:show(screen)
+    local test_bb = Screen.bb
+      or Blitbuffer.new(Screen:getWidth(), Screen:getHeight())
+    screen:paintTo(test_bb, 0, 0)
+
+    local btns = screen.input_buttons
+    assert.is_true(btns[1].dimen.x < btns[2].dimen.x)
+    assert.is_true(btns[2].dimen.x < btns[3].dimen.x)
+    assert.are.equal(btns[3].dimen.x, btns[4].dimen.x)
+    assert.is_true(btns[4].dimen.x > btns[5].dimen.x)
+    assert.is_true(btns[5].dimen.x > btns[6].dimen.x)
+    assert.is_true(btns[6].dimen.x > btns[7].dimen.x)
+    assert.are.equal(btns[7].dimen.x, btns[8].dimen.x)
+    assert.is_true(btns[8].dimen.x < btns[9].dimen.x)
+
+    local turn_conns = {}
+    local function collectTurnConns(widget, visited)
+      if type(widget) ~= "table" or visited[widget] then
+        return
+      end
+      visited[widget] = true
+      if
+        widget[1]
+        and type(widget[1].text) == "string"
+        and widget[1].text:match("↓$")
+        and widget.dimen
+      then
+        table.insert(turn_conns, widget)
+      end
+      for _, child in ipairs(widget) do
+        collectTurnConns(child, visited)
+      end
+    end
+    collectTurnConns(screen[1], {})
+
+    assert.are.equal(2, #turn_conns)
+    table.sort(turn_conns, function(a, b)
+      return a.dimen.y < b.dimen.y
+    end)
+    assert.are.equal(btns[3].dimen.x, turn_conns[1].dimen.x)
+    assert.are.equal(btns[7].dimen.x, turn_conns[2].dimen.x)
+
+    UIManager:close(screen)
+  end)
+
+  it(
+    "should navigate snake steps in order, grade per step, clear single marks, and switch from mode menu",
+    function()
+      local plugin = createMockPlugin()
+      plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+      local menu = plugin:showModeSelection(plugin.screen)
+      local target_item
+      for _, item in ipairs(menu.item_table) do
+        if item.text == Generator.getModeById("math_snake_100").title then
+          target_item = item
+          break
+        end
+      end
+      assert.is_not_nil(target_item)
+      target_item.callback()
+
+      assert.are.equal("math_snake_100", plugin.active_mode)
+      local screen = plugin.screen
+      assert.are.equal(11, #screen.problems)
+      assert.are.equal(11, #screen.input_buttons)
+
+      -- Sequential navigation along snake path 1..11 -> wrap to 1
+      assert.are.equal(1, screen.focused_idx)
+      for idx = 1, 11 do
+        assert.are.equal(idx, screen.focused_idx)
+        assert.are.equal(idx, screen.input_buttons[idx].prob_id)
+        screen:nextField()
+      end
+      assert.are.equal(1, screen.focused_idx)
+
+      -- Enter 10 correct answers and 1 wrong answer at step 4
+      for idx = 1, 11 do
+        local val = idx == 4 and (screen.problems[idx].answer + 1)
+          or screen.problems[idx].answer
+        screen.input_buttons[idx]:setText(tostring(val))
+      end
+      screen:checkAnswers()
+
+      assert.are.equal(10, plugin.session_correct)
+      assert.are.equal(1, plugin.session_wrong)
+      assert.are.equal(" ✓", screen.mark_widgets[3].text)
+      assert.is_truthy(screen.mark_widgets[4].text:find("✗"))
+      assert.are.equal(" ✓", screen.mark_widgets[5].text)
+
+      -- Editing step 4 clears only step 4's mark
+      screen:selectField(4)
+      screen:inputDigit("9")
+      assert.are.equal("", screen.mark_widgets[4].text)
+      assert.is_false(screen.problems[4].checked)
+      assert.is_nil(screen.problems[4].is_correct)
+      assert.are.equal(" ✓", screen.mark_widgets[3].text)
+      assert.are.equal(" ✓", screen.mark_widgets[5].text)
+
+      UIManager:close(menu)
+      UIManager:close(screen)
+    end
+  )
 end)
