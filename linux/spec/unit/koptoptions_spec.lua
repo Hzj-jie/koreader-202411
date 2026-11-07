@@ -24,6 +24,10 @@ describe("KoptOptions", function()
   it("should have valid KoptOptions structure", function()
     assert.are.equal("kopt", KoptOptions.prefix)
     assert.is_true(#KoptOptions > 0)
+    assert.are.equal(findOption("justification"), KoptOptions.justification)
+    assert.are.equal(findOption("zoom_direction"), KoptOptions.zoom_direction)
+    assert.are.equal("kopt", KoptOptions.justification.prefix)
+    assert.are.equal("kopt", KoptOptions.zoom_direction.prefix)
   end)
 
   it("should handle rotation_mode item_icons_func and current_func", function()
@@ -141,6 +145,54 @@ describe("KoptOptions", function()
       assert.truthy(opt_ws)
       assert.is_true(opt_ws.enabled_func({ text_wrap = 1 }))
       assert.is_false(opt_ws.enabled_func({ text_wrap = 0 }))
+    end
+  )
+
+  it(
+    "should swap justification and reverse zoom_direction in RTL layout",
+    function()
+      local BD = require("ui/bidi")
+      local saved = BD._mirrored_ui_layout
+      local ltr_labels = {
+        KoptOptions.justification.labels[2],
+        KoptOptions.justification.labels[4],
+      }
+      finally(function()
+        BD._mirrored_ui_layout = saved
+        package.loaded["ui/data/koptoptions"] = nil
+      end)
+
+      BD._mirrored_ui_layout = true
+      package.loaded["ui/data/koptoptions"] = nil
+      local rtl_kopt = require("ui/data/koptoptions")
+
+      assert.are.same({
+        "align.auto",
+        "align.right",
+        "align.center",
+        "align.left",
+        "align.justify",
+      }, rtl_kopt.justification.item_icons)
+      assert.are.same({ -1, 2, 1, 0, 3 }, rtl_kopt.justification.values)
+      assert.are.equal(ltr_labels[2], rtl_kopt.justification.labels[2])
+      assert.are.equal(ltr_labels[1], rtl_kopt.justification.labels[4])
+
+      assert.are.same({
+        "direction.RLTB",
+        "direction.TBRL",
+        "direction.RLBT",
+        "direction.BTRL",
+        "direction.BTLR",
+        "direction.LRBT",
+        "direction.TBLR",
+        "direction.LRTB",
+      }, rtl_kopt.zoom_direction.item_icons)
+      assert.are.same(
+        { 0, 1, 2, 3, 4, 5, 6, 7 },
+        rtl_kopt.zoom_direction.values
+      )
+      assert.are.same({ 0, 1, 2, 3, 4, 5, 6, 7 }, rtl_kopt.zoom_direction.args)
+      assert.are.equal(0, rtl_kopt.zoom_direction.default_value)
     end
   )
 end)

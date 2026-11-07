@@ -231,4 +231,220 @@ describe("OptionsUtil module", function()
       )
     end
   )
+
+  it(
+    "should index options by name and attach Option methods in initOptions",
+    function()
+      local opt_a = { name = "opt_a", values = { 1, 2 } }
+      local opt_b = { name = "opt_b", values = { "x", "y" } }
+      local config_options = {
+        prefix = "test",
+        { options = { opt_a } },
+        { options = { opt_b } },
+      }
+
+      assert.is_nil(OptionsUtil.initOptions(config_options))
+      assert.are.equal(opt_a, config_options.opt_a)
+      assert.are.equal(opt_b, config_options.opt_b)
+      assert.are.equal("test", opt_a.prefix)
+      assert.are.equal("test", opt_b.prefix)
+      assert.is_function(opt_a.apply)
+      assert.is_function(opt_a.showDefaultConfirmBox)
+
+      -- Non-idempotent: re-initializing fails
+      assert.has.errors(function()
+        OptionsUtil.initOptions(config_options)
+      end)
+
+      assert.has.errors(function()
+        OptionsUtil.initOptions({ { options = { { name = "a" } } } })
+      end)
+      assert.has.errors(function()
+        OptionsUtil.initOptions({
+          prefix = "",
+          { options = { { name = "a" } } },
+        })
+      end)
+      assert.has.errors(function()
+        OptionsUtil.initOptions({
+          prefix = "p",
+          { options = { { name = "" } } },
+        })
+      end)
+      assert.has.errors(function()
+        OptionsUtil.initOptions({
+          prefix = "p",
+          { options = { { name = "dup" }, { name = "dup" } } },
+        })
+      end)
+      assert.has.errors(function()
+        OptionsUtil.initOptions({
+          prefix = "p",
+          { options = { { name = "prefix" } } },
+        })
+      end)
+      assert.has.errors(function()
+        OptionsUtil.initOptions({
+          prefix = "p",
+          { options = { { name = "a", prefix = "existing" } } },
+        })
+      end)
+      assert.has.errors(function()
+        OptionsUtil.initOptions({
+          prefix = "p",
+          { options = { setmetatable({ name = "a" }, {}) } },
+        })
+      end)
+    end
+  )
+
+  it("should broadcast events via option:apply", function()
+    local events = {}
+    local orig_broadcast = UIManager.broadcastEvent
+    UIManager.broadcastEvent = function(_self, ev)
+      table.insert(events, ev)
+    end
+    finally(function()
+      UIManager.broadcastEvent = orig_broadcast
+    end)
+
+    local config_options = {
+      prefix = "test",
+      {
+        options = {
+          {
+            name = "test_opt",
+            values = { "off_val", "on_val" },
+            event = "SetTestOpt",
+            args = { false, true },
+          },
+          {
+            name = "event_only",
+            event = "TriggerOnly",
+          },
+        },
+      },
+    }
+    OptionsUtil.initOptions(config_options)
+
+    local applied_cb = function() end
+    config_options.test_opt:apply(2, applied_cb)
+
+    assert.are.equal(2, #events)
+    assert.are.equal("onConfigChange", events[1].handler)
+    assert.are.equal("test_opt", events[1].args[1])
+    assert.are.equal("on_val", events[1].args[2])
+    assert.are.equal("onSetTestOpt", events[2].handler)
+    assert.are.equal(true, events[2].args[1])
+    assert.are.equal(applied_cb, events[2].args[2])
+
+    config_options.event_only:apply(1)
+    assert.are.equal(3, #events)
+    assert.are.equal("onTriggerOnly", events[3].handler)
+    assert.is_nil(events[3].args[1])
+  end)
+
+  it(
+    "should show default confirm box via option:showDefaultConfirmBox",
+    function()
+      local gettext = require("gettext")
+      local T = require("ffi/util").template
+      local shown_widgets = {}
+      local mock_owner = {
+        configurable = { flag = true },
+        document = { doc_id = 1 },
+        showWidget = function(_self, widget)
+          table.insert(shown_widgets, widget)
+        end,
+      }
+      local confirmed = false
+      finally(function()
+        G_reader_settings:delete("test_test_toggle_opt")
+        G_reader_settings:delete("test_h_page_margins")
+        G_reader_settings:delete("test_alt_opt")
+        G_reader_settings:delete("test_dyn_opt")
+      end)
+
+      local config_options = {
+        prefix = "test",
+        {
+          options = {
+            {
+              name = "test_toggle_opt",
+              name_text = gettext("Test Toggle"),
+              toggle = { gettext("off"), gettext("on") },
+              values = { 1, 0 },
+              args = { false, true },
+            },
+            {
+              name = "h_page_margins",
+              values = { { 10, 10 }, { 20, 20 } },
+            },
+            {
+              name = "alt_opt",
+              alt_name_text = gettext("Alt Name"),
+              args = { "a", "b" },
+            },
+            {
+              name = "dyn_opt",
+              name_text_func = function(cfg, doc)
+                return cfg.flag and doc.doc_id == 1 and gettext("Dynamic Opt")
+                  or ""
+              end,
+              values = { { 1, 2 }, { 3, 4 } },
+            },
+          },
+        },
+      }
+      OptionsUtil.initOptions(config_options)
+
+      config_options.test_toggle_opt:showDefaultConfirmBox(
+        mock_owner,
+        2,
+        function()
+          confirmed = true
+        end
+      )
+      assert.are.equal(1, #shown_widgets)
+      assert.are.equal(
+        T(
+          gettext("Set default %1 to %2?"),
+          config_options.test_toggle_opt.name_text,
+          gettext("on")
+        ),
+        shown_widgets[1].text
+      )
+      assert.are.equal(gettext("Set as default"), shown_widgets[1].ok_text)
+      shown_widgets[1].ok_callback()
+      assert.are.equal(0, G_reader_settings:read("test_test_toggle_opt"))
+      assert.is_true(confirmed)
+
+      config_options.h_page_margins:showDefaultConfirmBox(mock_owner, 2)
+      assert.are.equal(2, #shown_widgets)
+      shown_widgets[2].ok_callback()
+      assert.is_same({ 20, 20 }, G_reader_settings:read("test_h_page_margins"))
+
+      config_options.alt_opt:showDefaultConfirmBox(mock_owner, 2)
+      assert.are.equal(3, #shown_widgets)
+      assert.are.equal(
+        T(gettext("Set default %1 to %2?"), gettext("Alt Name"), "b"),
+        shown_widgets[3].text
+      )
+      shown_widgets[3].ok_callback()
+      assert.are.equal("b", G_reader_settings:read("test_alt_opt"))
+
+      config_options.dyn_opt:showDefaultConfirmBox(mock_owner, 1)
+      assert.are.equal(4, #shown_widgets)
+      assert.are.is_truthy(
+        shown_widgets[4].text:find(gettext("Dynamic Opt"), 1, true)
+      )
+      shown_widgets[4].ok_callback()
+      assert.is_same({ 1, 2 }, G_reader_settings:read("test_dyn_opt"))
+
+      config_options.test_toggle_opt:showDefaultConfirmBox(mock_owner, 1)
+      assert.are.equal(5, #shown_widgets)
+      shown_widgets[5].ok_callback()
+      assert.are.equal(1, G_reader_settings:read("test_test_toggle_opt"))
+    end
+  )
 end)

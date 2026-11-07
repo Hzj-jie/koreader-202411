@@ -189,7 +189,7 @@ describe("ToggleSwitch module", function()
       local default_set = nil
       local fine_tune_set = nil
       local config = {
-        onMakeDefault = function(self, name, text, values, toggle, pos)
+        onMakeDefault = function(_self, name, pos)
           default_set = { name = name, pos = pos }
         end,
         onMakeFineTuneDefault = function(

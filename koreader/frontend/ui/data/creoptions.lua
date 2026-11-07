@@ -902,4 +902,6 @@ Whether enabled or disabled, KOReader's own status bar at the bottom of the scre
   },
 }
 
+optionsutil.initOptions(CreOptions)
+
 return CreOptions
