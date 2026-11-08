@@ -30,13 +30,12 @@ describe("MathPuzzle Screen and Plugin", function()
     return plugin
   end
 
-  local function createScreen(plugin, mode_id, question_count)
+  local function createScreen(plugin, mode_id)
     plugin = plugin or createMockPlugin()
     local mode = Generator.getModeById(mode_id or "add_sub_100")
     return MathPuzzleScreen:new({
       plugin = plugin,
       mode = mode,
-      question_count = question_count or (mode and mode.question_count) or 10,
     })
   end
 
@@ -49,7 +48,7 @@ describe("MathPuzzle Screen and Plugin", function()
   end)
 
   it("should initialize MathPuzzleScreen and build 10 question rows", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
+    local screen = createScreen(nil, "add_sub_100")
     UIManager:show(screen)
 
     assert.is_table(screen.problems)
@@ -263,7 +262,7 @@ describe("MathPuzzle Screen and Plugin", function()
   end)
 
   it("should verify correct answers and update question marks", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
+    local screen = createScreen(nil, "add_sub_100")
     UIManager:show(screen)
 
     for i, field in ipairs(screen.input_buttons) do
@@ -279,7 +278,7 @@ describe("MathPuzzle Screen and Plugin", function()
   end)
 
   it("should generate new problems and switch modes", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
+    local screen = createScreen(nil, "add_sub_100")
     UIManager:show(screen)
 
     screen:generateNewProblems()
@@ -295,7 +294,7 @@ describe("MathPuzzle Screen and Plugin", function()
   end)
 
   it("should paint screen to blitbuffer without errors", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
+    local screen = createScreen(nil, "add_sub_100")
     UIManager:show(screen)
 
     local Device = require("device")
@@ -306,7 +305,7 @@ describe("MathPuzzle Screen and Plugin", function()
   end)
 
   it("should display correct and wrong marks on answer check", function()
-    local screen = createScreen(nil, "add_sub_10", 10)
+    local screen = createScreen(nil, "add_sub_10")
     UIManager:show(screen)
 
     screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
@@ -326,10 +325,10 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should advance focused field on enter and update button styles",
     function()
-      local screen = createScreen(nil, "add_sub_10", 10)
+      local screen = createScreen(nil, "add_sub_10")
       UIManager:show(screen)
 
-      screen:onFieldEnter(1)
+      assert.is_true(screen:onKeyPress("Return"))
       assert.are.equal(2, screen.focused_idx)
       assert.are.equal(
         Blitbuffer.COLOR_WHITE,
@@ -345,7 +344,7 @@ describe("MathPuzzle Screen and Plugin", function()
   )
 
   it("should handle keypad digit input and backspace", function()
-    local screen = createScreen(nil, "add_sub_10", 10)
+    local screen = createScreen(nil, "add_sub_10")
     UIManager:show(screen)
 
     screen:selectField(3)
@@ -368,32 +367,30 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it(
-    "should handle keyboard navigation, slashes, and repeat backspace",
-    function()
-      local screen = createScreen(nil, "add_sub_10", 10)
-      UIManager:show(screen)
+  it("should handle keyboard navigation and repeat backspace", function()
+    local screen = createScreen(nil, "add_sub_10")
+    UIManager:show(screen)
 
-      screen:selectField(3)
-      screen.input_buttons[3]:setText("4")
-      screen:onKeyPress({ key = "9" })
-      assert.are.equal("49", screen.problems[3].user_answer)
-      screen:onKeyPress("Tab")
-      assert.are.equal(4, screen.focused_idx)
-      screen.input_buttons[4]:setText("")
-      screen:onTextInput("7")
-      screen:onKeyPress("/")
-      screen:inputDigit("8")
-      assert.are.equal("7/8", screen.problems[4].user_answer)
-      screen:onKeyRepeat("BackSpace")
-      assert.are.equal("7/", screen.problems[4].user_answer)
+    screen:selectField(3)
+    screen.input_buttons[3]:setText("4")
+    screen:onKeyPress({ key = "9" })
+    assert.are.equal("49", screen.problems[3].user_answer)
+    screen:onKeyPress("Tab")
+    assert.are.equal(4, screen.focused_idx)
+    screen.input_buttons[4]:setText("")
+    screen:onTextInput("7")
+    local Key = require("device/key")
+    assert.is_nil((screen:onKeyPress(Key:new("/", {}))))
+    screen:inputDigit("8")
+    assert.are.equal("78", screen.problems[4].user_answer)
+    screen:onKeyRepeat("BackSpace")
+    assert.are.equal("7", screen.problems[4].user_answer)
 
-      UIManager:close(screen)
-    end
-  )
+    UIManager:close(screen)
+  end)
 
   it("should wrap around field navigation at boundaries", function()
-    local screen = createScreen(nil, "add_sub_10", 10)
+    local screen = createScreen(nil, "add_sub_10")
     UIManager:show(screen)
 
     screen:selectField(10)
@@ -431,7 +428,7 @@ describe("MathPuzzle Screen and Plugin", function()
 
       menu.item_table[2].callback()
       assert.is_table(plugin.screen)
-      assert.are.equal("add_sub_100", plugin.active_mode)
+      assert.are.equal("add_sub_100", plugin.screen.mode.id)
       assert.are.equal("chevron.left", plugin.screen.title_bar.left_icon)
       assert.is_function(plugin.screen.title_bar.left_icon_tap_callback)
 
@@ -500,7 +497,10 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.is_nil(plugin.screen)
       assert.is_nil(plugin.session_start_time)
 
-      plugin:showPuzzle()
+      assert.has_error(function()
+        plugin:showPuzzle()
+      end)
+      plugin:showPuzzle(Generator.getModeById("add_sub_100"))
       assert.is_table(plugin.screen)
       assert.is_number(plugin.session_start_time)
       assert.are.equal("Time: 0 minutes", plugin.screen:getTimeText())
@@ -511,7 +511,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should support 5-question single column layout for 3-term mental math",
     function()
-      local screen = createScreen(nil, "three_term_100", 5)
+      local screen = createScreen(nil, "three_term_100")
       UIManager:show(screen)
 
       assert.are.equal(5, #screen.problems)
@@ -560,7 +560,7 @@ describe("MathPuzzle Screen and Plugin", function()
       local underlying = DummyUnderlyingWindow:new()
       UIManager:show(underlying)
 
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       local test_bb = Device.screen.bb or Blitbuffer.new(600, 800)
@@ -615,7 +615,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should exit immediately without confirmation when no input has been entered",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       assert.is_false(screen:hasUncheckedProgress())
@@ -636,7 +636,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should show exit confirmation on close, back, and mode switch when input is entered",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       screen:inputDigit("5")
@@ -674,7 +674,7 @@ describe("MathPuzzle Screen and Plugin", function()
   )
 
   it("should exit without confirmation once answers are checked", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
+    local screen = createScreen(nil, "add_sub_100")
     UIManager:show(screen)
 
     screen:inputDigit("5")
@@ -697,7 +697,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should remove mark and reset checked state when user changes answer via inputDigit",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
@@ -718,7 +718,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should remove mark and reset checked state when user changes answer via backspace",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
@@ -739,7 +739,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should remove mark and reset checked state when user changes answer via setText",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
@@ -759,7 +759,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should report unchecked progress when modifying an answer after checking",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       for i, field in ipairs(screen.input_buttons) do
@@ -782,7 +782,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should clear mark widget text and retain non-zero container width to clear mark from screen",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       screen.input_buttons[1]:setText(tostring(screen.problems[1].answer))
@@ -839,7 +839,7 @@ describe("MathPuzzle Screen and Plugin", function()
   )
 
   it("should limit input digit length to 6 characters", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
+    local screen = createScreen(nil, "add_sub_100")
     UIManager:show(screen)
 
     screen:selectField(1)
@@ -855,7 +855,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should wrap around field navigation with nextField and prevField",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       assert.are.equal(1, screen.focused_idx)
@@ -867,7 +867,7 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.are.equal(1, screen.focused_idx)
 
       screen:selectField(5)
-      screen:onFieldEnter(nil)
+      assert.is_true(screen:onKeyPress("Enter"))
       assert.are.equal(6, screen.focused_idx)
 
       UIManager:close(screen)
@@ -875,12 +875,13 @@ describe("MathPuzzle Screen and Plugin", function()
   )
 
   it("should filter non-digit characters in onTextInput", function()
-    local screen = createScreen(nil, "add_sub_100", 10)
+    local screen = createScreen(nil, "add_sub_100")
     UIManager:show(screen)
 
     screen:selectField(1)
     assert.is_false(screen:onTextInput("abc"))
     assert.is_false(screen:onTextInput("+"))
+    assert.is_false(screen:onTextInput("/"))
     assert.is_false(screen:onTextInput(" "))
     assert.are.equal("", screen.problems[1].user_answer)
 
@@ -893,7 +894,7 @@ describe("MathPuzzle Screen and Plugin", function()
   it(
     "should handle navigation and deletion keys via onKeyPress and onKeyRepeat",
     function()
-      local screen = createScreen(nil, "add_sub_100", 10)
+      local screen = createScreen(nil, "add_sub_100")
       UIManager:show(screen)
 
       screen:selectField(1)
@@ -967,7 +968,6 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.is_not_nil(target_item)
       target_item.callback()
 
-      assert.are.equal("three_term_100", plugin.active_mode)
       assert.are.equal("three_term_100", plugin.screen.mode.id)
       assert.are.equal(5, #plugin.screen.problems)
 
@@ -1324,8 +1324,8 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.is_not_nil(target_item)
       target_item.callback()
 
-      assert.are.equal("math_snake_100", plugin.active_mode)
       local screen = plugin.screen
+      assert.are.equal("math_snake_100", screen.mode.id)
       assert.are.equal(11, #screen.problems)
       assert.are.equal(11, #screen.input_buttons)
 
@@ -1362,6 +1362,54 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.are.equal(" ✓", screen.mark_widgets[5].text)
 
       UIManager:close(menu)
+      UIManager:close(screen)
+    end
+  )
+
+  it(
+    "should invoke digit and backspace callbacks from built keypad buttons",
+    function()
+      local screen = createScreen(nil, "add_sub_100")
+      UIManager:show(screen)
+
+      local is_input_btn = {}
+      for _, btn in ipairs(screen.input_buttons) do
+        is_input_btn[btn] = true
+      end
+      local keypad_buttons = {}
+      local function collectKeypad(widget)
+        if type(widget) ~= "table" then
+          return
+        end
+        if widget.callback and widget.text and not is_input_btn[widget] then
+          keypad_buttons[widget.text] = widget
+        end
+        for _, child in ipairs(widget) do
+          collectKeypad(child)
+        end
+      end
+      collectKeypad(screen[1])
+
+      keypad_buttons["1"].callback()
+      keypad_buttons["2"].callback()
+      keypad_buttons["0"].callback()
+      keypad_buttons["⌫"].callback()
+      assert.are.equal("12", screen.problems[1].user_answer)
+      assert.are.equal("12", screen.input_buttons[1].text)
+
+      screen:selectField(2)
+      keypad_buttons["3"].callback()
+      keypad_buttons["4"].callback()
+      keypad_buttons["5"].callback()
+      assert.are.equal("345", screen.problems[2].user_answer)
+
+      screen:selectField(3)
+      keypad_buttons["6"].callback()
+      keypad_buttons["7"].callback()
+      keypad_buttons["8"].callback()
+      keypad_buttons["9"].callback()
+      assert.are.equal("6789", screen.problems[3].user_answer)
+
       UIManager:close(screen)
     end
   )
