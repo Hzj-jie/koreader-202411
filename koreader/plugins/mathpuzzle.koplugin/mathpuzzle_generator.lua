@@ -1,105 +1,106 @@
 local gettext = require("gettext")
-local _ = gettext
 
 local Generator = {}
 
 Generator.MODES = {
   {
     id = "add_sub_10",
-    title = _("Addition & Subtraction within 10"),
-    description = _("Add and subtract numbers up to 10"),
+    title = gettext("Addition & Subtraction within 10"),
+    description = gettext("Add and subtract numbers up to 10"),
     type = "add_sub",
     max = 10,
   },
   {
     id = "add_sub_100",
-    title = _("Addition & Subtraction within 100"),
-    description = _("Add and subtract numbers up to 100"),
+    title = gettext("Addition & Subtraction within 100"),
+    description = gettext("Add and subtract numbers up to 100"),
     type = "add_sub",
     max = 100,
   },
   {
     id = "add_sub_1000",
-    title = _("Addition & Subtraction within 1,000"),
-    description = _("Add and subtract numbers up to 1,000"),
+    title = gettext("Addition & Subtraction within 1,000"),
+    description = gettext("Add and subtract numbers up to 1,000"),
     type = "add_sub",
     max = 1000,
   },
   {
     id = "add_sub_10000",
-    title = _("Addition & Subtraction within 10,000"),
-    description = _("Add and subtract numbers up to 10,000"),
+    title = gettext("Addition & Subtraction within 10,000"),
+    description = gettext("Add and subtract numbers up to 10,000"),
     type = "add_sub",
     max = 10000,
   },
   {
     id = "mul_100",
-    title = _("Multiplication within 100"),
-    description = _("Multiplication table up to 10 × 10"),
+    title = gettext("Multiplication within 100"),
+    description = gettext("Multiplication table up to 10 × 10"),
     type = "mul",
     max = 100,
   },
   {
     id = "div_100",
-    title = _("Division within 100"),
-    description = _("Division with whole number results up to 100"),
+    title = gettext("Division within 100"),
+    description = gettext("Division with whole number results up to 100"),
     type = "div",
     max = 100,
   },
   {
     id = "mul_div_advanced",
-    title = _("2-Digit × 1-Digit & Division within 1,000"),
-    description = _("Multiplication and division with 2-digit numbers"),
+    title = gettext("2-Digit × 1-Digit & Division within 1,000"),
+    description = gettext("Multiplication and division with 2-digit numbers"),
     type = "mul_div_advanced",
   },
   {
     id = "mixed_100",
-    title = _("Mixed Operations within 100"),
-    description = _("Random +, -, ×, ÷ operations within 100"),
+    title = gettext("Mixed Operations within 100"),
+    description = gettext("Random +, -, ×, ÷ operations within 100"),
     type = "mixed",
     max = 100,
   },
   {
     id = "mixed_1000",
-    title = _("Mixed Operations within 1,000"),
-    description = _("Random +, -, ×, ÷ operations within 1,000"),
+    title = gettext("Mixed Operations within 1,000"),
+    description = gettext("Random +, -, ×, ÷ operations within 1,000"),
     type = "mixed",
     max = 1000,
   },
   {
     id = "missing_100_add_sub",
-    title = _("Fill-in-the-Blank (+, -) within 100"),
-    description = _("Find the missing number in addition and subtraction equations"),
+    title = gettext("Fill-in-the-Blank (+, -) within 100"),
+    description = gettext(
+      "Find the missing number in addition and subtraction equations"
+    ),
     type = "missing",
     max = 100,
     ops = "add_sub",
   },
   {
     id = "missing_100",
-    title = _("Fill-in-the-Blank within 100"),
-    description = _("Find the missing number in equations"),
+    title = gettext("Fill-in-the-Blank within 100"),
+    description = gettext("Find the missing number in equations"),
     type = "missing",
     max = 100,
   },
   {
     id = "squares_400",
-    title = _("Square Numbers within 400"),
-    description = _("Squares of numbers up to 20²"),
+    title = gettext("Square Numbers within 400"),
+    description = gettext("Squares of numbers up to 20²"),
     type = "squares",
     max = 400,
   },
   {
     id = "three_term_100",
-    title = _("3-Term Mental Math"),
-    description = _("Order of operations with 3 numbers"),
+    title = gettext("3-Term Mental Math"),
+    description = gettext("Order of operations with 3 numbers"),
     type = "three_term",
     max = 100,
     question_count = 5,
   },
   {
     id = "arithmetic_progression_30_entry",
-    title = _("Arithmetic Progression within 30 (Entry Level)"),
-    description = _("Alternating blanks, step up to 3, numbers up to 30"),
+    title = gettext("Arithmetic Progression within 30 (Entry Level)"),
+    description = gettext("Alternating blanks, step up to 3, numbers up to 30"),
     type = "arithmetic_progression",
     max = 30,
     max_step = 3,
@@ -109,8 +110,8 @@ Generator.MODES = {
   },
   {
     id = "arithmetic_progression_50_easy",
-    title = _("Arithmetic Progression within 50 (Easy)"),
-    description = _("Alternating blanks, step up to 4, numbers up to 50"),
+    title = gettext("Arithmetic Progression within 50 (Easy)"),
+    description = gettext("Alternating blanks, step up to 4, numbers up to 50"),
     type = "arithmetic_progression",
     max = 50,
     max_step = 4,
@@ -120,8 +121,8 @@ Generator.MODES = {
   },
   {
     id = "arithmetic_progression_50",
-    title = _("Arithmetic Progression within 50"),
-    description = _("Step up to 4, numbers up to 50"),
+    title = gettext("Arithmetic Progression within 50"),
+    description = gettext("Step up to 4, numbers up to 50"),
     type = "arithmetic_progression",
     max = 50,
     max_step = 4,
@@ -130,8 +131,8 @@ Generator.MODES = {
   },
   {
     id = "arithmetic_progression_100",
-    title = _("Arithmetic Progression within 100"),
-    description = _("Step up to 10, numbers up to 100"),
+    title = gettext("Arithmetic Progression within 100"),
+    description = gettext("Step up to 10, numbers up to 100"),
     type = "arithmetic_progression",
     max = 100,
     max_step = 10,
@@ -140,8 +141,8 @@ Generator.MODES = {
   },
   {
     id = "math_snake_100",
-    title = _("Math Snake (+, -) within 100"),
-    description = _("Chain addition and subtraction steps within 100"),
+    title = gettext("Math Snake (+, -) within 100"),
+    description = gettext("Chain addition and subtraction steps within 100"),
     type = "math_snake",
     max = 100,
     question_count = 11,
@@ -161,9 +162,34 @@ function Generator.getModeById(mode_id)
   return Generator.MODES[2] -- default to add_sub_100
 end
 
+local function makeBinaryProblem(op, a, b, answer)
+  return {
+    op = op,
+    a = a,
+    b = b,
+    answer = answer,
+    text = string.format("%d %s %d =", a, op, b),
+  }
+end
+
+local function makeMissingProblem(op, a, b, c, ans_is_first)
+  if ans_is_first then
+    return {
+      op = op,
+      answer = a,
+      text = string.format("___ %s %d = %d", op, b, c),
+    }
+  end
+  return {
+    op = op,
+    answer = b,
+    text = string.format("%d %s ___ = %d", a, op, c),
+  }
+end
+
 local function generateSingleProblem(mode)
-  local mode_type = mode.type or "add_sub"
-  local max_val = mode.max or 100
+  local mode_type = mode.type
+  local max_val = mode.max
 
   if mode_type == "add_sub" then
     local is_addition = math.random(1, 2) == 1
@@ -182,13 +208,7 @@ local function generateSingleProblem(mode)
         a = math.random(min_a, max_val - min_a)
         b = math.random(min_a, max_val - a)
       end
-      return {
-        op = "+",
-        a = a,
-        b = b,
-        answer = a + b,
-        text = string.format("%d + %d =", a, b),
-      }
+      return makeBinaryProblem("+", a, b, a + b)
     else
       -- a - b >= 0, a <= max_val
       local a, b
@@ -203,58 +223,26 @@ local function generateSingleProblem(mode)
         a = math.random(min_a, max_val)
         b = math.random(1, a)
       end
-      return {
-        op = "-",
-        a = a,
-        b = b,
-        answer = a - b,
-        text = string.format("%d - %d =", a, b),
-      }
+      return makeBinaryProblem("-", a, b, a - b)
     end
   elseif mode_type == "mul" then
     local a = math.random(2, 9)
     local b = math.random(2, 9)
-    return {
-      op = "×",
-      a = a,
-      b = b,
-      answer = a * b,
-      text = string.format("%d × %d =", a, b),
-    }
+    return makeBinaryProblem("×", a, b, a * b)
   elseif mode_type == "div" then
     local b = math.random(2, 9)
     local c = math.random(1, 9)
-    local a = b * c
-    return {
-      op = "÷",
-      a = a,
-      b = b,
-      answer = c,
-      text = string.format("%d ÷ %d =", a, b),
-    }
+    return makeBinaryProblem("÷", b * c, b, c)
   elseif mode_type == "mul_div_advanced" then
     local is_mul = math.random(1, 2) == 1
     if is_mul then
       local a = math.random(11, 99)
       local b = math.random(2, 9)
-      return {
-        op = "×",
-        a = a,
-        b = b,
-        answer = a * b,
-        text = string.format("%d × %d =", a, b),
-      }
+      return makeBinaryProblem("×", a, b, a * b)
     else
       local b = math.random(2, 9)
       local c = math.random(11, 99)
-      local a = b * c
-      return {
-        op = "÷",
-        a = a,
-        b = b,
-        answer = c,
-        text = string.format("%d ÷ %d =", a, b),
-      }
+      return makeBinaryProblem("÷", b * c, b, c)
     end
   elseif mode_type == "mixed" then
     local roll = math.random(1, 4)
@@ -262,152 +250,46 @@ local function generateSingleProblem(mode)
       -- Addition
       local a = math.random(10, max_val - 10)
       local b = math.random(5, max_val - a)
-      return {
-        op = "+",
-        a = a,
-        b = b,
-        answer = a + b,
-        text = string.format("%d + %d =", a, b),
-      }
+      return makeBinaryProblem("+", a, b, a + b)
     elseif roll == 2 then
       -- Subtraction
       local a = math.random(15, max_val)
       local b = math.random(5, a - 1)
-      return {
-        op = "-",
-        a = a,
-        b = b,
-        answer = a - b,
-        text = string.format("%d - %d =", a, b),
-      }
+      return makeBinaryProblem("-", a, b, a - b)
     elseif roll == 3 then
       -- Multiplication
-      if max_val <= 100 then
-        local a = math.random(2, 9)
-        local b = math.random(2, 9)
-        return {
-          op = "×",
-          a = a,
-          b = b,
-          answer = a * b,
-          text = string.format("%d × %d =", a, b),
-        }
-      else
-        local a = math.random(11, 99)
-        local b = math.random(2, 9)
-        return {
-          op = "×",
-          a = a,
-          b = b,
-          answer = a * b,
-          text = string.format("%d × %d =", a, b),
-        }
-      end
+      local a = max_val <= 100 and math.random(2, 9) or math.random(11, 99)
+      local b = math.random(2, 9)
+      return makeBinaryProblem("×", a, b, a * b)
     else
       -- Division
-      if max_val <= 100 then
-        local b = math.random(2, 9)
-        local c = math.random(2, 9)
-        local a = b * c
-        return {
-          op = "÷",
-          a = a,
-          b = b,
-          answer = c,
-          text = string.format("%d ÷ %d =", a, b),
-        }
-      else
-        local b = math.random(2, 9)
-        local c = math.random(11, 99)
-        local a = b * c
-        return {
-          op = "÷",
-          a = a,
-          b = b,
-          answer = c,
-          text = string.format("%d ÷ %d =", a, b),
-        }
-      end
+      local b = math.random(2, 9)
+      local c = max_val <= 100 and math.random(2, 9) or math.random(11, 99)
+      return makeBinaryProblem("÷", b * c, b, c)
     end
   elseif mode_type == "missing" then
-    local op_roll
-    if mode.ops == "add_sub" then
-      op_roll = math.random(1, 2)
-    else
-      op_roll = math.random(1, 4)
-    end
+    local op_roll = mode.ops == "add_sub" and math.random(1, 2)
+      or math.random(1, 4)
     if op_roll == 1 then
       -- a + b = c
       local a = math.random(5, 50)
       local b = math.random(5, 50)
-      local c = a + b
-      if math.random(1, 2) == 1 then
-        return {
-          op = "+",
-          answer = a,
-          text = string.format("___ + %d = %d", b, c),
-        }
-      else
-        return {
-          op = "+",
-          answer = b,
-          text = string.format("%d + ___ = %d", a, c),
-        }
-      end
+      return makeMissingProblem("+", a, b, a + b, math.random(1, 2) == 1)
     elseif op_roll == 2 then
       -- a - b = c
       local a = math.random(20, 100)
       local b = math.random(5, a - 5)
-      local c = a - b
-      if math.random(1, 2) == 1 then
-        return {
-          op = "-",
-          answer = a,
-          text = string.format("___ - %d = %d", b, c),
-        }
-      else
-        return {
-          op = "-",
-          answer = b,
-          text = string.format("%d - ___ = %d", a, c),
-        }
-      end
+      return makeMissingProblem("-", a, b, a - b, math.random(1, 2) == 1)
     elseif op_roll == 3 then
       -- a × b = c
       local a = math.random(2, 9)
       local b = math.random(2, 9)
-      local c = a * b
-      if math.random(1, 2) == 1 then
-        return {
-          op = "×",
-          answer = a,
-          text = string.format("___ × %d = %d", b, c),
-        }
-      else
-        return {
-          op = "×",
-          answer = b,
-          text = string.format("%d × ___ = %d", a, c),
-        }
-      end
+      return makeMissingProblem("×", a, b, a * b, math.random(1, 2) == 1)
     else
       -- a ÷ b = c
       local b = math.random(2, 9)
       local c = math.random(2, 9)
-      local a = b * c
-      if math.random(1, 2) == 1 then
-        return {
-          op = "÷",
-          answer = a,
-          text = string.format("___ ÷ %d = %d", b, c),
-        }
-      else
-        return {
-          op = "÷",
-          answer = b,
-          text = string.format("%d ÷ ___ = %d", a, c),
-        }
-      end
+      return makeMissingProblem("÷", b * c, b, c, math.random(1, 2) == 1)
     end
   elseif mode_type == "squares" then
     local n = math.random(2, 20)
@@ -488,20 +370,14 @@ local function generateSingleProblem(mode)
     local span = (terms_count - 1) * d
     local terms = {}
 
-    if is_addition then
-      local min_start = 1
-      local max_start = math.max(1, max_val - span)
-      local start_val = math.random(min_start, max_start)
-      for i = 1, terms_count do
-        table.insert(terms, start_val + (i - 1) * d)
-      end
-    else
-      local min_start = span
-      local max_start = math.max(min_start, max_val)
-      local start_val = math.random(min_start, max_start)
-      for i = 1, terms_count do
-        table.insert(terms, start_val - (i - 1) * d)
-      end
+    local step_dir = is_addition and d or -d
+    local min_start = is_addition and 1 or span
+    local start_val = math.random(
+      min_start,
+      math.max(min_start, is_addition and (max_val - span) or max_val)
+    )
+    for i = 1, terms_count do
+      table.insert(terms, start_val + (i - 1) * step_dir)
     end
 
     local blanks = {}
@@ -557,15 +433,12 @@ local function generateSingleProblem(mode)
     end
 
     return {
-      op = is_addition and "+" or "-",
       step = d,
       terms = terms,
       blanks = blanks,
       blank_indices = blank_indices,
       answers = answers,
       user_answers = user_answers,
-      answer = answers[blank_indices[1]],
-      user_answer = "",
       text = table.concat(display_terms, ", "),
       inline_blanks = true,
     }
@@ -635,7 +508,7 @@ end
 function Generator.generateProblems(mode_id, count)
   local mode = type(mode_id) == "table" and mode_id
     or Generator.getModeById(mode_id)
-  count = count or (mode and mode.question_count) or 10
+  count = count or mode.question_count or 10
   if mode.type == "math_snake" then
     return generateMathSnakeProblems(mode, count)
   end
@@ -654,7 +527,9 @@ function Generator.generateProblems(mode_id, count)
       end
     end
     prob.id = i
-    prob.user_answer = ""
+    if not prob.inline_blanks then
+      prob.user_answer = ""
+    end
     prob.is_correct = nil
     prob.checked = false
     table.insert(problems, prob)
@@ -664,27 +539,16 @@ function Generator.generateProblems(mode_id, count)
 end
 
 function Generator.checkAnswers(problems)
-  local total = #problems
   local correct_count = 0
-  local answered_count = 0
 
   for _, prob in ipairs(problems) do
     prob.checked = true
-    if prob.inline_blanks or prob.user_answers then
+    if prob.inline_blanks then
       local all_blanks_correct = true
-      local any_answered = false
       for _, b_idx in ipairs(prob.blank_indices) do
-        local uans_str = tostring(prob.user_answers[b_idx] or ""):gsub("^%s*(.-)%s*$", "%1")
-        local uans = tonumber(uans_str)
-        if uans_str ~= "" then
-          any_answered = true
-        end
-        if uans == nil or uans ~= prob.answers[b_idx] then
+        if tonumber(prob.user_answers[b_idx]) ~= prob.answers[b_idx] then
           all_blanks_correct = false
         end
-      end
-      if any_answered then
-        answered_count = answered_count + 1
       end
       if all_blanks_correct then
         prob.is_correct = true
@@ -693,12 +557,7 @@ function Generator.checkAnswers(problems)
         prob.is_correct = false
       end
     else
-      local uans_str = tostring(prob.user_answer or ""):gsub("^%s*(.-)%s*$", "%1")
-      local uans = tonumber(uans_str)
-      if uans_str ~= "" then
-        answered_count = answered_count + 1
-      end
-      if uans ~= nil and uans == prob.answer then
+      if tonumber(prob.user_answer) == prob.answer then
         prob.is_correct = true
         correct_count = correct_count + 1
       else
@@ -708,10 +567,8 @@ function Generator.checkAnswers(problems)
   end
 
   return {
-    total = total,
+    total = #problems,
     correct_count = correct_count,
-    answered_count = answered_count,
-    all_correct = (correct_count == total),
   }
 end
 
