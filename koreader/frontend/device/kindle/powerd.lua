@@ -206,7 +206,7 @@ function KindlePowerD:getPowerdState()
   return LibLipcs:accessor():get_string_property("com.lab126.powerd", "state")
 end
 
-function KindlePowerD:wakeupFromSuspend(_ts)
+function KindlePowerD:wakeupFromSuspend()
   if
     self:_hallWakeup()
     and not self:isHallSensorEnabled()
@@ -217,6 +217,8 @@ function KindlePowerD:wakeupFromSuspend(_ts)
       self:_setIntensity(self.fl_min)
     end
     self.device:sysfsSuspend()
+  else
+    self:initWakeup()
   end
 end
 
