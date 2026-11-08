@@ -114,6 +114,9 @@ describe("KindlePowerD", function()
       flushSettings = function() end,
       broadcastEvent = function() end,
       updateLastUserActionTime = function() end,
+      show = function() end,
+      close = function() end,
+      forceRepaint = function() end,
       scheduleIn = function(self_u, delay, fn, arg)
         table.insert(self_u.scheduled, { delay = delay, fn = fn, arg = arg })
       end,
@@ -136,6 +139,7 @@ describe("KindlePowerD", function()
   end)
 
   after_each(function()
+    mock_powerd:afterResume()
     ffiUtil.writeToSysfs = orig_write_to_sysfs
   end)
 
@@ -538,5 +542,37 @@ describe("KindlePowerD", function()
         assert.is_false(mock_powerd:isFrontlightOn())
       end
     )
+  end)
+
+  describe("Wakeup notification on wakeupFromSuspend", function()
+    it("calls initWakeup on normal wakeup", function()
+      local init_wakeup_stub = stub(mock_powerd, "initWakeup")
+      finally(function()
+        init_wakeup_stub:revert()
+      end)
+
+      mock_powerd:wakeupFromSuspend()
+
+      assert.spy(init_wakeup_stub).was.called(1)
+      assert.are.same({}, sys_ops)
+    end)
+
+    it("does not call initWakeup on disabled-Hall wakeup", function()
+      write_file(hall_enable_file, "0")
+      write_file(hall_trig_file, "1")
+      mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+      local init_wakeup_stub = stub(mock_powerd, "initWakeup")
+      finally(function()
+        init_wakeup_stub:revert()
+      end)
+
+      mock_powerd:wakeupFromSuspend()
+
+      assert.spy(init_wakeup_stub).was_not.called()
+      assert.are.same({
+        { op = "lipc", prop = "flIntensity", val = 0 },
+        { op = "sysfs", path = "/sys/power/state", val = "mem" },
+      }, sys_ops)
+    end)
   end)
 end)
