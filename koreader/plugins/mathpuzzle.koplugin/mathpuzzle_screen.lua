@@ -16,7 +16,6 @@ local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local gettext = require("gettext")
-local _ = gettext
 
 local Screen = Device.screen
 
@@ -26,7 +25,6 @@ local MathPuzzleScreen = InputContainer:extend({
   name = "mathpuzzle_screen",
   plugin = nil,
   mode = nil,
-  question_count = nil,
   focused_idx = 1,
 })
 
@@ -47,8 +45,7 @@ function MathPuzzleScreen:init()
   if not self.mode then
     self.mode = Generator.getModeById("add_sub_100")
   end
-  self.question_count = self.question_count or self.mode.question_count or 10
-  self.problems = Generator.generateProblems(self.mode, self.question_count)
+  self.problems = Generator.generateProblems(self.mode)
 
   if not self.plugin.session_start_time then
     self.plugin.session_start_time = os.time()
@@ -67,7 +64,7 @@ function MathPuzzleScreen:getHeaderStatsText()
     score_str = string.format("%d%%", pct)
   end
   return string.format(
-    _("Correct: %d  ·  Wrong: %d  ·  Score: %s"),
+    gettext("Correct: %d  ·  Wrong: %d  ·  Score: %s"),
     session_correct,
     session_wrong,
     score_str
@@ -78,16 +75,14 @@ function MathPuzzleScreen:getTimeText()
   local start_time = self.plugin.session_start_time
   local mins = math.floor(math.max(0, os.time() - start_time) / 60)
   return string.format(
-    _("Time: %s"),
+    gettext("Time: %s"),
     gettext.T_N("%1 minute", "%1 minutes", mins)
   )
 end
 
 function MathPuzzleScreen:onTimesChange_1M()
-  if self.time_widget and self.time_container then
-    self.time_widget:setText(self:getTimeText())
-    self.time_container:scheduleRepaint()
-  end
+  self.time_widget:setText(self:getTimeText())
+  self.time_container:scheduleRepaint()
 end
 
 function MathPuzzleScreen:selectField(idx)
@@ -155,10 +150,6 @@ function MathPuzzleScreen:prevField()
   end
 end
 
-function MathPuzzleScreen:onFieldEnter(_)
-  self:nextField()
-end
-
 function MathPuzzleScreen:_handleKey(key)
   local key_str
   if type(key) == "table" then
@@ -167,11 +158,7 @@ function MathPuzzleScreen:_handleKey(key)
     key_str = tostring(key)
   end
 
-  if not key_str then
-    return false
-  end
-
-  if key_str:match("^[0-9/]$") then
+  if key_str:match("^[0-9]$") then
     self:inputDigit(key_str)
     return true
   elseif key_str == "BackSpace" or key_str == "Delete" then
@@ -211,7 +198,7 @@ function MathPuzzleScreen:onKeyRepeat(key)
 end
 
 function MathPuzzleScreen:onTextInput(text)
-  if type(text) == "string" and text:match("^[0-9/]$") then
+  if type(text) == "string" and text:match("^[0-9]$") then
     self:inputDigit(text)
     return true
   end
@@ -263,7 +250,7 @@ function MathPuzzleScreen:_buildUI()
   })
 
   local count = #self.problems
-  local is_single_column = (count <= 5) or (self.mode and self.mode.single_column)
+  local is_single_column = (count <= 5) or self.mode.single_column
 
   local col_gap = Screen:scaleBySize(28)
   local expr_width = is_single_column and Screen:scaleBySize(175)
@@ -289,8 +276,7 @@ function MathPuzzleScreen:_buildUI()
   )
     local btn_idx = #self.input_buttons + 1
     local is_focused = (btn_idx == self.focused_idx)
-    local val = blank_idx and (prob.user_answers[blank_idx] or "")
-      or (prob.user_answer or "")
+    local val = blank_idx and prob.user_answers[blank_idx] or prob.user_answer
 
     local input_btn = Button:new({
       text = val ~= "" and val or (is_focused and "_" or " "),
@@ -311,9 +297,9 @@ function MathPuzzleScreen:_buildUI()
     input_btn.blank_idx = blank_idx
     input_btn.getText = function()
       if blank_idx then
-        return prob.user_answers[blank_idx] or ""
+        return prob.user_answers[blank_idx]
       end
-      return prob.user_answer or ""
+      return prob.user_answer
     end
     input_btn.setText = function(_, txt)
       if blank_idx then
@@ -332,13 +318,8 @@ function MathPuzzleScreen:_buildUI()
   local function buildRow(i)
     local prob = self.problems[i]
 
-    local mark_text = ""
-    if prob.checked then
-      mark_text = prob.is_correct and " ✓" or " ✗"
-    end
-
     local mark_widget = TextWidget:new({
-      text = mark_text,
+      text = "",
       face = font_face,
       max_width = mark_width,
     })
@@ -395,7 +376,7 @@ function MathPuzzleScreen:_buildUI()
       table.insert(row_group, mark_container)
 
       return row_group
-    elseif prob.text and prob.text:find("___") then
+    elseif prob.text:find("___") then
       local prefix, suffix = prob.text:match("^(.-)___(.*)$")
       local row_group = HorizontalGroup:new({ align = "center" })
 
@@ -621,13 +602,13 @@ function MathPuzzleScreen:_buildUI()
   local num_btn_w = math.floor((keypad_width - 2 * btn_gap_h) / 3)
   local btn_h = Screen:scaleBySize(50)
 
-  local function createButton(text, callback, w, h)
+  local function createButton(text, callback, w)
     return Button:new({
       text = text,
       bordersize = Size.border.thin,
       background = Blitbuffer.COLOR_WHITE,
       width = w,
-      height = h or btn_h,
+      height = btn_h,
       text_font_face = "smalltfont",
       text_font_size = 20,
       text_font_bold = true,
@@ -635,6 +616,56 @@ function MathPuzzleScreen:_buildUI()
       padding = 0,
       callback = callback,
     })
+  end
+
+  local keypad_group = VerticalGroup:new({
+    align = "center",
+    HorizontalGroup:new({
+      align = "center",
+      createButton(gettext("Check"), function()
+        self:checkAnswers()
+      end, action_btn_w),
+      HorizontalSpan:new({ width = btn_gap_h }),
+      createButton(gettext("New"), function()
+        self:generateNewProblems()
+      end, action_btn_w),
+    }),
+    VerticalSpan:new({ height = btn_gap_v + Screen:scaleBySize(4) }),
+  })
+  local keypad_rows = {
+    { "1", "2", "3" },
+    { "4", "5", "6" },
+    { "7", "8", "9" },
+    { false, "0", "⌫" },
+  }
+  for r, row in ipairs(keypad_rows) do
+    local row_group = HorizontalGroup:new({ align = "center" })
+    for c, label in ipairs(row) do
+      if c > 1 then
+        table.insert(row_group, HorizontalSpan:new({ width = btn_gap_h }))
+      end
+      if not label then
+        table.insert(row_group, HorizontalSpan:new({ width = num_btn_w }))
+      elseif label == "⌫" then
+        table.insert(
+          row_group,
+          createButton("⌫", function()
+            self:backspace()
+          end, num_btn_w)
+        )
+      else
+        table.insert(
+          row_group,
+          createButton(label, function()
+            self:inputDigit(label)
+          end, num_btn_w)
+        )
+      end
+    end
+    table.insert(keypad_group, row_group)
+    if r < #keypad_rows then
+      table.insert(keypad_group, VerticalSpan:new({ height = btn_gap_v }))
+    end
   end
 
   self[1] = FrameContainer:new({
@@ -652,77 +683,7 @@ function MathPuzzleScreen:_buildUI()
       VerticalSpan:new({ height = Screen:scaleBySize(16) }),
       columns_group,
       VerticalSpan:new({ height = Screen:scaleBySize(24) }),
-      VerticalGroup:new({
-        align = "center",
-        HorizontalGroup:new({
-          align = "center",
-          createButton(_("Check"), function()
-            self:checkAnswers()
-          end, action_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton(_("New"), function()
-            self:generateNewProblems()
-          end, action_btn_w, btn_h),
-        }),
-        VerticalSpan:new({ height = btn_gap_v + Screen:scaleBySize(4) }),
-        HorizontalGroup:new({
-          align = "center",
-          createButton("1", function()
-            self:inputDigit("1")
-          end, num_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("2", function()
-            self:inputDigit("2")
-          end, num_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("3", function()
-            self:inputDigit("3")
-          end, num_btn_w, btn_h),
-        }),
-        VerticalSpan:new({ height = btn_gap_v }),
-        HorizontalGroup:new({
-          align = "center",
-          createButton("4", function()
-            self:inputDigit("4")
-          end, num_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("5", function()
-            self:inputDigit("5")
-          end, num_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("6", function()
-            self:inputDigit("6")
-          end, num_btn_w, btn_h),
-        }),
-        VerticalSpan:new({ height = btn_gap_v }),
-        HorizontalGroup:new({
-          align = "center",
-          createButton("7", function()
-            self:inputDigit("7")
-          end, num_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("8", function()
-            self:inputDigit("8")
-          end, num_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("9", function()
-            self:inputDigit("9")
-          end, num_btn_w, btn_h),
-        }),
-        VerticalSpan:new({ height = btn_gap_v }),
-        HorizontalGroup:new({
-          align = "center",
-          HorizontalSpan:new({ width = num_btn_w }),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("0", function()
-            self:inputDigit("0")
-          end, num_btn_w, btn_h),
-          HorizontalSpan:new({ width = btn_gap_h }),
-          createButton("⌫", function()
-            self:backspace()
-          end, num_btn_w, btn_h),
-        }),
-      }),
+      keypad_group,
       VerticalSpan:new({ height = Screen:scaleBySize(16) }),
     }),
   })
@@ -746,8 +707,7 @@ function MathPuzzleScreen:checkAnswers()
 end
 
 function MathPuzzleScreen:generateNewProblems()
-  self.question_count = self.mode.question_count or 10
-  self.problems = Generator.generateProblems(self.mode, self.question_count)
+  self.problems = Generator.generateProblems(self.mode)
   self.focused_idx = 1
   self:_buildUI()
   self:scheduleRepaint()
@@ -755,11 +715,7 @@ end
 
 function MathPuzzleScreen:setMode(mode)
   self.mode = mode
-  self.question_count = mode.question_count or 10
-  self.problems = Generator.generateProblems(self.mode, self.question_count)
-  self.focused_idx = 1
-  self:_buildUI()
-  self:scheduleRepaint()
+  self:generateNewProblems()
 end
 
 function MathPuzzleScreen:_showModeMenu()
@@ -768,14 +724,16 @@ end
 
 function MathPuzzleScreen:hasUncheckedProgress()
   for _, prob in ipairs(self.problems) do
-    if prob.user_answers then
-      for _, ans in pairs(prob.user_answers) do
-        if not prob.checked and ans ~= "" then
-          return true
+    if not prob.checked then
+      if prob.inline_blanks then
+        for _, ans in pairs(prob.user_answers) do
+          if ans ~= "" then
+            return true
+          end
         end
+      elseif prob.user_answer ~= "" then
+        return true
       end
-    elseif not prob.checked and prob.user_answer ~= "" then
-      return true
     end
   end
   return false
@@ -792,10 +750,10 @@ function MathPuzzleScreen:confirmExit(callback)
   end
 
   UIManager:show(ConfirmBox:new({
-    text = _(
+    text = gettext(
       "Your progress will be lost if you exit. Are you sure you want to exit?"
     ),
-    ok_text = _("Exit"),
+    ok_text = gettext("Exit"),
     ok_callback = function()
       if callback then
         callback()
