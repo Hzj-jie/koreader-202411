@@ -787,7 +787,6 @@ function Kindle:_outofScreenSaver(source)
     self.screen_saver_mode = false
     return
   end
-  self.powerd:initWakeup()
   local Screensaver = require("ui/screensaver")
   if Screensaver:close() then
     -- And redraw everything in case the framework managed to screw us over...
@@ -807,7 +806,7 @@ end
 
 function Kindle:wakeupFromSuspend(ts)
   logger.dbg("Kindle:wakeupFromSuspend", ts)
-  self.powerd:wakeupFromSuspend(ts)
+  self.powerd:wakeupFromSuspend()
 end
 
 function Kindle:UIManagerReady(uimgr)

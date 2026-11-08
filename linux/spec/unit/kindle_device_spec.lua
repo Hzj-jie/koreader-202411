@@ -185,22 +185,18 @@ describe("Kindle device", function()
       assert.is_true(mock_dev.screen_saver_mode)
     end)
 
-    it(
-      "calls initWakeup before Screensaver:close and afterResume on OutOfSS",
-      function()
-        mock_dev.screen_saver_mode = true
-        table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
-        UIManager.event_handlers.OutOfSS("OutOfSS")
-        assert.are.same({
-          "powerd:initWakeup",
-          "Screensaver:close",
-          "powerd:afterResume",
-        }, calls)
-      end
-    )
+    it("calls Screensaver:close before afterResume on OutOfSS", function()
+      mock_dev.screen_saver_mode = true
+      table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
+      UIManager.event_handlers.OutOfSS("OutOfSS")
+      assert.are.same({
+        "Screensaver:close",
+        "powerd:afterResume",
+      }, calls)
+    end)
 
     it(
-      "skips initWakeup on OutOfSS when not in screensaver mode",
+      "skips Screensaver:close on OutOfSS when not in screensaver mode",
       function()
         mock_dev.screen_saver_mode = false
         table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
@@ -211,24 +207,53 @@ describe("Kindle device", function()
       end
     )
 
-    it("skips initWakeup on OutOfSS on SO Kindles", function()
-      mock_dev.screen_saver_mode = true
-      mock_dev.supportsScreensaver = function()
-        return false
-      end
-      local execute_stub = stub(os, "execute", function()
-        return 0
-      end)
-      finally(function()
-        execute_stub:revert()
-      end)
+    it(
+      "stops native framework and clears screen_saver_mode on OutOfSS on SO Kindles",
+      function()
+        mock_dev.screen_saver_mode = true
+        mock_dev.supportsScreensaver = function()
+          return false
+        end
+        local execute_stub = stub(os, "execute", function()
+          return 0
+        end)
+        finally(function()
+          execute_stub:revert()
+        end)
 
-      table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
-      UIManager.event_handlers.OutOfSS("OutOfSS")
-      assert.are.same({
-        "powerd:afterResume",
-      }, calls)
-      assert.is_false(mock_dev.screen_saver_mode)
-    end)
+        table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
+        UIManager.event_handlers.OutOfSS("OutOfSS")
+        assert.are.same({
+          "powerd:afterResume",
+        }, calls)
+        assert.is_false(mock_dev.screen_saver_mode)
+      end
+    )
+
+    it(
+      "pops WakeupFromSuspend arg and calls powerd:wakeupFromSuspend without args before OutOfSS",
+      function()
+        mock_dev.screen_saver_mode = true
+        local wakeup_arg_count = nil
+        mock_dev.powerd.wakeupFromSuspend = function(...)
+          wakeup_arg_count = select("#", ...)
+          table.insert(calls, "powerd:wakeupFromSuspend")
+        end
+
+        table.insert(mock_dev.input.fake_event_args.WakeupFromSuspend, 42)
+        UIManager.event_handlers.WakeupFromSuspend("WakeupFromSuspend")
+        assert.are.equal(0, #mock_dev.input.fake_event_args.WakeupFromSuspend)
+
+        table.insert(mock_dev.input.fake_event_args.OutOfSS, 6)
+        UIManager.event_handlers.OutOfSS("OutOfSS")
+
+        assert.are.equal(1, wakeup_arg_count)
+        assert.are.same({
+          "powerd:wakeupFromSuspend",
+          "Screensaver:close",
+          "powerd:afterResume",
+        }, calls)
+      end
+    )
   end)
 end)
