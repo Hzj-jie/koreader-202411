@@ -83,4 +83,98 @@ describe("NewsDownloader plugin", function()
       end
     end)
   end)
+
+  describe("Feed attribute editing", function()
+    local FeedView, InputDialog, MultiConfirmBox, gettext
+
+    setup(function()
+      FeedView = require("plugins/newsdownloader.koplugin/feed_view")
+      InputDialog = require("ui/widget/inputdialog")
+      MultiConfirmBox = require("ui/widget/multiconfirmbox")
+      gettext = require("gettext")
+    end)
+
+    local function findButtonByText(widget, target_text)
+      if type(widget) ~= "table" then
+        return nil
+      end
+      if widget.text == target_text and type(widget.callback) == "function" then
+        return widget
+      end
+      for _, child in ipairs(widget) do
+        local found = findButtonByText(child, target_text)
+        if found then
+          return found
+        end
+      end
+      return nil
+    end
+
+    local function findWindowWidget(widget_cls)
+      for i = #UIManager._window_stack, 1, -1 do
+        local widget = UIManager._window_stack[i].widget
+        if getmetatable(widget).__index == widget_cls then
+          return widget
+        end
+      end
+      return nil
+    end
+
+    local function assertCancelPreservesFeedView(key, value, dialog_cls)
+      local downloader = NewsDownloader:new({
+        ui = create_mock_ui(),
+        path = "plugins/newsdownloader.koplugin",
+      })
+      downloader:lazyInitialization()
+      downloader:viewFeedItem(
+        FeedView:getItem(
+          1,
+          downloader.empty_feed,
+          function(id, edit_key, edit_val)
+            downloader:editFeedAttribute(id, edit_key, edit_val)
+          end
+        )
+      )
+
+      local dialog
+      finally(function()
+        UIManager:closeIfShown(dialog)
+        UIManager:closeIfShown(downloader.kv)
+      end)
+
+      assert.is_true(UIManager:isWindowWidget(downloader.kv))
+      downloader:editFeedAttribute(1, key, value)
+      dialog = findWindowWidget(dialog_cls)
+      assert.is_truthy(dialog)
+
+      local cancel_btn = findButtonByText(dialog, gettext("Cancel"))
+      assert.truthy(cancel_btn)
+      cancel_btn.callback()
+
+      assert.is_false(UIManager:isWindowWidget(dialog))
+      assert.is_true(UIManager:isWindowWidget(downloader.kv))
+    end
+
+    it(
+      "should keep the feed item view open when cancelling InputDialog edits",
+      function()
+        assertCancelPreservesFeedView(
+          FeedView.URL,
+          "https://example.com/feed.xml",
+          InputDialog
+        )
+      end
+    )
+
+    it(
+      "should keep the feed item view open when cancelling MultiConfirmBox edits",
+      function()
+        assertCancelPreservesFeedView(
+          FeedView.DOWNLOAD_FULL_ARTICLE,
+          true,
+          MultiConfirmBox
+        )
+      end
+    )
+  end)
 end)
