@@ -377,14 +377,12 @@ end
 function NaturalLightWidget:showKeyboard()
   if self._current_input then
     self._current_input:showKeyboard()
-    self._current_input:focus()
   end
 end
 
 function NaturalLightWidget:closeKeyboard()
   if self._current_input then
     self._current_input:closeKeyboard()
-    self._current_input:unfocus()
   end
 end
 

@@ -346,25 +346,41 @@ describe("NaturalLightWidget UI component", function()
 
   it("should handle showKeyboard, closeKeyboard, and onSwitchFocus", function()
     local nlw = NaturalLightWidget:new({})
-      local first_input = nlw.white_gain[2]
-      local second_input = nlw.white_offset[2]
+    local first_input = nlw.white_gain[2]
+    local second_input = nlw.white_offset[2]
 
-      local first_close = spy.on(first_input, "closeKeyboard")
-      local second_show = spy.on(second_input, "showKeyboard")
-      local second_close = spy.on(second_input, "closeKeyboard")
+    finally(function()
+      first_input:onClose()
+      second_input:onClose()
+    end)
 
-      nlw._current_input = first_input
-      nlw:onSwitchFocus(second_input)
+    local first_close = spy.on(first_input, "closeKeyboard")
+    local first_unfocus = spy.on(first_input, "unfocus")
+    local second_show = spy.on(second_input, "showKeyboard")
+    local second_focus = spy.on(second_input, "focus")
+    local second_close = spy.on(second_input, "closeKeyboard")
+    local second_unfocus = spy.on(second_input, "unfocus")
 
-      assert.spy(first_close).was_called(1)
-      assert.is_false(first_input.focused)
-      assert.are.equal(second_input, nlw._current_input)
-      assert.spy(second_show).was_called(1)
-      assert.is_true(second_input.focused)
+    nlw._current_input = first_input
+    nlw:onSwitchFocus(second_input)
+
+    assert.spy(first_close).was_called(1)
+    assert.spy(first_unfocus).was_called(1)
+    assert.is_false(first_input.focused)
+    assert.are.equal(second_input, nlw._current_input)
+    assert.spy(second_show).was_called(1)
+    assert.spy(second_focus).was_called(1)
+    assert.is_true(second_input.focused)
 
     nlw:closeKeyboard()
     assert.spy(second_close).was_called(1)
+    assert.spy(second_unfocus).was_called(1)
     assert.is_false(second_input.focused)
+
+    nlw:showKeyboard()
+    assert.spy(second_show).was_called(2)
+    assert.spy(second_focus).was_called(2)
+    assert.is_true(second_input.focused)
   end)
 
   it(
