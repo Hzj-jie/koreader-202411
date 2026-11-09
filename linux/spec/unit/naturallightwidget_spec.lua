@@ -343,4 +343,27 @@ describe("NaturalLightWidget UI component", function()
     local size = nlw:getSize()
     assert.is_not_nil(size)
   end)
+
+  it("should handle showKeyboard, closeKeyboard, and onSwitchFocus", function()
+    local nlw = NaturalLightWidget:new({})
+      local first_input = nlw.white_gain[2]
+      local second_input = nlw.white_offset[2]
+
+      local first_close = spy.on(first_input, "closeKeyboard")
+      local second_show = spy.on(second_input, "showKeyboard")
+      local second_close = spy.on(second_input, "closeKeyboard")
+
+      nlw._current_input = first_input
+      nlw:onSwitchFocus(second_input)
+
+      assert.spy(first_close).was_called(1)
+      assert.is_false(first_input.focused)
+      assert.are.equal(second_input, nlw._current_input)
+      assert.spy(second_show).was_called(1)
+      assert.is_true(second_input.focused)
+
+    nlw:closeKeyboard()
+    assert.spy(second_close).was_called(1)
+    assert.is_false(second_input.focused)
+  end)
 end)
