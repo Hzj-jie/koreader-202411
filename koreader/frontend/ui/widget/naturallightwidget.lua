@@ -396,11 +396,4 @@ function NaturalLightWidget:onSwitchFocus(inputbox)
   self:showKeyboard()
 end
 
-function NaturalLightWidget:closeKeyboard()
-  if self._current_input then
-    self._current_input:closeKeyboard()
-    self._current_input:unfocus()
-  end
-end
-
 return NaturalLightWidget
