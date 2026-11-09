@@ -323,20 +323,68 @@ describe("NaturalLightWidget UI component", function()
     UIManager.setDirty = old_setDirty
   end)
 
-  it("should handle onExit", function()
-    local nlw = NaturalLightWidget:new({})
-    local closed_widget = nil
-    local old_close = UIManager.close
-    UIManager.close = function(self, widget)
-      closed_widget = widget
+  it(
+    "does not define onExit and closes through UIManager from TitleBar, Cancel, and Save",
+    function()
+      assert.is_nil(NaturalLightWidget.onExit)
+
+      local saved_section, saved_val
+      local orig_save = _G.G_reader_settings.save
+      local active_nlw
+      finally(function()
+        _G.G_reader_settings.save = orig_save
+        if active_nlw then
+          UIManager:closeIfShown(active_nlw)
+        end
+      end)
+
+      -- TitleBar close button restores old_values and closes via UIManager
+      active_nlw = NaturalLightWidget:new({})
+      UIManager:show(active_nlw)
+      assert.is_true(UIManager:isWindowWidget(active_nlw))
+      active_nlw.white_gain[2]:setText("99")
+      active_nlw:applyValues()
+      assert.are.equal(99, powerd_mock.fl.white_gain)
+      active_nlw.nl_frame[1][1].close_callback()
+      assert.are.equal(10, powerd_mock.fl.white_gain)
+      assert.is_false(UIManager:isWindowWidget(active_nlw))
+      active_nlw = nil
+
+      -- Cancel button restores old_values and closes via UIManager
+      active_nlw = NaturalLightWidget:new({})
+      UIManager:show(active_nlw)
+      assert.is_true(UIManager:isWindowWidget(active_nlw))
+      active_nlw.white_gain[2]:setText("88")
+      active_nlw:applyValues()
+      assert.are.equal(88, powerd_mock.fl.white_gain)
+      local cancel_buttons =
+        active_nlw.fl_container[1][#active_nlw.fl_container[1]]
+      assert.are.equal("Cancel", cancel_buttons[3].text)
+      cancel_buttons[3].callback()
+      assert.are.equal(10, powerd_mock.fl.white_gain)
+      assert.is_false(UIManager:isWindowWidget(active_nlw))
+      active_nlw = nil
+
+      -- Save button persists config and closes via UIManager
+      _G.G_reader_settings.save = function(_, section, val)
+        saved_section = section
+        saved_val = val
+      end
+      active_nlw = NaturalLightWidget:new({})
+      UIManager:show(active_nlw)
+      assert.is_true(UIManager:isWindowWidget(active_nlw))
+      active_nlw.white_gain[2]:setText("77")
+      active_nlw:applyValues()
+      local save_buttons =
+        active_nlw.fl_container[1][#active_nlw.fl_container[1]]
+      assert.are.equal("Save", save_buttons[4].text)
+      save_buttons[4].callback()
+      assert.are.equal("natural_light_config", saved_section)
+      assert.are.equal(77, saved_val.white_gain)
+      assert.is_false(UIManager:isWindowWidget(active_nlw))
+      active_nlw = nil
     end
-
-    local res = nlw:onExit()
-    assert.is_true(res)
-    assert.are.equal(nlw, closed_widget)
-
-    UIManager.close = old_close
-  end)
+  )
 
   it("should return dimensions via getSize", function()
     local nlw = NaturalLightWidget:new({})
