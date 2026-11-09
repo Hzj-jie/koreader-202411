@@ -129,7 +129,6 @@ describe("Ftp", function()
             return s.field_values
               or { "Name", "ftp://example.com", "user", "pass", "/" }
           end,
-          onExit = function(self) end,
         }
       end,
     }

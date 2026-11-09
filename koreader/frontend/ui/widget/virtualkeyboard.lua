@@ -954,11 +954,6 @@ function VirtualKeyboard:setKeyboardLayout(layout)
 end
 
 function VirtualKeyboard:onKeyboardBack()
-  self:onExit()
-  return true
-end
-
-function VirtualKeyboard:onExit()
   UIManager:close(self)
   if
     Device:hasDPad()
@@ -972,7 +967,6 @@ function VirtualKeyboard:onExit()
     -- We need to do this manually because InputText's onKeyPress handler will very likely return true,
     -- stopping event propagation (c.f., the last hasDPad branch of said handler).
     self.inputbox.parent:onKeyboardClosed()
-    return false
   end
   return true
 end
@@ -1018,7 +1012,7 @@ function VirtualKeyboard:setVisibility(toggle)
   if toggle then
     UIManager:show(self)
   else
-    self:onExit()
+    UIManager:close(self)
   end
 end
 

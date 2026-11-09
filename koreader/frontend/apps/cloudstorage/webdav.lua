@@ -172,7 +172,6 @@ The start folder is appended to the server path.]])
           text = gettext("Cancel"),
           id = "close",
           callback = function()
-            self.settings_dialog:onExit()
             UIManager:close(self.settings_dialog)
           end,
         },
@@ -201,7 +200,6 @@ The start folder is appended to the server path.]])
                 -- add new
                 callback(fields)
               end
-              self.settings_dialog:onExit()
               UIManager:close(self.settings_dialog)
             else
               UIManager:show(InfoMessage:new({

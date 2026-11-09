@@ -338,7 +338,6 @@ local function initDPadEvents()
       else
         self:showKeyboard()
       end
-      self:focus()
       return true
     end
 
@@ -928,10 +927,8 @@ function InputText:isKeyboardVisible()
 end
 
 function InputText:onClose()
-  -- TODO: Remove UIManager:ignoreWidgetRepaint once InputDialog and
-  -- MultiInputDialog stop closing and recreating InputText while shown.
-  UIManager:ignoreWidgetRepaint(self)
   if self.keyboard then
+    self.keyboard:hideKeyboard()
     self.keyboard:free()
   end
   self:free()
