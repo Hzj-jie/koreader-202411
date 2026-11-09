@@ -926,7 +926,7 @@ function SudokuScreen:init()
   self.note_mode = false
   self.undo_button = nil
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   self.status_text = TextWidget:new({
     text = gettext("Tap a cell, then pick a number."),
@@ -991,9 +991,7 @@ function SudokuScreen:buildLayout()
         {
           text = gettext("Close"),
           callback = function()
-            self:onClose()
-            UIManager:close(self)
-            UIManager:setDirty(nil, "full")
+            self:onExit()
           end,
         },
       },
@@ -1268,9 +1266,15 @@ function SudokuScreen:checkProgress()
   end
 end
 
+function SudokuScreen:onExit()
+  UIManager:close(self)
+  return true
+end
+
 function SudokuScreen:onClose()
   self.plugin:saveState()
   self.plugin:onScreenClosed()
+  UIManager:setDirty(nil, "full")
 end
 
 function SudokuScreen:undoMove()
