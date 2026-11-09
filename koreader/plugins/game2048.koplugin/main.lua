@@ -382,7 +382,7 @@ function Game2048Screen:init()
       self:onShowSettings()
     end,
     close_callback = function()
-      self:onClose()
+      self:onExit()
     end,
     show_parent = self,
   })
@@ -548,7 +548,7 @@ function Game2048Screen:init()
   self:_updateInfo()
 
   if Device:hasKeys() then
-    self.key_events.Close = { { Input.group.Back } }
+    self.key_events.Exit = { { Input.group.Back } }
     self.key_events.SettingsMenu = { { "Menu" } }
     self.key_events.Undo = { { Input.group.PgBack } }
     self.key_events.Redo = { { Input.group.PgFwd } }
@@ -602,6 +602,11 @@ function Game2048Screen:applySettings()
   local game_widget = self._game_widget
   game_widget.new_tile_delay = settings.new_tile_delay
   game_widget:setPalette(loadGame2048WidgetThemePalette(settings.theme))
+end
+
+function Game2048Screen:onExit()
+  UIManager:close(self)
+  return true
 end
 
 function Game2048Screen:onClose()
@@ -740,7 +745,6 @@ function Game2048:showGame()
 end
 
 function Game2048:closeScreen()
-  UIManager:close(self.screen)
   self.screen:free()
   self.screen = nil
   self.state.info:stop()
