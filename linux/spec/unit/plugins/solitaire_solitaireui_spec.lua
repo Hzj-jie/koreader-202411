@@ -524,7 +524,6 @@ describe("SolitaireUI plugin module", function()
       end
 
       inst:onClose()
-      inst:onCloseWidget()
 
       UIManager.show = orig_show
       UIManager.scheduleIn = orig_schedule
@@ -619,5 +618,85 @@ describe("SolitaireUI plugin module", function()
 
     inst:onClose()
     assert.is_false(util.fileExists(tmp_save))
+  end)
+
+  local function findButtonByText(widget, label)
+    if type(widget) ~= "table" then
+      return nil
+    end
+    if widget.buttons then
+      for _, row in ipairs(widget.buttons) do
+        for _, btn in ipairs(row) do
+          if btn.text == label then
+            return btn
+          end
+        end
+      end
+    end
+    for _, child in ipairs(widget) do
+      local found = findButtonByText(child, label)
+      if found then
+        return found
+      end
+    end
+    return nil
+  end
+
+  local function verifyCloseOnce(trigger_close)
+    local Device = require("device")
+    local util = require("util")
+    local tmp_settings = os.tmpname()
+    local tmp_save = tmp_settings .. "_save.lua"
+    local orig_has_keys = Device.hasKeys
+    Device.hasKeys = function()
+      return true
+    end
+    local inst = SolitaireUI:new()
+    inst.settings_path = tmp_settings
+    inst.save_path = tmp_save
+    finally(function()
+      Device.hasKeys = orig_has_keys
+      if UIManager:isWindowWidget(inst) then
+        UIManager:close(inst)
+      end
+      os.remove(tmp_settings)
+      os.remove(tmp_save)
+    end)
+
+    local save_calls, stop_timer_calls = 0, 0
+    local orig_save = inst.saveGame
+    local orig_stop = inst.game.stopTimer
+    inst.saveGame = function(self_arg)
+      save_calls = save_calls + 1
+      return orig_save(self_arg)
+    end
+    inst.game.stopTimer = function(game_arg)
+      stop_timer_calls = stop_timer_calls + 1
+      return orig_stop(game_arg)
+    end
+
+    UIManager:show(inst)
+    assert.is_true(UIManager:isWindowWidget(inst))
+    trigger_close(inst)
+    assert.is_false(UIManager:isWindowWidget(inst))
+    assert.are.equal(1, save_calls)
+    assert.are.equal(1, stop_timer_calls)
+    assert.is_true(util.fileExists(tmp_save))
+  end
+
+  it("closes via Back key press and runs onClose once", function()
+    local Key = require("device/key")
+    verifyCloseOnce(function(inst)
+      assert.is_true(inst:onKeyPress(Key:new("Back", {})))
+    end)
+  end)
+
+  it("closes via Close button and runs onClose once", function()
+    local gettext = require("gettext")
+    verifyCloseOnce(function(inst)
+      local close_btn = findButtonByText(inst, gettext("Close"))
+      assert.is_not_nil(close_btn)
+      close_btn.callback()
+    end)
   end)
 end)
