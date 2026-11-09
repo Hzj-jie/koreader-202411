@@ -34,7 +34,7 @@ function SettingsWidget:init()
     width = self.width,
     title = gettext("Level Select"),
     close_callback = function()
-      self:onClose()
+      UIManager:close(self)
     end,
   })
 
@@ -192,23 +192,6 @@ function SettingsWidget:_refresh()
     on_skip_cb = self.on_skip_cb,
     width = self.width,
   }))
-end
-
-function SettingsWidget:onShow()
-  UIManager:setDirty(self, "ui")
-end
-
-function SettingsWidget:onCloseWidget()
-  UIManager:setDirty(nil, "ui")
-end
-
-function SettingsWidget:onClose()
-  UIManager:close(self)
-end
-
-function SettingsWidget:onTapClose()
-  self:onClose()
-  return true
 end
 
 return SettingsWidget
