@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-LUA=./luajit ./_run.sh
+LUA=./luajit ./_run.sh "$@"
