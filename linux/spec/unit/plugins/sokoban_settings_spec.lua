@@ -305,28 +305,71 @@ describe("Sokoban Settings widget", function()
     end
   )
 
-  it(
-    "should handle lifecycle methods onShow, onClose, onTapClose, onCloseWidget",
-    function()
-      local closed_widget
-      local old_close = UIManager.close
-      UIManager.close = function(self, w)
-        closed_widget = w
+  it("should close via TitleBar close_callback in UIManager", function()
+    local widget = SettingsWidget:new({
+      level_sets = {
+        { name = "Default", count = 5 },
+      },
+      current_set = "Default",
+      current_level = 1,
+    })
+    finally(function()
+      if UIManager:isWindowWidget(widget) then
+        UIManager:close(widget)
       end
+    end)
 
-      local widget = SettingsWidget:new({
-        level_sets = {
-          { name = "Default", count = 5 },
-        },
-        current_set = "Default",
-        current_level = 1,
-      })
-      widget:onShow()
-      widget:onCloseWidget()
-      assert.is_true(widget:onTapClose())
-      assert.are.equal(widget, closed_widget)
+    UIManager:show(widget)
+    assert.is_true(UIManager:isWindowWidget(widget))
 
-      UIManager.close = old_close
-    end
-  )
+    local title_bar = findWidget(widget, function(w)
+      return type(w) == "table" and w.close_callback ~= nil
+    end)
+    assert.is_not_nil(title_bar)
+    title_bar.close_callback()
+    assert.is_false(UIManager:isWindowWidget(widget))
+  end)
+
+  it("should close via Play button callback and UIManager:close", function()
+    local played_set, played_level
+    local widget = SettingsWidget:new({
+      level_sets = {
+        { name = "Default", count = 5 },
+      },
+      current_set = "Default",
+      current_level = 1,
+      furthest_reached = { Default = 2 },
+      best_moves = { Default = { [1] = 10 } },
+      on_play_cb = function(s, l)
+        played_set = s
+        played_level = l
+      end,
+    })
+    finally(function()
+      if UIManager:isWindowWidget(widget) then
+        UIManager:close(widget)
+      end
+    end)
+
+    UIManager:show(widget)
+    assert.is_true(UIManager:isWindowWidget(widget))
+
+    local play_btn = findWidget(widget, function(w)
+      return type(w) == "table"
+        and w.buttons
+        and #w.buttons == 1
+        and w.buttons[1][1]
+        and w.buttons[1][1].text == require("gettext")("Play")
+    end)
+    assert.is_not_nil(play_btn)
+    play_btn.buttons[1][1].callback()
+    assert.is_false(UIManager:isWindowWidget(widget))
+    assert.are.equal(1, played_set)
+    assert.are.equal(1, played_level)
+
+    UIManager:show(widget)
+    assert.is_true(UIManager:isWindowWidget(widget))
+    UIManager:close(widget)
+    assert.is_false(UIManager:isWindowWidget(widget))
+  end)
 end)
