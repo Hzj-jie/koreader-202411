@@ -323,20 +323,68 @@ describe("NaturalLightWidget UI component", function()
     UIManager.setDirty = old_setDirty
   end)
 
-  it("should handle onExit", function()
-    local nlw = NaturalLightWidget:new({})
-    local closed_widget = nil
-    local old_close = UIManager.close
-    UIManager.close = function(self, widget)
-      closed_widget = widget
+  it(
+    "does not define onExit and closes through UIManager from TitleBar, Cancel, and Save",
+    function()
+      assert.is_nil(NaturalLightWidget.onExit)
+
+      local saved_section, saved_val
+      local orig_save = _G.G_reader_settings.save
+      local active_nlw
+      finally(function()
+        _G.G_reader_settings.save = orig_save
+        if active_nlw then
+          UIManager:closeIfShown(active_nlw)
+        end
+      end)
+
+      -- TitleBar close button restores old_values and closes via UIManager
+      active_nlw = NaturalLightWidget:new({})
+      UIManager:show(active_nlw)
+      assert.is_true(UIManager:isWindowWidget(active_nlw))
+      active_nlw.white_gain[2]:setText("99")
+      active_nlw:applyValues()
+      assert.are.equal(99, powerd_mock.fl.white_gain)
+      active_nlw.nl_frame[1][1].close_callback()
+      assert.are.equal(10, powerd_mock.fl.white_gain)
+      assert.is_false(UIManager:isWindowWidget(active_nlw))
+      active_nlw = nil
+
+      -- Cancel button restores old_values and closes via UIManager
+      active_nlw = NaturalLightWidget:new({})
+      UIManager:show(active_nlw)
+      assert.is_true(UIManager:isWindowWidget(active_nlw))
+      active_nlw.white_gain[2]:setText("88")
+      active_nlw:applyValues()
+      assert.are.equal(88, powerd_mock.fl.white_gain)
+      local cancel_buttons =
+        active_nlw.fl_container[1][#active_nlw.fl_container[1]]
+      assert.are.equal("Cancel", cancel_buttons[3].text)
+      cancel_buttons[3].callback()
+      assert.are.equal(10, powerd_mock.fl.white_gain)
+      assert.is_false(UIManager:isWindowWidget(active_nlw))
+      active_nlw = nil
+
+      -- Save button persists config and closes via UIManager
+      _G.G_reader_settings.save = function(_, section, val)
+        saved_section = section
+        saved_val = val
+      end
+      active_nlw = NaturalLightWidget:new({})
+      UIManager:show(active_nlw)
+      assert.is_true(UIManager:isWindowWidget(active_nlw))
+      active_nlw.white_gain[2]:setText("77")
+      active_nlw:applyValues()
+      local save_buttons =
+        active_nlw.fl_container[1][#active_nlw.fl_container[1]]
+      assert.are.equal("Save", save_buttons[4].text)
+      save_buttons[4].callback()
+      assert.are.equal("natural_light_config", saved_section)
+      assert.are.equal(77, saved_val.white_gain)
+      assert.is_false(UIManager:isWindowWidget(active_nlw))
+      active_nlw = nil
     end
-
-    local res = nlw:onExit()
-    assert.is_true(res)
-    assert.are.equal(nlw, closed_widget)
-
-    UIManager.close = old_close
-  end)
+  )
 
   it("should return dimensions via getSize", function()
     local nlw = NaturalLightWidget:new({})
@@ -346,24 +394,82 @@ describe("NaturalLightWidget UI component", function()
 
   it("should handle showKeyboard, closeKeyboard, and onSwitchFocus", function()
     local nlw = NaturalLightWidget:new({})
-      local first_input = nlw.white_gain[2]
-      local second_input = nlw.white_offset[2]
+    local first_input = nlw.white_gain[2]
+    local second_input = nlw.white_offset[2]
 
-      local first_close = spy.on(first_input, "closeKeyboard")
-      local second_show = spy.on(second_input, "showKeyboard")
-      local second_close = spy.on(second_input, "closeKeyboard")
+    finally(function()
+      first_input:onClose()
+      second_input:onClose()
+    end)
 
-      nlw._current_input = first_input
-      nlw:onSwitchFocus(second_input)
+    local first_close = spy.on(first_input, "closeKeyboard")
+    local first_unfocus = spy.on(first_input, "unfocus")
+    local second_show = spy.on(second_input, "showKeyboard")
+    local second_focus = spy.on(second_input, "focus")
+    local second_close = spy.on(second_input, "closeKeyboard")
+    local second_unfocus = spy.on(second_input, "unfocus")
 
-      assert.spy(first_close).was_called(1)
-      assert.is_false(first_input.focused)
-      assert.are.equal(second_input, nlw._current_input)
-      assert.spy(second_show).was_called(1)
-      assert.is_true(second_input.focused)
+    nlw._current_input = first_input
+    nlw:onSwitchFocus(second_input)
+
+    assert.spy(first_close).was_called(1)
+    assert.spy(first_unfocus).was_called(1)
+    assert.is_false(first_input.focused)
+    assert.are.equal(second_input, nlw._current_input)
+    assert.spy(second_show).was_called(1)
+    assert.spy(second_focus).was_called(1)
+    assert.is_true(second_input.focused)
 
     nlw:closeKeyboard()
     assert.spy(second_close).was_called(1)
+    assert.spy(second_unfocus).was_called(1)
     assert.is_false(second_input.focused)
+
+    nlw:showKeyboard()
+    assert.spy(second_show).was_called(2)
+    assert.spy(second_focus).was_called(2)
+    assert.is_true(second_input.focused)
   end)
+
+  it(
+    "does not focus or unfocus freed inputs when closing with keyboard visible",
+    function()
+      local InputText = require("ui/widget/inputtext")
+      local orig_focus = InputText.focus
+      local orig_unfocus = InputText.unfocus
+      local nlw = NaturalLightWidget:new({})
+      local input = nlw.white_gain[2]
+
+      finally(function()
+        InputText.focus = orig_focus
+        InputText.unfocus = orig_unfocus
+        UIManager:closeIfShown(nlw)
+        if input.keyboard then
+          input.keyboard:hideKeyboard()
+        end
+      end)
+
+      UIManager:show(nlw)
+      nlw:onSwitchFocus(input)
+      assert.is_true(input.keyboard:isVisible())
+
+      local focus_calls = 0
+      local unfocus_calls = 0
+      InputText.focus = function(self, ...)
+        focus_calls = focus_calls + 1
+        return orig_focus(self, ...)
+      end
+      InputText.unfocus = function(self, ...)
+        unfocus_calls = unfocus_calls + 1
+        return orig_unfocus(self, ...)
+      end
+
+      UIManager:close(nlw)
+
+      assert.are.equal(0, focus_calls)
+      assert.are.equal(0, unfocus_calls)
+      assert.is_false(input.keyboard:isVisible())
+      assert.is_false(UIManager:isWindowWidget(nlw))
+    end
+  )
 end)
