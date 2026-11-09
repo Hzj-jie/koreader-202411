@@ -291,4 +291,41 @@ describe("MultiInputDialog widget", function()
     dialog:onKeyboardHeightChanged()
     assert.are.equal(1, save_pos_calls)
   end)
+
+  it("closes each existing input field once during onKeyboardHeightChanged", function()
+    local InputText = require("ui/widget/inputtext")
+    local orig_on_close = InputText.onClose
+    local close_counts = {}
+    InputText.onClose = function(widget)
+      close_counts[widget] = (close_counts[widget] or 0) + 1
+      return orig_on_close(widget)
+    end
+
+    local dialog
+    finally(function()
+      InputText.onClose = orig_on_close
+      if dialog then
+        UIManager:closeIfShown(dialog)
+      end
+    end)
+
+    dialog = MultiInputDialog:new({
+      title = "Reinit Close Count",
+      fields = {
+        { text = "First" },
+        { text = "Second" },
+      },
+    })
+    UIManager:show(dialog)
+
+    local field1 = dialog.input_fields[1]
+    local field2 = dialog.input_fields[2]
+    close_counts = {}
+
+    dialog:onKeyboardHeightChanged()
+
+    assert.are.equal(1, close_counts[field1])
+    assert.are.equal(1, close_counts[field2])
+    assert.are.same({ "First", "Second" }, dialog:getFields())
+  end)
 end)
