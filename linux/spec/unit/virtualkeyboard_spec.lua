@@ -415,7 +415,7 @@ describe("VirtualKeyboard component", function()
     assert.is_equal("en", settings_store["keyboard_layout"])
   end)
 
-  it("should manage visibility and exit events", function()
+  it("should manage visibility and KeyboardBack events", function()
     local mock_inputbox, actions = createMockInputbox()
     local vk = VirtualKeyboard:new({
       inputbox = mock_inputbox,
@@ -423,17 +423,25 @@ describe("VirtualKeyboard component", function()
       height = 300,
     })
 
+    assert.is_nil(vk.onExit)
+
     vk:showKeyboard(true)
     assert.is_true(vk:isVisible())
     assert.is_true(vk.ignore_first_hold_release)
 
     vk:hideKeyboard()
     assert.is_false(vk:isVisible())
+    assert.is_equal(0, actions.keyboard_closed_called)
+
+    vk:setVisibility(true)
+    assert.is_true(vk:isVisible())
+    vk:setVisibility(false)
+    assert.is_false(vk:isVisible())
+    assert.is_equal(0, actions.keyboard_closed_called)
 
     vk:showKeyboard()
     assert.is_true(vk:isVisible())
 
-    actions.keyboard_closed_called = 0
     assert.is_true(vk:onKeyboardBack())
     assert.is_false(vk:isVisible())
     assert.is_equal(1, actions.keyboard_closed_called)

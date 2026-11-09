@@ -281,6 +281,9 @@ describe("InputDialog widget", function()
       dialog:showKeyboard()
       assert.is_true(dialog:isKeyboardVisible())
 
+      dialog:closeKeyboard()
+      assert.is_falsy(dialog:isKeyboardVisible())
+      assert.is_nil(dialog.onExit)
       dialog:onCloseDialog()
     end
   )
@@ -367,6 +370,192 @@ describe("InputDialog widget", function()
       dialog:disableButton("save")
       dialog.enter_callback()
       assert.is_false(called)
+    end
+  )
+
+  it(
+    "does not expose onExit and saves view position on close without closing keyboard or unfocusing",
+    function()
+      local UIManager = require("ui/uimanager")
+      local dialog = InputDialog:new({
+        title = "Close Test",
+        input = "abc",
+      })
+      local close_kb_calls = 0
+      local unfocus_calls = 0
+      local save_pos_calls = 0
+      local orig_close_kb = dialog.closeKeyboard
+      local orig_unfocus = dialog._input_widget.unfocus
+      local orig_save_pos = dialog._saveViewPos
+      dialog.closeKeyboard = function(self)
+        close_kb_calls = close_kb_calls + 1
+        return orig_close_kb(self)
+      end
+      dialog._input_widget.unfocus = function(self)
+        unfocus_calls = unfocus_calls + 1
+        return orig_unfocus(self)
+      end
+      dialog._saveViewPos = function(self)
+        save_pos_calls = save_pos_calls + 1
+        return orig_save_pos(self)
+      end
+
+      finally(function()
+        UIManager:closeIfShown(dialog)
+      end)
+
+      assert.is_nil(dialog.onExit)
+      UIManager:show(dialog)
+      UIManager:close(dialog)
+
+      assert.are.equal(1, save_pos_calls)
+      assert.are.equal(0, close_kb_calls)
+      assert.are.equal(0, unfocus_calls)
+    end
+  )
+
+  it(
+    "passes NOT_FOCUS and NOT_UNFOCUS to refocusWidget without broadcasting Unfocus on init",
+    function()
+      local bit = require("bit")
+      local UIManager = require("ui/uimanager")
+      local FocusManager = require("ui/widget/focusmanager")
+      local InputText = require("ui/widget/inputtext")
+
+      local orig_refocus = InputDialog.refocusWidget
+      local orig_broadcast = UIManager.broadcastEvent
+      local orig_unfocus = InputText.unfocus
+      local refocus_args
+      local unfocus_broadcasts = 0
+      local input_unfocus_calls = 0
+
+      InputDialog.refocusWidget = function(self, render_mode, focus_flag)
+        refocus_args = { render_mode, focus_flag }
+        return orig_refocus(self, render_mode, focus_flag)
+      end
+      UIManager.broadcastEvent = function(self, event)
+        if type(event) == "table" and event.name == "Unfocus" then
+          unfocus_broadcasts = unfocus_broadcasts + 1
+        elseif event == "Unfocus" then
+          unfocus_broadcasts = unfocus_broadcasts + 1
+        end
+        return orig_broadcast(self, event)
+      end
+      InputText.unfocus = function(self)
+        input_unfocus_calls = input_unfocus_calls + 1
+        return orig_unfocus(self)
+      end
+
+      local dialog
+      finally(function()
+        InputDialog.refocusWidget = orig_refocus
+        UIManager.broadcastEvent = orig_broadcast
+        InputText.unfocus = orig_unfocus
+        if dialog then
+          UIManager:closeIfShown(dialog)
+        end
+      end)
+
+      dialog = InputDialog:new({
+        title = "Init Focus",
+        input = "line1\nline2",
+      })
+
+      assert.are.same({
+        FocusManager.RENDER_NOW,
+        bit.bor(FocusManager.NOT_FOCUS, FocusManager.NOT_UNFOCUS),
+      }, refocus_args)
+      assert.are.equal(0, unfocus_broadcasts)
+      assert.are.equal(0, input_unfocus_calls)
+    end
+  )
+
+  it(
+    "handles reinit and onKeyboardClosed without unfocusing old inputs",
+    function()
+      local UIManager = require("ui/uimanager")
+      local orig_save_pos = InputDialog._saveViewPos
+      local save_pos_calls = 0
+      InputDialog._saveViewPos = function(self)
+        save_pos_calls = save_pos_calls + 1
+        return orig_save_pos(self)
+      end
+
+      local dialogs = {}
+      finally(function()
+        InputDialog._saveViewPos = orig_save_pos
+        for _, dlg in ipairs(dialogs) do
+          if dlg:isKeyboardVisible() then
+            dlg:closeKeyboard()
+          end
+          UIManager:closeIfShown(dlg)
+        end
+      end)
+
+      for _, opts in ipairs({
+        { add_nav_bar = true, fullscreen = true },
+        { fullscreen = true },
+      }) do
+        local dlg = InputDialog:new({
+          title = "Kbd Closed",
+          input = "text",
+          add_nav_bar = opts.add_nav_bar,
+          fullscreen = opts.fullscreen,
+        })
+        table.insert(dialogs, dlg)
+        UIManager:show(dlg)
+        dlg:showKeyboard()
+        assert.is_true(dlg:isKeyboardVisible())
+
+        local old_input = dlg._input_widget
+        local old_unfocus_calls = 0
+        local orig_old_unfocus = old_input.unfocus
+        old_input.unfocus = function(self)
+          old_unfocus_calls = old_unfocus_calls + 1
+          return orig_old_unfocus(self)
+        end
+
+        local prev_save_calls = save_pos_calls
+        dlg:onKeyboardClosed()
+        assert.is_falsy(dlg:isKeyboardVisible())
+        assert.are.equal(0, old_unfocus_calls)
+        assert.is_true(save_pos_calls > prev_save_calls)
+
+        local reinit_save_calls = save_pos_calls
+        dlg:reinit()
+        assert.is_true(save_pos_calls > reinit_save_calls)
+
+        UIManager:close(dlg)
+      end
+    end
+  )
+
+  it(
+    "refreshes buttons via refreshButtons in add_nav_bar strike_callback",
+    function()
+      local dialog = InputDialog:new({
+        title = "Scroll",
+        add_nav_bar = true,
+        fullscreen = true,
+      })
+
+      local refresh_buttons_calls = 0
+      local go_refresh_calls = 0
+      local orig_refresh_buttons = dialog.refreshButtons
+      local orig_go_refresh = dialog.go_button.refresh
+      dialog.refreshButtons = function(self)
+        refresh_buttons_calls = refresh_buttons_calls + 1
+        return orig_refresh_buttons(self)
+      end
+      dialog.go_button.refresh = function(self)
+        go_refresh_calls = go_refresh_calls + 1
+        return orig_go_refresh(self)
+      end
+
+      dialog.curr_line_num = -1
+      dialog.strike_callback()
+      assert.are.equal(1, refresh_buttons_calls)
+      assert.are.equal(0, go_refresh_calls)
     end
   )
 end)

@@ -199,9 +199,29 @@ describe("MultiInputDialog widget", function()
 
     -- onSwitchFocus
     assert.are.equal(1, dialog.focused_field_idx)
-    dialog:onSwitchFocus(dialog.input_fields[2])
+    local unfocus_calls = 0
+    local focus_calls = 0
+    local first_field = dialog.input_fields[1]
+    local second_field = dialog.input_fields[2]
+    local orig_unfocus = first_field.unfocus
+    local orig_focus = second_field.focus
+    first_field.unfocus = function(self)
+      unfocus_calls = unfocus_calls + 1
+      return orig_unfocus(self)
+    end
+    second_field.focus = function(self)
+      focus_calls = focus_calls + 1
+      return orig_focus(self)
+    end
+
+    dialog:onSwitchFocus(second_field)
+    first_field.unfocus = orig_unfocus
+    second_field.focus = orig_focus
+
+    assert.are.equal(1, unfocus_calls)
+    assert.are.equal(1, focus_calls)
     assert.are.equal(2, dialog.focused_field_idx)
-    assert.are.equal(dialog.input_fields[2], dialog._input_widget)
+    assert.are.equal(second_field, dialog._input_widget)
 
     -- addWidget
     local dummy_widget = Widget:new({ dimen = Geom:new({ w = 10, h = 10 }) })
@@ -214,5 +234,61 @@ describe("MultiInputDialog widget", function()
     assert.are.equal(1, #dialog._added_widgets)
 
     UIManager:close(dialog)
+  end)
+
+  it("does not call _closeKeyboard during init", function()
+    local orig_close_kb = MultiInputDialog._closeKeyboard
+    local close_kb_calls = 0
+    MultiInputDialog._closeKeyboard = function(self)
+      close_kb_calls = close_kb_calls + 1
+      return orig_close_kb(self)
+    end
+
+    local dialog
+    finally(function()
+      MultiInputDialog._closeKeyboard = orig_close_kb
+      if dialog then
+        UIManager:closeIfShown(dialog)
+      end
+    end)
+
+    dialog = MultiInputDialog:new({
+      title = "Init Test",
+      fields = {
+        { text = "First" },
+        { text = "Second" },
+      },
+    })
+
+    assert.are.equal(0, close_kb_calls)
+    assert.is_nil(dialog.onExit)
+    UIManager:show(dialog)
+  end)
+
+  it("saves view position in onKeyboardHeightChanged without onExit", function()
+    local dialog = MultiInputDialog:new({
+      title = "Keyboard Height",
+      fields = {
+        { text = "First" },
+        { text = "Second" },
+      },
+    })
+
+    local save_pos_calls = 0
+    local orig_save_pos = MultiInputDialog._saveViewPos
+    MultiInputDialog._saveViewPos = function(self)
+      save_pos_calls = save_pos_calls + 1
+      return orig_save_pos(self)
+    end
+
+    finally(function()
+      MultiInputDialog._saveViewPos = orig_save_pos
+      UIManager:closeIfShown(dialog)
+    end)
+
+    UIManager:show(dialog)
+    assert.is_nil(dialog.onExit)
+    dialog:onKeyboardHeightChanged()
+    assert.are.equal(1, save_pos_calls)
   end)
 end)
