@@ -136,7 +136,6 @@ describe("ReaderDeviceStatus", function()
         end
       end),
       setDirty = spy.new(function() end),
-      ignoreWidgetRepaint = spy.new(function() end),
       getTopmostVisibleWidget = function()
         return nil
       end,

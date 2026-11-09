@@ -116,7 +116,6 @@ describe("DropBox", function()
         return {
           is_multi_input_dialog = true,
           args = args,
-          onExit = function(self) end,
         }
       end,
     }

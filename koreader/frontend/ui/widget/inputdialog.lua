@@ -117,6 +117,7 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local Screen = Device.screen
 local T = require("ffi/util").template
+local bit = require("bit")
 local gettext = require("gettext")
 local util = require("util")
 
@@ -307,7 +308,6 @@ function InputDialog:init()
     local keyboard_height = self._should_show_keyboard
         and input_widget:getKeyboardDimen().h
       or 0
-    input_widget:closeKeyboard() -- we don't want multiple VKs, as the show/hide tracking assumes there's only one
     input_widget:onClose() -- free() textboxwidget and keyboard
     -- Find out available height
     local available_height = self.screen_height
@@ -344,7 +344,7 @@ function InputDialog:init()
   if self.view_pos_callback then
     -- Retrieve cursor position and top line num from our callback.
     -- Mainly used for runtime re-inits.
-    -- c.f., our onExit handler for the other end of this.
+    -- c.f., _saveViewPos for the other end of this.
     -- *May* return nils, in which case, we do *not* want to override our caller's values!
     local top_line_num, charpos = self.view_pos_callback()
     if top_line_num and charpos then
@@ -407,7 +407,10 @@ function InputDialog:init()
   --       and that will wreak havoc on toggleKeyboard...
   --       Plus, the widget at (1, 1) will not have changed, so we don't actually need to change the visual focus anyway?
   -- If it turns out something actually needed this, make this conditional on a new `reinit` arg passed to `init`, for toggleKeyboard & co.
-  self:refocusWidget(FocusManager.RENDER_NOW, FocusManager.NOT_FOCUS)
+  self:refocusWidget(
+    FocusManager.RENDER_NOW,
+    bit.bor(FocusManager.NOT_FOCUS, FocusManager.NOT_UNFOCUS)
+  )
   -- Complementary setup for some of our added buttons
   if self.save_callback then
     local save_button = self.button_table:getButtonById("save")
@@ -493,7 +496,7 @@ end
 function InputDialog:reinit()
   local visible = self:isKeyboardVisible()
   self.input = self:getInputText() -- re-init with up-to-date text
-  self:onExit() -- will close keyboard and save view position
+  self:_saveViewPos()
   self._input_widget:onClose() -- proper cleanup of InputText and its keyboard
   if self._added_widgets then
     -- prevent these externally added widgets from being freed as :init() will re-add them
@@ -615,15 +618,14 @@ function InputDialog:onClose()
     active_instances >= 0,
     "InputDialog active instances count went negative!"
   )
-  self._is_closing = true
-  self:onExit()
-  self._is_closing = nil
+  self:_saveViewPos()
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)
   if not self._should_show_keyboard then
     self.input = self:getInputText()
-    self:onExit()
+    self:_saveViewPos()
+    self._input_widget:onClose()
     self:free()
     self._should_show_keyboard = true
     self:init()
@@ -640,20 +642,13 @@ function InputDialog:showKeyboard(ignore_first_hold_release)
 end
 
 function InputDialog:closeKeyboard()
-  if self._in_close_keyboard then
-    return
-  end
-  self._in_close_keyboard = true
-
   if self._should_show_keyboard then
     self.input = self:getInputText()
-    self:_closeKeyboard() -- Close it on the OLD widget before freeing it!
-    self:onExit()
+    self:_saveViewPos()
+    self._input_widget:onClose()
     self:free()
     self._should_show_keyboard = false
-    if not self._is_closing then
-      self:init()
-    end
+    self:init()
 
     local keyboard_button = self.button_table:getButtonById("keyboard")
     if keyboard_button then
@@ -665,8 +660,6 @@ function InputDialog:closeKeyboard()
   else
     self:_closeKeyboard()
   end
-
-  self._in_close_keyboard = nil
 end
 
 function InputDialog:isKeyboardVisible()
@@ -695,13 +688,7 @@ end
 function InputDialog:onKeyboardClosed()
   if self.add_nav_bar or self.fullscreen then
     -- If the keyboard was closed via a key event (Back), make sure we reinit properly like in toggleKeyboard...
-    self.input = self:getInputText()
-    self:onExit()
-    self:free()
-
-    self:init()
-
-    self:refreshButtons()
+    self:closeKeyboard()
   end
 end
 
@@ -717,7 +704,7 @@ function InputDialog:onCloseDialog()
   return false
 end
 
-function InputDialog:onExit()
+function InputDialog:_saveViewPos()
   -- Tell our input widget to poke its text widget so that we'll pickup up to date values
   self._input_widget:resyncPos()
   -- Remember current view & position in case of re-init
@@ -730,7 +717,6 @@ function InputDialog:onExit()
     -- This lets the caller store/process the current top line num and cursor position via this callback
     self.view_pos_callback(self._top_line_num, self._charpos)
   end
-  self:closeKeyboard()
 end
 
 function InputDialog:onSetRotationMode(mode)
@@ -1096,7 +1082,7 @@ function InputDialog:_addScrollButtons(nav_bar)
             "\u{250B}\u{202F}" .. curr_line_num,
             self.go_button.width
           )
-          self.go_button:refresh()
+          self:refreshButtons()
         end
       end
     end

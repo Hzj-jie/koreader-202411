@@ -452,6 +452,7 @@ describe("InputText widget module", function()
       })
       assert.is_true(handled)
       assert.is_true(input.focused)
+      input:onClose()
     end)
 
     it("should handle onSwipeTextBox", function()
@@ -625,21 +626,114 @@ describe("InputText widget module", function()
     end)
   end)
 
-  describe("onClose repaint cleanup", function()
-    it("clears pending UIManager dirty repaint when closed", function()
+  describe("onClose keyboard cleanup", function()
+    it("hides visible keyboard before freeing it without unfocusing", function()
       local UIManager = require("ui/uimanager")
       local input = require("ui/widget/inputtext"):new({
         text = "sample",
       })
-      UIManager:show(input)
+      input:showKeyboard()
+      assert.is_true(input:isKeyboardVisible())
+      assert.is_true(UIManager:isWindowWidget(input.keyboard))
+
+      local events = {}
+      local orig_hide = input.keyboard.hideKeyboard
+      local orig_free = input.keyboard.free
+      local orig_unfocus = input.unfocus
       finally(function()
-        UIManager:close(input)
+        input.keyboard.hideKeyboard = orig_hide
+        input.keyboard.free = orig_free
+        input.unfocus = orig_unfocus
+        if input:isKeyboardVisible() then
+          input.keyboard:hideKeyboard()
+        end
       end)
-      UIManager:setDirty(input, "ui")
-      assert.is_true(UIManager._dirty[input] ~= nil)
+
+      input.keyboard.hideKeyboard = function(kb)
+        table.insert(events, "hideKeyboard")
+        return orig_hide(kb)
+      end
+      input.keyboard.free = function(kb)
+        assert.is_false(kb:isVisible())
+        table.insert(events, "kb_free")
+        return orig_free(kb)
+      end
+      input.unfocus = function(self)
+        table.insert(events, "unfocus")
+        return orig_unfocus(self)
+      end
 
       input:onClose()
-      assert.is_nil(UIManager._dirty[input])
+
+      assert.are.same({ "hideKeyboard", "kb_free" }, events)
+      assert.is_false(input:isKeyboardVisible())
+      assert.is_false(UIManager:isWindowWidget(input.keyboard))
+      assert.is_true(input.focused)
     end)
+  end)
+
+  describe("onFocus DPad handling", function()
+    it(
+      "focuses once without duplicating showKeyboard or onSwitchFocus",
+      function()
+        local Device = require("device")
+        local InputTextClass = require("ui/widget/inputtext")
+        local orig_has_dpad = Device.hasDPad
+        local switch_calls = 0
+        local focus_calls = 0
+        local standalone = InputTextClass:new({
+          text = "standalone",
+          parent = {},
+        })
+        local orig_standalone_focus = standalone.focus
+        standalone.focus = function(self)
+          focus_calls = focus_calls + 1
+          return orig_standalone_focus(self)
+        end
+
+        local child
+        finally(function()
+          Device.hasDPad = orig_has_dpad
+          InputTextClass.initInputEvents()
+          if standalone then
+            standalone:onClose()
+          end
+          if child then
+            child:onClose()
+          end
+        end)
+
+        Device.hasDPad = function()
+          return true
+        end
+        InputTextClass.initInputEvents()
+
+        assert.is_true(standalone:onFocus())
+        assert.are.equal(1, focus_calls)
+        assert.is_true(standalone:isKeyboardVisible())
+        standalone:onClose()
+        standalone = nil
+
+        focus_calls = 0
+        child = InputTextClass:new({
+          text = "child",
+          parent = {
+            onSwitchFocus = function(_, target)
+              switch_calls = switch_calls + 1
+              target:focus()
+            end,
+          },
+        })
+        local orig_child_focus = child.focus
+        child.focus = function(self)
+          focus_calls = focus_calls + 1
+          return orig_child_focus(self)
+        end
+
+        assert.is_true(child:onFocus())
+        assert.are.equal(1, switch_calls)
+        assert.are.equal(1, focus_calls)
+      end
+    )
   end)
 end)

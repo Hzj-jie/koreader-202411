@@ -104,7 +104,6 @@ function MultiInputDialog:init()
   -- Kick InputDialog's own field out of the layout, we're not using it
   table.remove(self.layout, 1)
   -- Also murder said input field *and* its VK, or we get two of them and shit gets hilariously broken real fast...
-  self:_closeKeyboard()
   self._input_widget:onClose()
   self._should_show_keyboard = true
 
@@ -254,9 +253,7 @@ function MultiInputDialog:getFields()
 end
 
 function MultiInputDialog:onSwitchFocus(inputbox)
-  -- unfocus current inputbox
-  self._input_widget:unfocus()
-  -- and close its existing keyboard (via InputDialog's thin wrapper around _input_widget's own method)
+  -- unfocus current inputbox and close its existing keyboard
   self:_closeKeyboard()
 
   UIManager:setDirty(nil, function()
@@ -265,7 +262,6 @@ function MultiInputDialog:onSwitchFocus(inputbox)
 
   -- focus new inputbox
   self._input_widget = inputbox
-  self._input_widget:focus()
   self.focused_field_idx = inputbox.idx
 
   self._should_show_keyboard = true
@@ -275,7 +271,7 @@ end
 function MultiInputDialog:onKeyboardHeightChanged()
   local visible = self:isKeyboardVisible()
   local fields = self.input_fields -- backup entered text
-  self:onExit() -- will close keyboard and save view position
+  self:_saveViewPos()
   self._input_widget:onClose() -- proper cleanup of InputText and its keyboard
   if self._added_widgets then
     -- prevent these externally added widgets from being freed as :init() will re-add them
