@@ -99,6 +99,16 @@ local MultiInputDialog = InputDialog:extend({
 })
 
 function MultiInputDialog:init()
+  -- In case of reinit, murder our previous input widgets before InputDialog.init
+  -- so stale VK instances are cleaned up without closing _input_widget twice.
+  if self.input_fields then
+    assert(self._input_widget ~= nil)
+    for _, widget in ipairs(self.input_fields) do
+      widget:onClose()
+    end
+    self.input_fields = nil
+    self._input_widget = nil
+  end
   -- init title and buttons in base class
   InputDialog.init(self)
   -- Kick InputDialog's own field out of the layout, we're not using it
@@ -113,12 +123,6 @@ function MultiInputDialog:init()
   })
   local content_width = math.floor(self.width * 0.9)
 
-  -- In case of reinit, murder our previous input widgets to prevent stale VK instances from lingering
-  if self.input_fields then
-    for i, widget in ipairs(self.input_fields) do
-      widget:onClose()
-    end
-  end
   self.input_fields = {}
   local input_description = {}
   for i, field in ipairs(self.fields) do
@@ -272,7 +276,6 @@ function MultiInputDialog:onKeyboardHeightChanged()
   local visible = self:isKeyboardVisible()
   local fields = self.input_fields -- backup entered text
   self:_saveViewPos()
-  self._input_widget:onClose() -- proper cleanup of InputText and its keyboard
   if self._added_widgets then
     -- prevent these externally added widgets from being freed as :init() will re-add them
     local vgroup = self.dialog_frame[1]
