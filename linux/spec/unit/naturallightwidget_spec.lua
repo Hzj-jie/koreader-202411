@@ -366,4 +366,46 @@ describe("NaturalLightWidget UI component", function()
     assert.spy(second_close).was_called(1)
     assert.is_false(second_input.focused)
   end)
+
+  it(
+    "does not focus or unfocus freed inputs when closing with keyboard visible",
+    function()
+      local InputText = require("ui/widget/inputtext")
+      local orig_focus = InputText.focus
+      local orig_unfocus = InputText.unfocus
+      local nlw = NaturalLightWidget:new({})
+      local input = nlw.white_gain[2]
+
+      finally(function()
+        InputText.focus = orig_focus
+        InputText.unfocus = orig_unfocus
+        UIManager:closeIfShown(nlw)
+        if input.keyboard then
+          input.keyboard:hideKeyboard()
+        end
+      end)
+
+      UIManager:show(nlw)
+      nlw:onSwitchFocus(input)
+      assert.is_true(input.keyboard:isVisible())
+
+      local focus_calls = 0
+      local unfocus_calls = 0
+      InputText.focus = function(self, ...)
+        focus_calls = focus_calls + 1
+        return orig_focus(self, ...)
+      end
+      InputText.unfocus = function(self, ...)
+        unfocus_calls = unfocus_calls + 1
+        return orig_unfocus(self, ...)
+      end
+
+      UIManager:close(nlw)
+
+      assert.are.equal(0, focus_calls)
+      assert.are.equal(0, unfocus_calls)
+      assert.is_false(input.keyboard:isVisible())
+      assert.is_false(UIManager:isWindowWidget(nlw))
+    end
+  )
 end)

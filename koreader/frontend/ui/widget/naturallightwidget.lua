@@ -355,7 +355,6 @@ function NaturalLightWidget:setValueTextBox(widget, val)
 end
 
 function NaturalLightWidget:onClose()
-  self:closeKeyboard()
   UIManager:setDirty(nil, function()
     return "flashui", self.nl_frame.dimen
   end)
