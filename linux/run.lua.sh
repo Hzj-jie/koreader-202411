@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-LUA=./lua ./_run.sh
+LUA=./lua ./_run.sh "$@"
