@@ -802,7 +802,6 @@ function ReaderUI:onVerifyPassword(document)
 end
 
 function ReaderUI:closeDialog()
-  self.password_dialog:onExit()
   UIManager:close(self.password_dialog)
 end
 

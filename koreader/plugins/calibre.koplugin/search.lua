@@ -250,7 +250,6 @@ function CalibreSearch:ShowSearch()
           id = "close",
           enabled = true,
           callback = function()
-            self.search_dialog:onExit()
             UIManager:close(self.search_dialog)
           end,
         },
@@ -272,7 +271,6 @@ end
 
 function CalibreSearch:close()
   if self.search_value then
-    self.search_dialog:onExit()
     UIManager:close(self.search_dialog)
     if string.len(self.search_value) > 0 or self.lastsearch ~= "find" then
       self:find(self.lastsearch)

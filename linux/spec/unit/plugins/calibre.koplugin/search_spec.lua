@@ -453,9 +453,7 @@ describe("Calibre Search module", function()
       stub(UIManager, "close")
       stub(CalibreSearch, "find")
 
-      CalibreSearch.search_dialog = {
-        onExit = function() end,
-      }
+      CalibreSearch.search_dialog = {}
       CalibreSearch.search_value = "Dune"
       CalibreSearch.lastsearch = "find"
 
