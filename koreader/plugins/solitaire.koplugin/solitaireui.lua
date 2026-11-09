@@ -117,7 +117,7 @@ function SolitaireUI:init()
   end
 
   if Device:hasKeys() then
-    self.key_events.Close = { { "Back" }, doc = "close game" }
+    self.key_events.Exit = { { "Back" }, doc = "close game" }
   end
 
   self:buildUI()
@@ -221,7 +221,6 @@ function SolitaireUI:buildUI()
         {
           text = gettext("Close"),
           callback = function()
-            self:onClose()
             UIManager:close(self)
           end,
         },
@@ -1055,6 +1054,11 @@ function SolitaireUI:showWinMessage()
   }))
 end
 
+function SolitaireUI:onExit()
+  UIManager:close(self)
+  return true
+end
+
 function SolitaireUI:onClose()
   if not self.game:checkWin() then
     self:saveGame()
@@ -1062,10 +1066,6 @@ function SolitaireUI:onClose()
   -- Stop the timer refresh
   self.game:stopTimer()
   return true
-end
-
-function SolitaireUI:onCloseWidget()
-  UIManager:setDirty(nil, "full")
 end
 
 return SolitaireUI
