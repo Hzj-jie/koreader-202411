@@ -143,7 +143,7 @@ function NaturalLightWidget:update()
     bottom_v_padding = 0,
     close_callback = function()
       self:setAllValues(self.old_values)
-      self:onExit()
+      UIManager:close(self)
     end,
   })
   local main_content = FrameContainer:new({
@@ -266,7 +266,7 @@ function NaturalLightWidget:createMainContent(width, height)
     width = math.floor(self.width * 0.2),
     callback = function()
       self:setAllValues(self.old_values)
-      self:onExit()
+      UIManager:close(self)
     end,
   })
   local button_ok = Button:new({
@@ -276,7 +276,7 @@ function NaturalLightWidget:createMainContent(width, height)
     width = math.floor(self.width * 0.2),
     callback = function()
       G_reader_settings:save("natural_light_config", self:getCurrentValues())
-      self:onExit()
+      UIManager:close(self)
     end,
   })
 
@@ -355,7 +355,6 @@ function NaturalLightWidget:setValueTextBox(widget, val)
 end
 
 function NaturalLightWidget:onClose()
-  self:closeKeyboard()
   UIManager:setDirty(nil, function()
     return "flashui", self.nl_frame.dimen
   end)
@@ -370,22 +369,15 @@ function NaturalLightWidget:onShow()
   return true
 end
 
-function NaturalLightWidget:onExit()
-  UIManager:close(self)
-  return true
-end
-
 function NaturalLightWidget:showKeyboard()
   if self._current_input then
     self._current_input:showKeyboard()
-    self._current_input:focus()
   end
 end
 
 function NaturalLightWidget:closeKeyboard()
   if self._current_input then
     self._current_input:closeKeyboard()
-    self._current_input:unfocus()
   end
 end
 
