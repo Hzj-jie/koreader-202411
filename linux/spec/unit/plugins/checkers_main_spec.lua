@@ -274,4 +274,37 @@ describe("Checkers main plugin module", function()
     UIManager.scheduleIn = old_schedule
     UIManager.unschedule = old_unschedule
   end)
+
+  it("unschedules pending AI move when closed via UIManager", function()
+    local instance = Checkers:new({
+      ui = {
+        menu = { registerToMainMenu = function() end },
+      },
+    })
+    instance:init()
+    instance.human[1] = false
+    instance.human[2] = true
+
+    instance:startGame()
+    assert.is_function(instance.ai_action)
+    assert.is_true(UIManager:isWindowWidget(instance))
+
+    local ai_fn = instance.ai_action
+    local scheduled_before = false
+    for _, task in ipairs(UIManager._task_queue) do
+      if task.action == ai_fn then
+        scheduled_before = true
+        break
+      end
+    end
+    assert.is_true(scheduled_before)
+
+    UIManager:close(instance, "full")
+
+    assert.is_nil(instance.ai_action)
+    for _, task in ipairs(UIManager._task_queue) do
+      assert.are_not.equal(ai_fn, task.action)
+    end
+    UIManager:quit()
+  end)
 end)
