@@ -932,7 +932,6 @@ function NewsDownloader:viewFeedItem(data)
 end
 
 function NewsDownloader:editFeedAttribute(id, key, value)
-  local kv = self.kv
   -- There are basically two types of values: string (incl. numbers)
   -- and booleans. This block chooses what type of value our
   -- attribute will need and displays the corresponding dialog.
@@ -976,7 +975,6 @@ function NewsDownloader:editFeedAttribute(id, key, value)
             id = "close",
             callback = function()
               UIManager:close(input_dialog)
-              UIManager:show(kv)
             end,
           },
           {
@@ -1014,10 +1012,6 @@ function NewsDownloader:editFeedAttribute(id, key, value)
       choice2_callback = function()
         UIManager:close(multi_box)
         self:updateFeedConfig(id, key, false)
-      end,
-      cancel_callback = function()
-        UIManager:close(multi_box)
-        UIManager:show(kv)
       end,
     })
     UIManager:show(multi_box)
