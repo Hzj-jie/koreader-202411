@@ -940,7 +940,7 @@ function NonogramScreen:init()
   self.dimen =
     Geom:new({ x = 0, y = 0, w = Screen:getWidth(), h = Screen:getHeight() })
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   self.board:ensurePuzzle()
   self.status_text = TextWidget:new({
@@ -1000,9 +1000,7 @@ function NonogramScreen:buildLayout()
         {
           text = gettext("Close"),
           callback = function()
-            self:onClose()
-            UIManager:close(self)
-            UIManager:setDirty(nil, "full")
+            self:onExit()
           end,
         },
       },
@@ -1278,9 +1276,15 @@ function NonogramScreen:updateSolutionButton()
   self.solution_button:setText(text, width)
 end
 
+function NonogramScreen:onExit()
+  UIManager:close(self)
+  return true
+end
+
 function NonogramScreen:onClose()
   self.plugin:saveState()
   self.plugin:onScreenClosed()
+  UIManager:setDirty(nil, "full")
 end
 
 function NonogramScreen:onNewGame()
