@@ -4028,6 +4028,7 @@ function ReaderStatistics.onSync(local_path, cached_path, income_path)
   if not ok1 or tonumber(v1) == 0 then
     -- no income db or wrong db, first time sync
     logger.warn("statistics open income DB failed", v1)
+    conn_income:close()
     return true
   end
 

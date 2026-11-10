@@ -671,6 +671,63 @@ describe("ReaderStatistics plugin main spec", function()
   end)
 
   it(
+    "should close income DB connection when onSync returns early on empty or invalid income DB",
+    function()
+      local pid = tostring(ffi.C.getpid())
+      local local_db = DataStorage:getSettingsDir()
+        .. "/sync_invalid_local_"
+        .. pid
+        .. ".sqlite3"
+      local cached_db = DataStorage:getSettingsDir()
+        .. "/sync_invalid_cached_"
+        .. pid
+        .. ".sqlite3"
+      local income_db = DataStorage:getSettingsDir()
+        .. "/sync_invalid_income_"
+        .. pid
+        .. ".sqlite3"
+
+      os.remove(local_db)
+      os.remove(cached_db)
+      os.remove(income_db)
+
+      local orig_open = SQ3.open
+      local opened_conns = {}
+      finally(function()
+        SQ3.open = orig_open
+        for _, conn in ipairs(opened_conns) do
+          if not conn._closed then
+            conn:close()
+          end
+        end
+        os.remove(local_db)
+        os.remove(cached_db)
+        os.remove(income_db)
+      end)
+
+      SQ3.open = function(...)
+        local conn = orig_open(...)
+        table.insert(opened_conns, conn)
+        return conn
+      end
+
+      -- Case 1: uninitialized/empty DB (schema_version == 0)
+      assert.is_true(ReaderStatistics.onSync(local_db, cached_db, income_db))
+      assert.are.equal(1, #opened_conns)
+      assert.is_true(opened_conns[1]._closed)
+
+      -- Case 2: invalid non-SQLite file (PRAGMA schema_version errors)
+      local fh = assert(io.open(income_db, "wb"))
+      fh:write("not a sqlite database")
+      fh:close()
+
+      assert.is_true(ReaderStatistics.onSync(local_db, cached_db, income_db))
+      assert.are.equal(2, #opened_conns)
+      assert.is_true(opened_conns[2]._closed)
+    end
+  )
+
+  it(
     "should cover DB upgrades, rerendering, period queries, and helper getters",
     function()
       local stats = createInstance()
