@@ -330,7 +330,7 @@ function Screen:afterMove()
     return "ui", self.dimen
   end)
   if self.game:isWon() then
-    UIManager:forceRePaint()
+    UIManager:forceRepaint()
     -- Fold in the currently ticking second and stop the timer so the
     -- reported best time matches what the header now displays.
     self:stopTicker()
