@@ -320,7 +320,8 @@ describe("time_settings_menu_table module", function()
 
     -- Failure when NTP command exits with non-zero
     executed_cmds = {}
-    local txt = syncNTPOnly()
+    local ok, txt = syncNTPOnly()
+    assert.is_false(ok)
     assert.are.equal(
       gettext(
         "Failed to retrieve time from server. Please check your network configuration."
@@ -337,7 +338,8 @@ describe("time_settings_menu_table module", function()
       return 0
     end)
 
-    txt = syncNTPOnly()
+    ok, txt = syncNTPOnly()
+    assert.is_true(ok)
     assert.is_string(txt)
     assert.are.equal("ntpdate pool.ntp.org", executed_cmds[1])
     assert.are.equal("hwclock -u -w", executed_cmds[2])
@@ -352,7 +354,8 @@ describe("time_settings_menu_table module", function()
       return orig_attributes(path, req)
     end
 
-    txt = syncNTPOnly()
+    ok, txt = syncNTPOnly()
+    assert.is_true(ok)
     assert.is_string(txt)
     local found_setdate = false
     for _, cmd in ipairs(executed_cmds) do
@@ -564,7 +567,7 @@ describe("time_settings_menu_table module", function()
     assert.is_function(captured_job.callback)
 
     -- 4. Callback records last_sync_time in memory; subsequent idle check within 24h does not re-sync
-    captured_job.callback({ result = "New time is 12:00." })
+    captured_job.callback({ result = true })
     insert_stub:clear()
 
     idle_fn()
@@ -579,5 +582,143 @@ describe("time_settings_menu_table module", function()
     MockTime:increase(86400 - 3600 + 1)
     idle_fn()
     assert.stub(insert_stub).was_called(1)
+  end)
+
+  it("retries manual and idle NTP sync when synchronization fails", function()
+    local MockTime = require("mock_time")
+    MockTime:install()
+
+    local ffi = require("ffi")
+    local BackgroundJobs = require("background_jobs")
+    local NetworkMgr = require("ui/network/manager")
+    local gettext = require("gettext")
+    local original_ffi_C = ffi.C
+
+    local mock_ffi = setmetatable({
+      C = setmetatable({
+        getuid = function()
+          return 0
+        end,
+      }, {
+        __index = original_ffi_C,
+      }),
+    }, {
+      __index = ffi,
+    })
+
+    package.loaded["ffi"] = mock_ffi
+
+    local ntp_exit_code = 1
+    local exec_stub = stub(os, "execute", function(cmd)
+      if cmd == "command -v ntpdate >/dev/null" then
+        return 0
+      end
+      if cmd == "ntpdate pool.ntp.org" then
+        return ntp_exit_code
+      end
+      return 0
+    end)
+
+    local run_when_online_stub = stub(NetworkMgr, "runWhenOnline", function(self, cb)
+      cb()
+    end)
+    stub(NetworkMgr, "isOnline").returns(true)
+
+    local orig_runWith = UIManager.runWith
+    UIManager.runWith = function(self, func)
+      func()
+    end
+
+    local shown_widget = nil
+    local orig_show = UIManager.show
+    UIManager.show = function(self, widget)
+      shown_widget = widget
+    end
+
+    local registered_idle_job = nil
+    local orig_insert = BackgroundJobs.insert
+    BackgroundJobs.insert = function(job)
+      if job.when == "idle" then
+        registered_idle_job = job
+      end
+    end
+
+    local captured_job = nil
+    local insert_stub = stub(BackgroundJobs, "insertKeyed", function(job)
+      captured_job = job
+      return true
+    end)
+
+    G_reader_settings:delete("auto_sync_time")
+
+    finally(function()
+      MockTime:uninstall()
+      package.loaded["ffi"] = ffi
+      exec_stub:revert()
+      run_when_online_stub:revert()
+      NetworkMgr.isOnline:revert()
+      insert_stub:revert()
+      BackgroundJobs.insert = orig_insert
+      UIManager.runWith = orig_runWith
+      UIManager.show = orig_show
+      G_reader_settings:delete("auto_sync_time")
+      package.loaded["ui/elements/time_settings_menu_table"] = nil
+    end)
+
+    package.loaded["ui/elements/time_settings_menu_table"] = nil
+    local custom_menu = require("ui/elements/time_settings_menu_table")
+
+    local auto_item
+    for _, item in ipairs(custom_menu.sub_item_table) do
+      if item.text == gettext("Automatically synchronize time") then
+        auto_item = item
+        break
+      end
+    end
+    assert.is_not_nil(auto_item)
+    assert.is_not_nil(registered_idle_job)
+    local idle_fn = registered_idle_job.executable
+
+    -- Failed manual sync does not start the 24h cooldown
+    ntp_exit_code = 1
+    auto_item.callback()
+    assert.are.equal(
+      gettext(
+        "Failed to retrieve time from server. Please check your network configuration."
+      ),
+      shown_widget.text
+    )
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_called(1)
+    assert.is_not_nil(captured_job)
+
+    -- Failed background action result does not start the 24h cooldown
+    local action_ok = captured_job.action()
+    assert.is_false(action_ok)
+    captured_job.callback({ result = action_ok, timeout = false })
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_called(1)
+
+    -- Timed out or errored fork result does not start the 24h cooldown
+    captured_job.callback({ result = 255, timeout = true })
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_called(1)
+
+    captured_job.callback({ result = false, timeout = false })
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_called(1)
+
+    -- Successful background sync records last_sync_time and suppresses immediate retry
+    ntp_exit_code = 0
+    action_ok = captured_job.action()
+    assert.is_true(action_ok)
+    captured_job.callback({ result = action_ok, timeout = false })
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_not_called()
   end)
 end)
