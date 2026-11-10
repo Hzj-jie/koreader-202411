@@ -153,9 +153,7 @@ end
 -- ── Game start / reset ────────────────────────────────────────────────────────
 
 function Checkers:startGame()
-  if UIManager.isWidgetShown and UIManager:isWidgetShown(self) then
-    UIManager:close(self)
-  end
+  UIManager:closeIfShown(self)
   self.game = Game.new()
   self:buildLayout()
   self.board:updateBoard()
