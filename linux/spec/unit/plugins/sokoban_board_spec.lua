@@ -1,11 +1,12 @@
 describe("Sokoban Board widget module", function()
-  local Board
+  local Board, Event
 
   setup(function()
     require("commonrequire")
     package.unloadAll()
     require("document/canvascontext"):init(require("device"))
 
+    Event = require("ui/event")
     Board = require("plugins/sokoban.koplugin/sokoban_board")
   end)
 
@@ -70,7 +71,7 @@ describe("Sokoban Board widget module", function()
       end,
     }
 
-    b:freeImages()
+    b:broadcastEvent(Event:new("Close"))
     assert.is_true(freed)
     assert.are.same({}, b._img_cache)
   end)
