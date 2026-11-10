@@ -153,21 +153,7 @@ function Sokoban:_buildWidget()
     end,
   })
   local title_h = title_bar:getSize().h
-
-  -- board widget
-  local board_w = sw
   local board_h = sh - title_h - toolbar_h
-
-  local board = Board:new({
-    game = game,
-    width = board_w,
-    height = board_h,
-    icon_dir = self.path .. "/tiles",
-    on_swipe_cb = function(dr, dc)
-      self:_onMove(dr, dc)
-    end,
-  })
-  self._board = board
   self._title_bar = title_bar
 
   -- toolbar: undo + level select
@@ -238,7 +224,15 @@ function Sokoban:_buildWidget()
   local layout = VerticalGroup:new({
     align = "left",
     title_bar,
-    board,
+    Board:new({
+      game = game,
+      width = sw,
+      height = board_h,
+      icon_dir = self.path .. "/tiles",
+      on_swipe_cb = function(dr, dc)
+        self:_onMove(dr, dc)
+      end,
+    }),
     toolbar,
     gap > 0 and VerticalSpan:new({ height = gap }) or nil,
   })
@@ -372,9 +366,6 @@ end
 
 function Sokoban:_onClose()
   self:_saveSettings()
-  if self._board then
-    self._board:freeImages()
-  end
   UIManager:close(self.widget)
   self.widget = nil
 end
