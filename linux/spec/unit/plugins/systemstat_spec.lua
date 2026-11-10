@@ -116,8 +116,9 @@ describe("systemstat plugin", function()
     end)
   end)
 
-  describe("pending network jobs callback", function()
+  describe("pending network tasks callback", function()
     it("shows countsOfPendingJobs in kv_pairs", function()
+      local gettext = require("gettext")
       local networklistener = require("ui/network/networklistener")
       local orig_counts = networklistener.countsOfPendingJobs
       networklistener.countsOfPendingJobs = function()
@@ -135,7 +136,7 @@ describe("systemstat plugin", function()
       local page = shown_widgets[1]
       local pending_item
       for _, pair in ipairs(page.kv_pairs) do
-        if pair[1] and pair[1]:find("Pending network jobs") then
+        if pair[1] == "  " .. gettext("Pending network tasks") then
           pending_item = pair
           break
         end
@@ -145,6 +146,7 @@ describe("systemstat plugin", function()
     end)
 
     it("displays InfoMessage with pending job keys when jobs exist", function()
+      local gettext = require("gettext")
       local networklistener = require("ui/network/networklistener")
       local orig_pendingJobKeys = networklistener.pendingJobKeys
       networklistener.pendingJobKeys = function()
@@ -162,7 +164,7 @@ describe("systemstat plugin", function()
       local page = shown_widgets[1]
       local pending_item
       for _, pair in ipairs(page.kv_pairs) do
-        if pair[1] and pair[1]:find("Pending network jobs") then
+        if pair[1] == "  " .. gettext("Pending network tasks") then
           pending_item = pair
           break
         end
@@ -177,8 +179,15 @@ describe("systemstat plugin", function()
       local info = shown_widgets[1]
       assert.is_not_nil(info)
       assert.is_not_nil(info.text)
-      assert.is_true(info.text:find("kosync_push_progress") ~= nil)
-      assert.is_true(info.text:find("weather_fetch_forecast") ~= nil)
+      assert.is_true(
+        info.text:find(gettext("Waiting for network connection"), 1, true)
+          ~= nil
+      )
+      assert.is_true(
+        info.text:find(gettext("Waiting for internet access"), 1, true) ~= nil
+      )
+      assert.is_true(info.text:find("kosync_push_progress", 1, true) ~= nil)
+      assert.is_true(info.text:find("weather_fetch_forecast", 1, true) ~= nil)
     end)
 
     it("closes /proc/uptime and popen handles in systemInfo", function()

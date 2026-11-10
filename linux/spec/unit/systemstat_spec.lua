@@ -156,7 +156,40 @@ describe("systemstat", function()
     end
   end)
 
-  it("shows 0 for background processes when none are running", function()
+  it("shows scheduled tasks count from pluginshare.backgroundJobs", function()
+    local gettext = require("gettext")
+    local PluginShare = require("pluginshare")
+    local orig_jobs = PluginShare.backgroundJobs
+    finally(function()
+      PluginShare.backgroundJobs = orig_jobs
+    end)
+
+    PluginShare.backgroundJobs = { {}, {}, {} }
+
+    SystemStatWidget:new({
+      ui = {
+        menu = {
+          registerToMainMenu = spy.new(function() end),
+        },
+      },
+    }):onShowSysStatistics()
+
+    local scheduled_entry = nil
+    for _, pair in
+      ipairs(
+        spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2].kv_pairs
+      )
+    do
+      if pair[1] == "  " .. gettext("Scheduled tasks") then
+        scheduled_entry = pair
+        break
+      end
+    end
+    assert.is_not_nil(scheduled_entry)
+    assert.are.equal(3, scheduled_entry[2])
+  end)
+
+  it("shows 0 for worker processes when none are running", function()
     local ffiUtil = require("ffi/util")
     local gettext = require("gettext")
     ffiUtil.subprocesses = {}
@@ -174,7 +207,7 @@ describe("systemstat", function()
     local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
     local bg_entry = nil
     for _, pair in ipairs(key_value_page.kv_pairs) do
-      if pair[1] == "  " .. gettext("Background processes") then
+      if pair[1] == "  " .. gettext("Worker processes") then
         bg_entry = pair
         break
       end
@@ -184,7 +217,7 @@ describe("systemstat", function()
     assert.is_nil(bg_entry.callback)
   end)
 
-  it("shows count and tap to view for background processes when running", function()
+  it("shows count and tap to view for worker processes when running", function()
     local Blitbuffer = require("ffi/blitbuffer")
     local ffiUtil = require("ffi/util")
     local gettext = require("gettext")
@@ -219,7 +252,7 @@ describe("systemstat", function()
     local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
     local bg_entry = nil
     for _, pair in ipairs(key_value_page.kv_pairs) do
-      if pair[1] == "  " .. gettext("Background processes") then
+      if pair[1] == "  " .. gettext("Worker processes") then
         bg_entry = pair
         break
       end
@@ -228,11 +261,11 @@ describe("systemstat", function()
     assert.are.equal(T(gettext("%1 (tap to view)"), 2), bg_entry[2])
     assert.is_function(bg_entry.callback)
 
-    -- Tap the background processes entry
+    -- Tap the worker processes entry
     bg_entry.callback()
     local proc_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
     assert.is_not_nil(proc_page)
-    assert.are.equal(gettext("Background processes"), proc_page.title)
+    assert.are.equal(gettext("Worker processes"), proc_page.title)
     assert.are.equal(2, #proc_page.kv_pairs)
 
     -- First entry: pid 101 (sorted by pid)

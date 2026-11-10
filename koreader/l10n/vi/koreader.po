@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 15:52-0800\n"
+"POT-Creation-Date: 2026-11-10 11:40-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -15974,19 +15974,19 @@ msgstr "  thời gian ngủ"
 msgid "  Discharge cycles"
 msgstr "  chu kỳ xả pin"
 
-msgid "Background jobs"
+msgid "Scheduled tasks"
 msgstr ""
 
-msgid "Pending network jobs"
+msgid "Pending network tasks"
 msgstr ""
 
-msgid "Pending jobs after being connected"
+msgid "Waiting for network connection"
 msgstr ""
 
-msgid "Pending jobs after being online"
+msgid "Waiting for internet access"
 msgstr ""
 
-msgid "Background processes"
+msgid "Worker processes"
 msgstr ""
 
 msgid "%1 (tap to view)"

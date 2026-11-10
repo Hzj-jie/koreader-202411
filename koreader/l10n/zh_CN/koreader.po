@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 15:52-0800\n"
+"POT-Creation-Date: 2026-11-10 11:40-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -15900,20 +15900,20 @@ msgstr "  休眠次数"
 msgid "  Discharge cycles"
 msgstr "  放电循环"
 
-msgid "Background jobs"
-msgstr "后台任务"
+msgid "Scheduled tasks"
+msgstr "计划任务"
 
-msgid "Pending network jobs"
-msgstr "挂起的网络任务"
+msgid "Pending network tasks"
+msgstr "等待网络的任务"
 
-msgid "Pending jobs after being connected"
-msgstr "连接后挂起的任务"
+msgid "Waiting for network connection"
+msgstr "等待网络连接"
 
-msgid "Pending jobs after being online"
-msgstr "在线后挂起的任务"
+msgid "Waiting for internet access"
+msgstr "等待互联网访问"
 
-msgid "Background processes"
-msgstr "后台进程"
+msgid "Worker processes"
+msgstr "工作进程"
 
 msgid "%1 (tap to view)"
 msgstr "%1（点击查看）"
@@ -16938,6 +16938,21 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "注释"
+
+#~ msgid "Background jobs"
+#~ msgstr "后台任务"
+
+#~ msgid "Pending network jobs"
+#~ msgstr "挂起的网络任务"
+
+#~ msgid "Pending jobs after being connected"
+#~ msgstr "连接后挂起的任务"
+
+#~ msgid "Pending jobs after being online"
+#~ msgstr "在线后挂起的任务"
+
+#~ msgid "Background processes"
+#~ msgstr "后台进程"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

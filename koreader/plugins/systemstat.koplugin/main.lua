@@ -256,17 +256,17 @@ function SystemStat:appendCounters()
   })
   self:put({ gettext("  Discharge cycles"), self.discharge_count })
   self:put({
-    "  " .. gettext("Background jobs"),
+    "  " .. gettext("Scheduled tasks"),
     #require("pluginshare").backgroundJobs,
   })
   self:put({
-    "  " .. gettext("Pending network jobs"),
+    "  " .. gettext("Pending network tasks"),
     require("ui/network/networklistener"):countsOfPendingJobs(),
     callback = function()
       local msg = ""
       local c, o = require("ui/network/networklistener"):pendingJobKeys()
       if #c > 0 then
-        msg = msg .. gettext("Pending jobs after being connected")
+        msg = msg .. gettext("Waiting for network connection")
         for _, k in ipairs(c) do
           msg = msg .. "\n" .. k
         end
@@ -275,7 +275,7 @@ function SystemStat:appendCounters()
         if msg ~= "" then
           msg = msg .. "\n"
         end
-        msg = msg .. gettext("Pending jobs after being online")
+        msg = msg .. gettext("Waiting for internet access")
         for _, k in ipairs(o) do
           msg = msg .. "\n" .. k
         end
@@ -296,7 +296,7 @@ function SystemStat:appendCounters()
   end)
   local bg_count = #bg_processes
   local bg_row = {
-    "  " .. gettext("Background processes"),
+    "  " .. gettext("Worker processes"),
     bg_count > 0 and T(gettext("%1 (tap to view)"), bg_count) or 0,
   }
   if bg_count > 0 then
@@ -326,7 +326,7 @@ function SystemStat:appendCounters()
         })
       end
       UIManager:show(KeyValuePage:new({
-        title = gettext("Background processes"),
+        title = gettext("Worker processes"),
         kv_pairs = kv_pairs,
       }))
     end

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 15:52-0800\n"
+"POT-Creation-Date: 2026-11-10 11:40-0800\n"
 "PO-Revision-Date: 2024-11-13 19:39+0000\n"
 "Last-Translator: eevan78 <ivan.pesic@gmail.com>\n"
 "Language-Team: Serbian <https://hosted.weblate.org/projects/koreader/"
@@ -16511,19 +16511,19 @@ msgstr "  успављивања"
 msgid "  Discharge cycles"
 msgstr "  циклуса пражњења"
 
-msgid "Background jobs"
+msgid "Scheduled tasks"
 msgstr ""
 
-msgid "Pending network jobs"
+msgid "Pending network tasks"
 msgstr ""
 
-msgid "Pending jobs after being connected"
+msgid "Waiting for network connection"
 msgstr ""
 
-msgid "Pending jobs after being online"
+msgid "Waiting for internet access"
 msgstr ""
 
-msgid "Background processes"
+msgid "Worker processes"
 msgstr ""
 
 msgid "%1 (tap to view)"
