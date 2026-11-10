@@ -202,4 +202,46 @@ describe("Sokoban main plugin module", function()
 
     UIManager.show = old_show
   end)
+
+  it(
+    "frees previous board images when starting another level and on close",
+    function()
+      local plugin = createMockSokoban()
+      plugin:_loadSettings()
+      finally(function()
+        UIManager:quit()
+      end)
+
+      plugin:startLevel(1, 1)
+      local first_board = plugin.widget[1][2]
+      assert.is_table(first_board._img_cache)
+      assert.is_true(UIManager:isWindowWidget(plugin.widget))
+
+      local first_freed = 0
+      first_board._img_cache["test"] = {
+        free = function()
+          first_freed = first_freed + 1
+        end,
+      }
+
+      plugin:startLevel(1, 2)
+      assert.are.equal(1, first_freed)
+      assert.are.same({}, first_board._img_cache)
+      local second_board = plugin.widget[1][2]
+      assert.are_not.equal(first_board, second_board)
+      assert.is_true(UIManager:isWindowWidget(plugin.widget))
+
+      local second_freed = 0
+      second_board._img_cache["test"] = {
+        free = function()
+          second_freed = second_freed + 1
+        end,
+      }
+
+      plugin:_onClose()
+      assert.are.equal(1, second_freed)
+      assert.are.same({}, second_board._img_cache)
+      assert.is_nil(plugin.widget)
+    end
+  )
 end)

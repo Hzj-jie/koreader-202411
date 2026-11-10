@@ -128,7 +128,7 @@ function Board:onSwipe(ges)
   return true
 end
 
-function Board:freeImages()
+function Board:onClose()
   for _, img in pairs(self._img_cache) do
     img:free()
   end
