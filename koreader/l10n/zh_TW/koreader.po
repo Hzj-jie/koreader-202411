@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 15:54-0800\n"
+"POT-Creation-Date: 2026-11-10 11:40-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -15893,20 +15893,20 @@ msgstr "  休眠"
 msgid "  Discharge cycles"
 msgstr "  放電週期"
 
-msgid "Background jobs"
-msgstr "背景工作"
+msgid "Scheduled tasks"
+msgstr "排程任務"
 
-msgid "Pending network jobs"
-msgstr "掛起的網路工作"
+msgid "Pending network tasks"
+msgstr "等待網路的任務"
 
-msgid "Pending jobs after being connected"
-msgstr "連線後掛起的工作"
+msgid "Waiting for network connection"
+msgstr "等待網路連線"
 
-msgid "Pending jobs after being online"
-msgstr "在線後掛起的工作"
+msgid "Waiting for internet access"
+msgstr "等待網際網路存取"
 
-msgid "Background processes"
-msgstr "後台程序"
+msgid "Worker processes"
+msgstr "工作程序"
 
 msgid "%1 (tap to view)"
 msgstr "%1（點擊查看）"
@@ -16931,6 +16931,21 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "註釋"
+
+#~ msgid "Background jobs"
+#~ msgstr "背景工作"
+
+#~ msgid "Pending network jobs"
+#~ msgstr "掛起的網路工作"
+
+#~ msgid "Pending jobs after being connected"
+#~ msgstr "連線後掛起的工作"
+
+#~ msgid "Pending jobs after being online"
+#~ msgstr "在線後掛起的工作"
+
+#~ msgid "Background processes"
+#~ msgstr "後台程序"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

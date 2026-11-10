@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 15:54-0800\n"
+"POT-Creation-Date: 2026-11-10 11:40-0800\n"
 "PO-Revision-Date: 2024-10-31 18:39+0000\n"
 "Last-Translator: \"Joan O.\" <ccumwusl@sharklasers.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/koreader/"
@@ -16482,19 +16482,19 @@ msgstr "  Nombre de vegades en suspensió"
 msgid "  Discharge cycles"
 msgstr "  cicles de descàrrega"
 
-msgid "Background jobs"
+msgid "Scheduled tasks"
 msgstr ""
 
-msgid "Pending network jobs"
+msgid "Pending network tasks"
 msgstr ""
 
-msgid "Pending jobs after being connected"
+msgid "Waiting for network connection"
 msgstr ""
 
-msgid "Pending jobs after being online"
+msgid "Waiting for internet access"
 msgstr ""
 
-msgid "Background processes"
+msgid "Worker processes"
 msgstr ""
 
 msgid "%1 (tap to view)"

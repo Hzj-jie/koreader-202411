@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 15:54-0800\n"
+"POT-Creation-Date: 2026-11-10 11:40-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Enrico Segre <enricoalbertoernestosegre@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/koreader/"
@@ -16640,19 +16640,19 @@ msgstr "  sospensioni"
 msgid "  Discharge cycles"
 msgstr "  cicli di scarica"
 
-msgid "Background jobs"
+msgid "Scheduled tasks"
 msgstr ""
 
-msgid "Pending network jobs"
+msgid "Pending network tasks"
 msgstr ""
 
-msgid "Pending jobs after being connected"
+msgid "Waiting for network connection"
 msgstr ""
 
-msgid "Pending jobs after being online"
+msgid "Waiting for internet access"
 msgstr ""
 
-msgid "Background processes"
+msgid "Worker processes"
 msgstr ""
 
 msgid "%1 (tap to view)"

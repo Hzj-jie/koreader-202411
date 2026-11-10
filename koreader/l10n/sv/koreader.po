@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 15:54-0800\n"
+"POT-Creation-Date: 2026-11-10 11:40-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -16124,19 +16124,19 @@ msgstr "  sovningar"
 msgid "  Discharge cycles"
 msgstr "  urladdningscykler"
 
-msgid "Background jobs"
+msgid "Scheduled tasks"
 msgstr ""
 
-msgid "Pending network jobs"
+msgid "Pending network tasks"
 msgstr ""
 
-msgid "Pending jobs after being connected"
+msgid "Waiting for network connection"
 msgstr ""
 
-msgid "Pending jobs after being online"
+msgid "Waiting for internet access"
 msgstr ""
 
-msgid "Background processes"
+msgid "Worker processes"
 msgstr ""
 
 msgid "%1 (tap to view)"
