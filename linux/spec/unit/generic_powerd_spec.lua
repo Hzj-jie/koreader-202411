@@ -42,7 +42,7 @@ describe("device/generic/powerd", function()
 
     mock_uimgr = {
       show = stub(),
-      close = stub(),
+      closeIfShown = stub(),
       forceRepaint = stub(),
       flushSettings = stub(),
       broadcastEvent = stub(),
@@ -368,9 +368,9 @@ describe("device/generic/powerd", function()
         assert.spy(mock_uimgr.forceRepaint).was.called(1)
 
         local calls = {}
-        stub(mock_uimgr, "close", function(_self, widget)
+        stub(mock_uimgr, "closeIfShown", function(_self, widget)
           if widget == fake_notif then
-            table.insert(calls, "close")
+            table.insert(calls, "closeIfShown")
           end
         end)
         stub(mock_uimgr, "forceRepaint", function()
@@ -388,14 +388,13 @@ describe("device/generic/powerd", function()
 
         powerd:beforeSuspend()
         assert.are.same({
-          "close",
-          "forceRepaint",
+          "closeIfShown",
           "flushSettings",
           "Suspend",
           "beforeSuspendHW",
         }, calls)
 
-        -- Safe no-op when sleeping_notification is nil
+        -- Safe no-op when notification is nil
         calls = {}
         powerd:beforeSuspend()
         assert.are.same({
@@ -430,9 +429,9 @@ describe("device/generic/powerd", function()
         assert.spy(mock_uimgr.forceRepaint).was.called(1)
 
         local calls = {}
-        stub(mock_uimgr, "close", function(_self, widget)
+        stub(mock_uimgr, "closeIfShown", function(_self, widget)
           if widget == fake_notif then
-            table.insert(calls, "close")
+            table.insert(calls, "closeIfShown")
           end
         end)
         stub(mock_uimgr, "forceRepaint", function()
@@ -447,13 +446,12 @@ describe("device/generic/powerd", function()
 
         powerd:afterResume()
         assert.are.same({
-          "close",
-          "forceRepaint",
+          "closeIfShown",
           "afterResumeHW",
           "Resume",
         }, calls)
 
-        -- Safe no-op when wakeup_notification is nil
+        -- Safe no-op when notification is nil
         calls = {}
         powerd:afterResume()
         assert.are.same({
@@ -485,6 +483,195 @@ describe("device/generic/powerd", function()
         assert.are.equal("", powerd:getBatterySymbol(false, false, 25))
         assert.are.equal("", powerd:getBatterySymbol(false, false, 15))
         assert.are.equal("", powerd:getBatterySymbol(false, false, 5))
+      end
+    )
+
+  end)
+
+  describe("suspend and wakeup notifications", function()
+    local function assertNoFixMeWarnings(warn_spy)
+      for _, call in ipairs(warn_spy.calls) do
+        for _, arg in ipairs(call.vals) do
+          assert.is_nil(tostring(arg):match("FixMe"))
+        end
+      end
+    end
+
+    local function runWithRealUIManager(fn)
+      local logger = require("logger")
+      local warn_spy = spy.on(logger, "warn")
+      local orig_event = package.loaded["ui/event"]
+      local orig_uimgr = package.loaded["ui/uimanager"]
+      local orig_notif = package.loaded["ui/widget/notification"]
+      package.unload("ui/event")
+      package.unload("ui/uimanager")
+      package.unload("ui/widget/notification")
+
+      local RealUIManager = require("ui/uimanager")
+      powerd:UIManagerReady(RealUIManager)
+
+      local shown_notifications = {}
+      local orig_show = RealUIManager.show
+      RealUIManager.show = function(uim, w, ...)
+        table.insert(shown_notifications, w)
+        return orig_show(uim, w, ...)
+      end
+
+      finally(function()
+        RealUIManager.show = orig_show
+        RealUIManager:quit()
+        powerd:UIManagerReady(mock_uimgr)
+        package.unload("ui/widget/notification")
+        package.unload("ui/uimanager")
+        package.unload("ui/event")
+        package.loaded["ui/event"] = orig_event
+        package.loaded["ui/uimanager"] = orig_uimgr
+        package.loaded["ui/widget/notification"] = orig_notif
+        warn_spy:revert()
+      end)
+
+      fn(RealUIManager, shown_notifications, warn_spy)
+    end
+
+    it(
+      "overrides an active notification across initWakeup, initSuspend, and repeated initWakeup",
+      function()
+        runWithRealUIManager(
+          function(RealUIManager, shown_notifications, warn_spy)
+            local repaint_spy = spy.on(RealUIManager, "forceRepaint")
+
+            powerd:initWakeup()
+            assert.are.equal(1, #shown_notifications)
+            assert.are.equal(1, #RealUIManager._window_stack)
+            assert.is_true(RealUIManager:isWindowWidget(shown_notifications[1]))
+            assert.are.equal(1, shown_notifications[1]._shown_idx)
+            assert.spy(repaint_spy).was.called(1)
+
+            -- initSuspend overrides an active wakeup notification.
+            repaint_spy:clear()
+            powerd:initSuspend()
+            assert.are.equal(2, #shown_notifications)
+            assert.are.equal(1, #RealUIManager._window_stack)
+            assert.is_false(
+              RealUIManager:isWindowWidget(shown_notifications[1])
+            )
+            assert.is_true(RealUIManager:isWindowWidget(shown_notifications[2]))
+            assert.are.equal(1, shown_notifications[2]._shown_idx)
+            assert.spy(repaint_spy).was.called(1)
+
+            -- initWakeup overrides an active sleeping notification.
+            repaint_spy:clear()
+            powerd:initWakeup()
+            assert.are.equal(3, #shown_notifications)
+            assert.are.equal(1, #RealUIManager._window_stack)
+            assert.is_false(
+              RealUIManager:isWindowWidget(shown_notifications[2])
+            )
+            assert.is_true(RealUIManager:isWindowWidget(shown_notifications[3]))
+            assert.are.equal(1, shown_notifications[3]._shown_idx)
+            assert.spy(repaint_spy).was.called(1)
+
+            -- Repeated initWakeup overrides the previous wakeup notification.
+            repaint_spy:clear()
+            powerd:initWakeup()
+            assert.are.equal(4, #shown_notifications)
+            assert.are.equal(1, #RealUIManager._window_stack)
+            assert.is_false(
+              RealUIManager:isWindowWidget(shown_notifications[3])
+            )
+            assert.is_true(RealUIManager:isWindowWidget(shown_notifications[4]))
+            assert.are.equal(1, shown_notifications[4]._shown_idx)
+            assert.spy(repaint_spy).was.called(1)
+
+            repaint_spy:clear()
+            powerd:afterResume()
+            assert.is_false(
+              RealUIManager:isWindowWidget(shown_notifications[4])
+            )
+            assert.are.equal(0, #RealUIManager._window_stack)
+            assert.spy(repaint_spy).was_not_called()
+
+            -- beforeSuspend closes an active Sleeping notification without forceRepaint.
+            repaint_spy:clear()
+            powerd:initSuspend()
+            assert.are.equal(5, #shown_notifications)
+            assert.are.equal(1, #RealUIManager._window_stack)
+            assert.is_true(RealUIManager:isWindowWidget(shown_notifications[5]))
+            assert.spy(repaint_spy).was.called(1)
+
+            repaint_spy:clear()
+            powerd:beforeSuspend()
+            assert.is_false(
+              RealUIManager:isWindowWidget(shown_notifications[5])
+            )
+            assert.are.equal(0, #RealUIManager._window_stack)
+            assert.spy(repaint_spy).was_not_called()
+
+            assertNoFixMeWarnings(warn_spy)
+          end
+        )
+      end
+    )
+
+    it(
+      "skips repaint and logs no FixMe when already-closed notification reaches beforeSuspend or afterResume",
+      function()
+        runWithRealUIManager(
+          function(RealUIManager, shown_notifications, warn_spy)
+            local close_if_shown_spy = spy.on(RealUIManager, "closeIfShown")
+            local repaint_spy = spy.on(RealUIManager, "forceRepaint")
+
+            -- Sequence: initWakeup -> toast dismissed -> beforeSuspend (without initSuspend).
+            powerd:initWakeup()
+            local wake_notif_1 = shown_notifications[1]
+            assert.is_true(RealUIManager:isWindowWidget(wake_notif_1))
+            RealUIManager:close(wake_notif_1)
+            assert.is_false(RealUIManager:isWindowWidget(wake_notif_1))
+
+            close_if_shown_spy:clear()
+            repaint_spy:clear()
+            powerd:beforeSuspend()
+            assert.spy(close_if_shown_spy).was.called(1)
+            assert.are.equal(RealUIManager, close_if_shown_spy.calls[1].refs[1])
+            assert.are.equal(wake_notif_1, close_if_shown_spy.calls[1].refs[2])
+            assert.spy(repaint_spy).was_not_called()
+
+            -- Shared reference should now be cleared.
+            close_if_shown_spy:clear()
+            powerd:afterResume()
+            assert.spy(close_if_shown_spy).was_not_called()
+            assert.spy(repaint_spy).was_not_called()
+
+            -- Sequence: initWakeup -> toast dismissed -> afterResume.
+            powerd:initWakeup()
+            local wake_notif_2 = shown_notifications[2]
+            RealUIManager:close(wake_notif_2)
+            close_if_shown_spy:clear()
+            repaint_spy:clear()
+            powerd:afterResume()
+            assert.spy(close_if_shown_spy).was.called(1)
+            assert.are.equal(RealUIManager, close_if_shown_spy.calls[1].refs[1])
+            assert.are.equal(wake_notif_2, close_if_shown_spy.calls[1].refs[2])
+            assert.spy(repaint_spy).was_not_called()
+
+            -- Re-showing via initWakeup after external dismissal works with 0 FixMe warnings.
+            powerd:initWakeup()
+            local wake_notif_3 = shown_notifications[3]
+            RealUIManager:close(wake_notif_3)
+            repaint_spy:clear()
+            powerd:initWakeup()
+            local wake_notif_4 = shown_notifications[4]
+            assert.is_true(RealUIManager:isWindowWidget(wake_notif_4))
+            assert.spy(repaint_spy).was.called(1)
+
+            repaint_spy:clear()
+            powerd:afterResume()
+            assert.is_false(RealUIManager:isWindowWidget(wake_notif_4))
+            assert.spy(repaint_spy).was_not_called()
+
+            assertNoFixMeWarnings(warn_spy)
+          end
+        )
       end
     )
   end)

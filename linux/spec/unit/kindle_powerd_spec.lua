@@ -116,6 +116,7 @@ describe("KindlePowerD", function()
       updateLastUserActionTime = function() end,
       show = function() end,
       close = function() end,
+      closeIfShown = function() end,
       forceRepaint = function() end,
       scheduleIn = function(self_u, delay, fn, arg)
         table.insert(self_u.scheduled, { delay = delay, fn = fn, arg = arg })
@@ -139,8 +140,8 @@ describe("KindlePowerD", function()
   end)
 
   after_each(function()
-    mock_powerd:afterResume()
     ffiUtil.writeToSysfs = orig_write_to_sysfs
+    mock_powerd:afterResume()
   end)
 
   describe("Initialization and synthetic frontlight step", function()
