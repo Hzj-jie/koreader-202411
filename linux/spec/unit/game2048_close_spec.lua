@@ -89,4 +89,44 @@ describe("Game2048 close lifecycle", function()
     assert.is_nil(plugin.screen)
     assert.are.equal(1, save_calls)
   end)
+
+  it(
+    "does not schedule setDirty before show on touch devices and still marks dirty after show",
+    function()
+      local logger = require("logger")
+      local orig_warn = logger.warn
+      local orig_has_dpad = Device.hasDPad
+      local fixme_warnings = {}
+      Device.hasDPad = function()
+        return false
+      end
+      logger.warn = function(...)
+        local msg = table.concat({ ... }, " ")
+        if msg:find("FixMe", 1, true) then
+          table.insert(fixme_warnings, msg)
+        end
+      end
+      finally(function()
+        logger.warn = orig_warn
+        Device.hasDPad = orig_has_dpad
+      end)
+
+      local plugin = createPlugin()
+      plugin:showGame()
+      UIManager:forceRepaint()
+      assert.are.same({}, fixme_warnings)
+
+      local screen = plugin.screen
+      screen:onThemeChange("all_black")
+      assert.is_true(UIManager._dirty[screen._game_widget])
+      assert.is_nil(UIManager._dirty[screen])
+      UIManager:forceRepaint()
+
+      screen._game_widget:setActive(false)
+      assert.is_true(UIManager._dirty[screen._game_widget])
+      assert.is_nil(UIManager._dirty[screen])
+      UIManager:forceRepaint()
+      assert.are.same({}, fixme_warnings)
+    end
+  )
 end)

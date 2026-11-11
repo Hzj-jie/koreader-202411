@@ -936,9 +936,6 @@ function SudokuScreen:init()
     end,
   })
   self:buildLayout()
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
 end
 
 function SudokuScreen:paintTo(bb, x, y)
@@ -1173,9 +1170,7 @@ function SudokuScreen:updateStatus(message)
     end
   end
   self.status_text:setText(status)
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:setDirty()
 end
 
 function SudokuScreen:inputDigit(value)

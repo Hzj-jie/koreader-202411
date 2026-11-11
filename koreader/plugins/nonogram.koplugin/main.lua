@@ -1157,9 +1157,7 @@ function NonogramScreen:updateStatus(message)
     status = status .. "\n" .. gettext("Conflicting cells are highlighted.")
   end
   self.status_text:setText(status)
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:setDirty()
 end
 
 function NonogramScreen:onAction(action)
@@ -1201,9 +1199,7 @@ function NonogramScreen:updateActionButtons()
   end
   applyBackground(self.fill_button, self.active_action == "fill")
   applyBackground(self.mark_button, self.active_action == "mark")
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
+  self:setDirty()
 end
 
 function NonogramScreen:onCellActivated(row, col)

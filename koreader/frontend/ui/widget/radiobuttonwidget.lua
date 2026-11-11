@@ -248,7 +248,7 @@ function RadioButtonWidget:update()
     self.colorful = false
   end
 
-  UIManager:setDirty(self, function()
+  self:setDirty(function()
     return self.colorful and "full" or "ui", self.widget_frame.dimen
   end)
 end

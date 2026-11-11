@@ -1886,9 +1886,7 @@ function VocabularyBuilderWidget:_populateItems()
   then
     self.selected = { x = 1, y = 1 }
   end
-  UIManager:setDirty(self, function()
-    return "ui"
-  end)
+  self:setDirty()
 end
 
 function VocabularyBuilderWidget:gotItFromDict(word)
