@@ -316,7 +316,7 @@ function Board:updateBoard()
   for pos = 1, 32 do
     self:updateSquare(pos)
   end
-  UIManager:setDirty(self, "ui")
+  self:setDirty("ui")
 end
 
 function Board:updateSquare(pos)

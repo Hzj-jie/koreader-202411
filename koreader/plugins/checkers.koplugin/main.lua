@@ -312,7 +312,6 @@ function Checkers:updateStatus()
       true -- no refresh (we'll batch with setSubTitle)
     )
     self.status_bar:setSubTitle(self:_turn_text())
-    UIManager:setDirty(self.status_bar, "ui")
   end
 end
 

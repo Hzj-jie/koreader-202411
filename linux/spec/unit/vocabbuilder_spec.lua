@@ -656,4 +656,47 @@ describe("VocabBuilder plugin", function()
       end
     )
   end)
+
+  describe("pre-show setDirty checks", function()
+    it(
+      "does not schedule setDirty before show and marks dirty on page change",
+      function()
+        for i = 1, 20 do
+          DB:insertOrUpdate({
+            word = "word" .. i,
+            book_title = "Book A",
+            time = os.time() + i,
+          })
+        end
+
+        local vb = VocabBuilder:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        local logger = require("logger")
+        local orig_warn = logger.warn
+        local unknown_warnings = {}
+        logger.warn = function(...)
+          local msg = table.concat({ ... }, " ")
+          if msg:find("FixMe: Unknown widget", 1, true) then
+            table.insert(unknown_warnings, msg)
+          end
+        end
+        finally(function()
+          logger.warn = orig_warn
+          if vb.widget then
+            vb.widget:onExit()
+          end
+          UIManager:quit()
+        end)
+
+        vb:onShowVocabBuilder()
+        assert.are.same({}, unknown_warnings)
+
+        UIManager._dirty = {}
+        vb.widget:nextPage()
+        assert.is_true(UIManager._dirty[vb.widget])
+        assert.are.same({}, unknown_warnings)
+      end
+    )
+  end)
 end)
