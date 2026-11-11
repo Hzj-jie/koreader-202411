@@ -111,4 +111,35 @@ describe("Checkers new game lifecycle", function()
       assert.are_not.equal(prev_game, instance.game)
     end
   )
+
+  it(
+    "does not schedule setDirty before show and still marks board and status dirty after show",
+    function()
+      local logger = require("logger")
+      local orig_warn = logger.warn
+      local unknown_warnings = {}
+      logger.warn = function(...)
+        local msg = table.concat({ ... }, " ")
+        if msg:find("FixMe: Unknown widget", 1, true) then
+          table.insert(unknown_warnings, msg)
+        end
+      end
+      finally(function()
+        logger.warn = orig_warn
+      end)
+
+      local instance = create_checkers()
+      assert.is_true(instance:onCheckersStart())
+      assert.are.same({}, unknown_warnings)
+
+      UIManager._dirty = {}
+      instance.board:updateBoard()
+      assert.is_true(UIManager._dirty[instance.board])
+
+      UIManager._dirty = {}
+      instance:updateStatus()
+      assert.is_true(UIManager._dirty[instance.status_bar])
+      assert.are.same({}, unknown_warnings)
+    end
+  )
 end)

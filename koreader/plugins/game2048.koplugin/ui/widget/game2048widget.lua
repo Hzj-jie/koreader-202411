@@ -237,7 +237,7 @@ function Game2048Widget:setPalette(palette)
   self.palette = palette
   self._palette_is_rgb = palette[1] and not Blitbuffer.isColor8(palette[1])
     or false
-  UIManager:setDirty(self.show_parent or self, "ui", self.dimen)
+  self:setDirty("ui")
 end
 
 function Game2048Widget:_uncoverHiddenTile()
@@ -321,7 +321,7 @@ end
 
 function Game2048Widget:setActive(active)
   self._is_active = active
-  UIManager:setDirty(self.show_parent or self, "fast", self:getSize())
+  self:setDirty("fast")
 end
 
 Game2048Widget.onPhysicalKeyboardConnected = Game2048Widget._registerKeyEvents

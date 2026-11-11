@@ -131,4 +131,38 @@ describe("Nonogram close lifecycle", function()
     assert.are.equal(1, save_calls)
     assert.are.equal(1, closed_calls)
   end)
+
+  it(
+    "does not schedule setDirty before show and still marks dirty after show",
+    function()
+      local logger = require("logger")
+      local orig_warn = logger.warn
+      local unknown_warnings = {}
+      logger.warn = function(...)
+        local msg = table.concat({ ... }, " ")
+        if msg:find("FixMe: Unknown widget", 1, true) then
+          table.insert(unknown_warnings, msg)
+        end
+      end
+      finally(function()
+        logger.warn = orig_warn
+      end)
+
+      local plugin = createPlugin()
+      plugin:showGame()
+      assert.are.same({}, unknown_warnings)
+
+      local screen = plugin.screen
+      UIManager._dirty = {}
+      screen:updateStatus()
+      assert.is_true(UIManager._dirty[screen])
+
+      UIManager._dirty = {}
+      screen:setActiveAction(
+        screen.active_action == "mark" and "fill" or "mark"
+      )
+      assert.is_true(UIManager._dirty[screen])
+      assert.are.same({}, unknown_warnings)
+    end
+  )
 end)
