@@ -176,3 +176,52 @@ describe("Game2048Config module", function()
     assert.is_nil(config._theme_select_dialog)
   end)
 end)
+
+describe("Game2048Config real UIManager integration", function()
+  local Game2048Config, UIManager, logger
+  local orig_warn, warnings, active_config
+
+  setup(function()
+    require("commonrequire")
+    Game2048Config = require("plugins/game2048.koplugin/modules/game2048config")
+    UIManager = require("ui/uimanager")
+    logger = require("logger")
+  end)
+
+  before_each(function()
+    warnings = {}
+    orig_warn = logger.warn
+    logger.warn = function(...)
+      local parts = {}
+      for i = 1, select("#", ...) do
+        parts[i] = tostring(select(i, ...))
+      end
+      table.insert(warnings, table.concat(parts, " "))
+      return orig_warn(...)
+    end
+  end)
+
+  after_each(function()
+    if active_config and active_config.config_dialog then
+      UIManager:close(active_config.config_dialog)
+    end
+    UIManager:clearRenderStack()
+    active_config = nil
+    logger.warn = orig_warn
+  end)
+
+  it(
+    "registers config_dialog before painting its panel in showConfigMenu",
+    function()
+      active_config = Game2048Config:new({
+        configurable = Game2048Config.makeDefaultSettings(),
+      })
+
+      assert.is_true(active_config:showConfigMenu())
+      for _, msg in ipairs(warnings) do
+        assert.is_nil(msg:match("FixMe: Unknown widget"), msg)
+      end
+      assert.is_true(UIManager:isWindowWidget(active_config.config_dialog))
+    end
+  )
+end)

@@ -102,9 +102,6 @@ function Screen:init()
   self:updateBestLabel()
   self:updateMessage()
   self:startTicker()
-  UIManager:setDirty(self, function()
-    return "ui", self.dimen
-  end)
 end
 
 function Screen:computeBoardMaxSize()

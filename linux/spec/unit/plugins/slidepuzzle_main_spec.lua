@@ -128,4 +128,35 @@ describe("SlidePuzzle main plugin module", function()
     assert.is_table(sub_items)
     assert.are.equal(2, #sub_items)
   end)
+
+  it("does not emit FixMe Unknown widget before show", function()
+    local UIManager = require("ui/uimanager")
+    local plugin = SlidePuzzle:new({
+      ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      },
+    })
+    local logger = require("logger")
+    local orig_warn = logger.warn
+    local unknown_warnings = {}
+    logger.warn = function(...)
+      local msg = table.concat({ ... }, " ")
+      if msg:find("FixMe: Unknown widget", 1, true) then
+        table.insert(unknown_warnings, msg)
+      end
+    end
+    finally(function()
+      logger.warn = orig_warn
+      if plugin.screen then
+        UIManager:close(plugin.screen)
+      end
+      UIManager:quit()
+    end)
+
+    plugin:showGame()
+    assert.is_table(plugin.screen)
+    assert.are.same({}, unknown_warnings)
+  end)
 end)

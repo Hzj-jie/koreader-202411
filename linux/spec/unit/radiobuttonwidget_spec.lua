@@ -162,3 +162,46 @@ describe("RadioButtonWidget", function()
     end)
   end)
 end)
+
+describe("RadioButtonWidget real UIManager warnings", function()
+  local RadioButtonWidget, UIManager, logger
+
+  setup(function()
+    require("commonrequire")
+    RadioButtonWidget = require("ui/widget/radiobuttonwidget")
+    UIManager = require("ui/uimanager")
+    logger = require("logger")
+  end)
+
+  after_each(function()
+    UIManager:quit()
+  end)
+
+  it("does not emit FixMe Unknown widget before show", function()
+    local orig_warn = logger.warn
+    local unknown_warnings = {}
+    logger.warn = function(...)
+      local msg = table.concat({ ... }, " ")
+      if msg:find("FixMe: Unknown widget", 1, true) then
+        table.insert(unknown_warnings, msg)
+      end
+    end
+    finally(function()
+      logger.warn = orig_warn
+    end)
+
+    local widget = RadioButtonWidget:new({
+      title_text = "Real UIManager Test",
+      radio_buttons = {
+        { { text = "Option 1", provider = "opt1", checked = true } },
+      },
+    })
+    UIManager:show(widget)
+    assert.are.same({}, unknown_warnings)
+
+    UIManager._dirty = {}
+    widget:update()
+    assert.is_true(UIManager._dirty[widget])
+    assert.are.same({}, unknown_warnings)
+  end)
+end)
