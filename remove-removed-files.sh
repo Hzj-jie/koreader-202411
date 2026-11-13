@@ -42,7 +42,6 @@ REMOVED_FILES=(
   "spinning_zsync"
   "ffi.so"
   "libs/libcurl.so.4"
-<<<<<<< HEAD
   "libs/libturbojpeg.so.0.3.0"
   "libs/libunibreak.so.6"
   "libs/libunibreak.so.7"
