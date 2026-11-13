@@ -1136,8 +1136,7 @@ function Device:untar(archive, extract_to, with_stripped_root)
   if with_stripped_root then
     cmd = cmd .. " --strip-components=1"
   end
-  local ok = os.execute(cmd:format(archive, extract_to))
-  return ok == 0 or ok == true
+  return os.execute(cmd:format(archive, extract_to)) == 0
 end
 
 -- Update our UIManager reference once it's ready
