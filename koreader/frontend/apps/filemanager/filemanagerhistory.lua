@@ -51,7 +51,7 @@ function FileManagerHistory:fetchStatuses(count)
     elseif v.file == (self.ui.document and self.ui.document.file) then -- currently opened file
       status = self.ui.doc_settings:readTableRef("summary").status
     else
-      status = filemanagerutil.getStatus(v.file)
+      status = DocSettings.getStatus(v.file)
     end
     if not filter_text[status] then
       status = "reading"

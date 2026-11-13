@@ -149,14 +149,6 @@ describe("FileManagerHistory", function()
     package.loaded["readhistory"] = mock_readhistory
 
     clear_table(mock_filemanagerutil)
-    mock_filemanagerutil.getStatus = spy.new(function(file)
-      if file == "/path/to/book1.epub" then
-        return "reading"
-      elseif file == "/path/to/book2.epub" then
-        return "complete"
-      end
-      return "new"
-    end)
     mock_filemanagerutil.genStatusButtonsRow = spy.new(
       function(_doc_settings, callback)
         return { type = "status_row", callback = callback }
@@ -190,6 +182,14 @@ describe("FileManagerHistory", function()
     package.loaded["apps/filemanager/filemanagerutil"] = mock_filemanagerutil
 
     clear_table(mock_docsettings)
+    mock_docsettings.getStatus = spy.new(function(file)
+      if file == "/path/to/book1.epub" then
+        return "reading"
+      elseif file == "/path/to/book2.epub" then
+        return "complete"
+      end
+      return "new"
+    end)
     mock_docsettings.hasSidecarFile = spy.new(function(self, _file)
       return false
     end)
@@ -353,7 +353,7 @@ describe("FileManagerHistory", function()
 
       -- mock_readhistory.hist has 3 books:
       -- 1: file="/path/to/book1.epub", dim=false (currently open, status="reading")
-      -- 2: file="/path/to/book2.epub", dim=false (not open, filemanagerutil.getStatus returns "complete")
+      -- 2: file="/path/to/book2.epub", dim=false (not open, DocSettings.getStatus returns "complete")
       -- 3: file="/path/to/book3.epub", dim=true  (dim=true, status="deleted")
 
       assert.is_equal("reading", mock_readhistory.hist[1].status)

@@ -300,6 +300,22 @@ function DocSettings.isSidecarFileNotInPreferredLocation(doc_path)
   )
 end
 
+--- Returns a document's reading status from its sidecar via `DocSettings:open`.
+-- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
+-- @treturn string stored status string (normally `"new"`, `"reading"`, `"abandoned"`, or `"complete"`)
+function DocSettings.getStatus(doc_path)
+  -- TODO: Avoid compiling large sidecar files when only reading status.
+  local doc_settings = DocSettings:open(doc_path)
+  if not doc_settings.file then
+    return "new"
+  end
+  local summary = doc_settings:readTable("summary")
+  if summary and summary.status and summary.status ~= "" then
+    return summary.status
+  end
+  return "reading"
+end
+
 --- Opens a document's individual settings (font, margin, dictionary, etc.)
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn DocSettings object

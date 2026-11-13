@@ -2192,4 +2192,267 @@ describe("docsettings module", function()
       end
     )
   end)
+
+  describe("getStatus", function()
+    local orig_metadata_folder
+    local temp_root
+
+    local function writeFile(path, content)
+      local dir = util.splitFilePathName(path)
+      if dir ~= "" then
+        util.makePath(dir)
+      end
+      local f = assert(io.open(path, "wb"))
+      f:write(content)
+      f:close()
+    end
+
+    before_each(function()
+      orig_metadata_folder = G_reader_settings:read("document_metadata_folder")
+      local tmp = os.tmpname()
+      os.remove(tmp)
+      temp_root = tmp .. "_getstatus"
+      util.makePath(temp_root)
+    end)
+
+    after_each(function()
+      if orig_metadata_folder ~= nil then
+        G_reader_settings:save("document_metadata_folder", orig_metadata_folder)
+      else
+        G_reader_settings:delete("document_metadata_folder")
+      end
+      ffiutil.purgeDir(temp_root)
+    end)
+
+    it("asserts doc_path is a non-empty string", function()
+      assert.has_error(function()
+        docsettings.getStatus(nil)
+      end, "DocSettings: doc_path must not be nil or empty")
+      assert.has_error(function()
+        docsettings.getStatus("")
+      end, "DocSettings: doc_path must not be nil or empty")
+    end)
+
+    it("returns 'new' when no sidecar file exists", function()
+      G_reader_settings:save("document_metadata_folder", "doc")
+      local doc_path = temp_root .. "/missing.epub"
+      assert.are.equal("new", docsettings.getStatus(doc_path))
+    end)
+
+    it("returns stored summary.status written by DocSettings", function()
+      G_reader_settings:save("document_metadata_folder", "doc")
+      local doc_path = temp_root .. "/written.epub"
+      local d = docsettings:open(doc_path)
+      finally(function()
+        d:purge()
+      end)
+
+      for _, expected_status in ipairs({
+        "reading",
+        "abandoned",
+        "complete",
+        "custom_status",
+      }) do
+        d:save("summary", {
+          modified = "2026-11-11",
+          note = "Great chapters",
+          rating = 5,
+          status = expected_status,
+        })
+        d:save("last_page", 42)
+        d:flush()
+
+        assert.are.equal(expected_status, docsettings.getStatus(doc_path))
+      end
+    end)
+
+    it(
+      "returns 'reading' when valid non-empty sidecar lacks summary.status",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+
+        local no_summary_doc = temp_root .. "/no_summary.epub"
+        local d1 = docsettings:open(no_summary_doc)
+        d1:save("last_page", 15)
+        d1:save("stats", { pages = 100 })
+        d1:flush()
+        finally(function()
+          d1:purge()
+        end)
+        assert.are.equal("reading", docsettings.getStatus(no_summary_doc))
+
+        local non_table_doc = temp_root .. "/non_table_summary.epub"
+        local sidecar_file = non_table_doc:gsub(
+          "%.epub$",
+          ".sdr/metadata.epub.lua"
+        )
+        finally(function()
+          os.remove(sidecar_file)
+          docsettings.removeSidecarDir(temp_root .. "/non_table_summary.sdr")
+        end)
+        writeFile(
+          sidecar_file,
+          'return {\n  ["last_page"] = 1,\n  ["summary"] = "invalid",\n}\n'
+        )
+        assert.are.equal("reading", docsettings.getStatus(non_table_doc))
+
+        local empty_summary_doc = temp_root .. "/empty_summary.epub"
+        local d2 = docsettings:open(empty_summary_doc)
+        d2:save("last_page", 3)
+        d2:save("summary", {})
+        d2:flush()
+        finally(function()
+          d2:purge()
+        end)
+        assert.are.equal("reading", docsettings.getStatus(empty_summary_doc))
+
+        local empty_status_doc = temp_root .. "/empty_status.epub"
+        local d3 = docsettings:open(empty_status_doc)
+        d3:save("summary", { status = "" })
+        d3:flush()
+        finally(function()
+          d3:purge()
+        end)
+        assert.are.equal("reading", docsettings.getStatus(empty_status_doc))
+      end
+    )
+
+    it(
+      "follows MRU and priority order like DocSettings:open and stops at newest valid sidecar",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_path = temp_root .. "/mru_priority.epub"
+        writeFile(doc_path, "dummy epub")
+        local sdr_name = docsettings.getSidecarFilename(doc_path)
+        local doc_sidecar = temp_root .. "/mru_priority.sdr/" .. sdr_name
+        local dir_sidecar = docsettings_dir
+          .. temp_root
+          .. "/mru_priority.sdr/"
+          .. sdr_name
+        finally(function()
+          os.remove(doc_sidecar)
+          os.remove(dir_sidecar)
+          docsettings.removeSidecarDir(temp_root .. "/mru_priority.sdr")
+          docsettings.removeSidecarDir(
+            docsettings_dir .. temp_root .. "/mru_priority.sdr"
+          )
+        end)
+
+        writeFile(
+          doc_sidecar,
+          'return {\n  ["summary"] = {\n    ["status"] = "reading",\n  },\n}\n'
+        )
+        writeFile(
+          dir_sidecar,
+          'return {\n  ["summary"] = {\n    ["status"] = "abandoned",\n  },\n}\n'
+        )
+
+        -- Equal mtime -> higher priority ("doc") wins
+        lfs.touch(doc_sidecar, 1000, 1000)
+        lfs.touch(dir_sidecar, 1000, 1000)
+        assert.are.equal("reading", docsettings.getStatus(doc_path))
+
+        -- Newer mtime ("dir") wins over higher priority ("doc")
+        lfs.touch(dir_sidecar, 2000, 2000)
+        assert.are.equal("abandoned", docsettings.getStatus(doc_path))
+
+        -- Newer valid sidecar WITHOUT summary returns "reading" instead of older candidate's status
+        writeFile(doc_sidecar, 'return {\n  ["last_page"] = 99,\n}\n')
+        lfs.touch(doc_sidecar, 3000, 3000)
+        assert.are.equal("reading", docsettings.getStatus(doc_path))
+      end
+    )
+
+    it(
+      "skips empty and corrupt candidates to next valid candidate, returning 'new' if all fail",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_path = temp_root .. "/skip_corrupt.epub"
+        local sdr_name = docsettings.getSidecarFilename(doc_path)
+        local doc_sidecar = temp_root .. "/skip_corrupt.sdr/" .. sdr_name
+        local dir_sidecar = docsettings_dir
+          .. temp_root
+          .. "/skip_corrupt.sdr/"
+          .. sdr_name
+        finally(function()
+          os.remove(doc_sidecar)
+          os.remove(dir_sidecar)
+          docsettings.removeSidecarDir(temp_root .. "/skip_corrupt.sdr")
+          docsettings.removeSidecarDir(
+            docsettings_dir .. temp_root .. "/skip_corrupt.sdr"
+          )
+        end)
+
+        writeFile(
+          dir_sidecar,
+          'return {\n  ["summary"] = {\n    ["status"] = "complete",\n  },\n}\n'
+        )
+        lfs.touch(dir_sidecar, 1000, 1000)
+
+        -- Zero-byte empty file candidate
+        writeFile(doc_sidecar, "")
+        lfs.touch(doc_sidecar, 1500, 1500)
+        assert.are.equal("complete", docsettings.getStatus(doc_path))
+
+        -- Empty table candidate
+        writeFile(doc_sidecar, "return {}\n")
+        lfs.touch(doc_sidecar, 2000, 2000)
+        assert.are.equal("complete", docsettings.getStatus(doc_path))
+
+        -- Corrupt Lua candidate
+        writeFile(doc_sidecar, "return { broken syntax")
+        lfs.touch(doc_sidecar, 3000, 3000)
+        assert.are.equal("complete", docsettings.getStatus(doc_path))
+
+        -- When all candidates are empty or corrupt, returns "new"
+        writeFile(dir_sidecar, "return {}\n")
+        lfs.touch(dir_sidecar, 1000, 1000)
+        writeFile(doc_sidecar, "return { broken syntax")
+        lfs.touch(doc_sidecar, 3000, 3000)
+        assert.are.equal("new", docsettings.getStatus(doc_path))
+
+        writeFile(doc_sidecar, "")
+        assert.are.equal("new", docsettings.getStatus(doc_path))
+      end
+    )
+
+    it(
+      "reads status from legacy doc_legacy, hist, and kpdfview locations",
+      function()
+        G_reader_settings:save("document_metadata_folder", "doc")
+
+        local doc_path = temp_root .. "/legacy_book.pdf"
+        local doc_legacy_file = temp_root
+          .. "/legacy_book.sdr/legacy_book.pdf.lua"
+        local hist_file = docsettings:getHistoryPath(doc_path)
+        local kpdfview_file = doc_path .. ".kpdfview.lua"
+        finally(function()
+          os.remove(doc_legacy_file)
+          os.remove(hist_file)
+          os.remove(kpdfview_file)
+          docsettings.removeSidecarDir(temp_root .. "/legacy_book.sdr")
+        end)
+
+        writeFile(
+          doc_legacy_file,
+          'return {\n  ["summary"] = {\n    ["status"] = "abandoned",\n  },\n}\n'
+        )
+        assert.are.equal("abandoned", docsettings.getStatus(doc_path))
+        os.remove(doc_legacy_file)
+
+        writeFile(
+          hist_file,
+          'return {\n  ["summary"] = {\n    ["status"] = "reading",\n    ["note"] = "hist note",\n  },\n  ["annotations"] = {},\n}\n'
+        )
+        assert.are.equal("reading", docsettings.getStatus(doc_path))
+        os.remove(hist_file)
+
+        writeFile(
+          kpdfview_file,
+          'return {\n  ["summary"] = {\n    ["status"] = "complete",\n  },\n}\n'
+        )
+        assert.are.equal("complete", docsettings.getStatus(doc_path))
+      end
+    )
+  end)
 end)
