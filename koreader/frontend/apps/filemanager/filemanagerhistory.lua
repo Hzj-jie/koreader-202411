@@ -500,14 +500,39 @@ function FileManagerHistory:doBuildHistory()
         })
       end
     end
+    local backed_up = false
+    if util.fileExists(history_file) then
+      local ok, err = os.rename(history_file, history_backup_file)
+      if not ok then
+        Notification:notify(
+          T(gettext("Failed to back up reading history: %1"), err)
+        )
+        return
+      end
+      backed_up = true
+    end
     local ReadHistory = require("readhistory")
     ReadHistory.hist = records
-    ReadHistory:_flush()
+    if not ReadHistory:_flush() then
+      if backed_up then
+        local ok, err = os.rename(history_backup_file, history_file)
+        if not ok then
+          Notification:notify(
+            T(gettext("Failed to restore reading history: %1"), err)
+          )
+        end
+      end
+      ReadHistory.last_read_time = 0
+      ReadHistory:reload()
+      ReadHistory:ensureLastFile()
+      return
+    end
     ReadHistory.last_read_time = 0
     ReadHistory:reload()
+    ReadHistory:ensureLastFile()
     self:refreshAfterHistoryUpdate()
     updated = true
-  end)
+  end, gettext("Searching for reading records…"))
   if updated then
     self:showWidget(InfoMessage:new({
       text = gettext("History view has been updated."),
@@ -515,32 +540,17 @@ function FileManagerHistory:doBuildHistory()
   end
 end
 
-function FileManagerHistory:backupAndBuildHistory()
-  if util.fileExists(history_file) then
-    local ok, err = os.rename(history_file, history_backup_file)
-    if not ok then
-      Notification:notify(
-        T(gettext("Failed to back up reading history: %1"), err)
-      )
-      return
-    end
-  end
-  self:doBuildHistory()
-end
-
 function FileManagerHistory:buildHistory()
   if util.fileExists(history_backup_file) then
     self:showWidget(ConfirmBox:new({
-      text = gettext(
-        "A previous history backup already exists, are you sure to override it?"
-      ),
-      ok_text = gettext("Override"),
+      text = gettext("A previous history backup already exists. Overwrite it?"),
+      ok_text = gettext("Overwrite"),
       ok_callback = function()
-        self:backupAndBuildHistory()
+        self:doBuildHistory()
       end,
     }))
   else
-    self:backupAndBuildHistory()
+    self:doBuildHistory()
   end
 end
 
@@ -556,6 +566,7 @@ function FileManagerHistory:restoreHistory()
     local ReadHistory = require("readhistory")
     ReadHistory.last_read_time = 0
     ReadHistory:reload()
+    ReadHistory:ensureLastFile()
     self:refreshAfterHistoryUpdate()
     self:showWidget(InfoMessage:new({
       text = gettext("Last history view has been restored."),
