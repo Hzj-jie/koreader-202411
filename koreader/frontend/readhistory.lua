@@ -357,11 +357,7 @@ function ReadHistory:_ignoreItem(file, ts)
   end
   -- Note, the logic won't impact the existing items, but only the ones newly
   -- added.
-  local path = ffiutil.dirname(file)
-  if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
-    return true
-  end
-  return self:ignoreFile(file)
+  return require("sdrhistory"):ignorePath(file)
 end
 
 --- Adds new item (last opened document) to the top of the history list.

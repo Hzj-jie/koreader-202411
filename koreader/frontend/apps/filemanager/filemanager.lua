@@ -998,8 +998,14 @@ function FileManager:pasteFileFromClipboard(file)
         else
           ReadHistory:updateItemsByPath(orig_file, dest_file)
           ReadCollection:updateItemsByPath(orig_file, dest_file)
-          require("sdrhistory"):updateItemsByPath(orig_file, dest_file)
         end
+      end
+      if not is_file then
+        require("sdrhistory"):updateItemsByPath(
+          orig_file,
+          dest_file,
+          not self.cutfile
+        )
       end
       self.clipboard = nil
       self:onRefresh()

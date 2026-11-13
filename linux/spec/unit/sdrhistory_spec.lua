@@ -4,6 +4,7 @@ describe("SdrHistory module", function()
   local Notification
   local SdrHistory
   local ffiutil
+  local gettext
   local lfs
   local util
   local data_dir
@@ -34,6 +35,7 @@ describe("SdrHistory module", function()
     DocSettings = require("docsettings")
     Notification = require("ui/widget/notification")
     ffiutil = require("ffi/util")
+    gettext = require("gettext")
     lfs = require("libs/libkoreader-lfs")
     util = require("util")
   end)
@@ -142,6 +144,8 @@ describe("SdrHistory module", function()
     local b2 = home_dir .. "/sub2/b.pdf"
     local ignored = home_dir .. "/quickstart-en.html"
     local hidden = home_dir .. "/.DS_Store"
+    local hidden_dir_book = home_dir .. "/.Trash/hidden_book.epub"
+    local sdr_dir_book = home_dir .. "/foo.sdr/nested.epub"
     local real_home = ffiutil.realpath(home_dir)
     local rb1 = real_home .. "/sub/a.epub"
     local rb2 = real_home .. "/sub2/b.pdf"
@@ -153,8 +157,13 @@ describe("SdrHistory module", function()
       write_stub:revert()
     end)
 
+    assert.is_false(SdrHistory:ignoreFile(hidden_dir_book))
+    assert.is_true(SdrHistory:ignorePath(hidden_dir_book))
+    assert.is_true(SdrHistory:ignorePath(sdr_dir_book))
     assert.is_false(SdrHistory:addItem(ignored))
     assert.is_false(SdrHistory:addItem(hidden))
+    assert.is_false(SdrHistory:addItem(hidden_dir_book))
+    assert.is_false(SdrHistory:addItem(sdr_dir_book))
     assert.spy(util.writeToFile).was_not_called()
 
     assert.is_true(SdrHistory:addItem(b1))
@@ -187,6 +196,28 @@ describe("SdrHistory module", function()
     assert.is_true(SdrHistory:hasFile(real_home .. "/renamed/a_moved.epub"))
     assert.is_true(SdrHistory:hasFile(rb2))
 
+    -- Folder prefix copy keeps originals and adds only copied items with sidecars
+    local copied_a = real_home .. "/copied/a.epub"
+    local copied_moved = real_home .. "/copied/a_moved.epub"
+    writeDummy(copied_a, "1")
+    writeDummy(copied_moved, "2")
+    writeDummy(
+      real_home .. "/copied/a.sdr/metadata.epub.lua",
+      'return { ["summary"] = { ["status"] = "reading" } }\n'
+    )
+    assert.is_true(
+      SdrHistory:updateItemsByPath(
+        real_home .. "/renamed",
+        real_home .. "/copied",
+        true
+      )
+    )
+    assert.is_true(SdrHistory:hasFile(real_home .. "/renamed/a.epub"))
+    assert.is_true(SdrHistory:hasFile(real_home .. "/renamed/a_moved.epub"))
+    assert.is_true(SdrHistory:hasFile(copied_a))
+    assert.is_false(SdrHistory:hasFile(copied_moved))
+    assert.is_true(SdrHistory:removeItem(copied_a))
+
     -- Folder prefix delete must not delete /sub2
     assert.is_true(SdrHistory:removeItemsByPath(real_home .. "/renamed"))
     assert.are.same({ rb2 }, SdrHistory:getFiles())
@@ -215,11 +246,19 @@ describe("SdrHistory module", function()
 
       assert.is_false(SdrHistory:addItem(home_dir .. "/fail.epub"))
       assert.stub(Notification.notify).was_called(1)
+      assert.stub(Notification.notify).was_called_with(
+        Notification,
+        gettext("Failed to save reading status collection index.")
+      )
       assert.are.same({ b1 }, dofile(sdr_history_file))
 
       writeDummy(sdr_history_file, "this is not valid lua {{{")
       assert.is_false(SdrHistory:reload(true))
       assert.stub(Notification.notify).was_called(2)
+      assert.stub(Notification.notify).was_called_with(
+        Notification,
+        gettext("Failed to load reading status collection index.")
+      )
     end
   )
 
@@ -232,15 +271,22 @@ describe("SdrHistory module", function()
       local hash_book = real_home .. "/hash_book.epub"
       local missing_book = real_home .. "/deleted_book.epub"
       local orphan_book = real_home .. "/orphan_book.epub"
+      local trash_book = real_home .. "/.Trash/trashed_book.epub"
 
       writeDummy(doc_book, "doc book")
       writeDummy(dir_book, "dir book")
       writeDummy(hash_book, "hash book content for partial md5")
       writeDummy(missing_book, "temp")
+      writeDummy(trash_book, "trashed book")
 
       -- Create doc-mode sidecar
       writeDummy(
         real_home .. "/doc_book.sdr/metadata.epub.lua",
+        'return { ["summary"] = { ["status"] = "reading" } }\n'
+      )
+      -- Create ignored hidden parent dir sidecar
+      writeDummy(
+        real_home .. "/.Trash/trashed_book.sdr/metadata.epub.lua",
         'return { ["summary"] = { ["status"] = "reading" } }\n'
       )
       -- Create orphan .sdr (book file absent)
@@ -274,8 +320,12 @@ describe("SdrHistory module", function()
         table.insert(cmds, cmd)
         return orig_popen(cmd, mode)
       end)
+      local notify_stub
       finally(function()
         popen_stub:revert()
+        if notify_stub then
+          notify_stub:revert()
+        end
       end)
 
       assert.is_true(SdrHistory:rebuildFromDisk())
@@ -287,20 +337,21 @@ describe("SdrHistory module", function()
       assert.are.same({ doc_book, hash_book, dir_book }, SdrHistory:getFiles())
       assert.is_false(SdrHistory:hasFile(orphan_book))
       assert.is_false(SdrHistory:hasFile(missing_book))
+      assert.is_false(SdrHistory:hasFile(trash_book))
 
       -- On io.popen failure, notify and keep existing cached paths
       popen_stub:revert()
-      local fail_popen = stub(io, "popen", function()
+      popen_stub = stub(io, "popen", function()
         return nil, "spawn failed"
       end)
-      local notify_stub = stub(Notification, "notify")
-      finally(function()
-        fail_popen:revert()
-        notify_stub:revert()
-      end)
+      notify_stub = stub(Notification, "notify")
 
       assert.is_false(SdrHistory:rebuildFromDisk())
       assert.stub(Notification.notify).was_called(1)
+      assert.stub(Notification.notify).was_called_with(
+        Notification,
+        gettext("Failed to scan metadata files for reading status collections.")
+      )
       assert.are.same({ doc_book, hash_book, dir_book }, SdrHistory:getFiles())
     end
   )

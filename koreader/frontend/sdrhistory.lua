@@ -36,7 +36,7 @@ local function scanMetadataFiles(root, extractor, out_files, sdr_history)
   end
   for line in p:lines() do
     local doc_path, replaced = extractor(line)
-    if replaced > 0 and doc_path ~= "" and not sdr_history:ignoreFile(doc_path) then
+    if replaced > 0 and doc_path ~= "" and not sdr_history:ignorePath(doc_path) then
       if util.fileExists(doc_path) then
         out_files[normalizePath(doc_path)] = true
       end
@@ -59,6 +59,18 @@ function SdrHistory:ignoreFile(file)
   return false
 end
 
+function SdrHistory:ignorePath(file)
+  local dir = ffiutil.dirname(file)
+  if
+    dir ~= "."
+    and dir ~= "/"
+    and not require("ui/widget/filechooser"):show_dir(ffiutil.basename(dir))
+  then
+    return true
+  end
+  return self:ignoreFile(file)
+end
+
 function SdrHistory:_flush()
   local content = {}
   for file in pairs(self.files) do
@@ -73,7 +85,7 @@ function SdrHistory:_flush()
     return true
   end
   require("ui/widget/notification"):notify(
-    gettext("Failed to save sidecar history.")
+    gettext("Failed to save reading status collection index.")
   )
   return false
 end
@@ -97,7 +109,7 @@ function SdrHistory:_seedFromReadHistory()
       if
         file
         and file ~= ""
-        and not self:ignoreFile(file)
+        and not self:ignorePath(file)
         and DocSettings:hasSidecarFile(file)
       then
         self.files[file] = true
@@ -132,7 +144,7 @@ function SdrHistory:reload(force_read)
     return true
   end
   require("ui/widget/notification"):notify(
-    gettext("Failed to load sidecar history.")
+    gettext("Failed to load reading status collection index.")
   )
   return false
 end
@@ -163,7 +175,7 @@ function SdrHistory:addItem(file)
   )
   self:reload()
   file = normalizePath(file)
-  if self.files[file] or self:ignoreFile(file) then
+  if self.files[file] or self:ignorePath(file) then
     return false
   end
   self.files[file] = true
@@ -200,7 +212,7 @@ function SdrHistory:updateItem(old_file, new_file, copy)
     self.files[old_file] = nil
     changed = true
   end
-  if not self.files[new_file] and not self:ignoreFile(new_file) then
+  if not self.files[new_file] and not self:ignorePath(new_file) then
     self.files[new_file] = true
     changed = true
   end
@@ -210,23 +222,30 @@ function SdrHistory:updateItem(old_file, new_file, copy)
   return false
 end
 
-function SdrHistory:updateItemsByPath(old_path, new_path)
+function SdrHistory:updateItemsByPath(old_path, new_path, copy)
   self:reload()
-  local old_prefix = old_path:gsub("/+$", "") .. "/"
+  local old_prefix = normalizePath(old_path):gsub("/+$", "") .. "/"
   local new_prefix = normalizePath(new_path):gsub("/+$", "") .. "/"
   local prefix_len = #old_prefix
   local to_remove = {}
   local to_add = {}
+  local DocSettings = copy and require("docsettings")
   for file in pairs(self.files) do
     if file:sub(1, prefix_len) == old_prefix then
-      table.insert(to_remove, file)
-      local updated = new_prefix .. file:sub(prefix_len + 1)
-      if not self:ignoreFile(updated) then
-        table.insert(to_add, normalizePath(updated))
+      if not copy then
+        table.insert(to_remove, file)
+      end
+      local updated = normalizePath(new_prefix .. file:sub(prefix_len + 1))
+      if
+        not self.files[updated]
+        and not self:ignorePath(updated)
+        and (not copy or DocSettings:hasSidecarFile(updated))
+      then
+        table.insert(to_add, updated)
       end
     end
   end
-  if #to_remove == 0 then
+  if #to_remove == 0 and #to_add == 0 then
     return false
   end
   for _, file in ipairs(to_remove) do
@@ -240,7 +259,7 @@ end
 
 function SdrHistory:removeItemsByPath(path)
   self:reload()
-  local prefix = path:gsub("/+$", "") .. "/"
+  local prefix = normalizePath(path):gsub("/+$", "") .. "/"
   local prefix_len = #prefix
   local to_remove = {}
   for file in pairs(self.files) do
@@ -271,7 +290,7 @@ function SdrHistory:rebuildFromDisk()
   )
   if not home_ok then
     require("ui/widget/notification"):notify(
-      gettext("Failed to scan metadata files for sidecar history.")
+      gettext("Failed to scan metadata files for reading status collections.")
     )
     return false
   end
@@ -297,7 +316,7 @@ function SdrHistory:rebuildFromDisk()
     )
     if not dir_ok then
       require("ui/widget/notification"):notify(
-        gettext("Failed to scan metadata files for sidecar history.")
+        gettext("Failed to scan metadata files for reading status collections.")
       )
       return false
     end
@@ -306,7 +325,7 @@ function SdrHistory:rebuildFromDisk()
   for file in pairs(self.files) do
     if
       not new_files[file]
-      and not self:ignoreFile(file)
+      and not self:ignorePath(file)
       and util.fileExists(file)
       and DocSettings:hasSidecarFile(file)
     then

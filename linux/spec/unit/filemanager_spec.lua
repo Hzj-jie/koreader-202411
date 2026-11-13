@@ -1459,6 +1459,77 @@ describe("FileManager module", function()
     end)
   end)
 
+  describe("FileManager folder copy and SdrHistory integration", function()
+    local SdrHistory = require("sdrhistory")
+    local core_util = require("util")
+    local base_tmp
+    local orig_doc_meta_folder
+
+    before_each(function()
+      local pid = tostring(ffi.C.getpid())
+      base_tmp = util.realpath("spec/unit/data") .. "/tmp_fm_sdr_" .. pid
+      core_util.makePath(base_tmp)
+      orig_doc_meta_folder = G_named_settings.document_metadata_folder
+      G_named_settings.document_metadata_folder = function()
+        return "doc"
+      end
+    end)
+
+    after_each(function()
+      G_named_settings.document_metadata_folder = orig_doc_meta_folder
+      if base_tmp and lfs.attributes(base_tmp) then
+        SdrHistory:removeItemsByPath(base_tmp)
+        util.purgeDir(base_tmp)
+      end
+    end)
+
+    it(
+      "indexes copied sidecar-bearing books in SdrHistory on folder paste",
+      function()
+        local src_sub = base_tmp .. "/src/sub"
+        local dst_parent = base_tmp .. "/dst"
+        core_util.makePath(src_sub)
+        core_util.makePath(dst_parent)
+
+        local tracked_src = src_sub .. "/tracked.pdf"
+        local no_sdr_src = src_sub .. "/plain.pdf"
+        util.copyFile("spec/unit/data/2col.pdf", tracked_src)
+        util.copyFile("spec/unit/data/2col.pdf", no_sdr_src)
+
+        local sdr_dir = docsettings:getSidecarDir(tracked_src)
+        core_util.makePath(sdr_dir)
+        local f = assert(
+          io.open(
+            sdr_dir .. "/" .. docsettings.getSidecarFilename(tracked_src),
+            "w"
+          )
+        )
+        f:write("{}")
+        f:close()
+
+        assert.is_true(SdrHistory:addItem(tracked_src))
+        assert.is_true(SdrHistory:addItem(no_sdr_src))
+
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        finally(function()
+          filemanager:onExit()
+        end)
+
+        filemanager:copyFileNameToClipboard(src_sub)
+        filemanager:pasteFileFromClipboard(dst_parent)
+
+        local tracked_dst = dst_parent .. "/sub/tracked.pdf"
+        local no_sdr_dst = dst_parent .. "/sub/plain.pdf"
+        assert.is_true(SdrHistory:hasFile(tracked_src))
+        assert.is_true(SdrHistory:hasFile(tracked_dst))
+        assert.is_false(SdrHistory:hasFile(no_sdr_dst))
+      end
+    )
+  end)
+
   describe("showFileDialog missing item handling", function()
     local test_root
 
