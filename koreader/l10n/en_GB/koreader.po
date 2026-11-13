@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 18:43-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Chris Heywood <cheywood@users.noreply.hosted.weblate.org>\n"
 "Language-Team: English (United Kingdom) <https://hosted.weblate.org/projects/"
@@ -694,6 +694,9 @@ msgstr "Arrange collections"
 msgid "Refresh reading status collections"
 msgstr ""
 
+msgid "Refreshing reading status collections…"
+msgstr ""
+
 msgid "Reading status collections refreshed."
 msgstr ""
 
@@ -869,19 +872,19 @@ msgstr "Filter by book status"
 msgid "Failed to scan metadata files for reading history."
 msgstr ""
 
-msgid "History view has been updated."
-msgstr ""
-
 msgid "Failed to back up reading history: %1"
 msgstr ""
 
-msgid "A previous history backup already exists, are you sure to override it?"
-msgstr ""
-
-msgid "Override"
-msgstr ""
-
 msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr "Searching for reading records…"
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
 msgstr ""
 
 msgid "Last history view has been restored."
@@ -6330,13 +6333,13 @@ msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
 
-msgid "Failed to save sidecar history."
+msgid "Failed to save reading status collection index."
 msgstr ""
 
-msgid "Failed to load sidecar history."
+msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for sidecar history."
+msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 msgctxt "Font weight class"
@@ -17494,9 +17497,6 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "annotations"
-
-#~ msgid "Searching for reading records…"
-#~ msgstr "Searching for reading records…"
 
 #~ msgid "History view has been updated, use main menu to access it."
 #~ msgstr "History view has been updated, use main menu to access it."

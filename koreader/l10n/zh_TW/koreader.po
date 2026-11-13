@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 18:43-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -688,6 +688,9 @@ msgstr "排列分組"
 msgid "Refresh reading status collections"
 msgstr "重新整理閱讀狀態分組"
 
+msgid "Refreshing reading status collections…"
+msgstr "正在重新整理閱讀狀態分組…"
+
 msgid "Reading status collections refreshed."
 msgstr "已重新整理閱讀狀態分組。"
 
@@ -861,20 +864,20 @@ msgstr "按書籍狀態過濾"
 msgid "Failed to scan metadata files for reading history."
 msgstr "掃描閱讀歷史的詮釋資料檔案失敗。"
 
-msgid "History view has been updated."
-msgstr "歷史檢視已更新。"
-
 msgid "Failed to back up reading history: %1"
 msgstr "備份閱讀歷史失敗：%1"
 
-msgid "A previous history backup already exists, are you sure to override it?"
-msgstr "已存在先前的歷史備份，確定要覆蓋嗎？"
-
-msgid "Override"
-msgstr "覆蓋"
-
 msgid "Failed to restore reading history: %1"
 msgstr "還原閱讀歷史失敗：%1"
+
+msgid "Searching for reading records…"
+msgstr "正在搜尋閱讀記錄…"
+
+msgid "History view has been updated."
+msgstr "歷史檢視已更新。"
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr "已存在先前的歷史備份。要覆蓋嗎？"
 
 msgid "Last history view has been restored."
 msgstr "最後的歷史檢視已還原。"
@@ -6163,14 +6166,14 @@ msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
 
-msgid "Failed to save sidecar history."
-msgstr "儲存 sidecar 歷史記錄失敗。"
+msgid "Failed to save reading status collection index."
+msgstr "儲存閱讀狀態分組索引失敗。"
 
-msgid "Failed to load sidecar history."
-msgstr "載入 sidecar 歷史記錄失敗。"
+msgid "Failed to load reading status collection index."
+msgstr "載入閱讀狀態分組索引失敗。"
 
-msgid "Failed to scan metadata files for sidecar history."
-msgstr "掃描 sidecar 歷史記錄的詮釋資料檔案失敗。"
+msgid "Failed to scan metadata files for reading status collections."
+msgstr "掃描閱讀狀態分組的詮釋資料檔案失敗。"
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -17010,8 +17013,21 @@ msgstr "Wallabag"
 msgid "annotations"
 msgstr "註釋"
 
-#~ msgid "Searching for reading records…"
-#~ msgstr "正在搜尋閱讀記錄…"
+#~ msgid ""
+#~ "A previous history backup already exists, are you sure to override it?"
+#~ msgstr "已存在先前的歷史備份，確定要覆蓋嗎？"
+
+#~ msgid "Override"
+#~ msgstr "覆蓋"
+
+#~ msgid "Failed to save sidecar history."
+#~ msgstr "儲存 sidecar 歷史記錄失敗。"
+
+#~ msgid "Failed to load sidecar history."
+#~ msgstr "載入 sidecar 歷史記錄失敗。"
+
+#~ msgid "Failed to scan metadata files for sidecar history."
+#~ msgstr "掃描 sidecar 歷史記錄的詮釋資料檔案失敗。"
 
 #~ msgid "History view has been updated, use main menu to access it."
 #~ msgstr "歷史檢視已更新，請使用主選單存取。"

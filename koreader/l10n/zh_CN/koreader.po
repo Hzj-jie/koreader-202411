@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 18:43-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -692,6 +692,9 @@ msgstr "排列分组"
 msgid "Refresh reading status collections"
 msgstr "刷新阅读状态分组"
 
+msgid "Refreshing reading status collections…"
+msgstr "正在刷新阅读状态分组…"
+
 msgid "Reading status collections refreshed."
 msgstr "已刷新阅读状态分组。"
 
@@ -865,20 +868,20 @@ msgstr "按书籍状态过滤"
 msgid "Failed to scan metadata files for reading history."
 msgstr "扫描阅读历史的元数据文件失败。"
 
-msgid "History view has been updated."
-msgstr "历史视图已更新。"
-
 msgid "Failed to back up reading history: %1"
 msgstr "备份阅读历史失败：%1"
 
-msgid "A previous history backup already exists, are you sure to override it?"
-msgstr "已存在先前的历史备份，确定要覆盖吗？"
-
-msgid "Override"
-msgstr "覆盖"
-
 msgid "Failed to restore reading history: %1"
 msgstr "恢复阅读历史失败：%1"
+
+msgid "Searching for reading records…"
+msgstr "正在搜索阅读记录…"
+
+msgid "History view has been updated."
+msgstr "历史视图已更新。"
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr "已存在先前的历史备份。要覆盖吗？"
 
 msgid "Last history view has been restored."
 msgstr "最后的历史视图已恢复。"
@@ -6170,14 +6173,14 @@ msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
 
-msgid "Failed to save sidecar history."
-msgstr "保存 sidecar 历史记录失败。"
+msgid "Failed to save reading status collection index."
+msgstr "保存阅读状态分组索引失败。"
 
-msgid "Failed to load sidecar history."
-msgstr "加载 sidecar 历史记录失败。"
+msgid "Failed to load reading status collection index."
+msgstr "加载阅读状态分组索引失败。"
 
-msgid "Failed to scan metadata files for sidecar history."
-msgstr "扫描 sidecar 历史记录的元数据文件失败。"
+msgid "Failed to scan metadata files for reading status collections."
+msgstr "扫描阅读状态分组的元数据文件失败。"
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -17004,8 +17007,21 @@ msgstr "Wallabag"
 msgid "annotations"
 msgstr "注释"
 
-#~ msgid "Searching for reading records…"
-#~ msgstr "正在搜索阅读记录…"
+#~ msgid ""
+#~ "A previous history backup already exists, are you sure to override it?"
+#~ msgstr "已存在先前的历史备份，确定要覆盖吗？"
+
+#~ msgid "Override"
+#~ msgstr "覆盖"
+
+#~ msgid "Failed to save sidecar history."
+#~ msgstr "保存 sidecar 历史记录失败。"
+
+#~ msgid "Failed to load sidecar history."
+#~ msgstr "加载 sidecar 历史记录失败。"
+
+#~ msgid "Failed to scan metadata files for sidecar history."
+#~ msgstr "扫描 sidecar 历史记录的元数据文件失败。"
 
 #~ msgid "History view has been updated, use main menu to access it."
 #~ msgstr "历史视图已更新，请使用主菜单访问。"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 18:43-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-09-11 05:09+0000\n"
 "Last-Translator: Marek <marek@pavelka.xyz>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -707,6 +707,9 @@ msgstr "Uspořádat sbírky"
 msgid "Refresh reading status collections"
 msgstr ""
 
+msgid "Refreshing reading status collections…"
+msgstr ""
+
 msgid "Reading status collections refreshed."
 msgstr ""
 
@@ -884,19 +887,19 @@ msgstr "Filtrovat podle stavu knihy"
 msgid "Failed to scan metadata files for reading history."
 msgstr ""
 
-msgid "History view has been updated."
-msgstr ""
-
 msgid "Failed to back up reading history: %1"
 msgstr ""
 
-msgid "A previous history backup already exists, are you sure to override it?"
-msgstr ""
-
-msgid "Override"
-msgstr ""
-
 msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
 msgstr ""
 
 msgid "Last history view has been restored."
@@ -6285,13 +6288,13 @@ msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%r-%m-%d"
 
-msgid "Failed to save sidecar history."
+msgid "Failed to save reading status collection index."
 msgstr ""
 
-msgid "Failed to load sidecar history."
+msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for sidecar history."
+msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 msgctxt "Font weight class"
