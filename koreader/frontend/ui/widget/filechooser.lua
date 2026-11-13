@@ -333,7 +333,7 @@ function FileChooser:show_file(filename, fullpath)
   if
     not self.show_finished
     and fullpath ~= nil
-    and filemanagerutil.getStatus(fullpath) == "complete"
+    and DocSettings.getStatus(fullpath) == "complete"
   then
     return false
   end
@@ -744,7 +744,7 @@ function FileChooser:getNextFile(curr_file)
         next_file
         and next_file.is_file
         and DocumentRegistry:hasProvider(next_file.path)
-        and filemanagerutil.getStatus(next_file.path) ~= "complete"
+        and DocSettings.getStatus(next_file.path) ~= "complete"
       then
         return next_file.path
       end

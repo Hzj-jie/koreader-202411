@@ -100,18 +100,6 @@ function filemanagerutil.resetDocumentSettings(file)
   end
 end
 
--- Get a document status ("new", "reading", "complete", or "abandoned")
-function filemanagerutil.getStatus(file)
-  if DocSettings:hasSidecarFile(file) then
-    local summary = DocSettings:open(file):readTableRef("summary")
-    if summary.status and summary.status ~= "" then
-      return summary.status
-    end
-    return "reading"
-  end
-  return "new"
-end
-
 function filemanagerutil.saveSummary(doc_settings_or_file, summary)
   -- In case the book doesn't have a sidecar file, this'll create it
   if type(doc_settings_or_file) ~= "table" then
@@ -147,7 +135,7 @@ function filemanagerutil.genStatusButtonsRow(
   else
     file = doc_settings_or_file
     summary = {}
-    status = filemanagerutil.getStatus(file)
+    status = DocSettings.getStatus(file)
   end
   local function genStatusButton(to_status)
     return {

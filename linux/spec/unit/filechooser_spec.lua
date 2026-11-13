@@ -218,6 +218,33 @@ describe("FileChooser module", function()
     fc.file_filter = nil
   end)
 
+  it("filters finished books via DocSettings.getStatus when show_finished is false", function()
+    local orig_getStatus = DocSettings.getStatus
+    finally(function()
+      DocSettings.getStatus = orig_getStatus
+    end)
+    local statuses = {
+      ["/tmp/done.epub"] = "complete",
+      ["/tmp/reading.epub"] = "reading",
+      ["/tmp/new.epub"] = "new",
+    }
+    DocSettings.getStatus = function(path)
+      return statuses[path] or "new"
+    end
+
+    local fc = FileChooser:new({
+      dimen = Screen:getSize(),
+      path = "/tmp",
+      show_finished = false,
+    })
+    assert.is_false(fc:show_file("done.epub", "/tmp/done.epub"))
+    assert.is_true(fc:show_file("reading.epub", "/tmp/reading.epub"))
+    assert.is_true(fc:show_file("new.epub", "/tmp/new.epub"))
+
+    fc.show_finished = true
+    assert.is_true(fc:show_file("done.epub", "/tmp/done.epub"))
+  end)
+
   it("should test showFileInBold options", function()
     local fc = FileChooser:new({
       dimen = Screen:getSize(),
@@ -432,6 +459,42 @@ describe("FileChooser module", function()
     assert.are_equal("/tmp/book2.epub", next_f)
 
     require("document/documentregistry").hasProvider = orig_hasProvider
+  end)
+
+  it("skips finished books via DocSettings.getStatus in getNextFile", function()
+    local DocumentRegistry = require("document/documentregistry")
+    local orig_hasProvider = DocumentRegistry.hasProvider
+    local orig_getStatus = DocSettings.getStatus
+    finally(function()
+      DocumentRegistry.hasProvider = orig_hasProvider
+      DocSettings.getStatus = orig_getStatus
+    end)
+
+    DocumentRegistry.hasProvider = function()
+      return true
+    end
+    local statuses = {
+      ["/tmp/book1.epub"] = "reading",
+      ["/tmp/done.epub"] = "complete",
+      ["/tmp/book3.epub"] = "reading",
+    }
+    DocSettings.getStatus = function(path)
+      return statuses[path] or "new"
+    end
+
+    local fc = FileChooser:new({
+      dimen = Screen:getSize(),
+      path = "/tmp",
+    })
+    fc.genItemTableFromPath = function()
+      return {
+        { is_file = true, path = "/tmp/book1.epub" },
+        { is_file = true, path = "/tmp/done.epub" },
+        { is_file = true, path = "/tmp/book3.epub" },
+      }
+    end
+
+    assert.are_equal("/tmp/book3.epub", fc:getNextFile("/tmp/book1.epub"))
   end)
 
   it("should test _pathUnwritable with require_writable option", function()

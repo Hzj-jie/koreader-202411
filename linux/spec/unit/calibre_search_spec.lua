@@ -260,10 +260,12 @@ describe("Calibre Search module", function()
   describe("onMenuHold", function()
     local old_show
     local shown_widget
+    local DocSettings
     local FileManagerBookInfo
     local filemanagerutil
 
     before_each(function()
+      DocSettings = require("docsettings")
       FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
       filemanagerutil = require("apps/filemanager/filemanagerutil")
 
@@ -290,7 +292,7 @@ describe("Calibre Search module", function()
       local InfoMessage = require("ui/widget/infomessage")
       local old_info_new = InfoMessage.new
       local old_cover = FileManagerBookInfo.getCoverImage
-      local old_status = filemanagerutil.getStatus
+      local old_status = DocSettings.getStatus
       local old_status_to_str = filemanagerutil.statusToString
 
       local info_args
@@ -302,7 +304,7 @@ describe("Calibre Search module", function()
       FileManagerBookInfo.getCoverImage = function()
         return "mock_cover"
       end
-      filemanagerutil.getStatus = function()
+      DocSettings.getStatus = function()
         return 1
       end
       filemanagerutil.statusToString = function()
@@ -318,7 +320,7 @@ describe("Calibre Search module", function()
 
       InfoMessage.new = old_info_new
       FileManagerBookInfo.getCoverImage = old_cover
-      filemanagerutil.getStatus = old_status
+      DocSettings.getStatus = old_status
       filemanagerutil.statusToString = old_status_to_str
 
       assert.is_not_nil(shown_widget)
