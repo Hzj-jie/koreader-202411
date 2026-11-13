@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-02-27 20:00+0000\n"
 "Last-Translator: shetozz <a.teama3317@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -678,6 +678,15 @@ msgstr[3] "%1 ملفات ذات بيانات تعريفية مبنية على ا
 msgstr[4] "%1 ملفا ذوي بيانات تعريفية مبنية على التشفير"
 msgstr[5] "%1 ملف ذو بيانات تعريفية مبنية على التشفير"
 
+msgid "Reading"
+msgstr "تتمُّ قراءته"
+
+msgid "On hold"
+msgstr "تمَّ تعليقُ قراءته"
+
+msgid "Finished"
+msgstr "انتهى"
+
 #, fuzzy
 msgid "Collections"
 msgstr "إزالة من المجموعة"
@@ -737,6 +746,15 @@ msgstr "حذف المقالة"
 #, fuzzy
 msgid "Arrange collections"
 msgstr "إزالة من المجموعة"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 #, fuzzy
 msgid "Enter collection name"
@@ -918,6 +936,9 @@ msgstr "إزالة من المجموعة"
 msgid "Search in filename and book metadata"
 msgstr "اعثر على كتابٍ باستخدام بيانات calibre الوصفيّة"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "اشطب سجلّ أسماء الملفات المحذوفة"
 
@@ -929,6 +950,39 @@ msgstr "مسح"
 
 msgid "Filter by book status"
 msgstr "عرض حسب حالة الكتاب"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "استعادة"
 
 #, fuzzy
 msgid "Enter text to search history for"
@@ -1471,15 +1525,6 @@ msgstr "الصفحة الرئيسة"
 #, fuzzy
 msgid "Unread"
 msgstr "ابسط"
-
-msgid "Reading"
-msgstr "تتمُّ قراءته"
-
-msgid "On hold"
-msgstr "تمَّ تعليقُ قراءته"
-
-msgid "Finished"
-msgstr "انتهى"
 
 #, fuzzy
 msgid "Reset this document?"
@@ -4466,9 +4511,6 @@ msgstr "لم يتم تعديل قرص الكتاب."
 msgid "Edit book-specific style tweak"
 msgstr "تحرير قرص نمط خاص بالكتاب"
 
-msgid "Restore"
-msgstr "استعادة"
-
 msgid "Book tweak restored"
 msgstr "تمت استعادة قرص الكتاب"
 
@@ -6461,6 +6503,15 @@ msgstr "إدارة الملحقات"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "٪ سنة-٪ شهر-٪ يوم"
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
+
+msgid "Failed to scan metadata files for reading status collections."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -14202,46 +14253,6 @@ msgid "External keyboard"
 msgstr "لوحة المفاتيح"
 
 msgid "Manages USB OTG and configures keyboard."
-msgstr ""
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
 msgstr ""
 
 msgid "New game"

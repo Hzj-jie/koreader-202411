@@ -467,6 +467,9 @@ function DocSettings:flush(data, no_custom_metadata)
         end
 
         self:purge(cand.file) -- remove old candidates and empty sidecar folders
+        if cand.location ~= "tmp" then
+          require("sdrlist"):addItem(self.doc_path)
+        end
 
         return cand.dir
       end
@@ -532,6 +535,13 @@ function DocSettings:purge(sidecar_to_keep, data_to_purge)
         DocSettings.removeSidecarDir(cand.dir)
       end
     end
+  end
+  if
+    sidecar_to_keep == nil
+    and data_to_purge.doc_settings
+    and self.doc_path
+  then
+    require("sdrlist"):removeItem(self.doc_path)
   end
 end
 
@@ -613,6 +623,8 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
           )
         )
       end
+    elseif has_sidecar_file then
+      require("sdrlist"):updateItem(doc_path, new_doc_path, copy)
     end
   else -- delete
     if has_sidecar_file then

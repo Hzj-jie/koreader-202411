@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -645,6 +645,15 @@ msgstr[1] "שני מסמכים עם נתוני על מבוססי גיבוב"
 msgstr[2] "%1 מסמכים עם נתוני על מבוססי גיבוב"
 msgstr[3] "%1 מסמכים עם נתוני על מבוססי גיבוב"
 
+msgid "Reading"
+msgstr "בקריאה"
+
+msgid "On hold"
+msgstr "בהמתנה"
+
+msgid "Finished"
+msgstr "הושלם"
+
 msgid "Collections"
 msgstr "אוספים"
 
@@ -692,6 +701,15 @@ msgstr "החלת הבחירה"
 
 msgid "Arrange collections"
 msgstr "סידור אוספים"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "מילוי שם האוסף"
@@ -851,6 +869,9 @@ msgstr "לסנן לפי אוספים"
 msgid "Search in filename and book metadata"
 msgstr "חיפוש בשם הקובץ ובנתוני העל של הספר"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "ניקוי היסטוריה של קבצים שנמחקו"
 
@@ -862,6 +883,39 @@ msgstr "ניקוי"
 
 msgid "Filter by book status"
 msgstr "סינון לפי מצב הספר"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "שחזר"
 
 msgid "Enter text to search history for"
 msgstr "נא למלא טקסט לחיפוש בהיסטוריה"
@@ -1372,15 +1426,6 @@ msgstr "בית"
 
 msgid "Unread"
 msgstr "לא נקרא"
-
-msgid "Reading"
-msgstr "בקריאה"
-
-msgid "On hold"
-msgstr "בהמתנה"
-
-msgid "Finished"
-msgstr "הושלם"
 
 msgid "Reset this document?"
 msgstr "לאפס את המסמך הזה?"
@@ -4332,9 +4377,6 @@ msgstr "הכוונת הספר לא שונתה."
 msgid "Edit book-specific style tweak"
 msgstr "עריכת כוונון סגנון מסוים לספר"
 
-msgid "Restore"
-msgstr "שחזר"
-
 msgid "Book tweak restored"
 msgstr "הכוונת הספר שוחזרה"
 
@@ -6225,6 +6267,15 @@ msgstr "ניהול תוספים"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "‎%d‎/%m/%y"
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
+
+msgid "Failed to scan metadata files for reading status collections."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -13827,46 +13878,6 @@ msgstr "מקלדת חיצונית"
 
 msgid "Manages USB OTG and configures keyboard."
 msgstr "מנהל OTG של USB ומגדיר מקלדת."
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
-msgstr ""
 
 msgid "New game"
 msgstr ""

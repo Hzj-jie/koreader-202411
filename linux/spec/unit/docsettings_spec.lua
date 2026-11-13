@@ -2455,4 +2455,111 @@ describe("docsettings module", function()
       end
     )
   end)
+
+  describe("SdrList integration", function()
+    local SdrList
+
+    before_each(function()
+      SdrList = require("sdrlist")
+      G_reader_settings:save("document_metadata_folder", "doc")
+    end)
+
+    after_each(function()
+      G_reader_settings:delete("document_metadata_folder")
+    end)
+
+    it(
+      "updates SdrList on flush, purge, and migration while skipping tmp",
+      function()
+        local tmp_dir = ffiutil.realpath(".") .. "/tmp_doc_sdr_test"
+        util.makePath(tmp_dir)
+        local book = tmp_dir .. "/book.epub"
+        local f = assert(io.open(book, "w"))
+        f:write("book content")
+        f:close()
+        finally(function()
+          ffiutil.purgeDir(tmp_dir)
+          SdrList:removeItem(book)
+        end)
+
+        local d = docsettings:open(book)
+        d:save("summary", { status = "reading" })
+        d:flush()
+        assert.is_true(SdrList:hasFile(book))
+        d:close()
+
+        -- Ephemeral tmp flush must not register into SdrList
+        local tmp_book = tmp_dir .. "/ephemeral_tmp_test_book.epub"
+        local orig_getTmpDir = DataStorage.getTmpDir
+        local orig_isDirRW = util.isDirRW
+        DataStorage.getTmpDir = function()
+          return tmp_dir .. "/ro_tmp"
+        end
+        local rw_stub = stub(util, "isDirRW", function(dir, create)
+          if dir:find("/ro_tmp/", 1, true) then
+            return orig_isDirRW(dir, create)
+          end
+          return false
+        end)
+        local d_ro = docsettings:open(tmp_book)
+        d_ro:save("summary", { status = "reading" })
+        d_ro:flush()
+        d_ro:close()
+        rw_stub:revert()
+        DataStorage.getTmpDir = orig_getTmpDir
+        assert.is_false(SdrList:hasFile(tmp_book))
+
+        -- Full purge removes from SdrList
+        d = docsettings:open(book)
+        d:purge()
+        assert.is_false(SdrList:hasFile(book))
+      end
+    )
+
+    it(
+      "updates SdrList across hash updateLocation copy, move, and delete",
+      function()
+        local tmp_dir = ffiutil.realpath(".") .. "/tmp_hash_sdr_test"
+        util.makePath(tmp_dir)
+        local orig_book = tmp_dir .. "/orig.epub"
+        local copied_book = tmp_dir .. "/copied.epub"
+        local moved_book = tmp_dir .. "/moved.epub"
+        for _, path in ipairs({ orig_book, copied_book, moved_book }) do
+          local f = assert(io.open(path, "w"))
+          f:write("identical hash payload")
+          f:close()
+        end
+        G_reader_settings:save("document_metadata_folder", "hash")
+        finally(function()
+          docsettings.updateLocation(orig_book)
+          docsettings.updateLocation(copied_book)
+          docsettings.updateLocation(moved_book)
+          ffiutil.purgeDir(tmp_dir)
+          SdrList:removeItem(orig_book)
+          SdrList:removeItem(copied_book)
+          SdrList:removeItem(moved_book)
+        end)
+
+        local d = docsettings:open(orig_book)
+        d:save("summary", { status = "complete" })
+        d:flush()
+        d:close()
+        assert.is_true(SdrList:hasFile(orig_book))
+
+        -- Copy keeps original and adds copy
+        docsettings.updateLocation(orig_book, copied_book, true)
+        assert.is_true(SdrList:hasFile(orig_book))
+        assert.is_true(SdrList:hasFile(copied_book))
+
+        -- Move removes source and adds destination
+        docsettings.updateLocation(orig_book, moved_book, false)
+        assert.is_false(SdrList:hasFile(orig_book))
+        assert.is_true(SdrList:hasFile(moved_book))
+
+        -- Delete removes target
+        docsettings.updateLocation(moved_book)
+        assert.is_false(SdrList:hasFile(moved_book))
+      end
+    )
+  end)
 end)

@@ -97,13 +97,15 @@ function ReadHistory:_flush()
       file = v.file,
     })
   end
-  if not util.writeToFile(dump(content), history_file, true) then
+  local written = util.writeToFile(dump(content), history_file, true)
+  if not written then
     local gettext = require("gettext")
     require("ui/widget/notification"):notify(
       gettext("Failed to write settings to local storage.")
     )
   end
   self:ensureLastFile()
+  return written
 end
 
 --- Reads history table from file.
@@ -345,25 +347,7 @@ function ReadHistory:removeItem(item, idx, no_flush)
 end
 
 function ReadHistory:ignoreFile(file)
-  local filename = ffiutil.basename(file)
-  if
-    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
-  then
-    return true
-  end
-  local exclude_files = { -- const
-    "^batterystat%.log$",
-    "^crash%.log$",
-    "^crash%.prev%.log$",
-    "^koreader%.crash%..*%.log$",
-    "^quickstart%-.*%.html$",
-  }
-  for _, pattern in ipairs(exclude_files) do
-    if filename:match(pattern) then
-      return true
-    end
-  end
-  return false
+  return require("sdrlist"):ignoreFile(file)
 end
 
 function ReadHistory:_ignoreItem(file, ts)
@@ -373,11 +357,7 @@ function ReadHistory:_ignoreItem(file, ts)
   end
   -- Note, the logic won't impact the existing items, but only the ones newly
   -- added.
-  local path = ffiutil.dirname(file)
-  if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
-    return true
-  end
-  return self:ignoreFile(file)
+  return require("sdrlist"):ignorePath(file)
 end
 
 --- Adds new item (last opened document) to the top of the history list.

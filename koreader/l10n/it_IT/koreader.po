@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Enrico Segre <enricoalbertoernestosegre@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/koreader/"
@@ -649,6 +649,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 documento con metadati basati su hash"
 msgstr[1] "%1 documenti con metadati basati su hash"
 
+msgid "Reading"
+msgstr "Lettura"
+
+msgid "On hold"
+msgstr "In attesa"
+
+msgid "Finished"
+msgstr "Finito"
+
 msgid "Collections"
 msgstr "Collezioni"
 
@@ -696,6 +705,15 @@ msgstr "Applica la selezione"
 
 msgid "Arrange collections"
 msgstr "Sistema le collezioni"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "Inserisci il nome della collezione"
@@ -851,6 +869,9 @@ msgstr "Filtra per collezioni"
 msgid "Search in filename and book metadata"
 msgstr "Cerca nel nome del file e nei metadati del libro"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Svuota cronologia dei file cancellati"
 
@@ -862,6 +883,39 @@ msgstr "Pulisci"
 
 msgid "Filter by book status"
 msgstr "Filtra per stato del libro"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "Ripristina"
 
 msgid "Enter text to search history for"
 msgstr "Inserisci il testo per cui cercare nella cronologia"
@@ -1371,15 +1425,6 @@ msgstr "Cartella principale"
 
 msgid "Unread"
 msgstr "Non letti"
-
-msgid "Reading"
-msgstr "Lettura"
-
-msgid "On hold"
-msgstr "In attesa"
-
-msgid "Finished"
-msgstr "Finito"
 
 msgid "Reset this document?"
 msgstr "Reimpostare questo documento?"
@@ -4455,9 +4500,6 @@ msgstr "Ritocco del libro non modificato."
 msgid "Edit book-specific style tweak"
 msgstr "Modifica ritocco di stile specifico del libro"
 
-msgid "Restore"
-msgstr "Ripristina"
-
 msgid "Book tweak restored"
 msgstr "Ritocco del libro ripristinato"
 
@@ -6403,6 +6445,15 @@ msgstr "Gestione estensioni"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%d/%m/%y"
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
+
+msgid "Failed to scan metadata files for reading status collections."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -14262,46 +14313,6 @@ msgstr "Tastiera esterna"
 
 msgid "Manages USB OTG and configures keyboard."
 msgstr "Gestisce USB OTG e configura la tastiera."
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
-msgstr ""
 
 msgid "New game"
 msgstr ""

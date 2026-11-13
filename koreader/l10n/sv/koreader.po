@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -644,6 +644,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Reading"
+msgstr "Läser"
+
+msgid "On hold"
+msgstr "I vänteläge"
+
+msgid "Finished"
+msgstr "Färdig"
+
 #, fuzzy
 msgid "Collections"
 msgstr "Gå tillbaka till föregående plats"
@@ -705,6 +714,15 @@ msgstr "Filen borttagen"
 #, fuzzy
 msgid "Arrange collections"
 msgstr "Gå tillbaka till föregående plats"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 #, fuzzy
 msgid "Enter collection name"
@@ -884,6 +902,9 @@ msgstr "Gå tillbaka till föregående plats"
 msgid "Search in filename and book metadata"
 msgstr "Hitta en bok i calibre-katalogen"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Rensa historik av raderade filer"
 
@@ -897,6 +918,40 @@ msgstr "Rensa"
 #, fuzzy
 msgid "Filter by book status"
 msgstr "Växla bokmärke"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+#, fuzzy
+msgid "Restore"
+msgstr "Omstart"
 
 #, fuzzy
 msgid "Enter text to search history for"
@@ -1401,15 +1456,6 @@ msgstr ""
 #, fuzzy
 msgid "Unread"
 msgstr "Spridning"
-
-msgid "Reading"
-msgstr "Läser"
-
-msgid "On hold"
-msgstr "I vänteläge"
-
-msgid "Finished"
-msgstr "Färdig"
 
 #, fuzzy
 msgid "Reset this document?"
@@ -4358,10 +4404,6 @@ msgid "Edit book-specific style tweak"
 msgstr ""
 
 #, fuzzy
-msgid "Restore"
-msgstr "Omstart"
-
-#, fuzzy
 msgid "Book tweak restored"
 msgstr "Tid att läsa bok (%1)"
 
@@ -6319,6 +6361,15 @@ msgstr "Insticksmodulshantering"
 
 msgctxt "Date string"
 msgid "%y-%m-%d"
+msgstr ""
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
+
+msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 msgctxt "Font weight class"
@@ -13707,46 +13758,6 @@ msgid "External keyboard"
 msgstr "Flash-tangentbord"
 
 msgid "Manages USB OTG and configures keyboard."
-msgstr ""
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
 msgstr ""
 
 msgid "New game"

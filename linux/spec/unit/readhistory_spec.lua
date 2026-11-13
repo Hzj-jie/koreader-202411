@@ -499,10 +499,18 @@ describe("ReadHistory module", function()
       assert.is_true(h:ignoreFile("crash.log"))
       assert.is_true(h:ignoreFile("quickstart-guide.html"))
       assert.is_false(h:ignoreFile("regular_book.epub"))
+      assert.is_false(h:ignoreFile(test_file(".Trash/hidden.epub")))
+
+      mkdir(test_file(".Trash"))
+      touch(test_file(".Trash/hidden.epub"))
+      h:addItem(test_file(".Trash/hidden.epub"), now)
+      assert.are.equal(1, #h.hist)
 
       h:updateLastBookTime(true)
       h:updateDateTimeString()
 
+      rm(test_file(".Trash/hidden.epub"))
+      require("libs/libkoreader-lfs").rmdir(test_file(".Trash"))
       rm(test_file("ignore_me.epub"))
     end
   )

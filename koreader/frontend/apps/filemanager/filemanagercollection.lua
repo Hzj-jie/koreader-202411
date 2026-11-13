@@ -6,14 +6,46 @@ local DocSettings = require("docsettings")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
+local Notification = require("ui/widget/notification")
 local ReadCollection = require("readcollection")
+local SdrList = require("sdrlist")
 local SortWidget = require("ui/widget/sortwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
+local lfs = require("libs/libkoreader-lfs")
 local T = require("ffi/util").template
 local util = require("util")
+
+local AUTO_COLLECTIONS = {
+  {
+    name = "__auto_reading",
+    status = "reading",
+    title_func = function()
+      return gettext("Reading")
+    end,
+  },
+  {
+    name = "__auto_abandoned",
+    status = "abandoned",
+    title_func = function()
+      return gettext("On hold")
+    end,
+  },
+  {
+    name = "__auto_complete",
+    status = "complete",
+    title_func = function()
+      return gettext("Finished")
+    end,
+  },
+}
+
+local AUTO_COLLECTION_BY_NAME = {}
+for _, coll in ipairs(AUTO_COLLECTIONS) do
+  AUTO_COLLECTION_BY_NAME[coll.name] = coll
+end
 
 local FileManagerCollection = WidgetContainer:extend({
   title = gettext("Collections"),
@@ -42,10 +74,19 @@ end
 
 -- collection
 
+function FileManagerCollection:isAutoCollection(collection_name)
+  return AUTO_COLLECTION_BY_NAME[collection_name] ~= nil
+end
+
 function FileManagerCollection:getCollectionTitle(collection_name)
-  return collection_name == ReadCollection.default_collection_name
-      and self.default_collection_title -- favorites
-    or collection_name
+  if collection_name == ReadCollection.default_collection_name then
+    return self.default_collection_title -- favorites
+  end
+  local auto_coll = AUTO_COLLECTION_BY_NAME[collection_name]
+  if auto_coll then
+    return auto_coll.title_func()
+  end
+  return collection_name
 end
 
 function FileManagerCollection:refreshFileManager()
@@ -93,15 +134,45 @@ function FileManagerCollection:onShowColl(collection_name)
   return true
 end
 
+function FileManagerCollection:getAutoCollectionStatus(file)
+  if self.ui.document and self.ui.document.file == file and self.ui.doc_settings then
+    local summary = self.ui.doc_settings:readTableRef("summary")
+    if summary and summary.status and summary.status ~= "" then
+      return summary.status
+    end
+    return "reading"
+  end
+  return DocSettings.getStatus(file)
+end
+
 function FileManagerCollection:updateItemTable(show_last_item)
   local item_table = {}
-  for _, item in pairs(ReadCollection.coll[self.coll_menu.collection_name]) do
-    table.insert(item_table, item)
-  end
-  if #item_table > 1 then
-    table.sort(item_table, function(v1, v2)
-      return v1.order < v2.order
-    end)
+  local auto_coll = AUTO_COLLECTION_BY_NAME[self.coll_menu.collection_name]
+  if auto_coll then
+    for _, file in ipairs(SdrList:getFiles()) do
+      local attr = lfs.attributes(file)
+      if
+        attr
+        and attr.mode == "file"
+        and self:getAutoCollectionStatus(file) == auto_coll.status
+      then
+        table.insert(item_table, {
+          file = file,
+          text = file:gsub(".*/", ""),
+          mandatory = util.getFriendlySize(attr.size or 0),
+          order = #item_table + 1, -- non-nil suppresses MosaicMenu star mark
+        })
+      end
+    end
+  else
+    for _, item in pairs(ReadCollection.coll[self.coll_menu.collection_name]) do
+      table.insert(item_table, item)
+    end
+    if #item_table > 1 then
+      table.sort(item_table, function(v1, v2)
+        return v1.order < v2.order
+      end)
+    end
   end
   local title = self:getCollectionTitle(self.coll_menu.collection_name)
   title = T("%1 (%2)", title, #item_table)
@@ -184,7 +255,8 @@ function FileManagerCollection:onMenuHold(item)
       close_dialog_update_callback
     ),
   })
-  table.insert(buttons, {
+  local is_auto_collection = self._manager:isAutoCollection(self.collection_name)
+  local remove_row = {
     {
       text = gettext("Delete"),
       enabled = not is_currently_opened,
@@ -193,14 +265,17 @@ function FileManagerCollection:onMenuHold(item)
         FileManager:showDeleteFileDialog(file, close_dialog_update_callback)
       end,
     },
-    {
+  }
+  if not is_auto_collection then
+    table.insert(remove_row, {
       text = gettext("Remove from collection"),
       callback = function()
         ReadCollection:removeItem(file, self.collection_name)
         close_dialog_update_callback()
       end,
-    },
-  })
+    })
+  end
+  table.insert(buttons, remove_row)
   table.insert(buttons, {
     filemanagerutil.genShowFolderButton(file, close_dialog_menu_callback),
     filemanagerutil.genBookInformationButton(
@@ -250,8 +325,10 @@ function FileManagerCollection:showCollDialog()
         end,
       },
     },
-    {}, -- separator
-    {
+  }
+  if not self:isAutoCollection(self.coll_menu.collection_name) then
+    table.insert(buttons, {}) -- separator
+    table.insert(buttons, {
       {
         text = gettext("Arrange books in collection"),
         callback = function()
@@ -259,8 +336,8 @@ function FileManagerCollection:showCollDialog()
           self:sortCollection()
         end,
       },
-    },
-    {
+    })
+    table.insert(buttons, {
       {
         text = gettext("Add a book to collection"),
         callback = function()
@@ -285,31 +362,31 @@ function FileManagerCollection:showCollDialog()
           self:showWidget(path_chooser)
         end,
       },
-    },
-  }
-  if self.ui.document then
-    local file = self.ui.document.file
-    local is_in_collection =
-      ReadCollection:isFileInCollection(file, self.coll_menu.collection_name)
-    table.insert(buttons, {
-      {
-        text_func = function()
-          return is_in_collection
-              and gettext("Remove current book from collection")
-            or gettext("Add current book to collection")
-        end,
-        callback = function()
-          UIManager:close(coll_dialog)
-          if is_in_collection then
-            ReadCollection:removeItem(file, self.coll_menu.collection_name)
-          else
-            ReadCollection:addItem(file, self.coll_menu.collection_name)
-          end
-          self:updateItemTable(not is_in_collection)
-          self.files_updated = true
-        end,
-      },
     })
+    if self.ui.document then
+      local file = self.ui.document.file
+      local is_in_collection =
+        ReadCollection:isFileInCollection(file, self.coll_menu.collection_name)
+      table.insert(buttons, {
+        {
+          text_func = function()
+            return is_in_collection
+                and gettext("Remove current book from collection")
+              or gettext("Add current book to collection")
+          end,
+          callback = function()
+            UIManager:close(coll_dialog)
+            if is_in_collection then
+              ReadCollection:removeItem(file, self.coll_menu.collection_name)
+            else
+              ReadCollection:addItem(file, self.coll_menu.collection_name)
+            end
+            self:updateItemTable(not is_in_collection)
+            self.files_updated = true
+          end,
+        },
+      })
+    end
   end
   coll_dialog = ButtonDialog:new({
     buttons = buttons,
@@ -418,6 +495,14 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
         return v1.order < v2.order
       end)
     end
+    if not self.selected_collections then
+      for _, auto_coll in ipairs(AUTO_COLLECTIONS) do
+        table.insert(item_table, {
+          text = auto_coll.title_func(),
+          name = auto_coll.name,
+        })
+      end
+    end
   else
     item_table = self.coll_list.item_table
   end
@@ -427,7 +512,7 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
     local selected_nb = util.tableSize(self.selected_collections)
     subtitle = self.selected_collections
       and T(gettext("Selected: %1"), selected_nb)
-    if do_init and selected_nb > 0 then -- show first collection containing the long-pressed book
+    if do_init and not item_number and selected_nb > 0 then -- show first collection containing the long-pressed book
       for i, item in ipairs(item_table) do
         if self.selected_collections[item.name] then
           item_number = i
@@ -463,6 +548,7 @@ end
 function FileManagerCollection:onCollListHold(item)
   if
     item.name == ReadCollection.default_collection_name -- Favorites non-editable
+    or self._manager:isAutoCollection(item.name) -- Auto collections are read-only
     or self._manager.selected_collections
   then -- select mode
     return
@@ -562,6 +648,22 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
           end,
         },
       },
+      {}, -- separator
+      {
+        {
+          text = gettext("Refresh reading status collections"),
+          callback = function()
+            UIManager:close(button_dialog)
+            local rebuilt = false
+            UIManager:runWith(function()
+              rebuilt = SdrList:rebuildFromDisk()
+            end, gettext("Refreshing reading status collections…"))
+            if rebuilt then
+              Notification:notify(gettext("Reading status collections refreshed."))
+            end
+          end,
+        },
+      },
     }
   end
   button_dialog = ButtonDialog:new({
@@ -592,7 +694,7 @@ function FileManagerCollection:editCollectionName(editCallback, old_name)
             if new_name == "" or new_name == old_name then
               return
             end
-            if ReadCollection.coll[new_name] then
+            if ReadCollection.coll[new_name] or self:isAutoCollection(new_name) then
               self:showWidget(InfoMessage:new({
                 text = T(gettext("Collection already exists: %1"), new_name),
               }))
@@ -611,20 +713,10 @@ end
 function FileManagerCollection:addCollection()
   local editCallback = function(name)
     ReadCollection:addCollection(name)
-    local mandatory
     if self.selected_collections then
       self.selected_collections[name] = true
-      mandatory = self.checkmark
-    else
-      mandatory = 0
     end
-    table.insert(self.coll_list.item_table, {
-      text = name,
-      mandatory = mandatory,
-      name = name,
-      order = ReadCollection.coll_order[name],
-    })
-    self:updateCollListItemTable(false, #self.coll_list.item_table) -- show added item
+    self:updateCollListItemTable(true, util.tableSize(ReadCollection.coll)) -- show added item
   end
   self:editCollectionName(editCallback)
 end
@@ -653,10 +745,16 @@ function FileManagerCollection:removeCollection(item)
 end
 
 function FileManagerCollection:sortCollections()
+  local sort_items = {}
+  for _, item in ipairs(self.coll_list.item_table) do
+    if not self:isAutoCollection(item.name) then
+      table.insert(sort_items, util.tableDeepCopy(item))
+    end
+  end
   local sort_widget
   sort_widget = SortWidget:new({
     title = gettext("Arrange collections"),
-    item_table = util.tableDeepCopy(self.coll_list.item_table),
+    item_table = sort_items,
     callback = function()
       ReadCollection:updateCollectionListOrder(sort_widget.item_table)
       self:updateCollListItemTable(true) -- init

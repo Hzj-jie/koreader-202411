@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-09-11 05:09+0000\n"
 "Last-Translator: Marek <marek@pavelka.xyz>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -647,6 +647,15 @@ msgstr[0] "1 dokument s metadaty založenými na hash"
 msgstr[1] "%1 dokumenty s metadaty založenými na hash"
 msgstr[2] "%1 dokumentů s metadaty založenými na hash"
 
+msgid "Reading"
+msgstr "Čteno"
+
+msgid "On hold"
+msgstr "Odloženo"
+
+msgid "Finished"
+msgstr "Dočteno"
+
 msgid "Collections"
 msgstr "Sbírky"
 
@@ -694,6 +703,15 @@ msgstr "Použít výběr"
 
 msgid "Arrange collections"
 msgstr "Uspořádat sbírky"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "Zadejte název sbírky"
@@ -851,6 +869,9 @@ msgstr "Filtrovat podle sbírek"
 msgid "Search in filename and book metadata"
 msgstr "Hledat v názvech souborů a metadatech knih"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Vymazat historii odstraněných souborů"
 
@@ -862,6 +883,39 @@ msgstr "Vymazat"
 
 msgid "Filter by book status"
 msgstr "Filtrovat podle stavu knihy"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "Obnovit"
 
 msgid "Enter text to search history for"
 msgstr "Zadejte text, který chcete v historii najít"
@@ -1371,15 +1425,6 @@ msgstr "Domovská složka"
 
 msgid "Unread"
 msgstr "Nepřečteno"
-
-msgid "Reading"
-msgstr "Čteno"
-
-msgid "On hold"
-msgstr "Odloženo"
-
-msgid "Finished"
-msgstr "Dočteno"
 
 msgid "Reset this document?"
 msgstr "Obnovit tento dokument?"
@@ -4313,9 +4358,6 @@ msgstr "Úprava stylu pro tuto knihu nebyla modifikována."
 msgid "Edit book-specific style tweak"
 msgstr "Editovat úpravu stylu pro tuto knihu"
 
-msgid "Restore"
-msgstr "Obnovit"
-
 msgid "Book tweak restored"
 msgstr "Úprava knihy obnovena"
 
@@ -6232,6 +6274,15 @@ msgstr "Správa doplňků"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%r-%m-%d"
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
+
+msgid "Failed to scan metadata files for reading status collections."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -13906,46 +13957,6 @@ msgid "External keyboard"
 msgstr "Externí klávesnice"
 
 msgid "Manages USB OTG and configures keyboard."
-msgstr ""
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
 msgstr ""
 
 msgid "New game"

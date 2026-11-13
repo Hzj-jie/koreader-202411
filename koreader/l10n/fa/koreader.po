@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 19:32-0800\n"
 "PO-Revision-Date: 2024-05-24 07:40+0000\n"
 "Last-Translator: Monirzadeh <Monirzadeh@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/koreader/"
@@ -637,6 +637,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "۱ سند با فراداده براساس هش"
 msgstr[1] "%1 سند با فراداده براساس هش"
 
+msgid "Reading"
+msgstr "در حال مطالعه"
+
+msgid "On hold"
+msgstr "درانتظار"
+
+msgid "Finished"
+msgstr "پایان‌یافته"
+
 msgid "Collections"
 msgstr "مجموعه‌ها"
 
@@ -685,6 +694,15 @@ msgstr "اعمال انتخاب"
 
 msgid "Arrange collections"
 msgstr "چینش مجموعه‌ها"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "عنوان مجموعه را وارد کنید"
@@ -842,6 +860,9 @@ msgstr "فیلتر براساس مجموعه‌ها"
 msgid "Search in filename and book metadata"
 msgstr "جستجو در اسم فایل‌ و فراداده کتاب"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "پاکسازی تاریخچه فایل‌های حذف شده"
 
@@ -853,6 +874,39 @@ msgstr "پاک‌کردن"
 
 msgid "Filter by book status"
 msgstr "فیلتر براساس وضعیت کتاب"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "بازنشانی"
 
 msgid "Enter text to search history for"
 msgstr "متن را برای جستجو در تاریخچه وارد کنید"
@@ -1358,15 +1412,6 @@ msgstr "خانه"
 
 msgid "Unread"
 msgstr "خوانده نشده"
-
-msgid "Reading"
-msgstr "در حال مطالعه"
-
-msgid "On hold"
-msgstr "درانتظار"
-
-msgid "Finished"
-msgstr "پایان‌یافته"
 
 msgid "Reset this document?"
 msgstr "این سند بازنشانی شود؟"
@@ -4161,9 +4206,6 @@ msgstr "بهبود‌های کتاب تغییر نکرد."
 msgid "Edit book-specific style tweak"
 msgstr "ویرایش بهبود‌های سبک اختصاصی کتاب"
 
-msgid "Restore"
-msgstr "بازنشانی"
-
 msgid "Book tweak restored"
 msgstr "بهبود‌های کتاب بازگردانی شد"
 
@@ -5961,6 +6003,15 @@ msgstr "مدیریت افزونه"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
+
+msgid "Failed to scan metadata files for reading status collections."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -13322,46 +13373,6 @@ msgid "External keyboard"
 msgstr "صفحه کلید خارجی"
 
 msgid "Manages USB OTG and configures keyboard."
-msgstr ""
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
 msgstr ""
 
 msgid "New game"

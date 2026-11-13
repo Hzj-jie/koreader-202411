@@ -12,6 +12,10 @@ describe("FileManagerHistory", function()
   local mock_check_button = {}
   local mock_confirm_box = {}
   local mock_input_dialog = {}
+  local mock_datastorage = {}
+  local mock_info_message = {}
+  local mock_multi_confirm_box = {}
+  local mock_notification = {}
   local mock_utf8proc = {}
   local mock_settings
 
@@ -103,7 +107,8 @@ describe("FileManagerHistory", function()
         self:close(widget)
       end
     end)
-    mock_uimanager.runWith = spy.new(function(self, func, _msg)
+    mock_uimanager.runWith = spy.new(function(self, func, widget)
+      assert(widget ~= nil)
       func()
     end)
     package.loaded["ui/uimanager"] = mock_uimanager
@@ -146,6 +151,11 @@ describe("FileManagerHistory", function()
         end
       end
     end)
+    mock_readhistory._flush = spy.new(function()
+      return true
+    end)
+    mock_readhistory.reload = spy.new(function() end)
+    mock_readhistory.ensureLastFile = spy.new(function() end)
     package.loaded["readhistory"] = mock_readhistory
 
     clear_table(mock_filemanagerutil)
@@ -243,6 +253,7 @@ describe("FileManagerHistory", function()
       return {
         is_confirm_box = true,
         text = args.text,
+        ok_text = args.ok_text,
         ok_callback = args.ok_callback,
       }
     end)
@@ -262,6 +273,38 @@ describe("FileManagerHistory", function()
       }
     end)
     package.loaded["ui/widget/inputdialog"] = mock_input_dialog
+
+    clear_table(mock_datastorage)
+    mock_datastorage.getDataDir = function()
+      return "/tmp/fmh_spec_nonexistent"
+    end
+    package.loaded["datastorage"] = mock_datastorage
+
+    clear_table(mock_info_message)
+    mock_info_message.new = spy.new(function(self, args)
+      return {
+        is_info_message = true,
+        text = args.text,
+      }
+    end)
+    package.loaded["ui/widget/infomessage"] = mock_info_message
+
+    clear_table(mock_multi_confirm_box)
+    mock_multi_confirm_box.new = spy.new(function(self, args)
+      return {
+        is_multi_confirm_box = true,
+        text = args.text,
+        choice1_text = args.choice1_text,
+        choice1_callback = args.choice1_callback,
+        choice2_text = args.choice2_text,
+        choice2_callback = args.choice2_callback,
+      }
+    end)
+    package.loaded["ui/widget/multiconfirmbox"] = mock_multi_confirm_box
+
+    clear_table(mock_notification)
+    mock_notification.notify = spy.new(function() end)
+    package.loaded["ui/widget/notification"] = mock_notification
 
     clear_table(mock_utf8proc)
     mock_utf8proc.lowercase = spy.new(function(str)
@@ -292,6 +335,10 @@ describe("FileManagerHistory", function()
     package.loaded["ui/widget/checkbutton"] = nil
     package.loaded["ui/widget/confirmbox"] = nil
     package.loaded["ui/widget/inputdialog"] = nil
+    package.loaded["datastorage"] = nil
+    package.loaded["ui/widget/infomessage"] = nil
+    package.loaded["ui/widget/multiconfirmbox"] = nil
+    package.loaded["ui/widget/notification"] = nil
     package.loaded["ffi/utf8proc"] = nil
     package.loaded["ui/bidi"] = nil
     _G.G_reader_settings = nil
@@ -602,10 +649,15 @@ describe("FileManagerHistory", function()
 
       -- Since count.deleted = 1 > 0, we have:
       -- Row 5: separator (empty table)
-      -- Row 6: Clear history of deleted files
+      -- Row 6: Retrieve reading history
+      -- Row 7: separator (empty table)
+      -- Row 8: Clear history of deleted files
       assert.is_table(buttons[5])
       assert.is_equal(0, #buttons[5])
-      assert.is_equal("Clear history of deleted files", buttons[6][1].text)
+      assert.is_equal(mock_gettext("Retrieve reading history"), buttons[6][1].text)
+      assert.is_table(buttons[7])
+      assert.is_equal(0, #buttons[7])
+      assert.is_equal(mock_gettext("Clear history of deleted files"), buttons[8][1].text)
 
       -- Let's trigger Filter reading callback
       fmh.updateItemTable = spy.new(function() end)
@@ -674,6 +726,21 @@ describe("FileManagerHistory", function()
       assert.spy(fmh.onSearchHistory).was_called(1)
     end)
 
+    it("handles Retrieve reading history callback", function()
+      fmh.onRetrieveHistory = spy.new(function() end)
+
+      fmh:showHistDialog()
+      local hist_dialog = shown_dialogs[1]
+      local buttons = hist_dialog.buttons
+
+      buttons[6][1].callback()
+
+      assert
+        .spy(mock_uimanager.close)
+        .was_called_with(mock_uimanager, match.is_ref(hist_dialog))
+      assert.spy(fmh.onRetrieveHistory).was_called(1)
+    end)
+
     it("handles Clear history of deleted files callback", function()
       fmh:showHistDialog()
       local hist_dialog = shown_dialogs[1]
@@ -682,7 +749,7 @@ describe("FileManagerHistory", function()
       fmh.updateItemTable = spy.new(function() end)
 
       -- Trigger Clear history callback
-      buttons[6][1].callback()
+      buttons[8][1].callback()
 
       -- Should show a ConfirmBox
       assert.spy(mock_confirm_box.new).was_called(1)
@@ -954,6 +1021,281 @@ describe("FileManagerHistory", function()
       assert
         .spy(mock_uimanager.closeIfNotNil)
         .was_called_with(mock_uimanager, nil)
+    end)
+  end)
+
+  describe("onRetrieveHistory / buildHistory / restoreHistory", function()
+    local lfs = require("libs/libkoreader-lfs")
+    local orig_named_settings
+    local popen_stub
+    local rename_stub
+    local temp_dir
+    local shown_dialogs
+    local fmh
+
+    local function write_dummy(path, content)
+      local f = assert(io.open(path, "w"))
+      f:write(content)
+      f:close()
+    end
+
+    local function read_dummy(path)
+      local f = assert(io.open(path, "r"))
+      local c = f:read("*a")
+      f:close()
+      return c
+    end
+
+    before_each(function()
+      temp_dir = os.tmpname()
+      os.remove(temp_dir)
+      assert(lfs.mkdir(temp_dir))
+
+      shown_dialogs = {}
+      mock_uimanager.show = spy.new(function(_, widget)
+        table.insert(shown_dialogs, widget)
+      end)
+
+      package.loaded["apps/filemanager/filemanagerhistory"] = nil
+      mock_datastorage.getDataDir = function()
+        return temp_dir
+      end
+      FileManagerHistory = require("apps/filemanager/filemanagerhistory")
+
+      orig_named_settings = _G.G_named_settings
+      _G.G_named_settings = {
+        home_dir = function()
+          return "/books/with 'quote'"
+        end,
+      }
+
+      fmh = FileManagerHistory:new({ ui = { menu = mock_menu } })
+    end)
+
+    after_each(function()
+      if popen_stub then
+        popen_stub:revert()
+        popen_stub = nil
+      end
+      if rename_stub then
+        rename_stub:revert()
+        rename_stub = nil
+      end
+      _G.G_named_settings = orig_named_settings
+      os.remove(temp_dir .. "/history.lua")
+      os.remove(temp_dir .. "/history.lua.backup")
+      lfs.rmdir(temp_dir)
+    end)
+
+    it("shows MultiConfirmBox with Retrieve and Restore actions", function()
+      fmh.buildHistory = spy.new(function() end)
+      fmh.restoreHistory = spy.new(function() end)
+
+      fmh:onRetrieveHistory()
+
+      assert.spy(mock_multi_confirm_box.new).was_called(1)
+      local box = shown_dialogs[1]
+      assert.is_equal(mock_gettext("Retrieve"), box.choice1_text)
+      assert.is_equal(mock_gettext("Restore"), box.choice2_text)
+
+      box.choice1_callback()
+      assert.spy(fmh.buildHistory).was_called(1)
+      box.choice2_callback()
+      assert.spy(fmh.restoreHistory).was_called(1)
+    end)
+
+    it("builds history immediately when no backup exists", function()
+      fmh.doBuildHistory = spy.new(function() end)
+      fmh:buildHistory()
+      assert.spy(fmh.doBuildHistory).was_called(1)
+      assert.spy(mock_confirm_box.new).was_not_called()
+    end)
+
+    it("prompts to overwrite when backup already exists", function()
+      write_dummy(temp_dir .. "/history.lua.backup", "backup")
+      fmh.doBuildHistory = spy.new(function() end)
+
+      fmh:buildHistory()
+
+      assert.spy(mock_confirm_box.new).was_called(1)
+      local box = shown_dialogs[1]
+      assert.is_equal(
+        mock_gettext("A previous history backup already exists. Overwrite it?"),
+        box.text
+      )
+      assert.is_equal(mock_gettext("Overwrite"), box.ok_text)
+      box.ok_callback()
+      assert.spy(fmh.doBuildHistory).was_called(1)
+    end)
+
+    it("scans before backing up existing history.lua and notifies on rename failure", function()
+      write_dummy(temp_dir .. "/history.lua", "old_history")
+      popen_stub = stub(io, "popen", function()
+        return nil, "spawn failed"
+      end)
+
+      fmh:doBuildHistory()
+
+      assert.spy(mock_notification.notify).was_called(1)
+      assert.is_equal("old_history", read_dummy(temp_dir .. "/history.lua"))
+      assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
+      assert.is_equal(0, #shown_dialogs)
+
+      popen_stub:revert()
+      popen_stub = stub(io, "popen", function()
+        return {
+          lines = function()
+            return function()
+              return nil
+            end
+          end,
+          close = function() end,
+        }
+      end)
+      rename_stub = stub(os, "rename", function()
+        return nil, "permission denied"
+      end)
+
+      fmh:doBuildHistory()
+
+      assert.spy(mock_notification.notify).was_called(2)
+      assert.spy(mock_readhistory._flush).was_not_called()
+      assert.is_equal("old_history", read_dummy(temp_dir .. "/history.lua"))
+      assert.is_equal(0, #shown_dialogs)
+    end)
+
+    it("restores backup and preserves lastfile when _flush fails", function()
+      write_dummy(temp_dir .. "/history.lua", "old_history")
+      popen_stub = stub(io, "popen", function()
+        local returned = false
+        return {
+          lines = function()
+            return function()
+              if not returned then
+                returned = true
+                return "/books/with 'quote'/My Book 1.sdr/metadata.epub.lua 100"
+              end
+            end
+          end,
+          close = function() end,
+        }
+      end)
+      mock_readhistory._flush = spy.new(function()
+        return false
+      end)
+
+      fmh:doBuildHistory()
+
+      assert.is_equal("old_history", read_dummy(temp_dir .. "/history.lua"))
+      assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
+      assert.is_equal(0, mock_readhistory.last_read_time)
+      assert.spy(mock_readhistory.reload).was_called(1)
+      assert.spy(mock_readhistory.ensureLastFile).was_called(1)
+      assert.is_equal(0, #shown_dialogs)
+    end)
+
+    it(
+      "scans metadata without -type d, updates ReadHistory, and refreshes filtered hist_menu",
+      function()
+        write_dummy(temp_dir .. "/history.lua", "old_history")
+        local captured_cmd
+        local lines = {
+          "/books/with 'quote'/My Book 1.sdr/metadata.epub.lua 100",
+          "/books/with 'quote'/dir/My Book 2.sdr/metadata.pdf.lua 300",
+          "/books/with 'quote'/ignored/metadata.epub.lua 200",
+        }
+        popen_stub = stub(io, "popen", function(cmd)
+          captured_cmd = cmd
+          local idx = 0
+          return {
+            lines = function()
+              return function()
+                idx = idx + 1
+                return lines[idx]
+              end
+            end,
+            close = function() end,
+          }
+        end)
+
+        fmh.hist_menu = mock_menu
+        fmh.filter = "reading"
+        fmh.fetchStatuses = spy.new(function() end)
+        fmh.updateItemTable = spy.new(function() end)
+
+        fmh:doBuildHistory()
+
+        assert
+          .spy(mock_uimanager.runWith)
+          .was_called_with(
+            mock_uimanager,
+            match.is_function(),
+            mock_gettext("Searching for reading records…")
+          )
+        assert.is_equal(
+          "old_history",
+          read_dummy(temp_dir .. "/history.lua.backup")
+        )
+        assert.is_truthy(captured_cmd:find("'find'", 1, true))
+        assert.is_nil(captured_cmd:find("-type d", 1, true))
+        assert.is_same({
+          { file = "/books/with 'quote'/dir/My Book 2.pdf", time = 300 },
+          { file = "/books/with 'quote'/My Book 1.epub", time = 100 },
+        }, mock_readhistory.hist)
+        assert.spy(mock_readhistory._flush).was_called(1)
+        assert.is_equal(0, mock_readhistory.last_read_time)
+        assert.spy(mock_readhistory.reload).was_called(1)
+        assert.spy(mock_readhistory.ensureLastFile).was_called(1)
+        assert.spy(fmh.fetchStatuses).was_called_with(match.is_ref(fmh), false)
+        assert.spy(fmh.updateItemTable).was_called(1)
+        assert.is_equal(
+          mock_gettext("History view has been updated."),
+          shown_dialogs[1].text
+        )
+      end
+    )
+
+    it("notifies and skips update dialog when find fails", function()
+      popen_stub = stub(io, "popen", function()
+        return nil, "spawn failed"
+      end)
+      fmh:doBuildHistory()
+      assert.spy(mock_notification.notify).was_called(1)
+      assert.is_equal(0, #shown_dialogs)
+    end)
+
+    it("restores backup history and refreshes open hist_menu", function()
+      fmh:restoreHistory()
+      assert.is_equal(mock_gettext("No history backup found."), shown_dialogs[1].text)
+
+      shown_dialogs = {}
+      write_dummy(temp_dir .. "/history.lua.backup", "saved_history")
+      fmh.hist_menu = mock_menu
+      fmh.filter = "all"
+      fmh.statuses_fetched = true
+      fmh.updateItemTable = spy.new(function() end)
+
+      rename_stub = stub(os, "rename", function()
+        return nil, "io error"
+      end)
+      fmh:restoreHistory()
+      assert.spy(mock_notification.notify).was_called(1)
+      assert.is_equal(0, #shown_dialogs)
+
+      rename_stub:revert()
+      rename_stub = nil
+      fmh:restoreHistory()
+      assert.is_equal("saved_history", read_dummy(temp_dir .. "/history.lua"))
+      assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
+      assert.is_equal(0, mock_readhistory.last_read_time)
+      assert.spy(mock_readhistory.reload).was_called(1)
+      assert.spy(mock_readhistory.ensureLastFile).was_called(1)
+      assert.is_false(fmh.statuses_fetched)
+      assert.spy(fmh.updateItemTable).was_called(1)
+      assert.is_equal(
+        mock_gettext("Last history view has been restored."),
+        shown_dialogs[1].text
+      )
     end)
   end)
 end)
