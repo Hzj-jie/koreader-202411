@@ -464,7 +464,6 @@ function Device:install()
           "The update will be applied the next time KOReader is started."
         ),
         unmovable = true,
-        dismissable = false,
       }))
     end,
     unmovable = true,
@@ -1137,7 +1136,8 @@ function Device:untar(archive, extract_to, with_stripped_root)
   if with_stripped_root then
     cmd = cmd .. " --strip-components=1"
   end
-  return os.execute(cmd:format(archive, extract_to))
+  local ok = os.execute(cmd:format(archive, extract_to))
+  return ok == 0 or ok == true
 end
 
 -- Update our UIManager reference once it's ready
