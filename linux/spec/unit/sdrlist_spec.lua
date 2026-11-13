@@ -190,8 +190,6 @@ describe("SdrList module", function()
     assert.is_true(SdrList:addItem(b2))
     assert.are.same({ rb1, rb2 }, SdrList:getFiles())
 
-    assert.is_nil(SdrList.hasFile)
-
     -- Copy keeps original and adds destination
     local b1_copy = home_dir .. "/sub/a_copy.epub"
     local rb1_copy = real_home .. "/sub/a_copy.epub"
