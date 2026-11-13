@@ -2456,11 +2456,11 @@ describe("docsettings module", function()
     )
   end)
 
-  describe("SdrHistory integration", function()
-    local SdrHistory
+  describe("SdrList integration", function()
+    local SdrList
 
     before_each(function()
-      SdrHistory = require("sdrhistory")
+      SdrList = require("sdrlist")
       G_reader_settings:save("document_metadata_folder", "doc")
     end)
 
@@ -2469,7 +2469,7 @@ describe("docsettings module", function()
     end)
 
     it(
-      "updates SdrHistory on flush, purge, and migration while skipping tmp",
+      "updates SdrList on flush, purge, and migration while skipping tmp",
       function()
         local tmp_dir = ffiutil.realpath(".") .. "/tmp_doc_sdr_test"
         util.makePath(tmp_dir)
@@ -2479,16 +2479,16 @@ describe("docsettings module", function()
         f:close()
         finally(function()
           ffiutil.purgeDir(tmp_dir)
-          SdrHistory:removeItem(book)
+          SdrList:removeItem(book)
         end)
 
         local d = docsettings:open(book)
         d:save("summary", { status = "reading" })
         d:flush()
-        assert.is_true(SdrHistory:hasFile(book))
+        assert.is_true(SdrList:hasFile(book))
         d:close()
 
-        -- Ephemeral tmp flush must not register into SdrHistory
+        -- Ephemeral tmp flush must not register into SdrList
         local tmp_book = tmp_dir .. "/ephemeral_tmp_test_book.epub"
         local orig_getTmpDir = DataStorage.getTmpDir
         local orig_isDirRW = util.isDirRW
@@ -2507,17 +2507,17 @@ describe("docsettings module", function()
         d_ro:close()
         rw_stub:revert()
         DataStorage.getTmpDir = orig_getTmpDir
-        assert.is_false(SdrHistory:hasFile(tmp_book))
+        assert.is_false(SdrList:hasFile(tmp_book))
 
-        -- Full purge removes from SdrHistory
+        -- Full purge removes from SdrList
         d = docsettings:open(book)
         d:purge()
-        assert.is_false(SdrHistory:hasFile(book))
+        assert.is_false(SdrList:hasFile(book))
       end
     )
 
     it(
-      "updates SdrHistory across hash updateLocation copy, move, and delete",
+      "updates SdrList across hash updateLocation copy, move, and delete",
       function()
         local tmp_dir = ffiutil.realpath(".") .. "/tmp_hash_sdr_test"
         util.makePath(tmp_dir)
@@ -2535,30 +2535,30 @@ describe("docsettings module", function()
           docsettings.updateLocation(copied_book)
           docsettings.updateLocation(moved_book)
           ffiutil.purgeDir(tmp_dir)
-          SdrHistory:removeItem(orig_book)
-          SdrHistory:removeItem(copied_book)
-          SdrHistory:removeItem(moved_book)
+          SdrList:removeItem(orig_book)
+          SdrList:removeItem(copied_book)
+          SdrList:removeItem(moved_book)
         end)
 
         local d = docsettings:open(orig_book)
         d:save("summary", { status = "complete" })
         d:flush()
         d:close()
-        assert.is_true(SdrHistory:hasFile(orig_book))
+        assert.is_true(SdrList:hasFile(orig_book))
 
         -- Copy keeps original and adds copy
         docsettings.updateLocation(orig_book, copied_book, true)
-        assert.is_true(SdrHistory:hasFile(orig_book))
-        assert.is_true(SdrHistory:hasFile(copied_book))
+        assert.is_true(SdrList:hasFile(orig_book))
+        assert.is_true(SdrList:hasFile(copied_book))
 
         -- Move removes source and adds destination
         docsettings.updateLocation(orig_book, moved_book, false)
-        assert.is_false(SdrHistory:hasFile(orig_book))
-        assert.is_true(SdrHistory:hasFile(moved_book))
+        assert.is_false(SdrList:hasFile(orig_book))
+        assert.is_true(SdrList:hasFile(moved_book))
 
         -- Delete removes target
         docsettings.updateLocation(moved_book)
-        assert.is_false(SdrHistory:hasFile(moved_book))
+        assert.is_false(SdrList:hasFile(moved_book))
       end
     )
   end)

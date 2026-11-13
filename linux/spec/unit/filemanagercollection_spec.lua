@@ -1,7 +1,7 @@
 describe("filemanagercollection", function()
   local FileManagerCollection
   local mock_read_collection
-  local mock_sdr_history
+  local mock_sdr_list
   local mock_doc_settings
   local mock_notification
   local mock_confirm_box
@@ -140,7 +140,7 @@ describe("filemanagercollection", function()
     }
     package.loaded["docsettings"] = mock_doc_settings
 
-    mock_sdr_history = {
+    mock_sdr_list = {
       files = {},
       getFiles = spy.new(function(self)
         return self.files
@@ -149,7 +149,7 @@ describe("filemanagercollection", function()
         return true
       end),
     }
-    package.loaded["sdrhistory"] = mock_sdr_history
+    package.loaded["sdrlist"] = mock_sdr_list
 
     mock_notification = {
       notify = spy.new(function() end),
@@ -364,7 +364,7 @@ describe("filemanagercollection", function()
   after_each(function()
     package.loaded["apps/filemanager/filemanagercollection"] = nil
     package.loaded["readcollection"] = nil
-    package.loaded["sdrhistory"] = nil
+    package.loaded["sdrlist"] = nil
     package.loaded["ui/bidi"] = nil
     package.loaded["device"] = nil
     package.loaded["docsettings"] = nil
@@ -566,7 +566,7 @@ describe("filemanagercollection", function()
       assert.are.equal("__auto_complete", menu.item_table[5].name)
       assert.is_nil(menu.item_table[5].mandatory)
 
-      assert.spy(mock_sdr_history.getFiles).was.not_called()
+      assert.spy(mock_sdr_list.getFiles).was.not_called()
       assert.spy(mock_doc_settings.getStatus).was.not_called()
       assert.spy(mock_doc_settings.open).was.not_called()
     end)
@@ -1198,9 +1198,9 @@ describe("filemanagercollection", function()
 
   describe("reading status auto collections", function()
     it(
-      "populates virtual collections from SdrHistory and live document status without touching ReadCollection",
+      "populates virtual collections from SdrList and live document status without touching ReadCollection",
       function()
-        mock_sdr_history.files = {
+        mock_sdr_list.files = {
           "/books/reading.epub",
           "/books/hold.epub",
           "/books/finished.epub",
@@ -1266,7 +1266,7 @@ describe("filemanagercollection", function()
     it(
       "enforces read-only behavior on auto collections across list hold, collection dialog, and book hold dialog",
       function()
-        mock_sdr_history.files = { "/books/reading.epub" }
+        mock_sdr_list.files = { "/books/reading.epub" }
         mock_doc_settings.getStatus = spy.new(function()
           return "reading"
         end)
@@ -1353,7 +1353,7 @@ describe("filemanagercollection", function()
             match.is_function(),
             mock_gettext("Refreshing reading status collections…")
           )
-        assert.spy(mock_sdr_history.rebuildFromDisk).was.called(1)
+        assert.spy(mock_sdr_list.rebuildFromDisk).was.called(1)
         assert
           .spy(mock_notification.notify).was
           .called_with(
@@ -1362,11 +1362,11 @@ describe("filemanagercollection", function()
           )
 
         mock_notification.notify:clear()
-        mock_sdr_history.rebuildFromDisk = spy.new(function()
+        mock_sdr_list.rebuildFromDisk = spy.new(function()
           return false
         end)
         refresh_btn.callback()
-        assert.spy(mock_sdr_history.rebuildFromDisk).was.called(1)
+        assert.spy(mock_sdr_list.rebuildFromDisk).was.called(1)
         assert.spy(mock_notification.notify).was.not_called()
       end
     )

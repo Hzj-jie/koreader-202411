@@ -8,7 +8,7 @@ local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
 local Notification = require("ui/widget/notification")
 local ReadCollection = require("readcollection")
-local SdrHistory = require("sdrhistory")
+local SdrList = require("sdrlist")
 local SortWidget = require("ui/widget/sortwidget")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
@@ -149,7 +149,7 @@ function FileManagerCollection:updateItemTable(show_last_item)
   local item_table = {}
   local auto_coll = AUTO_COLLECTION_BY_NAME[self.coll_menu.collection_name]
   if auto_coll then
-    for _, file in ipairs(SdrHistory:getFiles()) do
+    for _, file in ipairs(SdrList:getFiles()) do
       local attr = lfs.attributes(file)
       if
         attr
@@ -656,7 +656,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
             UIManager:close(button_dialog)
             local rebuilt = false
             UIManager:runWith(function()
-              rebuilt = SdrHistory:rebuildFromDisk()
+              rebuilt = SdrList:rebuildFromDisk()
             end, gettext("Refreshing reading status collections…"))
             if rebuilt then
               Notification:notify(gettext("Reading status collections refreshed."))

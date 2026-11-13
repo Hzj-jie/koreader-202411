@@ -347,7 +347,7 @@ function ReadHistory:removeItem(item, idx, no_flush)
 end
 
 function ReadHistory:ignoreFile(file)
-  return require("sdrhistory"):ignoreFile(file)
+  return require("sdrlist"):ignoreFile(file)
 end
 
 function ReadHistory:_ignoreItem(file, ts)
@@ -357,7 +357,7 @@ function ReadHistory:_ignoreItem(file, ts)
   end
   -- Note, the logic won't impact the existing items, but only the ones newly
   -- added.
-  return require("sdrhistory"):ignorePath(file)
+  return require("sdrlist"):ignorePath(file)
 end
 
 --- Adds new item (last opened document) to the top of the history list.

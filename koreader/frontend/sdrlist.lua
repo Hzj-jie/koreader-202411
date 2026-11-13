@@ -7,8 +7,8 @@ local util = require("util")
 
 local realpath = ffiutil.realpath
 local history_file = ffiutil.joinPath(DataStorage:getDataDir(), "history.lua")
-local sdr_history_file =
-  ffiutil.joinPath(DataStorage:getDataDir(), "sdr_history.lua")
+local sdr_list_file =
+  ffiutil.joinPath(DataStorage:getDataDir(), "sdr_list.lua")
 
 local ignore_patterns = {
   "^batterystat%.log$",
@@ -18,7 +18,7 @@ local ignore_patterns = {
   "^quickstart%-.*%.html$",
 }
 
-local SdrHistory = {
+local SdrList = {
   files = {},
   last_read_time = 0,
   seeded = false,
@@ -28,7 +28,7 @@ local function normalizePath(file)
   return realpath(file) or file
 end
 
-local function scanMetadataFiles(root, extractor, out_files, sdr_history)
+local function scanMetadataFiles(root, extractor, out_files, sdr_list)
   local cmd = util.shell_escape({ "find", root, "-name", "metadata.*.lua" })
   local p = io.popen(cmd)
   if not p then
@@ -36,7 +36,7 @@ local function scanMetadataFiles(root, extractor, out_files, sdr_history)
   end
   for line in p:lines() do
     local doc_path, replaced = extractor(line)
-    if replaced > 0 and doc_path ~= "" and not sdr_history:ignorePath(doc_path) then
+    if replaced > 0 and doc_path ~= "" and not sdr_list:ignorePath(doc_path) then
       if util.fileExists(doc_path) then
         out_files[normalizePath(doc_path)] = true
       end
@@ -46,7 +46,7 @@ local function scanMetadataFiles(root, extractor, out_files, sdr_history)
   return true
 end
 
-function SdrHistory:ignoreFile(file)
+function SdrList:ignoreFile(file)
   local filename = ffiutil.basename(file)
   if not require("ui/widget/filechooser"):show_file(filename) then
     return true
@@ -59,7 +59,7 @@ function SdrHistory:ignoreFile(file)
   return false
 end
 
-function SdrHistory:ignorePath(file)
+function SdrList:ignorePath(file)
   local dir = ffiutil.dirname(file)
   if
     dir ~= "."
@@ -71,14 +71,14 @@ function SdrHistory:ignorePath(file)
   return self:ignoreFile(file)
 end
 
-function SdrHistory:_flush()
+function SdrList:_flush()
   local content = {}
   for file in pairs(self.files) do
     table.insert(content, file)
   end
   table.sort(content)
-  if util.writeToFile(dump(content), sdr_history_file, true) then
-    local attr = lfs.attributes(sdr_history_file)
+  if util.writeToFile(dump(content), sdr_list_file, true) then
+    local attr = lfs.attributes(sdr_list_file)
     if attr then
       self.last_read_time = attr.modification
     end
@@ -90,7 +90,7 @@ function SdrHistory:_flush()
   return false
 end
 
-function SdrHistory:_seedFromReadHistory()
+function SdrList:_seedFromReadHistory()
   local DocSettings = require("docsettings")
   local hist_entries
   local loaded_history = package.loaded["readhistory"]
@@ -120,8 +120,8 @@ function SdrHistory:_seedFromReadHistory()
   return self:_flush()
 end
 
-function SdrHistory:reload(force_read)
-  local attr = lfs.attributes(sdr_history_file)
+function SdrList:reload(force_read)
+  local attr = lfs.attributes(sdr_list_file)
   if not attr then
     if not self.seeded then
       return self:_seedFromReadHistory()
@@ -131,7 +131,7 @@ function SdrHistory:reload(force_read)
   if not force_read and attr.modification <= self.last_read_time then
     return false
   end
-  local ok, stored = pcall(dofile, sdr_history_file)
+  local ok, stored = pcall(dofile, sdr_list_file)
   if ok and type(stored) == "table" then
     self.files = {}
     for _, path in ipairs(stored) do
@@ -149,7 +149,7 @@ function SdrHistory:reload(force_read)
   return false
 end
 
-function SdrHistory:getFiles()
+function SdrList:getFiles()
   self:reload()
   local files = {}
   for file in pairs(self.files) do
@@ -159,19 +159,19 @@ function SdrHistory:getFiles()
   return files
 end
 
-function SdrHistory:hasFile(file)
+function SdrList:hasFile(file)
   assert(
     type(file) == "string" and file ~= "",
-    "SdrHistory: file must not be nil or empty"
+    "SdrList: file must not be nil or empty"
   )
   self:reload()
   return self.files[normalizePath(file)] == true
 end
 
-function SdrHistory:addItem(file)
+function SdrList:addItem(file)
   assert(
     type(file) == "string" and file ~= "",
-    "SdrHistory: file must not be nil or empty"
+    "SdrList: file must not be nil or empty"
   )
   self:reload()
   file = normalizePath(file)
@@ -182,10 +182,10 @@ function SdrHistory:addItem(file)
   return self:_flush()
 end
 
-function SdrHistory:removeItem(file)
+function SdrList:removeItem(file)
   assert(
     type(file) == "string" and file ~= "",
-    "SdrHistory: file must not be nil or empty"
+    "SdrList: file must not be nil or empty"
   )
   self:reload()
   file = normalizePath(file)
@@ -196,10 +196,10 @@ function SdrHistory:removeItem(file)
   return self:_flush()
 end
 
-function SdrHistory:updateItem(old_file, new_file, copy)
+function SdrList:updateItem(old_file, new_file, copy)
   assert(
     type(old_file) == "string" and old_file ~= "",
-    "SdrHistory: old_file must not be nil or empty"
+    "SdrList: old_file must not be nil or empty"
   )
   self:reload()
   old_file = normalizePath(old_file)
@@ -222,7 +222,7 @@ function SdrHistory:updateItem(old_file, new_file, copy)
   return false
 end
 
-function SdrHistory:updateItemsByPath(old_path, new_path, copy)
+function SdrList:updateItemsByPath(old_path, new_path, copy)
   self:reload()
   local old_prefix = normalizePath(old_path):gsub("/+$", "") .. "/"
   local new_prefix = normalizePath(new_path):gsub("/+$", "") .. "/"
@@ -257,7 +257,7 @@ function SdrHistory:updateItemsByPath(old_path, new_path, copy)
   return self:_flush()
 end
 
-function SdrHistory:removeItemsByPath(path)
+function SdrList:removeItemsByPath(path)
   self:reload()
   local prefix = normalizePath(path):gsub("/+$", "") .. "/"
   local prefix_len = #prefix
@@ -276,7 +276,7 @@ function SdrHistory:removeItemsByPath(path)
   return self:_flush()
 end
 
-function SdrHistory:rebuildFromDisk()
+function SdrList:rebuildFromDisk()
   self:reload()
   local DocSettings = require("docsettings")
   local new_files = {}
@@ -337,4 +337,4 @@ function SdrHistory:rebuildFromDisk()
   return self:_flush()
 end
 
-return SdrHistory
+return SdrList

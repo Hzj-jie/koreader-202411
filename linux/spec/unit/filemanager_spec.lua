@@ -1459,8 +1459,8 @@ describe("FileManager module", function()
     end)
   end)
 
-  describe("FileManager folder copy and SdrHistory integration", function()
-    local SdrHistory = require("sdrhistory")
+  describe("FileManager folder copy and SdrList integration", function()
+    local SdrList = require("sdrlist")
     local core_util = require("util")
     local base_tmp
     local orig_doc_meta_folder
@@ -1478,13 +1478,13 @@ describe("FileManager module", function()
     after_each(function()
       G_named_settings.document_metadata_folder = orig_doc_meta_folder
       if base_tmp and lfs.attributes(base_tmp) then
-        SdrHistory:removeItemsByPath(base_tmp)
+        SdrList:removeItemsByPath(base_tmp)
         util.purgeDir(base_tmp)
       end
     end)
 
     it(
-      "indexes copied sidecar-bearing books in SdrHistory on folder paste",
+      "indexes copied sidecar-bearing books in SdrList on folder paste",
       function()
         local src_sub = base_tmp .. "/src/sub"
         local dst_parent = base_tmp .. "/dst"
@@ -1507,8 +1507,8 @@ describe("FileManager module", function()
         f:write("{}")
         f:close()
 
-        assert.is_true(SdrHistory:addItem(tracked_src))
-        assert.is_true(SdrHistory:addItem(no_sdr_src))
+        assert.is_true(SdrList:addItem(tracked_src))
+        assert.is_true(SdrList:addItem(no_sdr_src))
 
         local filemanager = FileManager:new({
           dimen = Screen:getSize(),
@@ -1523,9 +1523,9 @@ describe("FileManager module", function()
 
         local tracked_dst = dst_parent .. "/sub/tracked.pdf"
         local no_sdr_dst = dst_parent .. "/sub/plain.pdf"
-        assert.is_true(SdrHistory:hasFile(tracked_src))
-        assert.is_true(SdrHistory:hasFile(tracked_dst))
-        assert.is_false(SdrHistory:hasFile(no_sdr_dst))
+        assert.is_true(SdrList:hasFile(tracked_src))
+        assert.is_true(SdrList:hasFile(tracked_dst))
+        assert.is_false(SdrList:hasFile(no_sdr_dst))
       end
     )
   end)
