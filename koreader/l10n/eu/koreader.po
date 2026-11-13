@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-13 11:43-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8253,6 +8253,11 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+#, fuzzy
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Eguneratu"
+
 msgid "Help"
 msgstr "Laguntza"
 
@@ -10216,6 +10221,40 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Deskargak minutu batzuk iraun ditzake..."
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid "network unreachable"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Update is not supported on this device."
+msgstr ""
+
+msgid "Download and install the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+#, fuzzy
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Eguneratu"
 
 msgid "Switch to standard view"
 msgstr "Aldatu ikuspegi orokorrera"
@@ -14603,9 +14642,6 @@ msgstr ""
 "Ezin da fitxategia gorde hemen:\n"
 "%1"
 
-msgid "Downloading may take several minutes…"
-msgstr "Deskargak minutu batzuk iraun ditzake..."
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "%1 fitxategia dagoeneko existitzen da. Gainidatzi nahi duzu?"
 
@@ -16832,11 +16868,6 @@ msgstr "Kokapena"
 #~ "Instalatutako bertsioa: %1\n"
 #~ "Eskuragarri dagoen bertsioa: %2"
 
-#, fuzzy
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Eguneratu"
-
 #~ msgid "Downgrade"
 #~ msgstr "Bertsio zaharragora aldatu"
 
@@ -16858,11 +16889,6 @@ msgstr "Kokapena"
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr ""
 #~ "Errorea KOReader eguneratzean. Fitxategi iragankorrak ezabatu nahi dituzu?"
-
-#, fuzzy
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Eguneratu"
 
 #, fuzzy
 #~ msgid "Check for updates"

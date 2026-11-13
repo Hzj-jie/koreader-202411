@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-13 11:43-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Enrico Segre <enricoalbertoernestosegre@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/koreader/"
@@ -8872,6 +8872,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Aggiorna"
+
 msgid "Help"
 msgstr "Aiuto"
 
@@ -11269,6 +11273,39 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Il download potrebbe richiedere alcuni minuti…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid "network unreachable"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Update is not supported on this device."
+msgstr ""
+
+msgid "Download and install the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Aggiorna"
 
 msgid "Switch to standard view"
 msgstr "Passa alla visualizzazione standard"
@@ -15777,9 +15814,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "Il download potrebbe richiedere alcuni minuti…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Il file%1 esiste già. Vuoi sovrascriverlo?"
 
@@ -18225,10 +18259,6 @@ msgstr "annotazioni"
 #~ "Versione installata: %1\n"
 #~ "Versione disponibile: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Aggiorna"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18280,10 +18310,6 @@ msgstr "annotazioni"
 #~ msgstr ""
 #~ "Errore durante l'aggiornamento KOReader. Volete eliminare i file "
 #~ "temporanei?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Aggiorna"
 
 #~ msgid "Check for updates"
 #~ msgstr "Controlla aggiornamenti"

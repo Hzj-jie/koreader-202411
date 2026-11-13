@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-13 11:43-0800\n"
 "PO-Revision-Date: 2024-11-13 19:39+0000\n"
 "Last-Translator: eevan78 <ivan.pesic@gmail.com>\n"
 "Language-Team: Serbian <https://hosted.weblate.org/projects/koreader/"
@@ -8759,6 +8759,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Ажурирање"
+
 msgid "Help"
 msgstr "Помоћ"
 
@@ -11137,6 +11141,39 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Преузимање може да потраје неколико минута…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid "network unreachable"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Update is not supported on this device."
+msgstr ""
+
+msgid "Download and install the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Ажурирај"
 
 msgid "Switch to standard view"
 msgstr "Пређи на стандардни поглед"
@@ -15624,9 +15661,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "Преузимање може да потраје неколико минута…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Фајл %1 већ постоји. Желите ли да се препише?"
 
@@ -18076,10 +18110,6 @@ msgstr "коментари"
 #~ "Инсталирана верзија: %1\n"
 #~ "Доступна верзија: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Ажурирај"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18128,10 +18158,6 @@ msgstr "коментари"
 #~ msgstr ""
 #~ "Грешка при ажурирању програма KOReader. Желите ли да обришете привремене "
 #~ "фајлове?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Ажурирање"
 
 #~ msgid "Check for updates"
 #~ msgstr "Провери доступност ажурирања"

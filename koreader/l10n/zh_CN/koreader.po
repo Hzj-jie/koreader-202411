@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-13 11:43-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -8402,6 +8402,10 @@ msgstr "切换至 Lua"
 msgid "Switch to LuaJIT"
 msgstr "切换至 LuaJIT"
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "更新"
+
 msgid "Help"
 msgstr "帮助"
 
@@ -10682,6 +10686,43 @@ msgstr "设置已更改。重新加载文档以生效？"
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr "设置已更改。重新加载文件管理器使其生效？"
+
+msgid "Not enough free space to download and unpack the update."
+msgstr "没有足够的可用空间来下载和解压更新。"
+
+msgid "Downloading may take several minutes…"
+msgstr "下载大约需要几分钟……"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+"下载更新失败：\n"
+"%1"
+
+msgid "network unreachable"
+msgstr "网络不可达"
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+"解压更新失败：\n"
+"%1"
+
+msgid "Update is not supported on this device."
+msgstr "此设备不支持更新。"
+
+msgid "Download and install the latest update (%1)?"
+msgstr "下载并安装最新更新（%1）？"
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr "网络连接离线或不稳定。更新下载可能会失败。"
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "更新"
 
 msgid "Switch to standard view"
 msgstr "切换至通常视图"
@@ -15041,9 +15082,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "下载大约需要几分钟……"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "文件 %1 已存在。您要覆盖它吗？"
 
@@ -17457,10 +17495,6 @@ msgstr "注释"
 #~ "已安装版本：%1\n"
 #~ "新发现版本：%2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "更新"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -17507,10 +17541,6 @@ msgstr "注释"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "更新 Koreader 出错。是否删除生成的临时文件？"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "更新"
 
 #~ msgid "Check for updates"
 #~ msgstr "检查更新"

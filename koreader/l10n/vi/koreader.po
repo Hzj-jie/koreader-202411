@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-13 11:43-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -8709,6 +8709,11 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+#, fuzzy
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Cập nhật"
+
 msgid "Help"
 msgstr "Giúp đỡ"
 
@@ -10661,6 +10666,40 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Quá trình tải xuống có thể mất vài phút…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid "network unreachable"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Update is not supported on this device."
+msgstr ""
+
+msgid "Download and install the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+#, fuzzy
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Cập nhật"
 
 msgid "Switch to standard view"
 msgstr "Chuyển sang chế độ xem cơ bản"
@@ -15075,9 +15114,6 @@ msgstr ""
 "Không thể lưu tệp vào:\n"
 "%1"
 
-msgid "Downloading may take several minutes…"
-msgstr "Quá trình tải xuống có thể mất vài phút…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Tệp %1 đã tồn tại. Bạn có muốn ghi đè lên nó không?"
 
@@ -17326,11 +17362,6 @@ msgstr "chú giải"
 #~ "Phiên bản đã cài đặt: %1\n"
 #~ "Phiên bản có sẵn: %2"
 
-#, fuzzy
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Cập nhật"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "Would you still like to continue and downgrade?\n"
@@ -17362,11 +17393,6 @@ msgstr "chú giải"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "Lỗi khi cập nhật KOReader. Bạn có muốn xóa các tệp tạm thời không?"
-
-#, fuzzy
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Cập nhật"
 
 #~ msgid "Update server"
 #~ msgstr "Máy chủ cập nhật"
