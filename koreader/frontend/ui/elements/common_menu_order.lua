@@ -182,6 +182,7 @@ local function mergeWith(b)
       "developer_options",
       "----------------------------",
       "keyboard_shortcuts", -- explicitly place it here to save key presses
+      "ota_update",
       "help",
       "----------------------------",
       "exit_menu",

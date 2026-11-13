@@ -1,0 +1,193 @@
+local ConfirmBox = require("ui/widget/confirmbox")
+local Device = require("device")
+local FfiUtil = require("ffi/util")
+local InfoMessage = require("ui/widget/infomessage")
+local NetworkMgr = require("ui/network/manager")
+local UIManager = require("ui/uimanager")
+local Util = require("util")
+local http = require("socket.http")
+local lfs = require("libs/libkoreader-lfs")
+local ltn12 = require("ltn12")
+local socket = require("socket")
+local socketutil = require("socketutil")
+local logger = require("logger")
+local gettext = require("gettext")
+local C_ = gettext.pgettext
+local T = FfiUtil.template
+
+local Updater = {}
+
+local function cleanupUpdateArtifacts(install_dir, include_staged)
+  os.remove(install_dir .. ".update.tar.gz.part")
+  os.remove(install_dir .. ".update.tar.gz")
+  FfiUtil.purgeDir(install_dir .. ".update.tmp")
+  if include_staged then
+    FfiUtil.purgeDir(install_dir .. ".update")
+  end
+end
+
+local function showFailure(install_dir, template_msg, reason, downloading_msg)
+  if downloading_msg then
+    UIManager:close(downloading_msg)
+  end
+  cleanupUpdateArtifacts(install_dir, false)
+  UIManager:show(InfoMessage:new({
+    text = T(template_msg, reason or ""),
+  }))
+end
+
+function Updater:getPackageName(script_path)
+  local path = script_path or (lfs.currentdir():gsub("/+$", "") .. "/ko_update.sh")
+  local f = io.open(path, "r")
+  if not f then
+    return nil
+  end
+  local content = f:read("*a")
+  f:close()
+  return ("\n" .. content):match('\n%s*PACKAGE="([%w_%-]+)"')
+end
+
+function Updater:_performUpdate(pkg)
+  local install_dir = lfs.currentdir():gsub("/+$", "")
+  cleanupUpdateArtifacts(install_dir, true)
+
+  local _, free_bytes = FfiUtil.df(install_dir)
+  if free_bytes and free_bytes < 160 * 1024 * 1024 then
+    UIManager:show(InfoMessage:new({
+      text = gettext("Not enough free space to download and unpack the update."),
+    }))
+    return
+  end
+
+  local downloading_msg = InfoMessage:new({
+    text = gettext("Downloading may take several minutes…"),
+  })
+  UIManager:show(downloading_msg)
+
+  UIManager:nextTick(function()
+    local part_path = install_dir .. ".update.tar.gz.part"
+    local out_file, open_err = io.open(part_path, "wb")
+    if not out_file then
+      showFailure(
+        install_dir,
+        gettext("Failed to download update:\n%1"),
+        open_err,
+        downloading_msg
+      )
+      return
+    end
+
+    socketutil:set_timeout(socketutil.FILE_BLOCK_TIMEOUT, -1)
+    local code, _, status = socket.skip(
+      1,
+      http.request({
+        url = string.format(
+          "https://github.com/Hzj-jie/koreader-202411/releases/latest/download/%s.tar.gz",
+          pkg
+        ),
+        headers = {
+          ["Accept-Encoding"] = "identity",
+        },
+        sink = ltn12.sink.file(out_file),
+      })
+    )
+    socketutil:reset_timeout()
+
+    if code ~= 200 then
+      logger.warn("Updater: failed to download update:", status or code)
+      showFailure(
+        install_dir,
+        gettext("Failed to download update:\n%1"),
+        status or code or gettext("network unreachable"),
+        downloading_msg
+      )
+      return
+    end
+
+    local archive_path = install_dir .. ".update.tar.gz"
+    local renamed, rename_err = os.rename(part_path, archive_path)
+    if not renamed then
+      showFailure(
+        install_dir,
+        gettext("Failed to download update:\n%1"),
+        rename_err,
+        downloading_msg
+      )
+      return
+    end
+
+    local tmp_update_dir = install_dir .. ".update.tmp"
+    local mkdir_ok, mkdir_err = lfs.mkdir(tmp_update_dir)
+    if not mkdir_ok then
+      showFailure(
+        install_dir,
+        gettext("Failed to unpack update:\n%1"),
+        mkdir_err,
+        downloading_msg
+      )
+      return
+    end
+
+    local unpack_ok, unpack_err = Device:unpackArchive(archive_path, tmp_update_dir)
+    os.remove(archive_path)
+    if not unpack_ok then
+      logger.warn("Updater: failed to unpack update:", unpack_err)
+      showFailure(
+        install_dir,
+        gettext("Failed to unpack update:\n%1"),
+        unpack_err,
+        downloading_msg
+      )
+      return
+    end
+
+    local staged_ok, staged_err = os.rename(tmp_update_dir, install_dir .. ".update")
+    if not staged_ok then
+      showFailure(
+        install_dir,
+        gettext("Failed to unpack update:\n%1"),
+        staged_err,
+        downloading_msg
+      )
+      return
+    end
+
+    UIManager:close(downloading_msg)
+    Device:install()
+  end)
+end
+
+function Updater:update()
+  if Util.isMonkeyTest() then
+    return
+  end
+
+  local pkg = self:getPackageName()
+  if not pkg then
+    UIManager:show(InfoMessage:new({
+      text = gettext("Update is not supported on this device."),
+    }))
+    return
+  end
+
+  NetworkMgr:runWhenConnected(function()
+    local prompt = T(gettext("Download and install the latest update (%1)?"), pkg)
+    if not NetworkMgr:isOnline() then
+      prompt = gettext(
+        "Network connection is offline or unstable. The update download may fail."
+      )
+        .. "\n\n"
+        .. prompt
+    end
+
+    UIManager:show(ConfirmBox:new({
+      text = prompt,
+      ok_text = C_("Application update | Button", "Update"),
+      ok_callback = function()
+        self:_performUpdate(pkg)
+      end,
+    }))
+  end)
+end
+
+return Updater
