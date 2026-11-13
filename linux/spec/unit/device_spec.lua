@@ -318,6 +318,19 @@ describe("device module", function()
       assert.is.same(kindle_dev.powerd.fl_max, 25)
     end)
 
+    it("returns untar success only on exit status 0", function()
+      io.open = make_io_open_kindle_model_override("B013XX")
+      local kindle_dev = require("device/kindle/device")
+      os.execute.returns(0)
+      assert.is_true(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
+      os.execute.returns(true)
+      assert.is_true(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
+      os.execute.returns(256)
+      assert.is_false(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
+      os.execute.returns(nil)
+      assert.is_false(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
+    end)
+
     it("should toggle frontlight", function()
       io.open = function(filename, mode)
         if filename == "/proc/usid" then
@@ -925,10 +938,60 @@ describe("device module", function()
         local ok = test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
         assert.is_true(ok)
 
+        os.execute.returns(true)
+        assert.is_true(
+          test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
+        )
+
+        os.execute.returns(256)
+        local fail_ok, fail_err =
+          test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
+        assert.is_false(fail_ok)
+        assert.is_string(fail_err)
+
+        os.execute.returns(nil)
+        local lua_fail_ok, lua_fail_err =
+          test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
+        assert.is_false(lua_fail_ok)
+        assert.is_string(lua_fail_err)
+
         local bad_ok, err =
           test_dev:unpackArchive("archive.zip", "/tmp/extracted")
         assert.is_false(bad_ok)
         assert.is_string(err)
+      end)
+
+      it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()
+        local UIManager = require("ui/uimanager")
+        local shown = {}
+        stub(UIManager, "show", function(_, widget)
+          table.insert(shown, widget)
+        end)
+        stub(UIManager, "quit")
+        stub(UIManager, "broadcastEvent", function(_, event)
+          if event.handler == "onExitKOReader" and event.args[1] then
+            event.args[1]()
+          end
+        end)
+        finally(function()
+          UIManager.show:revert()
+          UIManager.quit:revert()
+          UIManager.broadcastEvent:revert()
+        end)
+
+        test_dev:install()
+        local confirm = shown[1]
+        assert.is_table(confirm)
+
+        confirm.cancel_callback()
+        local later_info = shown[2]
+        assert.is_table(later_info)
+        assert.is_true(later_info.dismissable)
+        assert.is_not_nil(later_info.key_events.AnyKeyPressed)
+
+        confirm.ok_callback()
+        assert.spy(test_dev.saveSettings).was_called()
+        assert.stub(UIManager.quit).was_called_with(UIManager, 85)
       end)
 
       it("executes exit teardown cleanly", function()
