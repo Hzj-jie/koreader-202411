@@ -1195,6 +1195,39 @@ describe("FileManagerHistory", function()
     end)
 
     it(
+      "preserves previous ReadHistory.hist when _flush fails with no prior history.lua",
+      function()
+        local prev_hist = mock_readhistory.hist
+        popen_stub = stub(io, "popen", function()
+          local returned = false
+          return {
+            lines = function()
+              return function()
+                if not returned then
+                  returned = true
+                  return "/books/with 'quote'/My Book 1.sdr/metadata.epub.lua 100"
+                end
+              end
+            end,
+            close = function() end,
+          }
+        end)
+        mock_readhistory._flush = spy.new(function()
+          return false
+        end)
+
+        fmh:doBuildHistory()
+
+        assert.is_nil(lfs.attributes(temp_dir .. "/history.lua", "mode"))
+        assert.are.equal(prev_hist, mock_readhistory.hist)
+        assert.is_equal(0, mock_readhistory.last_read_time)
+        assert.spy(mock_readhistory.reload).was_called(1)
+        assert.spy(mock_readhistory.ensureLastFile).was_called(1)
+        assert.is_equal(0, #shown_dialogs)
+      end
+    )
+
+    it(
       "scans metadata without -type d, updates ReadHistory, and refreshes filtered hist_menu",
       function()
         write_dummy(temp_dir .. "/history.lua", "old_history")
