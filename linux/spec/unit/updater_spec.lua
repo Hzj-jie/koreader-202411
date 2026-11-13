@@ -123,7 +123,7 @@ describe("Updater module", function()
       table.insert(stubs, stub(UIManager, "close"))
       table.insert(
         stubs,
-        stub(UIManager, "nextTick", function(_, cb)
+        stub(UIManager, "tickAfterNext", function(_, cb)
           cb()
         end)
       )
@@ -251,6 +251,29 @@ describe("Updater module", function()
     it(
       "cleans up partial archive and reports error on HTTP failure",
       function()
+        local part_path = install_dir .. ".update.tar.gz.part"
+        local orig_io_open = io.open
+        local orig_os_remove = os.remove
+        local opened_file
+        local closed_before_remove = false
+        io.open = function(path, mode)
+          local f, err = orig_io_open(path, mode)
+          if path == part_path then
+            opened_file = f
+          end
+          return f, err
+        end
+        os.remove = function(path)
+          if path == part_path and opened_file then
+            closed_before_remove = io.type(opened_file) == "closed file"
+          end
+          return orig_os_remove(path)
+        end
+        finally(function()
+          io.open = orig_io_open
+          os.remove = orig_os_remove
+        end)
+
         mock_http_fn = function(req)
           req.sink("partial")
           return nil, "timeout"
@@ -259,14 +282,69 @@ describe("Updater module", function()
         Updater:update()
         shown_widgets[1].ok_callback()
 
+        assert.stub(UIManager.tickAfterNext).was_called(1)
         assert.stub(socketutil.reset_timeout).was_called(1)
         assert.stub(UIManager.close).was_called(1)
         assert.stub(Device.unpackArchive).was_not_called()
         assert.stub(Device.install).was_not_called()
-        assert.is_false(exists(install_dir .. ".update.tar.gz.part"))
+        assert.is_true(closed_before_remove)
+        assert.is_false(exists(part_path))
         assert.is_false(exists(install_dir .. ".update.tar.gz"))
         assert.are.equal(
           T(gettext("Failed to download update:\n%1"), "timeout"),
+          shown_widgets[#shown_widgets].text
+        )
+      end
+    )
+
+    it(
+      "closes output handle and reports error when flush fails on close",
+      function()
+        local part_path = install_dir .. ".update.tar.gz.part"
+        local orig_io_open = io.open
+        local orig_os_remove = os.remove
+        local real_file
+        local closed_before_remove = false
+        io.open = function(path, mode)
+          local f, err = orig_io_open(path, mode)
+          if path == part_path and f then
+            real_file = f
+            return {
+              write = function(_, data)
+                return f:write(data)
+              end,
+              close = function()
+                f:close()
+                return nil, "No space left on device"
+              end,
+            }
+          end
+          return f, err
+        end
+        os.remove = function(path)
+          if path == part_path and real_file then
+            closed_before_remove = io.type(real_file) == "closed file"
+          end
+          return orig_os_remove(path)
+        end
+        finally(function()
+          io.open = orig_io_open
+          os.remove = orig_os_remove
+        end)
+
+        Updater:update()
+        shown_widgets[1].ok_callback()
+
+        assert.is_true(closed_before_remove)
+        assert.stub(Device.unpackArchive).was_not_called()
+        assert.stub(Device.install).was_not_called()
+        assert.is_false(exists(part_path))
+        assert.is_false(exists(install_dir .. ".update.tar.gz"))
+        assert.are.equal(
+          T(
+            gettext("Failed to download update:\n%1"),
+            "No space left on device"
+          ),
           shown_widgets[#shown_widgets].text
         )
       end
@@ -360,6 +438,7 @@ describe("Updater module", function()
         assert
           .stub(socketutil.set_timeout)
           .was_called_with(socketutil, socketutil.FILE_BLOCK_TIMEOUT, -1)
+        assert.stub(UIManager.tickAfterNext).was_called(1)
         assert.stub(socketutil.reset_timeout).was_called(1)
         assert.stub(Device.unpackArchive).was_called_with(
           Device,

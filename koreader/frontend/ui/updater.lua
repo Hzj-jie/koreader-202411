@@ -7,7 +7,6 @@ local UIManager = require("ui/uimanager")
 local Util = require("util")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
-local ltn12 = require("ltn12")
 local socket = require("socket")
 local socketutil = require("socketutil")
 local logger = require("logger")
@@ -64,7 +63,7 @@ function Updater:_performUpdate(pkg)
   })
   UIManager:show(downloading_msg)
 
-  UIManager:nextTick(function()
+  UIManager:tickAfterNext(function()
     local part_path = install_dir .. ".update.tar.gz.part"
     local out_file, open_err = io.open(part_path, "wb")
     if not out_file then
@@ -88,17 +87,24 @@ function Updater:_performUpdate(pkg)
         headers = {
           ["Accept-Encoding"] = "identity",
         },
-        sink = ltn12.sink.file(out_file),
+        sink = function(chunk)
+          if chunk then
+            return out_file:write(chunk)
+          end
+          return 1
+        end,
       })
     )
     socketutil:reset_timeout()
+    local close_ok, close_err = out_file:close()
 
-    if code ~= 200 then
-      logger.warn("Updater: failed to download update:", status or code)
+    if code ~= 200 or not close_ok then
+      logger.warn("Updater: failed to download update:", status or code, close_err)
       showFailure(
         install_dir,
         gettext("Failed to download update:\n%1"),
-        status or code or gettext("network unreachable"),
+        code ~= 200 and (status or code or gettext("network unreachable"))
+          or close_err,
         downloading_msg
       )
       return
