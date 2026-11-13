@@ -135,9 +135,9 @@ function FileManagerCollection:onShowColl(collection_name)
 end
 
 function FileManagerCollection:getAutoCollectionStatus(file)
-  if self.ui.document and self.ui.document.file == file and self.ui.doc_settings then
+  if self.ui.document and self.ui.document.file == file then
     local summary = self.ui.doc_settings:readTableRef("summary")
-    if summary and summary.status and summary.status ~= "" then
+    if summary.status and summary.status ~= "" then
       return summary.status
     end
     return "reading"
@@ -159,7 +159,7 @@ function FileManagerCollection:updateItemTable(show_last_item)
         table.insert(item_table, {
           file = file,
           text = file:gsub(".*/", ""),
-          mandatory = util.getFriendlySize(attr.size or 0),
+          mandatory = util.getFriendlySize(attr.size),
           order = #item_table + 1, -- non-nil suppresses MosaicMenu star mark
         })
       end
@@ -255,7 +255,6 @@ function FileManagerCollection:onMenuHold(item)
       close_dialog_update_callback
     ),
   })
-  local is_auto_collection = self._manager:isAutoCollection(self.collection_name)
   local remove_row = {
     {
       text = gettext("Delete"),
@@ -266,7 +265,7 @@ function FileManagerCollection:onMenuHold(item)
       end,
     },
   }
-  if not is_auto_collection then
+  if not self._manager:isAutoCollection(self.collection_name) then
     table.insert(remove_row, {
       text = gettext("Remove from collection"),
       callback = function()

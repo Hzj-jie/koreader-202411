@@ -29,6 +29,16 @@ describe("SdrList module", function()
     return SdrList
   end
 
+  local function hasSdrEntry(file)
+    local target = ffiutil.realpath(file) or file
+    for _, entry in ipairs(SdrList:getFiles()) do
+      if entry == target then
+        return true
+      end
+    end
+    return false
+  end
+
   setup(function()
     require("commonrequire")
     DataStorage = require("datastorage")
@@ -145,7 +155,9 @@ describe("SdrList module", function()
     local ignored = home_dir .. "/quickstart-en.html"
     local hidden = home_dir .. "/.DS_Store"
     local hidden_dir_book = home_dir .. "/.Trash/hidden_book.epub"
+    local nested_trash_book = home_dir .. "/.Trash/sub/hidden_book.epub"
     local sdr_dir_book = home_dir .. "/foo.sdr/nested.epub"
+    local nested_sdr_book = home_dir .. "/foo.sdr/sub/nested.epub"
     local real_home = ffiutil.realpath(home_dir)
     local rb1 = real_home .. "/sub/a.epub"
     local rb2 = real_home .. "/sub2/b.pdf"
@@ -159,11 +171,15 @@ describe("SdrList module", function()
 
     assert.is_false(SdrList:ignoreFile(hidden_dir_book))
     assert.is_true(SdrList:ignorePath(hidden_dir_book))
+    assert.is_true(SdrList:ignorePath(nested_trash_book))
     assert.is_true(SdrList:ignorePath(sdr_dir_book))
+    assert.is_true(SdrList:ignorePath(nested_sdr_book))
     assert.is_false(SdrList:addItem(ignored))
     assert.is_false(SdrList:addItem(hidden))
     assert.is_false(SdrList:addItem(hidden_dir_book))
+    assert.is_false(SdrList:addItem(nested_trash_book))
     assert.is_false(SdrList:addItem(sdr_dir_book))
+    assert.is_false(SdrList:addItem(nested_sdr_book))
     assert.spy(util.writeToFile).was_not_called()
 
     assert.is_true(SdrList:addItem(b1))
@@ -174,27 +190,32 @@ describe("SdrList module", function()
     assert.is_true(SdrList:addItem(b2))
     assert.are.same({ rb1, rb2 }, SdrList:getFiles())
 
+    assert.is_nil(SdrList.hasFile)
+
     -- Copy keeps original and adds destination
     local b1_copy = home_dir .. "/sub/a_copy.epub"
     local rb1_copy = real_home .. "/sub/a_copy.epub"
     assert.is_true(SdrList:updateItem(b1, b1_copy, true))
-    assert.is_true(SdrList:hasFile(rb1))
-    assert.is_true(SdrList:hasFile(rb1_copy))
+    assert.are.same({ rb1, rb1_copy, rb2 }, SdrList:getFiles())
 
     -- Move removes original and keeps destination
     local b1_moved = home_dir .. "/sub/a_moved.epub"
     local rb1_moved = real_home .. "/sub/a_moved.epub"
     assert.is_true(SdrList:updateItem(b1_copy, b1_moved, false))
-    assert.is_false(SdrList:hasFile(b1_copy))
-    assert.is_true(SdrList:hasFile(b1_moved))
+    assert.are.same({ rb1, rb1_moved, rb2 }, SdrList:getFiles())
+    assert.has.errors(function()
+      SdrList:updateItem(b1_moved, nil)
+    end)
 
     -- Folder prefix rename must not rewrite sibling prefix (/sub vs /sub2)
     assert.is_true(
       SdrList:updateItemsByPath(real_home .. "/sub", real_home .. "/renamed")
     )
-    assert.is_true(SdrList:hasFile(real_home .. "/renamed/a.epub"))
-    assert.is_true(SdrList:hasFile(real_home .. "/renamed/a_moved.epub"))
-    assert.is_true(SdrList:hasFile(rb2))
+    assert.are.same({
+      real_home .. "/renamed/a.epub",
+      real_home .. "/renamed/a_moved.epub",
+      rb2,
+    }, SdrList:getFiles())
 
     -- Folder prefix copy keeps originals and adds only copied items with sidecars
     local copied_a = real_home .. "/copied/a.epub"
@@ -212,10 +233,12 @@ describe("SdrList module", function()
         true
       )
     )
-    assert.is_true(SdrList:hasFile(real_home .. "/renamed/a.epub"))
-    assert.is_true(SdrList:hasFile(real_home .. "/renamed/a_moved.epub"))
-    assert.is_true(SdrList:hasFile(copied_a))
-    assert.is_false(SdrList:hasFile(copied_moved))
+    assert.are.same({
+      copied_a,
+      real_home .. "/renamed/a.epub",
+      real_home .. "/renamed/a_moved.epub",
+      rb2,
+    }, SdrList:getFiles())
     assert.is_true(SdrList:removeItem(copied_a))
 
     -- Folder prefix delete must not delete /sub2
@@ -272,12 +295,14 @@ describe("SdrList module", function()
       local missing_book = real_home .. "/deleted_book.epub"
       local orphan_book = real_home .. "/orphan_book.epub"
       local trash_book = real_home .. "/.Trash/trashed_book.epub"
+      local nested_trash_book = real_home .. "/.Trash/sub/nested_trashed.epub"
 
       writeDummy(doc_book, "doc book")
       writeDummy(dir_book, "dir book")
       writeDummy(hash_book, "hash book content for partial md5")
       writeDummy(missing_book, "temp")
       writeDummy(trash_book, "trashed book")
+      writeDummy(nested_trash_book, "nested trashed book")
 
       -- Create doc-mode sidecar
       writeDummy(
@@ -287,6 +312,10 @@ describe("SdrList module", function()
       -- Create ignored hidden parent dir sidecar
       writeDummy(
         real_home .. "/.Trash/trashed_book.sdr/metadata.epub.lua",
+        'return { ["summary"] = { ["status"] = "reading" } }\n'
+      )
+      writeDummy(
+        real_home .. "/.Trash/sub/nested_trashed.sdr/metadata.epub.lua",
         'return { ["summary"] = { ["status"] = "reading" } }\n'
       )
       -- Create orphan .sdr (book file absent)
@@ -311,8 +340,8 @@ describe("SdrList module", function()
       -- Seed stale deleted hash entry + deleted doc entry before rebuild
       SdrList:addItem(missing_book)
       os.remove(missing_book)
-      assert.is_true(SdrList:hasFile(hash_book))
-      assert.is_true(SdrList:hasFile(missing_book))
+      assert.is_true(hasSdrEntry(hash_book))
+      assert.is_true(hasSdrEntry(missing_book))
 
       local cmds = {}
       local orig_popen = io.popen
@@ -335,9 +364,10 @@ describe("SdrList module", function()
       end
 
       assert.are.same({ doc_book, hash_book, dir_book }, SdrList:getFiles())
-      assert.is_false(SdrList:hasFile(orphan_book))
-      assert.is_false(SdrList:hasFile(missing_book))
-      assert.is_false(SdrList:hasFile(trash_book))
+      assert.is_false(hasSdrEntry(orphan_book))
+      assert.is_false(hasSdrEntry(missing_book))
+      assert.is_false(hasSdrEntry(trash_book))
+      assert.is_false(hasSdrEntry(nested_trash_book))
 
       -- On io.popen failure, notify and keep existing cached paths
       popen_stub:revert()

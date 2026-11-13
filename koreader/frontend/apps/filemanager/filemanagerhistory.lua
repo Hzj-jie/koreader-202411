@@ -460,7 +460,7 @@ end
 function FileManagerHistory:doBuildHistory()
   local updated = false
   UIManager:runWith(function()
-    local cmd = util.shell_escape({
+    local p = io.popen(util.shell_escape({
       "find",
       G_named_settings.home_dir(),
       "-name",
@@ -471,8 +471,7 @@ function FileManagerHistory:doBuildHistory()
       "%n %Y",
       "{}",
       ";",
-    })
-    local p = io.popen(cmd)
+    }))
     if not p then
       Notification:notify(
         gettext("Failed to scan metadata files for reading history.")
@@ -512,8 +511,10 @@ function FileManagerHistory:doBuildHistory()
       backed_up = true
     end
     local ReadHistory = require("readhistory")
+    local prev_hist = ReadHistory.hist
     ReadHistory.hist = records
     if not ReadHistory:_flush() then
+      ReadHistory.hist = prev_hist
       if backed_up then
         local ok, err = os.rename(history_backup_file, history_file)
         if not ok then
