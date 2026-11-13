@@ -30,16 +30,27 @@ describe("filemanagerutil", function()
       custom_metadata_file = nil,
       mock_summary = {},
       instances = {},
-      hasSidecarFile = function(self, _file)
+      hasSidecarFile = spy.new(function(self, _file)
         return mock_doc_settings.sidecar_exists
-      end,
+      end),
+      getStatus = spy.new(function(_file)
+        if not mock_doc_settings.sidecar_exists then
+          return "new"
+        end
+        return (
+          mock_doc_settings.mock_summary.status
+          and mock_doc_settings.mock_summary.status ~= ""
+        )
+            and mock_doc_settings.mock_summary.status
+          or "reading"
+      end),
       findCustomCoverFile = function(self, _file)
         return mock_doc_settings.custom_cover_file
       end,
       findCustomMetadataFile = function(self, _file)
         return mock_doc_settings.custom_metadata_file
       end,
-      open = function(self, file)
+      open = spy.new(function(self, file)
         if not mock_doc_settings.instances[file] then
           mock_doc_settings.instances[file] = {
             data = {
@@ -75,7 +86,7 @@ describe("filemanagerutil", function()
           }
         end
         return mock_doc_settings.instances[file]
-      end,
+      end),
     }
     package.loaded["docsettings"] = mock_doc_settings
 
@@ -363,28 +374,6 @@ describe("filemanagerutil", function()
     end)
   end)
 
-  describe("getStatus", function()
-    it("should return 'new' if no sidecar file exists", function()
-      mock_doc_settings.sidecar_exists = false
-      local status = filemanagerutil.getStatus("book.epub")
-      assert.are.equal("new", status)
-    end)
-
-    it("should return 'reading' if sidecar exists but has no status", function()
-      mock_doc_settings.sidecar_exists = true
-      mock_doc_settings.mock_summary = {}
-      local status = filemanagerutil.getStatus("book.epub")
-      assert.are.equal("reading", status)
-    end)
-
-    it("should return correct status if specified in summary", function()
-      mock_doc_settings.sidecar_exists = true
-      mock_doc_settings.mock_summary = { status = "complete" }
-      local status = filemanagerutil.getStatus("book.epub")
-      assert.are.equal("complete", status)
-    end)
-  end)
-
   describe("saveSummary", function()
     it("should save summary with modified date", function()
       local summary = { progress = 0.5 }
@@ -475,16 +464,43 @@ describe("filemanagerutil", function()
       function()
         mock_doc_settings.sidecar_exists = true
         mock_doc_settings.mock_summary = { status = "abandoned" }
+        mock_doc_settings.getStatus:clear()
+        mock_doc_settings.hasSidecarFile:clear()
+        mock_doc_settings.open:clear()
 
+        local callback_called = false
         local buttons = filemanagerutil.genStatusButtonsRow(
           "book.epub",
-          function() end
+          function()
+            callback_called = true
+          end
         )
 
+        assert.spy(mock_doc_settings.getStatus).was.called_with("book.epub")
+        assert.spy(mock_doc_settings.hasSidecarFile).was_not_called()
+        assert.spy(mock_doc_settings.open).was_not_called()
         assert.are.equal(3, #buttons)
         -- Button 2 is "On hold" status
         assert.truthy(buttons[2].text:find("On hold  ✓", 1, true))
         assert.is_false(buttons[2].enabled)
+
+        local UIManager = require("ui/uimanager")
+        UIManager.broadcastEvent:clear()
+        buttons[3].callback()
+        assert.is_true(callback_called)
+        assert.are.equal("complete", mock_doc_settings.mock_summary.status)
+        assert.spy(UIManager.broadcastEvent).was.called(1)
+
+        -- No sidecar enables all buttons with no checkmark
+        mock_doc_settings.sidecar_exists = false
+        local new_buttons = filemanagerutil.genStatusButtonsRow(
+          "new_book.epub",
+          function() end
+        )
+        for _, btn in ipairs(new_buttons) do
+          assert.is_true(btn.enabled)
+          assert.is_nil(btn.text:find("✓", 1, true))
+        end
       end
     )
   end)
