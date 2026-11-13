@@ -58,6 +58,33 @@ if [ "${INIT_TYPE}" = "upstart" ]; then
     fi
 fi
 
+ko_update_check() {
+    fail=""
+    UPDATE_DIR="${KOREADER_DIR}.update"
+    UPDATE_SCRIPT="${UPDATE_DIR}/ko_update.sh"
+    if [ ! -f "${UPDATE_SCRIPT}" ]; then
+        UPDATE_SCRIPT="${KOREADER_DIR}/ko_update.sh"
+    fi
+    if [ -d "${UPDATE_DIR}" ] && [ -f "${UPDATE_SCRIPT}" ]; then
+        logmsg "Updating KOReader . . ."
+        cp -pf "${UPDATE_SCRIPT}" /var/tmp/ko_update.sh
+        chmod 777 /var/tmp/ko_update.sh
+        /var/tmp/ko_update.sh "${UPDATE_DIR}" "${KOREADER_DIR}"
+        fail=$?
+        rm -f /var/tmp/ko_update.sh
+        if [ "${fail}" -eq 0 ]; then
+            logmsg "Update successful :)"
+        else
+            logmsg "Update failed :( (${fail})"
+        fi
+    fi
+}
+# Apply any pending staged update before configuring IPTables/passcode/framework so an updated koreader.sh can re-exec cleanly.
+ko_update_check
+if [ -n "${fail}" ] && [ "${fail}" -eq 0 ]; then
+    exec "${KOREADER_DIR}/koreader.sh" "$@"
+fi
+
 # Keep track of what we do with pillow...
 export STOP_FRAMEWORK="no"
 export AWESOME_STOPPED="no"
@@ -260,6 +287,7 @@ mv -f crash.log crash.prev.log || true
 
 RETURN_VALUE=85
 while [ "${RETURN_VALUE}" -eq 85 ]; do
+    ko_update_check
     ./"${LUA_BIN}" reader.lua "$@" >>crash.log 2>&1
     RETURN_VALUE=$?
     if [ "${RETURN_VALUE}" -eq 89 ]; then
