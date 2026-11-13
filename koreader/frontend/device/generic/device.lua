@@ -464,7 +464,6 @@ function Device:install()
           "The update will be applied the next time KOReader is started."
         ),
         unmovable = true,
-        dismissable = false,
       }))
     end,
     unmovable = true,
