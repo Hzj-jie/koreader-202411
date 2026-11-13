@@ -6,6 +6,7 @@ local CalibreMetadata = require("plugins/calibre.koplugin/metadata")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
+local DocSettings = require("docsettings")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
@@ -284,7 +285,7 @@ function CalibreSearch:onMenuHold(item)
   end
   local thumbnail = FileManagerBookInfo:getCoverImage(nil, item.path)
   local thumbwidth = math.min(300, Screen:getWidth() / 3)
-  local status = filemanagerutil.getStatus(item.path)
+  local status = DocSettings.getStatus(item.path)
   UIManager:show(InfoMessage:new({
     text = item.info .. "\nStatus: " .. filemanagerutil.statusToString(status),
     image = thumbnail,
