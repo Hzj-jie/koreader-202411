@@ -36,6 +36,7 @@ REMOVED_FILES=(
   "zsync2"
   "spinning_zsync"
   "libs/libcurl.so.4"
+  "../extensions/koreader/bin"
 )
 
 REMOTE_PATHS=()

@@ -22,17 +22,7 @@
 			"exitmenu": false,
 			"status": false,
 			"internal": "status Start KOReader"
-		},
-		{
-            "name": "Update KOReader",
-            "priority": 7,
-            "action": "./bin/update.sh",
-            "exitmenu": false,
-            "checked": true,
-            "refresh": false,
-            "status": false,
-            "internal": "status Try to update KOReader . . ."
-        }
+		}
 		]
 	}
 	]
