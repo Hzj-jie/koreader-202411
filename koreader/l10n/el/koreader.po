@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-13 11:43-0800\n"
+"POT-Creation-Date: 2026-11-13 12:22-0800\n"
 "PO-Revision-Date: 2024-11-18 15:26+0000\n"
 "Last-Translator: Ichnilatis <sophronios.sp@gmail.com>\n"
 "Language-Team: Greek <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -11374,18 +11374,12 @@ msgid ""
 "%1"
 msgstr ""
 
-msgid "network unreachable"
-msgstr ""
-
 msgid ""
 "Failed to unpack update:\n"
 "%1"
 msgstr ""
 
-msgid "Update is not supported on this device."
-msgstr ""
-
-msgid "Download and install the latest update (%1)?"
+msgid "Download and unpack the latest update (%1)?"
 msgstr ""
 
 msgid ""

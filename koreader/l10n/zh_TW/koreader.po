@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-13 11:43-0800\n"
+"POT-Creation-Date: 2026-11-13 12:22-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -10707,9 +10707,6 @@ msgstr ""
 "下載更新失敗：\n"
 "%1"
 
-msgid "network unreachable"
-msgstr "無法連線至網路"
-
 msgid ""
 "Failed to unpack update:\n"
 "%1"
@@ -10717,11 +10714,8 @@ msgstr ""
 "解壓縮更新失敗：\n"
 "%1"
 
-msgid "Update is not supported on this device."
-msgstr "此裝置不支援更新。"
-
-msgid "Download and install the latest update (%1)?"
-msgstr "下載並安裝最新更新（%1）？"
+msgid "Download and unpack the latest update (%1)?"
+msgstr "下載並解壓縮最新更新（%1）？"
 
 msgid ""
 "Network connection is offline or unstable. The update download may fail."
@@ -17041,6 +17035,15 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "註釋"
+
+#~ msgid "network unreachable"
+#~ msgstr "無法連線至網路"
+
+#~ msgid "Update is not supported on this device."
+#~ msgstr "此裝置不支援更新。"
+
+#~ msgid "Download and install the latest update (%1)?"
+#~ msgstr "下載並安裝最新更新（%1）？"
 
 #~ msgid "Background jobs"
 #~ msgstr "背景工作"
