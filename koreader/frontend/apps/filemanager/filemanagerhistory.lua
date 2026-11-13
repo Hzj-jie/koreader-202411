@@ -2,18 +2,27 @@ local BD = require("ui/bidi")
 local ButtonDialog = require("ui/widget/buttondialog")
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
+local DataStorage = require("datastorage")
 local DocSettings = require("docsettings")
+local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
+local MultiConfirmBox = require("ui/widget/multiconfirmbox")
+local Notification = require("ui/widget/notification")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
+local joinPath = require("ffi/util").joinPath
 local util = require("util")
 local C_ = gettext.pgettext
 local T = require("ffi/util").template
+
+local history_file = joinPath(DataStorage:getDataDir(), "history.lua")
+local history_backup_file =
+  joinPath(DataStorage:getDataDir(), "history.lua.backup")
 
 local FileManagerHistory = WidgetContainer:extend({
   hist_menu_title = gettext("History"),
@@ -399,6 +408,16 @@ function FileManagerHistory:showHistDialog()
       end,
     },
   })
+  table.insert(buttons, {}) -- separator
+  table.insert(buttons, {
+    {
+      text = gettext("Retrieve reading history"),
+      callback = function()
+        UIManager:close(hist_dialog)
+        self:onRetrieveHistory()
+      end,
+    },
+  })
   if self.count.deleted > 0 then
     table.insert(buttons, {}) -- separator
     table.insert(buttons, {
@@ -425,6 +444,143 @@ function FileManagerHistory:showHistDialog()
     buttons = buttons,
   })
   self:showWidget(hist_dialog)
+end
+
+function FileManagerHistory:refreshAfterHistoryUpdate()
+  if self.hist_menu then
+    if self.filter ~= "all" or self.is_frozen then
+      self:fetchStatuses(false)
+    else
+      self.statuses_fetched = false
+    end
+    self:updateItemTable()
+  end
+end
+
+function FileManagerHistory:doBuildHistory()
+  local updated = false
+  UIManager:runWith(function()
+    local cmd = util.shell_escape({
+      "find",
+      G_named_settings.home_dir(),
+      "-name",
+      "metadata.*.lua",
+      "-exec",
+      "stat",
+      "-c",
+      "%n %Y",
+      "{}",
+      ";",
+    })
+    local p = io.popen(cmd)
+    if not p then
+      Notification:notify(
+        gettext("Failed to scan metadata files for reading history.")
+      )
+      return
+    end
+    local files = {}
+    for line in p:lines() do
+      local f, t = line:match("^(.+) (%d+)$")
+      if f and t then
+        table.insert(files, { f, tonumber(t) })
+      end
+    end
+    p:close()
+    table.sort(files, function(l, r)
+      return l[2] > r[2]
+    end)
+    local records = {}
+    for _, v in ipairs(files) do
+      local book_path, replaced = v[1]:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+      if replaced > 0 then
+        table.insert(records, {
+          file = book_path,
+          time = v[2],
+        })
+      end
+    end
+    local ReadHistory = require("readhistory")
+    ReadHistory.hist = records
+    ReadHistory:_flush()
+    ReadHistory.last_read_time = 0
+    ReadHistory:reload()
+    self:refreshAfterHistoryUpdate()
+    updated = true
+  end)
+  if updated then
+    self:showWidget(InfoMessage:new({
+      text = gettext("History view has been updated."),
+    }))
+  end
+end
+
+function FileManagerHistory:backupAndBuildHistory()
+  if util.fileExists(history_file) then
+    local ok, err = os.rename(history_file, history_backup_file)
+    if not ok then
+      Notification:notify(
+        T(gettext("Failed to back up reading history: %1"), err)
+      )
+      return
+    end
+  end
+  self:doBuildHistory()
+end
+
+function FileManagerHistory:buildHistory()
+  if util.fileExists(history_backup_file) then
+    self:showWidget(ConfirmBox:new({
+      text = gettext(
+        "A previous history backup already exists, are you sure to override it?"
+      ),
+      ok_text = gettext("Override"),
+      ok_callback = function()
+        self:backupAndBuildHistory()
+      end,
+    }))
+  else
+    self:backupAndBuildHistory()
+  end
+end
+
+function FileManagerHistory:restoreHistory()
+  if util.fileExists(history_backup_file) then
+    local ok, err = os.rename(history_backup_file, history_file)
+    if not ok then
+      Notification:notify(
+        T(gettext("Failed to restore reading history: %1"), err)
+      )
+      return
+    end
+    local ReadHistory = require("readhistory")
+    ReadHistory.last_read_time = 0
+    ReadHistory:reload()
+    self:refreshAfterHistoryUpdate()
+    self:showWidget(InfoMessage:new({
+      text = gettext("Last history view has been restored."),
+    }))
+  else
+    self:showWidget(InfoMessage:new({
+      text = gettext("No history backup found."),
+    }))
+  end
+end
+
+function FileManagerHistory:onRetrieveHistory()
+  self:showWidget(MultiConfirmBox:new({
+    text = gettext(
+      "Reading history will be retrieved from metadata files of books."
+    ),
+    choice1_text = gettext("Retrieve"),
+    choice1_callback = function()
+      self:buildHistory()
+    end,
+    choice2_text = gettext("Restore"),
+    choice2_callback = function()
+      self:restoreHistory()
+    end,
+  }))
 end
 
 function FileManagerHistory:onSearchHistory()

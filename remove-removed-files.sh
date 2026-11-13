@@ -35,6 +35,7 @@ REMOVED_FILES=(
   "plugins/weather.koplugin/settings.lua"
   "plugins/simpleui.koplugin"
   "plugins/kochess.koplugin"
+  "plugins/findhistory.koplugin"
   "plugins/AnnotationSync.koplugin/l10n"
   "plugins/AnnotationSync.koplugin/defaults/settings/hotkeys.lua"
   "plugins/backgroundrunner.koplugin/keyed_job_filter.lua"
