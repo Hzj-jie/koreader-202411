@@ -60,11 +60,33 @@ function SdrList:ignoreFile(file)
 end
 
 function SdrList:ignorePath(file)
-  local dir = ffiutil.dirname(file)
-  if
+  local FileChooser = require("ui/widget/filechooser")
+  local dir = ffiutil.dirname(normalizePath(file))
+  local raw_home = G_named_settings.home_dir()
+  local stop_dir
+  if raw_home and raw_home ~= "" then
+    local norm_home = normalizePath(raw_home):gsub("/+$", "")
+    local clean_home = raw_home:gsub("/+$", "")
+    if norm_home ~= "" and util.stringStartsWith(dir, norm_home .. "/") then
+      stop_dir = norm_home
+    elseif
+      clean_home ~= ""
+      and util.stringStartsWith(dir, clean_home .. "/")
+    then
+      stop_dir = clean_home
+    end
+  end
+  if stop_dir then
+    while dir ~= stop_dir and dir ~= "." and dir ~= "/" do
+      if not FileChooser:show_dir(ffiutil.basename(dir)) then
+        return true
+      end
+      dir = ffiutil.dirname(dir)
+    end
+  elseif
     dir ~= "."
     and dir ~= "/"
-    and not require("ui/widget/filechooser"):show_dir(ffiutil.basename(dir))
+    and not FileChooser:show_dir(ffiutil.basename(dir))
   then
     return true
   end
