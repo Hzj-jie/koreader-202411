@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 18:43-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -636,6 +636,15 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 
+msgid "Reading"
+msgstr "読書中"
+
+msgid "On hold"
+msgstr "保留"
+
+msgid "Finished"
+msgstr "完了"
+
 msgid "Collections"
 msgstr "コレクション"
 
@@ -694,6 +703,12 @@ msgstr "記事削除"
 #, fuzzy
 msgid "Arrange collections"
 msgstr "お気に入りから削除"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 #, fuzzy
 msgid "Enter collection name"
@@ -862,6 +877,9 @@ msgstr "お気に入りから削除"
 msgid "Search in filename and book metadata"
 msgstr "Calibre メタデータで本を検索"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "削除したファイルの履歴を消去"
 
@@ -873,6 +891,39 @@ msgstr "クリア"
 
 msgid "Filter by book status"
 msgstr "書籍のステータスでフィルター"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "A previous history backup already exists, are you sure to override it?"
+msgstr ""
+
+msgid "Override"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "復元"
 
 #, fuzzy
 msgid "Enter text to search history for"
@@ -1399,15 +1450,6 @@ msgstr "ホーム"
 #, fuzzy
 msgid "Unread"
 msgstr "スプレッド(広げる)"
-
-msgid "Reading"
-msgstr "読書中"
-
-msgid "On hold"
-msgstr "保留"
-
-msgid "Finished"
-msgstr "完了"
 
 msgid "Reset this document?"
 msgstr "この文書をリセットしますか？"
@@ -4359,9 +4401,6 @@ msgstr "本の微調整は変更されていません。"
 msgid "Edit book-specific style tweak"
 msgstr "この本のみに適用する様式美法制を編集する"
 
-msgid "Restore"
-msgstr "復元"
-
 msgid "Book tweak restored"
 msgstr "本の微調整は復元されました"
 
@@ -6301,6 +6340,15 @@ msgstr "プラグインの管理"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%Y-%m-%d"
+
+msgid "Failed to save sidecar history."
+msgstr ""
+
+msgid "Failed to load sidecar history."
+msgstr ""
+
+msgid "Failed to scan metadata files for sidecar history."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -14006,46 +14054,6 @@ msgstr "外部キーボード"
 
 msgid "Manages USB OTG and configures keyboard."
 msgstr "USB OTGを管理し、キーボードを設定する。"
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
-msgstr ""
 
 msgid "New game"
 msgstr ""

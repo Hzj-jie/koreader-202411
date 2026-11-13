@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 18:43-0800\n"
 "PO-Revision-Date: 2024-10-31 18:39+0000\n"
 "Last-Translator: \"Joan O.\" <ccumwusl@sharklasers.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/koreader/"
@@ -645,6 +645,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 document amb metadades basades en hash"
 msgstr[1] "%1 documents amb metadades basades en hash"
 
+msgid "Reading"
+msgstr "En lectura"
+
+msgid "On hold"
+msgstr "En espera"
+
+msgid "Finished"
+msgstr "Acabat"
+
 msgid "Collections"
 msgstr "Col·leccions"
 
@@ -692,6 +701,12 @@ msgstr "Aplicar selecció"
 
 msgid "Arrange collections"
 msgstr "Ordenar col·leccions"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "Introduir nom de la col·lecció"
@@ -847,6 +862,9 @@ msgstr "Filtrar per col·lecció"
 msgid "Search in filename and book metadata"
 msgstr "Cerca als noms de fitxer i les metadades del llibre"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Neteja l’historial de fitxers suprimits"
 
@@ -858,6 +876,39 @@ msgstr "Neteja"
 
 msgid "Filter by book status"
 msgstr "Filtra per estat del llibre"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "A previous history backup already exists, are you sure to override it?"
+msgstr ""
+
+msgid "Override"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "Restaura"
 
 msgid "Enter text to search history for"
 msgstr "Introduïu el text a cercar en l’historial"
@@ -1366,15 +1417,6 @@ msgstr "Inici"
 
 msgid "Unread"
 msgstr "No llegit"
-
-msgid "Reading"
-msgstr "En lectura"
-
-msgid "On hold"
-msgstr "En espera"
-
-msgid "Finished"
-msgstr "Acabat"
 
 msgid "Reset this document?"
 msgstr "Reiniciar aquest document?"
@@ -4344,9 +4386,6 @@ msgstr "Ajust de llibre no modificat."
 msgid "Edit book-specific style tweak"
 msgstr "Editar ajust d'estil específic del llibre"
 
-msgid "Restore"
-msgstr "Restaura"
-
 msgid "Book tweak restored"
 msgstr "Ajust de llibre restablert"
 
@@ -6256,6 +6295,15 @@ msgstr "Gestió de complements"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%d-%m-%y"
+
+msgid "Failed to save sidecar history."
+msgstr ""
+
+msgid "Failed to load sidecar history."
+msgstr ""
+
+msgid "Failed to scan metadata files for sidecar history."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -14097,46 +14145,6 @@ msgstr "Teclat extern"
 
 msgid "Manages USB OTG and configures keyboard."
 msgstr "Gestiona l'USB OTG i configura el teclat."
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
-msgstr ""
 
 msgid "New game"
 msgstr ""

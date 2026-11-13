@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 18:43-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -632,6 +632,15 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "%1 个带有基于哈希元数据的文档"
 
+msgid "Reading"
+msgstr "阅读中"
+
+msgid "On hold"
+msgstr "搁置中"
+
+msgid "Finished"
+msgstr "完成"
+
 msgid "Collections"
 msgstr "分组"
 
@@ -679,6 +688,12 @@ msgstr "应用当前选择"
 
 msgid "Arrange collections"
 msgstr "排列分组"
+
+msgid "Refresh reading status collections"
+msgstr "刷新阅读状态分组"
+
+msgid "Reading status collections refreshed."
+msgstr "已刷新阅读状态分组。"
 
 msgid "Enter collection name"
 msgstr "输入分组名"
@@ -832,6 +847,9 @@ msgstr "按分组筛选"
 msgid "Search in filename and book metadata"
 msgstr "同时在文件名和元数据中搜索"
 
+msgid "Retrieve reading history"
+msgstr "检索阅读历史"
+
 msgid "Clear history of deleted files"
 msgstr "清除已删除文件的历史记录"
 
@@ -843,6 +861,39 @@ msgstr "清除"
 
 msgid "Filter by book status"
 msgstr "按书籍状态过滤"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr "扫描阅读历史的元数据文件失败。"
+
+msgid "History view has been updated."
+msgstr "历史视图已更新。"
+
+msgid "Failed to back up reading history: %1"
+msgstr "备份阅读历史失败：%1"
+
+msgid "A previous history backup already exists, are you sure to override it?"
+msgstr "已存在先前的历史备份，确定要覆盖吗？"
+
+msgid "Override"
+msgstr "覆盖"
+
+msgid "Failed to restore reading history: %1"
+msgstr "恢复阅读历史失败：%1"
+
+msgid "Last history view has been restored."
+msgstr "最后的历史视图已恢复。"
+
+msgid "No history backup found."
+msgstr "未找到历史备份。"
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr "将从书籍的元数据文件中检索阅读历史。"
+
+msgid "Retrieve"
+msgstr "检索"
+
+msgid "Restore"
+msgstr "恢复"
 
 msgid "Enter text to search history for"
 msgstr "输入需要搜索的文字"
@@ -1342,15 +1393,6 @@ msgstr "主目录"
 
 msgid "Unread"
 msgstr "未读"
-
-msgid "Reading"
-msgstr "阅读中"
-
-msgid "On hold"
-msgstr "搁置中"
-
-msgid "Finished"
-msgstr "完成"
 
 msgid "Reset this document?"
 msgstr "要重置此文档吗？"
@@ -4234,9 +4276,6 @@ msgstr "未修改图书调整."
 msgid "Edit book-specific style tweak"
 msgstr "编辑适用于特定书籍的样式调整"
 
-msgid "Restore"
-msgstr "恢复"
-
 msgid "Book tweak restored"
 msgstr "已恢复书籍调整"
 
@@ -6130,6 +6169,15 @@ msgstr "插件管理"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
+
+msgid "Failed to save sidecar history."
+msgstr "保存 sidecar 历史记录失败。"
+
+msgid "Failed to load sidecar history."
+msgstr "加载 sidecar 历史记录失败。"
+
+msgid "Failed to scan metadata files for sidecar history."
+msgstr "扫描 sidecar 历史记录的元数据文件失败。"
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -13600,48 +13648,6 @@ msgstr "外部键盘"
 msgid "Manages USB OTG and configures keyboard."
 msgstr "管理 USB OTG 和配置键盘。"
 
-msgid "Searching for reading records…"
-msgstr "正在搜索阅读记录…"
-
-msgid "History view has been updated, use main menu to access it."
-msgstr "历史视图已更新，请使用主菜单访问。"
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr "无法将当前历史视图备份从 %1 备份到 %2，仍要继续吗？"
-
-msgid "Proceed"
-msgstr "继续"
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr "发现已存在的历史备份文件，它将被覆盖。仍要继续吗？"
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr "最后的历史视图已恢复，请使用主菜单访问。"
-
-msgid "Failed to restore the last history view from %1."
-msgstr "无法从 %1 恢复最后的历史视图。"
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-"此功能搜索并检索主目录中的所有阅读记录并构建历史视图。\n"
-"最后的历史视图将被保留并可以恢复。"
-
-msgid "Retrieve"
-msgstr "检索"
-
-msgid "Retrieve reading history"
-msgstr "检索阅读历史"
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
-msgstr "搜索主文件夹中的阅读记录并更新历史视图。"
-
 msgid "New game"
 msgstr "新游戏"
 
@@ -16997,6 +17003,43 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "注释"
+
+#~ msgid "Searching for reading records…"
+#~ msgstr "正在搜索阅读记录…"
+
+#~ msgid "History view has been updated, use main menu to access it."
+#~ msgstr "历史视图已更新，请使用主菜单访问。"
+
+#~ msgid ""
+#~ "Failed to backup current history view from %1 to %2, still want to "
+#~ "proceed?"
+#~ msgstr "无法将当前历史视图备份从 %1 备份到 %2，仍要继续吗？"
+
+#~ msgid "Proceed"
+#~ msgstr "继续"
+
+#~ msgid ""
+#~ "Found an existing history backup file; it will be overwritten. Still want "
+#~ "to proceed?"
+#~ msgstr "发现已存在的历史备份文件，它将被覆盖。仍要继续吗？"
+
+#~ msgid "Last history view has been restored, use main menu to access it."
+#~ msgstr "最后的历史视图已恢复，请使用主菜单访问。"
+
+#~ msgid "Failed to restore the last history view from %1."
+#~ msgstr "无法从 %1 恢复最后的历史视图。"
+
+#~ msgid ""
+#~ "This function searches and retrieves all the reading records in the home "
+#~ "directory and build the history view.\n"
+#~ "The last history view will be preserved and can be restored."
+#~ msgstr ""
+#~ "此功能搜索并检索主目录中的所有阅读记录并构建历史视图。\n"
+#~ "最后的历史视图将被保留并可以恢复。"
+
+#~ msgid ""
+#~ "Searches reading records in the home folder and update the history view."
+#~ msgstr "搜索主文件夹中的阅读记录并更新历史视图。"
 
 #~ msgid "Background jobs"
 #~ msgstr "后台任务"

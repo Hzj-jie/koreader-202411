@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 18:43-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -634,6 +634,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Reading"
+msgstr "Leser"
+
+msgid "On hold"
+msgstr ""
+
+msgid "Finished"
+msgstr "Ferdig"
+
 #, fuzzy
 msgid "Collections"
 msgstr "Fjern fra samling"
@@ -693,6 +702,12 @@ msgstr "Legg til"
 #, fuzzy
 msgid "Arrange collections"
 msgstr "Fjern fra samling"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 #, fuzzy
 msgid "Enter collection name"
@@ -860,6 +875,9 @@ msgstr "Fjern fra samling"
 msgid "Search in filename and book metadata"
 msgstr "Søk også i bokmetadata"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Tøm historikk over slettede filer"
 
@@ -871,6 +889,39 @@ msgstr "Tøm"
 
 msgid "Filter by book status"
 msgstr "Filtrere etter status på bok"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "A previous history backup already exists, are you sure to override it?"
+msgstr ""
+
+msgid "Override"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "Gjenopprett"
 
 #, fuzzy
 msgid "Enter text to search history for"
@@ -1373,15 +1424,6 @@ msgstr "Hjem"
 
 msgid "Unread"
 msgstr ""
-
-msgid "Reading"
-msgstr "Leser"
-
-msgid "On hold"
-msgstr ""
-
-msgid "Finished"
-msgstr "Ferdig"
 
 msgid "Reset this document?"
 msgstr "Tilbakestille dette dokumentet?"
@@ -4300,9 +4342,6 @@ msgstr ""
 msgid "Edit book-specific style tweak"
 msgstr ""
 
-msgid "Restore"
-msgstr "Gjenopprett"
-
 msgid "Book tweak restored"
 msgstr ""
 
@@ -6165,6 +6204,15 @@ msgstr "Behandling av programtillegg"
 
 msgctxt "Date string"
 msgid "%y-%m-%d"
+msgstr ""
+
+msgid "Failed to save sidecar history."
+msgstr ""
+
+msgid "Failed to load sidecar history."
+msgstr ""
+
+msgid "Failed to scan metadata files for sidecar history."
 msgstr ""
 
 #, fuzzy
@@ -13202,46 +13250,6 @@ msgid "External keyboard"
 msgstr ""
 
 msgid "Manages USB OTG and configures keyboard."
-msgstr ""
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
 msgstr ""
 
 msgid "New game"

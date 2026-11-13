@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-10 11:40-0800\n"
+"POT-Creation-Date: 2026-11-12 18:43-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: kr <harum@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -634,6 +634,15 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "해시 기반 메타데이터가 있는 %1 개 문서"
 
+msgid "Reading"
+msgstr "읽는 중"
+
+msgid "On hold"
+msgstr "보류 중"
+
+msgid "Finished"
+msgstr "끝냄"
+
 msgid "Collections"
 msgstr "콜렉션"
 
@@ -681,6 +690,12 @@ msgstr "선택 항목 적용"
 
 msgid "Arrange collections"
 msgstr "콜렉션 정돈하기"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "콜렉션 이름을 입력하세요"
@@ -834,6 +849,9 @@ msgstr "콜렉션으로 필터링"
 msgid "Search in filename and book metadata"
 msgstr "파일이름과 책 메타데이터에서 검색"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "삭제된 파일 내역 지우기"
 
@@ -845,6 +863,39 @@ msgstr "지우기"
 
 msgid "Filter by book status"
 msgstr "책 상태별 필터"
+
+msgid "Failed to scan metadata files for reading history."
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "A previous history backup already exists, are you sure to override it?"
+msgstr ""
+
+msgid "Override"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "복원"
 
 msgid "Enter text to search history for"
 msgstr "검색한 내역을 찾을 내용을 입력하세요"
@@ -1345,15 +1396,6 @@ msgstr "홈"
 
 msgid "Unread"
 msgstr "읽지 않음"
-
-msgid "Reading"
-msgstr "읽는 중"
-
-msgid "On hold"
-msgstr "보류 중"
-
-msgid "Finished"
-msgstr "끝냄"
 
 msgid "Reset this document?"
 msgstr "이 문서를 재설정할까요?"
@@ -4294,9 +4336,6 @@ msgstr "책 조정이 수정되지 않았습니다."
 msgid "Edit book-specific style tweak"
 msgstr "책에 특정된 스타일 조정 편집하기"
 
-msgid "Restore"
-msgstr "복원"
-
 msgid "Book tweak restored"
 msgstr "책 조정 복원"
 
@@ -6191,6 +6230,15 @@ msgstr "플러그인 관리"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
+
+msgid "Failed to save sidecar history."
+msgstr ""
+
+msgid "Failed to load sidecar history."
+msgstr ""
+
+msgid "Failed to scan metadata files for sidecar history."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -13765,46 +13813,6 @@ msgstr "외부 키보드"
 
 msgid "Manages USB OTG and configures keyboard."
 msgstr "USB OTG를 관리하고 키보드를 구성합니다."
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
-msgstr ""
 
 msgid "New game"
 msgstr ""
