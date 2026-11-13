@@ -1103,6 +1103,39 @@ describe("device module", function()
         end)
       end)
 
+      it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()
+        local UIManager = require("ui/uimanager")
+        local shown = {}
+        stub(UIManager, "show", function(_, widget)
+          table.insert(shown, widget)
+        end)
+        stub(UIManager, "quit")
+        stub(UIManager, "broadcastEvent", function(_, event)
+          if event.handler == "onExitKOReader" and event.args[1] then
+            event.args[1]()
+          end
+        end)
+        finally(function()
+          UIManager.show:revert()
+          UIManager.quit:revert()
+          UIManager.broadcastEvent:revert()
+        end)
+
+        test_dev:install()
+        local confirm = shown[1]
+        assert.is_table(confirm)
+
+        confirm.cancel_callback()
+        local later_info = shown[2]
+        assert.is_table(later_info)
+        assert.is_true(later_info.dismissable)
+        assert.is_not_nil(later_info.key_events.AnyKeyPressed)
+
+        confirm.ok_callback()
+        assert.spy(test_dev.saveSettings).was_called()
+        assert.stub(UIManager.quit).was_called_with(UIManager, 85)
+      end)
+
       it("executes exit teardown cleanly", function()
         test_dev.orig_hw_nightmode = false
         test_dev:exit()
