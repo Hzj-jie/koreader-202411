@@ -284,7 +284,8 @@ describe("filemanagercollection", function()
         last_closed_widget = widget
       end),
       forceRepaint = spy.new(function() end),
-      runWith = spy.new(function(self, fn)
+      runWith = spy.new(function(self, fn, widget)
+        assert(widget ~= nil)
         return fn()
       end),
       getLastShownWidget = function()
@@ -649,7 +650,10 @@ describe("filemanagercollection", function()
       local manager = FileManagerCollection:new({ ui = mock_ui })
       manager.coll_list = {
         item_table = {},
-        switchItemTable = spy.new(function() end),
+        switchItemTable = spy.new(function(self, _t, item_table, item_number)
+          self.item_table = item_table
+          self.item_number = item_number
+        end),
       }
 
       local UIManager = require("ui/uimanager")
@@ -660,7 +664,7 @@ describe("filemanagercollection", function()
       assert.spy(UIManager.show).was.called(1)
       local dialog = UIManager.getLastShownWidget()
       assert.is_true(dialog.is_input_dialog)
-      assert.are.equal("Enter collection name", dialog.title)
+      assert.are.equal(mock_gettext("Enter collection name"), dialog.title)
 
       -- Submit name "New Coll"
       dialog.mock_input_value = "New Coll"
@@ -669,8 +673,22 @@ describe("filemanagercollection", function()
       assert
         .spy(mock_read_collection.addCollection).was
         .called_with(match._, "New Coll")
-      assert.are.equal(1, #manager.coll_list.item_table)
-      assert.are.equal("New Coll", manager.coll_list.item_table[1].name)
+      assert.is_true(#manager.coll_list.item_table >= 4)
+      assert.are.equal(
+        "New Coll",
+        manager.coll_list.item_table[manager.coll_list.item_number].name
+      )
+      local new_idx, auto_idx
+      for i, item in ipairs(manager.coll_list.item_table) do
+        if item.name == "New Coll" then
+          new_idx = i
+        elseif item.name == "__auto_reading" then
+          auto_idx = i
+        end
+      end
+      assert.truthy(new_idx)
+      assert.truthy(auto_idx)
+      assert.is_true(new_idx < auto_idx)
     end)
   end)
 
@@ -995,6 +1013,13 @@ describe("filemanagercollection", function()
         dialog.buttons[1][2].callback()
         local info = require("ui/uimanager").getLastShownWidget()
         assert.truthy(info.is_info_message)
+        assert.is_nil(called_name)
+
+        -- Save with reserved auto collection id
+        dialog.mock_input_value = "__auto_reading"
+        dialog.buttons[1][2].callback()
+        local reserved_info = require("ui/uimanager").getLastShownWidget()
+        assert.truthy(reserved_info.is_info_message)
         assert.is_nil(called_name)
       end
     )
@@ -1321,7 +1346,13 @@ describe("filemanagercollection", function()
         assert.truthy(refresh_btn)
 
         refresh_btn.callback()
-        assert.spy(UIManager.runWith).was.called(1)
+        assert
+          .spy(UIManager.runWith).was
+          .called_with(
+            UIManager,
+            match.is_function(),
+            mock_gettext("Refreshing reading status collections…")
+          )
         assert.spy(mock_sdr_history.rebuildFromDisk).was.called(1)
         assert
           .spy(mock_notification.notify).was

@@ -512,7 +512,7 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
     local selected_nb = util.tableSize(self.selected_collections)
     subtitle = self.selected_collections
       and T(gettext("Selected: %1"), selected_nb)
-    if do_init and selected_nb > 0 then -- show first collection containing the long-pressed book
+    if do_init and not item_number and selected_nb > 0 then -- show first collection containing the long-pressed book
       for i, item in ipairs(item_table) do
         if self.selected_collections[item.name] then
           item_number = i
@@ -657,7 +657,7 @@ function FileManagerCollection:showCollListDialog(caller_callback, no_dialog)
             local rebuilt = false
             UIManager:runWith(function()
               rebuilt = SdrHistory:rebuildFromDisk()
-            end)
+            end, gettext("Refreshing reading status collections…"))
             if rebuilt then
               Notification:notify(gettext("Reading status collections refreshed."))
             end
@@ -694,7 +694,7 @@ function FileManagerCollection:editCollectionName(editCallback, old_name)
             if new_name == "" or new_name == old_name then
               return
             end
-            if ReadCollection.coll[new_name] then
+            if ReadCollection.coll[new_name] or self:isAutoCollection(new_name) then
               self:showWidget(InfoMessage:new({
                 text = T(gettext("Collection already exists: %1"), new_name),
               }))
@@ -713,20 +713,10 @@ end
 function FileManagerCollection:addCollection()
   local editCallback = function(name)
     ReadCollection:addCollection(name)
-    local mandatory
     if self.selected_collections then
       self.selected_collections[name] = true
-      mandatory = self.checkmark
-    else
-      mandatory = 0
     end
-    table.insert(self.coll_list.item_table, {
-      text = name,
-      mandatory = mandatory,
-      name = name,
-      order = ReadCollection.coll_order[name],
-    })
-    self:updateCollListItemTable(false, #self.coll_list.item_table) -- show added item
+    self:updateCollListItemTable(true, util.tableSize(ReadCollection.coll)) -- show added item
   end
   self:editCollectionName(editCallback)
 end
