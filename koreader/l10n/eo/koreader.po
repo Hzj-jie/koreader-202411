@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-01-31 04:14+0000\n"
 "Last-Translator: Radoŝ Porka <animatorzPolski@gmail.com>\n"
 "Language-Team: Esperanto <https://hosted.weblate.org/projects/koreader/"
@@ -7990,6 +7990,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr ""
+
 msgid "Help"
 msgstr "Helpo"
 
@@ -9888,6 +9892,33 @@ msgid "Settings changed. Reload document to take effect?"
 msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
+msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr ""
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
 msgstr ""
 
 msgid "Switch to standard view"
@@ -14035,9 +14066,6 @@ msgid ""
 msgstr ""
 "Ne eblis konservi dosieron al:\n"
 "%1"
-
-msgid "Downloading may take several minutes…"
-msgstr ""
 
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr ""

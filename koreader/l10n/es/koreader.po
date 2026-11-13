@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: gallegonovato <fran-carro@hotmail.es>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/koreader/"
@@ -8939,6 +8939,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Actualizar"
+
 msgid "Help"
 msgstr "Ayuda"
 
@@ -11351,6 +11355,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "La descarga puede durar varios minutos…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Actualizar"
 
 msgid "Switch to standard view"
 msgstr "Cambiar a vista estándar"
@@ -15783,9 +15814,6 @@ msgstr ""
 "%1\t\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "La descarga puede durar varios minutos…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Ya existe un archivo con el nombre %1. ¿Quiere sobreescribirlo?"
 
@@ -18324,10 +18352,6 @@ msgstr "anotaciones"
 #~ "Versión instalada: %1\n"
 #~ "Versión disponible: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Actualizar"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18378,10 +18402,6 @@ msgstr "anotaciones"
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr ""
 #~ "Error al actualizar KOReader. ¿Desea eliminar los archivos temporales?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Actualizar"
 
 #~ msgid "Check for updates"
 #~ msgstr "Buscar actualizaciones"

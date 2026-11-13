@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-11-20 16:20+0000\n"
 "Last-Translator: zwim <martin.zwicknagl@kirchbichl.net>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8928,6 +8928,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Aktualisieren"
+
 msgid "Help"
 msgstr "Hilfe"
 
@@ -11335,6 +11339,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Das Herunterladen kann ein paar Minuten dauern …"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Aktualisieren"
 
 msgid "Switch to standard view"
 msgstr "Zur Standardansicht wechseln"
@@ -15758,9 +15789,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "Das Herunterladen kann ein paar Minuten dauern …"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Datei %1 existiert bereits. Wollen Sie diese überschreiben?"
 
@@ -18295,10 +18323,6 @@ msgstr "Anmerkungen"
 #~ "Installierte Version: %1\n"
 #~ "Verfügbare Version: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Aktualisieren"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18349,10 +18373,6 @@ msgstr "Anmerkungen"
 #~ msgstr ""
 #~ "KOReader konnte nicht aktualisiert werden. Wollen Sie temporäre Daten "
 #~ "löschen?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Aktualisieren"
 
 #~ msgid "Check for updates"
 #~ msgstr "Nach Aktualisierung suchen"

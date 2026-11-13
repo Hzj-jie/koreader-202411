@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -8740,6 +8740,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "更新"
+
 msgid "Help"
 msgstr "ヘルプ"
 
@@ -11053,6 +11057,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "ダウンロードは数分かかることがあります…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "更新"
 
 msgid "Switch to standard view"
 msgstr "標準表示に切り替え"
@@ -15428,9 +15459,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "ダウンロードは数分かかることがあります…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "ファイル %1 はすでに存在します。上書きしてもよろしいですか?"
 
@@ -17860,10 +17888,6 @@ msgstr "回転"
 #~ "インストール済バージョン: %1\n"
 #~ "利用可能なバージョン: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "更新"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -17915,10 +17939,6 @@ msgstr "回転"
 #~ msgstr ""
 #~ "KOReader の更新中にエラーが発生しました。一時ファイルを削除してもよろしい"
 #~ "ですか?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "更新"
 
 #~ msgid "Check for updates"
 #~ msgstr "更新プログラムの確認"

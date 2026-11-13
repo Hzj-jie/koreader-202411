@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-05-24 07:40+0000\n"
 "Last-Translator: Monirzadeh <Monirzadeh@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/koreader/"
@@ -8194,6 +8194,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "بروزرسانی"
+
 msgid "Help"
 msgstr "کمک"
 
@@ -10467,6 +10471,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "در حال دریافت ممکن است چند دقیقه طول بکشد…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "بروزرسانی"
 
 msgid "Switch to standard view"
 msgstr "تغییر به نمای استاندارد"
@@ -14675,9 +14706,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "در حال دریافت ممکن است چند دقیقه طول بکشد…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "فایل %1 همین حالا هم وجود دارد. آیا قصد بازنویسی آن را دارید؟"
 
@@ -17061,10 +17089,6 @@ msgstr "چرخش"
 #~ "نسخه نصب شده: %1\n"
 #~ "نسخه در دسترس: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "بروزرسانی"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -17111,10 +17135,6 @@ msgstr "چرخش"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "خطا در بروزرسانی کوریدر. آیا می‌خواهید فایل‌های موقت پاک شود؟"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "بروزرسانی"
 
 #~ msgid "Check for updates"
 #~ msgstr "بررسی برای بروزرسانی‌ جدید"

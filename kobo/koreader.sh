@@ -87,6 +87,30 @@ if [ "${current_cpufreq_gov}" != "interactive" ]; then
     fi
 fi
 
+# apply staged update from ${KOREADER_DIR}.update
+ko_update_check() {
+    fail=""
+    UPDATE_DIR="${KOREADER_DIR}.update"
+    UPDATE_SCRIPT="${UPDATE_DIR}/ko_update.sh"
+    if [ ! -f "${UPDATE_SCRIPT}" ]; then
+        UPDATE_SCRIPT="${KOREADER_DIR}/ko_update.sh"
+    fi
+    if [ -d "${UPDATE_DIR}" ] && [ -f "${UPDATE_SCRIPT}" ]; then
+        cp -pf "${UPDATE_SCRIPT}" /tmp/ko_update.sh
+        chmod 777 /tmp/ko_update.sh
+        /tmp/ko_update.sh "${UPDATE_DIR}" "${KOREADER_DIR}"
+        fail=$?
+        rm -f /tmp/ko_update.sh
+    fi
+}
+# NOTE: Keep doing an initial update check, in addition to one during the restart loop, so we can pickup potential updates of this very script...
+ko_update_check
+# If an update happened, and was successful, reexec
+if [ -n "${fail}" ] && [ "${fail}" -eq 0 ]; then
+    # By now, we know we're in the right directory, and our script name is pretty much set in stone, so we can forgo using $0
+    exec ./koreader.sh "${@}"
+fi
+
 LUA_BIN="luajit"
 if [ "${1}" = "--lua" ]; then
     shift 1
@@ -359,6 +383,8 @@ KO_RC_SWITCH_LUA=89
 RETURN_VALUE=${KO_RC_RESTART}
 while [ ${RETURN_VALUE} -ne 0 ]; do
     if [ ${RETURN_VALUE} -eq ${KO_RC_RESTART} ]; then
+        # Do an update check now, so we can actually update KOReader via the "Restart KOReader" menu entry ;).
+        ko_update_check
         # Do or double-check the fb depth switch, or restore original bitdepth if requested
         ko_do_fbdepth
         # Make sure we have a sane resolv.conf

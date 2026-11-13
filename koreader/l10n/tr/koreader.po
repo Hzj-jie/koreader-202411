@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -8828,6 +8828,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Güncelle"
+
 msgid "Help"
 msgstr "Yardım"
 
@@ -11178,6 +11182,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "İndirme işlemi bir kaç dakika sürebilir…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Güncelle"
 
 msgid "Switch to standard view"
 msgstr "Standart görünüme geç"
@@ -15552,9 +15583,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "İndirme işlemi bir kaç dakika sürebilir…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "%1 dosyası zaten var. Üzerine yazılmasını ister misiniz?"
 
@@ -18081,10 +18109,6 @@ msgstr "ek açıklamalar"
 #~ "Kurulmuş sürüm: %1\n"
 #~ "Kurulabilecek sürüm: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18132,10 +18156,6 @@ msgstr "ek açıklamalar"
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr ""
 #~ "KOReader güncellenirken bir sorun çıktı. Geçici dosyalar silinsin mi?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Güncelle"
 
 #~ msgid "Check for updates"
 #~ msgstr "Güncellemeleri denetle"

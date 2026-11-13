@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-11-14 04:33+0000\n"
 "Last-Translator: sonix-github <sonix.internet@gmail.com>\n"
 "Language-Team: Slovak <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8880,6 +8880,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Aktualizovať"
+
 msgid "Help"
 msgstr "Pomocník"
 
@@ -11269,6 +11273,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Sťahovanie môže trvať niekoľko minút…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Aktualizovať"
 
 msgid "Switch to standard view"
 msgstr "Prepnúť na štandardné zobrazenie"
@@ -15692,9 +15723,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "Sťahovanie môže trvať niekoľko minút…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Súbor %1 už existuje. Želáte si ho prepísať?"
 
@@ -18234,10 +18262,6 @@ msgstr "komentáre"
 #~ "Nainštalovaná verzia: %1\n"
 #~ "Dostupná verzia: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Aktualizovať"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18286,10 +18310,6 @@ msgstr "komentáre"
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr ""
 #~ "Chyba pri aktualizácii KOReader-a. Želáte si vymazať dočasné súbory?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Aktualizovať"
 
 #~ msgid "Check for updates"
 #~ msgstr "Skontrolovať aktualizácie"

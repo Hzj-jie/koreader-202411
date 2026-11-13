@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-10-02 07:35+0000\n"
 "Last-Translator: Sari Gabor <sarigaborj@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/koreader/"
@@ -8748,6 +8748,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Frissítés"
+
 msgid "Help"
 msgstr "Súgó"
 
@@ -11092,6 +11096,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "A letöltés több percet is igénybe vehet…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Frissítés"
 
 msgid "Switch to standard view"
 msgstr "Átkapcsolás normál nézetre"
@@ -15491,9 +15522,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "A letöltés több percet is igénybe vehet…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "A %1 fájl már létezik. Felülírja?"
 
@@ -17979,10 +18007,6 @@ msgstr "megjegyzések"
 #~ "Jelenlegi verzió: %1\n"
 #~ "Elérhető verzió: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Frissítés"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18031,10 +18055,6 @@ msgstr "megjegyzések"
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr ""
 #~ "Hiba történt a KOReader frissítése során. Töröljük az ideiglenes fájlokat?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Frissítés"
 
 #~ msgid "Check for updates"
 #~ msgstr "Frissítések keresése"

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-02-27 20:00+0000\n"
 "Last-Translator: shetozz <a.teama3317@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8934,6 +8934,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "تحديث"
+
 msgid "Help"
 msgstr "مُساعَدة"
 
@@ -11273,6 +11277,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "قد يستمر التحميل بضع دقائق…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "تحديث"
 
 msgid "Switch to standard view"
 msgstr "التبديل إلى طريقة العرض القياسية"
@@ -15603,9 +15634,6 @@ msgstr ""
 "لم يتم حفظ الملف في:\n"
 "%1"
 
-msgid "Downloading may take several minutes…"
-msgstr "قد يستمر التحميل بضع دقائق…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "الملف %1 موجودٌ. هل تريد استبداله؟"
 
@@ -17999,10 +18027,6 @@ msgstr "دوران"
 #~ "الإصدار المثبت: %1\n"
 #~ "الإصدار المتاح: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "تحديث"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18049,10 +18073,6 @@ msgstr "دوران"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "حدث خطأٌ أثناء تحديث KOReader. هل تريد حذف الملفات المؤقتة؟"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "تحديث"
 
 #~ msgid "Check for updates"
 #~ msgstr "التحقق من وجود تحديثات"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -8134,6 +8134,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Aktualiziraj"
+
 msgid "Help"
 msgstr "Pomoć"
 
@@ -10042,6 +10046,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Preuzimanje može potrajati par miuta …"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Aktualiziraj"
 
 msgid "Switch to standard view"
 msgstr ""
@@ -14162,9 +14193,6 @@ msgid ""
 "%2"
 msgstr "Nije bilo moguće spremiti datoteku u:\n"
 
-msgid "Downloading may take several minutes…"
-msgstr "Preuzimanje može potrajati par miuta …"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr ""
 
@@ -16318,16 +16346,8 @@ msgstr "Okretanje"
 #~ msgid "KOReader is up to date."
 #~ msgstr "Koristiš najnoviju KOReader verziju."
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Aktualiziraj"
-
 #~ msgid "Downgrade"
 #~ msgstr "Vrati prethodnu inačicu"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Aktualiziraj"
 
 #~ msgid "Check for updates"
 #~ msgstr "Potraži nove verzije"

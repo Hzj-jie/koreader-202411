@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: 109247019824 <stoyan@gmx.com>\n"
 "Language-Team: Bulgarian <https://hosted.weblate.org/projects/koreader/"
@@ -8851,6 +8851,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Обновяване"
+
 msgid "Help"
 msgstr "Помощ"
 
@@ -11249,6 +11253,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Изтеглянето може да отнеме няколко минути…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Обновяване"
 
 msgid "Switch to standard view"
 msgstr "Превключване на стандартен изглед"
@@ -15647,9 +15678,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "Изтеглянето може да отнеме няколко минути…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Файлът %1 вече съществува. Желаете ли да бъде презаписан?"
 
@@ -18168,10 +18196,6 @@ msgstr "бележки"
 #~ "Инсталирано издание: %1\n"
 #~ "Налично издание: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Обновяване"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -18222,10 +18246,6 @@ msgstr "бележки"
 #~ msgstr ""
 #~ "Грешка при обновяване на KOReader. Желаете ли временните файлове да бъдат "
 #~ "премахнати?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Обновяване"
 
 #~ msgid "Check for updates"
 #~ msgstr "Проверка за обновяване"

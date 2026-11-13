@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2023-04-24 07:37+0000\n"
 "Last-Translator: Einars Sprugis <einars8@gmail.com>\n"
 "Language-Team: Latvian <https://hosted.weblate.org/projects/koreader/"
@@ -8896,6 +8896,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Atjaunināt"
+
 msgid "Help"
 msgstr "Palīdzība"
 
@@ -10922,6 +10926,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Lejupielādēšana var aizņemt vairākas minūtes…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Atjaunināt"
 
 msgid "Switch to standard view"
 msgstr "Pārslēgties uz standarta skatu"
@@ -15454,9 +15485,6 @@ msgstr ""
 "Nevarēju saglabāt failu:\n"
 "%1"
 
-msgid "Downloading may take several minutes…"
-msgstr "Lejupielādēšana var aizņemt vairākas minūtes…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Fails %1 jau eksistē. Vai vēlaties pārrakstīt?"
 
@@ -17935,10 +17963,6 @@ msgstr "Rotācija"
 #~ "Instalētā versija: %1\n"
 #~ "Pieejamā versija: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Atjaunināt"
-
 #, fuzzy
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
@@ -17984,10 +18008,6 @@ msgstr "Rotācija"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "Kļūda atjaunojot KOReader. Vai Jūs vēlētos izdzēst pagaidu failus?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Atjaunināt"
 
 #~ msgid "Check for updates"
 #~ msgstr "Pārbaudīt atjauninājumus"

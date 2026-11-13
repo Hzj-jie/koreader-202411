@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2022-06-11 19:41+0000\n"
 "Last-Translator: অনিকেত চট্টোপাধ্যায় <aniket.chatterjee@gmail.com>\n"
 "Language-Team: Hindi <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -7683,6 +7683,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr ""
+
 msgid "Help"
 msgstr ""
 
@@ -9539,6 +9543,33 @@ msgid "Settings changed. Reload document to take effect?"
 msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
+msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr ""
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
 msgstr ""
 
 msgid "Switch to standard view"
@@ -13539,9 +13570,6 @@ msgid ""
 msgstr ""
 "फ़ाइल अपलोड नहीं की जा सकी:\n"
 "%1"
-
-msgid "Downloading may take several minutes…"
-msgstr ""
 
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr ""

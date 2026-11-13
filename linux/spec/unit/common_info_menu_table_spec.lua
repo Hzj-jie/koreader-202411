@@ -1,7 +1,8 @@
 describe("CommonInfoMenuTable element", function()
   local CommonInfoMenuTable
   local DataStorage, Device, Event, FfiUtil, Notification, UIManager, Version, dbg, lfs
-  local orig_hasKeyboard, orig_isAndroid
+  local orig_hasKeyboard, orig_hasWifiToggle, orig_isAndroid
+  local orig_lfs_attributes
   local orig_getCurrentRevision, orig_getUncachedCurrentRevision, orig_getShortVersion
 
   local function loadModule()
@@ -23,7 +24,9 @@ describe("CommonInfoMenuTable element", function()
     lfs = require("libs/libkoreader-lfs")
 
     orig_hasKeyboard = Device.hasKeyboard
+    orig_hasWifiToggle = Device.hasWifiToggle
     orig_isAndroid = Device.isAndroid
+    orig_lfs_attributes = lfs.attributes
     orig_getCurrentRevision = Version.getCurrentRevision
     orig_getUncachedCurrentRevision = Version.getUncachedCurrentRevision
     orig_getShortVersion = Version.getShortVersion
@@ -31,7 +34,9 @@ describe("CommonInfoMenuTable element", function()
 
   teardown(function()
     Device.hasKeyboard = orig_hasKeyboard
+    Device.hasWifiToggle = orig_hasWifiToggle
     Device.isAndroid = orig_isAndroid
+    lfs.attributes = orig_lfs_attributes
     Version.getCurrentRevision = orig_getCurrentRevision
     Version.getUncachedCurrentRevision = orig_getUncachedCurrentRevision
     Version.getShortVersion = orig_getShortVersion
@@ -43,9 +48,13 @@ describe("CommonInfoMenuTable element", function()
     Device.hasKeyboard = function()
       return false
     end
+    Device.hasWifiToggle = function()
+      return false
+    end
     Device.isAndroid = function()
       return false
     end
+    lfs.attributes = orig_lfs_attributes
     CommonInfoMenuTable = loadModule()
   end)
 
@@ -327,6 +336,69 @@ describe("CommonInfoMenuTable element", function()
         )
 
         UIManager.show:revert()
+      end
+    )
+  end)
+
+  describe("ota_update option", function()
+    it("is omitted when Device does not have wifi toggle", function()
+      Device.hasWifiToggle = function()
+        return false
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./ko_update.sh" and attr == "mode" then
+          return "file"
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      local menu = loadModule()
+      assert.is_nil(menu.ota_update)
+    end)
+
+    it("is omitted when ./ko_update.sh is absent", function()
+      Device.hasWifiToggle = function()
+        return true
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./ko_update.sh" and attr == "mode" then
+          return nil
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      local menu = loadModule()
+      assert.is_nil(menu.ota_update)
+    end)
+
+    it(
+      "is included when Device has wifi toggle and ./ko_update.sh exists",
+      function()
+        local gettext = require("gettext")
+        Device.hasWifiToggle = function()
+          return true
+        end
+        lfs.attributes = function(path, attr)
+          if path == "./ko_update.sh" and attr == "mode" then
+            return "file"
+          end
+          return orig_lfs_attributes(path, attr)
+        end
+
+        local Updater = require("ui/updater")
+        local spy_update = stub(Updater, "update")
+
+        local menu = loadModule()
+        assert.is_table(menu.ota_update)
+        assert.are.equal(
+          gettext.pgettext("Application update | Menu", "Update"),
+          menu.ota_update.text
+        )
+
+        menu.ota_update.callback()
+        assert.stub(spy_update).was_called(1)
+
+        Updater.update:revert()
       end
     )
   end)

@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -8741,6 +8741,11 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+#, fuzzy
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "Uppdatera"
+
 msgid "Help"
 msgstr "Hjälp"
 
@@ -10734,6 +10739,34 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "Hämtning kan ta flera minuter…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+#, fuzzy
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "Uppdatera"
 
 msgid "Switch to standard view"
 msgstr "Växla till standardvy"
@@ -15152,9 +15185,6 @@ msgstr ""
 "Det gick inte att spara filen till:\n"
 "%1"
 
-msgid "Downloading may take several minutes…"
-msgstr "Hämtning kan ta flera minuter…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "Filen %1 finns redan. Vill du skriva över den?"
 
@@ -17570,11 +17600,6 @@ msgstr "Plats"
 #~ "Tillgänglig version: %2"
 
 #, fuzzy
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "Uppdatera"
-
-#, fuzzy
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -17619,11 +17644,6 @@ msgstr "Plats"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "Fel vid uppdatering av KOReader. Vill du ta bort temporära filer?"
-
-#, fuzzy
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "Uppdatera"
 
 #, fuzzy
 #~ msgid "Check for updates"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8613,6 +8613,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "עדכון"
+
 msgid "Help"
 msgstr "עזרה"
 
@@ -10921,6 +10925,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "ההורדה עשויה לארוך מספר דקות …"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "לעדכן"
 
 msgid "Switch to standard view"
 msgstr "עבור לתצוגה רגילה"
@@ -15250,9 +15281,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "ההורדה עשויה לארוך מספר דקות …"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "הקובץ %1 כבר קיים. להחליף אותו?"
 
@@ -17749,10 +17777,6 @@ msgstr "הסברים"
 #~ "גרסה מותקנת: %1\n"
 #~ "גרסה זמינה: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "לעדכן"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -17799,10 +17823,6 @@ msgstr "הסברים"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "שגיאה בעדכון KOReader. למחוק קבצים זמניים?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "עדכון"
 
 #~ msgid "Check for updates"
 #~ msgstr "בדיקת זמינות עדכונים"

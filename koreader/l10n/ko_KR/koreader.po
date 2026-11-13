@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-13 14:38-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: kr <harum@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -8567,6 +8567,10 @@ msgstr ""
 msgid "Switch to LuaJIT"
 msgstr ""
 
+msgctxt "Application update | Menu"
+msgid "Update"
+msgstr "업데이트"
+
 msgid "Help"
 msgstr "도움말"
 
@@ -10878,6 +10882,33 @@ msgstr ""
 
 msgid "Settings changed. Reload file manager to take effect?"
 msgstr ""
+
+msgid "Not enough free space to download and unpack the update."
+msgstr ""
+
+msgid "Downloading may take several minutes…"
+msgstr "다운로드에 몇 분 정도 걸릴 수 있습니다…"
+
+msgid ""
+"Failed to download update:\n"
+"%1"
+msgstr ""
+
+msgid ""
+"Failed to unpack update:\n"
+"%1"
+msgstr ""
+
+msgid "Download and unpack the latest update (%1)?"
+msgstr ""
+
+msgid ""
+"Network connection is offline or unstable. The update download may fail."
+msgstr ""
+
+msgctxt "Application update | Button"
+msgid "Update"
+msgstr "업데이트"
 
 msgid "Switch to standard view"
 msgstr "표준 보기로 전환"
@@ -15161,9 +15192,6 @@ msgstr ""
 "%1\n"
 "%2"
 
-msgid "Downloading may take several minutes…"
-msgstr "다운로드에 몇 분 정도 걸릴 수 있습니다…"
-
 msgid "The file %1 already exists. Do you want to overwrite it?"
 msgstr "%1 파일이 이미 있습니다. 그것을 덮어쓸까요?"
 
@@ -17627,10 +17655,6 @@ msgstr "주석"
 #~ "설치된 버전: %1\n"
 #~ "설치할 버전: %2"
 
-#~ msgctxt "Application update | Button"
-#~ msgid "Update"
-#~ msgstr "업데이트"
-
 #~ msgid ""
 #~ "The currently installed version is newer than the available version.\n"
 #~ "You'll need to uninstall the app before installing a previous version.\n"
@@ -17677,10 +17701,6 @@ msgstr "주석"
 
 #~ msgid "Error updating KOReader. Would you like to delete temporary files?"
 #~ msgstr "KOReader 업데이트 도중에 오류가 발생했습니다. 임시 파일을 지울까요?"
-
-#~ msgctxt "Application update | Menu"
-#~ msgid "Update"
-#~ msgstr "업데이트"
 
 #~ msgid "Check for updates"
 #~ msgstr "업데이트 확인"

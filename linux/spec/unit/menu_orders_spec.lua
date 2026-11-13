@@ -84,4 +84,28 @@ describe("menu_order modules", function()
       )
     end
   )
+
+  it("should place ota_update immediately before help in main menu", function()
+    local common_menu_order = require("ui/elements/common_menu_order")
+    local fm_order = require("ui/elements/filemanager_menu_order")
+    local reader_order = require("ui/elements/reader_menu_order")
+
+    for _, order in ipairs({
+      common_menu_order({}).main,
+      fm_order.main,
+      reader_order.main,
+    }) do
+      local ota_idx, help_idx
+      for i, key in ipairs(order) do
+        if key == "ota_update" then
+          ota_idx = i
+        elseif key == "help" then
+          help_idx = i
+        end
+      end
+      assert.is_number(ota_idx)
+      assert.is_number(help_idx)
+      assert.are.equal(help_idx - 1, ota_idx)
+    end
+  end)
 end)
