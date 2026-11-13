@@ -4,7 +4,6 @@ local FfiUtil = require("ffi/util")
 local InfoMessage = require("ui/widget/infomessage")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
-local Util = require("util")
 local http = require("socket.http")
 local lfs = require("libs/libkoreader-lfs")
 local socket = require("socket")
@@ -26,32 +25,26 @@ local function cleanupUpdateArtifacts(install_dir, include_staged)
 end
 
 local function showFailure(install_dir, template_msg, reason, downloading_msg)
-  if downloading_msg then
-    UIManager:close(downloading_msg)
-  end
+  UIManager:close(downloading_msg)
   cleanupUpdateArtifacts(install_dir, false)
   UIManager:show(InfoMessage:new({
     text = T(template_msg, reason or ""),
   }))
 end
 
-function Updater:getPackageName(script_path)
-  local path = script_path or (lfs.currentdir():gsub("/+$", "") .. "/ko_update.sh")
-  local f = io.open(path, "r")
-  if not f then
-    return nil
-  end
+function Updater:getPackageName()
+  local f = assert(io.open(lfs.currentdir() .. "/ko_update.sh", "r"))
   local content = f:read("*a")
   f:close()
   return ("\n" .. content):match('\n%s*PACKAGE="([%w_%-]+)"')
 end
 
 function Updater:_performUpdate(pkg)
-  local install_dir = lfs.currentdir():gsub("/+$", "")
+  local install_dir = lfs.currentdir()
   cleanupUpdateArtifacts(install_dir, true)
 
   local _, free_bytes = FfiUtil.df(install_dir)
-  if free_bytes and free_bytes < 160 * 1024 * 1024 then
+  if free_bytes < 160 * 1024 * 1024 then
     UIManager:show(InfoMessage:new({
       text = gettext("Not enough free space to download and unpack the update."),
     }))
@@ -103,8 +96,7 @@ function Updater:_performUpdate(pkg)
       showFailure(
         install_dir,
         gettext("Failed to download update:\n%1"),
-        code ~= 200 and (status or code or gettext("network unreachable"))
-          or close_err,
+        code ~= 200 and (status or code) or close_err,
         downloading_msg
       )
       return
@@ -164,20 +156,10 @@ function Updater:_performUpdate(pkg)
 end
 
 function Updater:update()
-  if Util.isMonkeyTest() then
-    return
-  end
-
-  local pkg = self:getPackageName()
-  if not pkg then
-    UIManager:show(InfoMessage:new({
-      text = gettext("Update is not supported on this device."),
-    }))
-    return
-  end
+  local pkg = assert(self:getPackageName())
 
   NetworkMgr:runWhenConnected(function()
-    local prompt = T(gettext("Download and install the latest update (%1)?"), pkg)
+    local prompt = T(gettext("Download and unpack the latest update (%1)?"), pkg)
     if not NetworkMgr:isOnline() then
       prompt = gettext(
         "Network connection is offline or unstable. The update download may fail."

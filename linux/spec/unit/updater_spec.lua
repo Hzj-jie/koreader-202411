@@ -1,6 +1,6 @@
 describe("Updater module", function()
   local Updater
-  local Device, FfiUtil, NetworkMgr, UIManager, Util
+  local Device, FfiUtil, NetworkMgr, UIManager
   local http, lfs, socketutil, gettext, T
   local orig_currentdir, temp_root, install_dir
 
@@ -20,7 +20,6 @@ describe("Updater module", function()
     FfiUtil = require("ffi/util")
     NetworkMgr = require("ui/network/manager")
     UIManager = require("ui/uimanager")
-    Util = require("util")
     http = require("socket.http")
     lfs = require("libs/libkoreader-lfs")
     socketutil = require("socketutil")
@@ -51,18 +50,20 @@ describe("Updater module", function()
   end)
 
   describe("getPackageName", function()
-    it("parses pw2, legacy, and kobo packages from ./ko_update.sh", function()
+    it("parses pw2, legacy, and kobo packages from real ko_update.sh scripts", function()
+      local repo_root = os.getenv("KO_WORKSPACE_DIR") or ".."
       for _, pkg in ipairs({ "pw2", "legacy", "kobo" }) do
-        writeFile(
-          install_dir .. "/ko_update.sh",
-          "#!/bin/sh\nPACKAGE=\"" .. pkg .. "\"\necho ok\n"
-        )
+        lfs.currentdir = function()
+          return repo_root .. "/" .. pkg
+        end
         assert.are.equal(pkg, Updater:getPackageName())
       end
     end)
 
-    it("returns nil when ./ko_update.sh is missing or lacks PACKAGE", function()
-      assert.is_nil(Updater:getPackageName())
+    it("errors when ./ko_update.sh is missing and returns nil when it lacks PACKAGE", function()
+      assert.has_error(function()
+        Updater:getPackageName()
+      end)
       writeFile(install_dir .. "/ko_update.sh", "#!/bin/sh\necho no package\n")
       assert.is_nil(Updater:getPackageName())
     end)
@@ -95,12 +96,6 @@ describe("Updater module", function()
 
       writeFile(install_dir .. "/ko_update.sh", '#!/bin/sh\nPACKAGE="pw2"\n')
 
-      table.insert(
-        stubs,
-        stub(Util, "isMonkeyTest", function()
-          return false
-        end)
-      )
       table.insert(stubs, stub(NetworkMgr, "runWhenOnline"))
       table.insert(
         stubs,
@@ -161,27 +156,13 @@ describe("Updater module", function()
       end
     end)
 
-    it("does nothing during monkey tests", function()
-      stubs[1]:revert()
-      stubs[1] = stub(Util, "isMonkeyTest", function()
-        return true
+    it("errors when ko_update.sh lacks a package name", function()
+      writeFile(install_dir .. "/ko_update.sh", "#!/bin/sh\n")
+
+      assert.has_error(function()
+        Updater:update()
       end)
-
-      Updater:update()
       assert.stub(NetworkMgr.runWhenConnected).was_not_called()
-      assert.are.equal(0, #shown_widgets)
-    end)
-
-    it("shows unsupported message when ko_update.sh is missing", function()
-      os.remove(install_dir .. "/ko_update.sh")
-
-      Updater:update()
-      assert.stub(NetworkMgr.runWhenConnected).was_not_called()
-      assert.are.equal(1, #shown_widgets)
-      assert.are.equal(
-        gettext("Update is not supported on this device."),
-        shown_widgets[1].text
-      )
     end)
 
     it(
@@ -199,7 +180,7 @@ describe("Updater module", function()
           confirm.ok_text
         )
         assert.are.equal(
-          T(gettext("Download and install the latest update (%1)?"), "pw2"),
+          T(gettext("Download and unpack the latest update (%1)?"), "pw2"),
           confirm.text
         )
       end
@@ -220,7 +201,7 @@ describe("Updater module", function()
           )
             .. "\n\n"
             .. T(
-              gettext("Download and install the latest update (%1)?"),
+              gettext("Download and unpack the latest update (%1)?"),
               "pw2"
             ),
           confirm.text
