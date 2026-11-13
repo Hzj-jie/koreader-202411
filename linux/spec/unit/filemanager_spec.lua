@@ -1465,6 +1465,16 @@ describe("FileManager module", function()
     local base_tmp
     local orig_doc_meta_folder
 
+    local function hasSdrEntry(file)
+      local target = util.realpath(file) or file
+      for _, entry in ipairs(SdrList:getFiles()) do
+        if entry == target then
+          return true
+        end
+      end
+      return false
+    end
+
     before_each(function()
       local pid = tostring(ffi.C.getpid())
       base_tmp = util.realpath("spec/unit/data") .. "/tmp_fm_sdr_" .. pid
@@ -1523,9 +1533,9 @@ describe("FileManager module", function()
 
         local tracked_dst = dst_parent .. "/sub/tracked.pdf"
         local no_sdr_dst = dst_parent .. "/sub/plain.pdf"
-        assert.is_true(SdrList:hasFile(tracked_src))
-        assert.is_true(SdrList:hasFile(tracked_dst))
-        assert.is_false(SdrList:hasFile(no_sdr_dst))
+        assert.is_true(hasSdrEntry(tracked_src))
+        assert.is_true(hasSdrEntry(tracked_dst))
+        assert.is_false(hasSdrEntry(no_sdr_dst))
       end
     )
   end)

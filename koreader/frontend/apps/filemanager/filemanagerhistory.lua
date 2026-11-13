@@ -460,7 +460,7 @@ end
 function FileManagerHistory:doBuildHistory()
   local updated = false
   UIManager:runWith(function()
-    local cmd = util.shell_escape({
+    local p = io.popen(util.shell_escape({
       "find",
       G_named_settings.home_dir(),
       "-name",
@@ -471,8 +471,7 @@ function FileManagerHistory:doBuildHistory()
       "%n %Y",
       "{}",
       ";",
-    })
-    local p = io.popen(cmd)
+    }))
     if not p then
       Notification:notify(
         gettext("Failed to scan metadata files for reading history.")

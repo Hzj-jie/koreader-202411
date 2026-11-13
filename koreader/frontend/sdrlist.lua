@@ -5,7 +5,6 @@ local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 
-local realpath = ffiutil.realpath
 local history_file = ffiutil.joinPath(DataStorage:getDataDir(), "history.lua")
 local sdr_list_file =
   ffiutil.joinPath(DataStorage:getDataDir(), "sdr_list.lua")
@@ -25,12 +24,11 @@ local SdrList = {
 }
 
 local function normalizePath(file)
-  return realpath(file) or file
+  return ffiutil.realpath(file) or file
 end
 
 local function scanMetadataFiles(root, extractor, out_files, sdr_list)
-  local cmd = util.shell_escape({ "find", root, "-name", "metadata.*.lua" })
-  local p = io.popen(cmd)
+  local p = io.popen(util.shell_escape({ "find", root, "-name", "metadata.*.lua" }))
   if not p then
     return false
   end
@@ -181,15 +179,6 @@ function SdrList:getFiles()
   return files
 end
 
-function SdrList:hasFile(file)
-  assert(
-    type(file) == "string" and file ~= "",
-    "SdrList: file must not be nil or empty"
-  )
-  self:reload()
-  return self.files[normalizePath(file)] == true
-end
-
 function SdrList:addItem(file)
   assert(
     type(file) == "string" and file ~= "",
@@ -223,11 +212,12 @@ function SdrList:updateItem(old_file, new_file, copy)
     type(old_file) == "string" and old_file ~= "",
     "SdrList: old_file must not be nil or empty"
   )
+  assert(
+    type(new_file) == "string" and new_file ~= "",
+    "SdrList: new_file must not be nil or empty"
+  )
   self:reload()
   old_file = normalizePath(old_file)
-  if not new_file then
-    return self:removeItem(old_file)
-  end
   new_file = normalizePath(new_file)
   local changed = false
   if not copy and old_file ~= new_file and self.files[old_file] then
@@ -302,15 +292,16 @@ function SdrList:rebuildFromDisk()
   self:reload()
   local DocSettings = require("docsettings")
   local new_files = {}
-  local home_ok = scanMetadataFiles(
-    G_named_settings.home_dir(),
-    function(line)
-      return line:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-    end,
-    new_files,
-    self
-  )
-  if not home_ok then
+  if
+    not scanMetadataFiles(
+      G_named_settings.home_dir(),
+      function(line)
+        return line:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+      end,
+      new_files,
+      self
+    )
+  then
     require("ui/widget/notification"):notify(
       gettext("Failed to scan metadata files for reading status collections.")
     )
@@ -319,24 +310,25 @@ function SdrList:rebuildFromDisk()
   local docsettings_dir = DataStorage:getDocSettingsDir():gsub("/+$", "")
   if util.directoryExists(docsettings_dir) then
     local prefix_len = #docsettings_dir
-    local dir_ok = scanMetadataFiles(
-      docsettings_dir,
-      function(line)
-        if
-          line:sub(1, prefix_len) == docsettings_dir
-          and line:sub(prefix_len + 1, prefix_len + 1) == "/"
-        then
-          return line:sub(prefix_len + 1):gsub(
-            "%.sdr/metadata(%.[^/%.]+)%.lua$",
-            "%1"
-          )
-        end
-        return line, 0
-      end,
-      new_files,
-      self
-    )
-    if not dir_ok then
+    if
+      not scanMetadataFiles(
+        docsettings_dir,
+        function(line)
+          if
+            line:sub(1, prefix_len) == docsettings_dir
+            and line:sub(prefix_len + 1, prefix_len + 1) == "/"
+          then
+            return line:sub(prefix_len + 1):gsub(
+              "%.sdr/metadata(%.[^/%.]+)%.lua$",
+              "%1"
+            )
+          end
+          return line, 0
+        end,
+        new_files,
+        self
+      )
+    then
       require("ui/widget/notification"):notify(
         gettext("Failed to scan metadata files for reading status collections.")
       )

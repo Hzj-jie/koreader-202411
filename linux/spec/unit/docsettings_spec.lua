@@ -2459,6 +2459,16 @@ describe("docsettings module", function()
   describe("SdrList integration", function()
     local SdrList
 
+    local function hasSdrEntry(file)
+      local target = ffiutil.realpath(file) or file
+      for _, entry in ipairs(SdrList:getFiles()) do
+        if entry == target then
+          return true
+        end
+      end
+      return false
+    end
+
     before_each(function()
       SdrList = require("sdrlist")
       G_reader_settings:save("document_metadata_folder", "doc")
@@ -2485,7 +2495,7 @@ describe("docsettings module", function()
         local d = docsettings:open(book)
         d:save("summary", { status = "reading" })
         d:flush()
-        assert.is_true(SdrList:hasFile(book))
+        assert.is_true(hasSdrEntry(book))
         d:close()
 
         -- Ephemeral tmp flush must not register into SdrList
@@ -2507,12 +2517,12 @@ describe("docsettings module", function()
         d_ro:close()
         rw_stub:revert()
         DataStorage.getTmpDir = orig_getTmpDir
-        assert.is_false(SdrList:hasFile(tmp_book))
+        assert.is_false(hasSdrEntry(tmp_book))
 
         -- Full purge removes from SdrList
         d = docsettings:open(book)
         d:purge()
-        assert.is_false(SdrList:hasFile(book))
+        assert.is_false(hasSdrEntry(book))
       end
     )
 
@@ -2544,21 +2554,21 @@ describe("docsettings module", function()
         d:save("summary", { status = "complete" })
         d:flush()
         d:close()
-        assert.is_true(SdrList:hasFile(orig_book))
+        assert.is_true(hasSdrEntry(orig_book))
 
         -- Copy keeps original and adds copy
         docsettings.updateLocation(orig_book, copied_book, true)
-        assert.is_true(SdrList:hasFile(orig_book))
-        assert.is_true(SdrList:hasFile(copied_book))
+        assert.is_true(hasSdrEntry(orig_book))
+        assert.is_true(hasSdrEntry(copied_book))
 
         -- Move removes source and adds destination
         docsettings.updateLocation(orig_book, moved_book, false)
-        assert.is_false(SdrList:hasFile(orig_book))
-        assert.is_true(SdrList:hasFile(moved_book))
+        assert.is_false(hasSdrEntry(orig_book))
+        assert.is_true(hasSdrEntry(moved_book))
 
         -- Delete removes target
         docsettings.updateLocation(moved_book)
-        assert.is_false(SdrList:hasFile(moved_book))
+        assert.is_false(hasSdrEntry(moved_book))
       end
     )
   end)
