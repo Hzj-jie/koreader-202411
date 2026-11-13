@@ -345,25 +345,7 @@ function ReadHistory:removeItem(item, idx, no_flush)
 end
 
 function ReadHistory:ignoreFile(file)
-  local filename = ffiutil.basename(file)
-  if
-    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
-  then
-    return true
-  end
-  local exclude_files = { -- const
-    "^batterystat%.log$",
-    "^crash%.log$",
-    "^crash%.prev%.log$",
-    "^koreader%.crash%..*%.log$",
-    "^quickstart%-.*%.html$",
-  }
-  for _, pattern in ipairs(exclude_files) do
-    if filename:match(pattern) then
-      return true
-    end
-  end
-  return false
+  return require("sdrhistory"):ignoreFile(file)
 end
 
 function ReadHistory:_ignoreItem(file, ts)

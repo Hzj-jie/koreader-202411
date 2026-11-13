@@ -1,0 +1,307 @@
+describe("SdrHistory module", function()
+  local DataStorage
+  local DocSettings
+  local Notification
+  local SdrHistory
+  local ffiutil
+  local lfs
+  local util
+  local data_dir
+  local home_dir
+  local docsettings_dir
+  local sdr_history_file
+  local orig_get_data_dir
+  local orig_get_docsettings_dir
+  local orig_get_hash_dir
+  local orig_named_settings
+
+  local function writeDummy(path, content)
+    util.makePath(ffiutil.dirname(path))
+    local f = assert(io.open(path, "w"))
+    f:write(content)
+    f:close()
+  end
+
+  local function reloadModule()
+    package.loaded["sdrhistory"] = nil
+    SdrHistory = require("sdrhistory")
+    return SdrHistory
+  end
+
+  setup(function()
+    require("commonrequire")
+    DataStorage = require("datastorage")
+    DocSettings = require("docsettings")
+    Notification = require("ui/widget/notification")
+    ffiutil = require("ffi/util")
+    lfs = require("libs/libkoreader-lfs")
+    util = require("util")
+  end)
+
+  before_each(function()
+    local root = os.tmpname()
+    os.remove(root)
+    assert(lfs.mkdir(root))
+
+    data_dir = root .. "/data"
+    home_dir = root .. "/books"
+    docsettings_dir = data_dir .. "/docsettings"
+    assert(lfs.mkdir(data_dir))
+    assert(lfs.mkdir(home_dir))
+    assert(lfs.mkdir(docsettings_dir))
+
+    orig_get_data_dir = DataStorage.getDataDir
+    orig_get_docsettings_dir = DataStorage.getDocSettingsDir
+    orig_get_hash_dir = DataStorage.getDocSettingsHashDir
+    DataStorage.getDataDir = function()
+      return data_dir
+    end
+    DataStorage.getDocSettingsDir = function()
+      return docsettings_dir
+    end
+    DataStorage.getDocSettingsHashDir = function()
+      return data_dir .. "/hashdocsettings"
+    end
+
+    orig_named_settings = _G.G_named_settings
+    _G.G_named_settings = {
+      home_dir = function()
+        return home_dir
+      end,
+      document_metadata_folder = function()
+        return G_reader_settings:read("document_metadata_folder") or "doc"
+      end,
+    }
+    G_reader_settings:save("document_metadata_folder", "doc")
+
+    package.loaded["docsettings"] = nil
+    DocSettings = require("docsettings")
+    sdr_history_file = data_dir .. "/sdr_history.lua"
+    reloadModule()
+  end)
+
+  after_each(function()
+    G_reader_settings:delete("document_metadata_folder")
+    DataStorage.getDataDir = orig_get_data_dir
+    DataStorage.getDocSettingsDir = orig_get_docsettings_dir
+    DataStorage.getDocSettingsHashDir = orig_get_hash_dir
+    _G.G_named_settings = orig_named_settings
+    package.loaded["sdrhistory"] = nil
+    package.loaded["docsettings"] = nil
+    ffiutil.purgeDir(ffiutil.dirname(data_dir))
+  end)
+
+  it(
+    "seeds once from existing ReadHistory entries that have sidecars and writes paths only",
+    function()
+      local book_with_sdr = home_dir .. "/with_sdr.epub"
+      local book_no_sdr = home_dir .. "/no_sdr.epub"
+      local ignored_log = home_dir .. "/crash.log"
+      writeDummy(book_with_sdr, "epub")
+      writeDummy(book_no_sdr, "epub")
+      writeDummy(ignored_log, "log")
+      writeDummy(
+        home_dir .. "/with_sdr.sdr/metadata.epub.lua",
+        'return { ["summary"] = { ["status"] = "reading" } }\n'
+      )
+      writeDummy(
+        home_dir .. "/crash.sdr/metadata.log.lua",
+        'return { ["summary"] = { ["status"] = "reading" } }\n'
+      )
+
+      local hist_data = {
+        { file = book_with_sdr, time = 100 },
+        { file = book_no_sdr, time = 200 },
+        { file = ignored_log, time = 300 },
+      }
+      writeDummy(
+        data_dir .. "/history.lua",
+        "return " .. require("dump")(hist_data)
+      )
+
+      local files = SdrHistory:getFiles()
+      assert.are.same({ book_with_sdr }, files)
+      assert.is_true(util.fileExists(sdr_history_file))
+
+      local persisted = dofile(sdr_history_file)
+      assert.are.same({ book_with_sdr }, persisted)
+      assert.is_string(persisted[1])
+
+      -- Remove sidecar-bearing book manually from cache and add another:
+      -- reloading must NOT re-seed from ReadHistory once sdr_history.lua exists.
+      SdrHistory:removeItem(book_with_sdr)
+      reloadModule()
+      assert.are.same({}, SdrHistory:getFiles())
+    end
+  )
+
+  it("handles addItem, removeItem, updateItem, and folder prefix ops", function()
+    assert.are.same({}, SdrHistory:getFiles())
+
+    local b1 = home_dir .. "/sub/a.epub"
+    local b2 = home_dir .. "/sub2/b.pdf"
+    local ignored = home_dir .. "/quickstart-en.html"
+    local hidden = home_dir .. "/.DS_Store"
+    local real_home = ffiutil.realpath(home_dir)
+    local rb1 = real_home .. "/sub/a.epub"
+    local rb2 = real_home .. "/sub2/b.pdf"
+    writeDummy(b1, "1")
+    writeDummy(b2, "2")
+
+    local write_stub = spy.on(util, "writeToFile")
+    finally(function()
+      write_stub:revert()
+    end)
+
+    assert.is_false(SdrHistory:addItem(ignored))
+    assert.is_false(SdrHistory:addItem(hidden))
+    assert.spy(util.writeToFile).was_not_called()
+
+    assert.is_true(SdrHistory:addItem(b1))
+    assert.spy(util.writeToFile).was_called(1)
+    assert.is_false(SdrHistory:addItem(b1)) -- O(1) short-circuit, no disk write
+    assert.spy(util.writeToFile).was_called(1)
+
+    assert.is_true(SdrHistory:addItem(b2))
+    assert.are.same({ rb1, rb2 }, SdrHistory:getFiles())
+
+    -- Copy keeps original and adds destination
+    local b1_copy = home_dir .. "/sub/a_copy.epub"
+    local rb1_copy = real_home .. "/sub/a_copy.epub"
+    assert.is_true(SdrHistory:updateItem(b1, b1_copy, true))
+    assert.is_true(SdrHistory:hasFile(rb1))
+    assert.is_true(SdrHistory:hasFile(rb1_copy))
+
+    -- Move removes original and keeps destination
+    local b1_moved = home_dir .. "/sub/a_moved.epub"
+    local rb1_moved = real_home .. "/sub/a_moved.epub"
+    assert.is_true(SdrHistory:updateItem(b1_copy, b1_moved, false))
+    assert.is_false(SdrHistory:hasFile(b1_copy))
+    assert.is_true(SdrHistory:hasFile(b1_moved))
+
+    -- Folder prefix rename must not rewrite sibling prefix (/sub vs /sub2)
+    assert.is_true(
+      SdrHistory:updateItemsByPath(real_home .. "/sub", real_home .. "/renamed")
+    )
+    assert.is_true(SdrHistory:hasFile(real_home .. "/renamed/a.epub"))
+    assert.is_true(SdrHistory:hasFile(real_home .. "/renamed/a_moved.epub"))
+    assert.is_true(SdrHistory:hasFile(rb2))
+
+    -- Folder prefix delete must not delete /sub2
+    assert.is_true(SdrHistory:removeItemsByPath(real_home .. "/renamed"))
+    assert.are.same({ rb2 }, SdrHistory:getFiles())
+    assert.is_false(SdrHistory:removeItemsByPath(real_home .. "/renamed"))
+
+    -- Single remove
+    assert.is_true(SdrHistory:removeItem(b2))
+    assert.are.same({}, SdrHistory:getFiles())
+    assert.is_false(SdrHistory:removeItem(b2))
+  end)
+
+  it(
+    "preserves existing cache and notifies on write or corrupt read failures",
+    function()
+      local b1 = home_dir .. "/keep.epub"
+      assert.is_true(SdrHistory:addItem(b1))
+
+      local notify_stub = stub(Notification, "notify")
+      local write_stub = stub(util, "writeToFile", function()
+        return false
+      end)
+      finally(function()
+        notify_stub:revert()
+        write_stub:revert()
+      end)
+
+      assert.is_false(SdrHistory:addItem(home_dir .. "/fail.epub"))
+      assert.stub(Notification.notify).was_called(1)
+      assert.are.same({ b1 }, dofile(sdr_history_file))
+
+      writeDummy(sdr_history_file, "this is not valid lua {{{")
+      assert.is_false(SdrHistory:reload(true))
+      assert.stub(Notification.notify).was_called(2)
+    end
+  )
+
+  it(
+    "rebuilds index without -type d across doc, dir, and valid hash entries",
+    function()
+      local real_home = ffiutil.realpath(home_dir)
+      local doc_book = real_home .. "/doc_book.epub"
+      local dir_book = real_home .. "/nested/dir_book.pdf"
+      local hash_book = real_home .. "/hash_book.epub"
+      local missing_book = real_home .. "/deleted_book.epub"
+      local orphan_book = real_home .. "/orphan_book.epub"
+
+      writeDummy(doc_book, "doc book")
+      writeDummy(dir_book, "dir book")
+      writeDummy(hash_book, "hash book content for partial md5")
+      writeDummy(missing_book, "temp")
+
+      -- Create doc-mode sidecar
+      writeDummy(
+        real_home .. "/doc_book.sdr/metadata.epub.lua",
+        'return { ["summary"] = { ["status"] = "reading" } }\n'
+      )
+      -- Create orphan .sdr (book file absent)
+      writeDummy(
+        real_home .. "/orphan_book.sdr/metadata.epub.lua",
+        'return { ["summary"] = { ["status"] = "reading" } }\n'
+      )
+      -- Create dir-mode sidecar under docsettings_dir
+      writeDummy(
+        docsettings_dir .. dir_book:gsub("%.pdf$", ".sdr") .. "/metadata.pdf.lua",
+        'return { ["summary"] = { ["status"] = "complete" } }\n'
+      )
+
+      -- Create hash-mode sidecar
+      G_reader_settings:save("document_metadata_folder", "hash")
+      local ds_hash = DocSettings:open(hash_book)
+      ds_hash:save("summary", { status = "abandoned" })
+      ds_hash:flush()
+      ds_hash:close()
+      G_reader_settings:save("document_metadata_folder", "doc")
+
+      -- Seed stale deleted hash entry + deleted doc entry before rebuild
+      SdrHistory:addItem(missing_book)
+      os.remove(missing_book)
+      assert.is_true(SdrHistory:hasFile(hash_book))
+      assert.is_true(SdrHistory:hasFile(missing_book))
+
+      local cmds = {}
+      local orig_popen = io.popen
+      local popen_stub = stub(io, "popen", function(cmd, mode)
+        table.insert(cmds, cmd)
+        return orig_popen(cmd, mode)
+      end)
+      finally(function()
+        popen_stub:revert()
+      end)
+
+      assert.is_true(SdrHistory:rebuildFromDisk())
+      assert.is_true(#cmds >= 1)
+      for _, cmd in ipairs(cmds) do
+        assert.is_nil(cmd:find("-type d", 1, true))
+      end
+
+      assert.are.same({ doc_book, hash_book, dir_book }, SdrHistory:getFiles())
+      assert.is_false(SdrHistory:hasFile(orphan_book))
+      assert.is_false(SdrHistory:hasFile(missing_book))
+
+      -- On io.popen failure, notify and keep existing cached paths
+      popen_stub:revert()
+      local fail_popen = stub(io, "popen", function()
+        return nil, "spawn failed"
+      end)
+      local notify_stub = stub(Notification, "notify")
+      finally(function()
+        fail_popen:revert()
+        notify_stub:revert()
+      end)
+
+      assert.is_false(SdrHistory:rebuildFromDisk())
+      assert.stub(Notification.notify).was_called(1)
+      assert.are.same({ doc_book, hash_book, dir_book }, SdrHistory:getFiles())
+    end
+  )
+end)

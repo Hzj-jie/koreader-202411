@@ -998,6 +998,7 @@ function FileManager:pasteFileFromClipboard(file)
         else
           ReadHistory:updateItemsByPath(orig_file, dest_file)
           ReadCollection:updateItemsByPath(orig_file, dest_file)
+          require("sdrhistory"):updateItemsByPath(orig_file, dest_file)
         end
       end
       self.clipboard = nil
@@ -1238,6 +1239,7 @@ function FileManager:deleteFile(file, is_file)
     if ok then
       ReadHistory:folderDeleted(file) -- will delete sdr
       ReadCollection:removeItemsByPath(file)
+      require("sdrhistory"):removeItemsByPath(file)
       return true
     end
   end
@@ -1335,6 +1337,7 @@ function FileManager:renameFile(file, basename, is_file)
       else
         ReadHistory:updateItemsByPath(file, dest)
         ReadCollection:updateItemsByPath(file, dest)
+        require("sdrhistory"):updateItemsByPath(file, dest)
       end
       self:onRefresh()
     else
