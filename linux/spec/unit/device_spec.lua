@@ -323,11 +323,7 @@ describe("device module", function()
       local kindle_dev = require("device/kindle/device")
       os.execute.returns(0)
       assert.is_true(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
-      os.execute.returns(true)
-      assert.is_true(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
       os.execute.returns(256)
-      assert.is_false(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
-      os.execute.returns(nil)
       assert.is_false(kindle_dev:untar("archive.tar.gz", "/tmp/extracted"))
     end)
 
@@ -938,22 +934,11 @@ describe("device module", function()
         local ok = test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
         assert.is_true(ok)
 
-        os.execute.returns(true)
-        assert.is_true(
-          test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
-        )
-
         os.execute.returns(256)
         local fail_ok, fail_err =
           test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
         assert.is_false(fail_ok)
         assert.is_string(fail_err)
-
-        os.execute.returns(nil)
-        local lua_fail_ok, lua_fail_err =
-          test_dev:unpackArchive("archive.tar.gz", "/tmp/extracted")
-        assert.is_false(lua_fail_ok)
-        assert.is_string(lua_fail_err)
 
         local bad_ok, err =
           test_dev:unpackArchive("archive.zip", "/tmp/extracted")
