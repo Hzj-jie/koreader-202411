@@ -19,7 +19,11 @@ local common_info = {}
 
 -- main tab
 
-if Device:hasWifiToggle() and lfs.attributes("./ko_update.sh", "mode") == "file" then
+if
+  not G_defaults:isTrue("DISABLE_OTA_UPDATE")
+  and Device:hasWifiToggle()
+  and lfs.attributes("./ko_update.sh", "mode") == "file"
+then
   common_info.ota_update = {
     text = C_("Application update | Menu", "Update"),
     callback = function()

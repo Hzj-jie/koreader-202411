@@ -197,4 +197,7 @@ return {
 
   -- Keep only "restart koreader" in the Exit menu if true.
   DO_NOT_EXIT = true,
+
+  -- Hide the in-app Update entry in the main menu if true. Default is false.
+  -- DISABLE_OTA_UPDATE = true,
 }
