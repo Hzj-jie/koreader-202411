@@ -371,6 +371,26 @@ describe("CommonInfoMenuTable element", function()
       assert.is_nil(menu.ota_update)
     end)
 
+    it("is omitted when DISABLE_OTA_UPDATE is true", function()
+      Device.hasWifiToggle = function()
+        return true
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./ko_update.sh" and attr == "mode" then
+          return "file"
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      finally(function()
+        G_defaults:delete("DISABLE_OTA_UPDATE")
+      end)
+      G_defaults:save("DISABLE_OTA_UPDATE", true)
+
+      local menu = loadModule()
+      assert.is_nil(menu.ota_update)
+    end)
+
     it(
       "is included when Device has wifi toggle and ./ko_update.sh exists",
       function()
