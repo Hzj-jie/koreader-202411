@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -642,6 +642,9 @@ msgstr "整理分組"
 
 msgid "Favorites"
 msgstr "最愛"
+
+msgid "Loading collection…"
+msgstr "正在載入分組…"
 
 msgid "Remove from collection"
 msgstr "從收藏中移除"

@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -660,6 +660,9 @@ msgstr "Derlemeler"
 
 msgid "Favorites"
 msgstr "Sık Kullanılanlar"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Derlemeden çıkar"

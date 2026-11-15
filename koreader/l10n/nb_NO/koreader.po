@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -649,6 +649,9 @@ msgstr "Fjern fra samling"
 
 msgid "Favorites"
 msgstr "Favoritter"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Fjern fra samling"

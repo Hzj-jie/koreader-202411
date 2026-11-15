@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-08-19 18:28+0000\n"
 "Last-Translator: user _425 <lelcraft96@gmail.com>\n"
 "Language-Team: Indonesian <https://hosted.weblate.org/projects/koreader/"
@@ -629,6 +629,9 @@ msgid "Collections"
 msgstr "Penghapusan artikel"
 
 msgid "Favorites"
+msgstr ""
+
+msgid "Loading collection…"
 msgstr ""
 
 #, fuzzy

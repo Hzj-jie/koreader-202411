@@ -27,7 +27,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Artem Kaznelson <nook.artem@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/koreader/"
@@ -685,6 +685,9 @@ msgstr "Подборки"
 
 msgid "Favorites"
 msgstr "Избранное"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Удалить из подборки"

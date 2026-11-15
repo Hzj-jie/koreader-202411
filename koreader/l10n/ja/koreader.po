@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -650,6 +650,9 @@ msgstr "コレクション"
 
 msgid "Favorites"
 msgstr "お気に入り"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "お気に入りから削除"

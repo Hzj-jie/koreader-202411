@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -658,6 +658,9 @@ msgid "Collections"
 msgstr "Gå tillbaka till föregående plats"
 
 msgid "Favorites"
+msgstr ""
+
+msgid "Loading collection…"
 msgstr ""
 
 #, fuzzy

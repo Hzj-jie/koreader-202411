@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-11-14 04:33+0000\n"
 "Last-Translator: sonix-github <sonix.internet@gmail.com>\n"
 "Language-Team: Slovak <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -685,6 +685,9 @@ msgstr "Zbierky"
 
 msgid "Favorites"
 msgstr "Obľúbené"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Odstrániť zo zbierky"

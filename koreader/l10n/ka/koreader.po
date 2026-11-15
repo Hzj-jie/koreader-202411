@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2021-02-16 16:09+0000\n"
 "Last-Translator: Beka Arabuli <arabulibeqa@gmail.com>\n"
 "Language-Team: Georgian <https://hosted.weblate.org/projects/koreader/"
@@ -608,6 +608,9 @@ msgstr "კრებულიდან წაშლა"
 
 msgid "Favorites"
 msgstr "რჩეულები"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "კრებულიდან წაშლა"

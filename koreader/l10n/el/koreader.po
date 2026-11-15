@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 19:32-0800\n"
+"POT-Creation-Date: 2026-11-15 14:52-0800\n"
 "PO-Revision-Date: 2024-11-18 15:26+0000\n"
 "Last-Translator: Ichnilatis <sophronios.sp@gmail.com>\n"
 "Language-Team: Greek <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -672,6 +672,9 @@ msgstr "Συλλογές"
 
 msgid "Favorites"
 msgstr "Αγαπημένα"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Αφαίρεση από τη συλλογή"
