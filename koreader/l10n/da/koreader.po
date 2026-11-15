@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:15-0800\n"
+"POT-Creation-Date: 2026-11-15 15:23-0800\n"
 "PO-Revision-Date: 2022-08-10 20:21+0000\n"
 "Last-Translator: Erasmus Montanus <kbmdoyxnkwbhcozgvr@kvhrs.com>\n"
 "Language-Team: Danish <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -643,6 +643,9 @@ msgstr "Fjern fra samling"
 
 msgid "Favorites"
 msgstr "Favoritter"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Fjern fra samling"

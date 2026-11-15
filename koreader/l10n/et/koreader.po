@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:15-0800\n"
+"POT-Creation-Date: 2026-11-15 15:23-0800\n"
 "PO-Revision-Date: 2024-10-03 09:55+0000\n"
 "Last-Translator: Priit Jõerüüt <hwlate@joeruut.com>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/koreader/"
@@ -625,6 +625,9 @@ msgstr "Kogud"
 
 msgid "Favorites"
 msgstr "Lemmikud"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Eemalda kogust"

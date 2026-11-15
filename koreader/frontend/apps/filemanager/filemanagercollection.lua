@@ -149,21 +149,23 @@ function FileManagerCollection:updateItemTable(show_last_item)
   local item_table = {}
   local auto_coll = AUTO_COLLECTION_BY_NAME[self.coll_menu.collection_name]
   if auto_coll then
-    for _, file in ipairs(SdrList:getFiles()) do
-      local attr = lfs.attributes(file)
-      if
-        attr
-        and attr.mode == "file"
-        and self:getAutoCollectionStatus(file) == auto_coll.status
-      then
-        table.insert(item_table, {
-          file = file,
-          text = file:gsub(".*/", ""),
-          mandatory = util.getFriendlySize(attr.size),
-          order = #item_table + 1, -- non-nil suppresses MosaicMenu star mark
-        })
+    UIManager:runWith(function()
+      for _, file in ipairs(SdrList:getFiles()) do
+        local attr = lfs.attributes(file)
+        if
+          attr
+          and attr.mode == "file"
+          and self:getAutoCollectionStatus(file) == auto_coll.status
+        then
+          table.insert(item_table, {
+            file = file,
+            text = file:gsub(".*/", ""),
+            mandatory = util.getFriendlySize(attr.size),
+            order = #item_table + 1, -- non-nil suppresses MosaicMenu star mark
+          })
+        end
       end
-    end
+    end, gettext("Loading collection…"))
   else
     for _, item in pairs(ReadCollection.coll[self.coll_menu.collection_name]) do
       table.insert(item_table, item)

@@ -1370,5 +1370,107 @@ describe("filemanagercollection", function()
         assert.spy(mock_notification.notify).was.not_called()
       end
     )
+
+    it(
+      "wraps auto-collection scan and book-hold refresh in UIManager:runWith while leaving manual collections and list page unwrapped",
+      function()
+        local UIManager = require("ui/uimanager")
+        local active_run_with = 0
+        local orig_run_with = UIManager.runWith
+        UIManager.runWith = spy.new(function(self, fn, widget)
+          active_run_with = active_run_with + 1
+          orig_run_with(self, fn, widget)
+          active_run_with = active_run_with - 1
+        end)
+
+        local status_calls_in_run_with = 0
+        mock_sdr_list.files = { "/books/reading.epub" }
+        mock_doc_settings.getStatus = spy.new(function()
+          if active_run_with > 0 then
+            status_calls_in_run_with = status_calls_in_run_with + 1
+          end
+          return "reading"
+        end)
+        local captured_update_cb
+        local lfs_attr_stub = stub(lfs, "attributes", function()
+          return { mode = "file", size = 1024 }
+        end)
+        local status_btn_stub = stub(
+          package.loaded["apps/filemanager/filemanagerutil"],
+          "genStatusButtonsRow",
+          function(_, cb)
+            captured_update_cb = cb
+            return { text = "Mock Status Row" }
+          end
+        )
+        finally(function()
+          status_btn_stub:revert()
+          lfs_attr_stub:revert()
+        end)
+
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+
+        manager:onShowCollList()
+        manager:onShowColl("favorites")
+        manager:onShowColl("Sci-Fi")
+        assert.spy(UIManager.runWith).was.not_called()
+
+        manager:onShowColl("__auto_reading")
+        assert
+          .spy(UIManager.runWith).was
+          .called(1)
+        assert
+          .spy(UIManager.runWith).was
+          .called_with(
+            UIManager,
+            match.is_function(),
+            mock_gettext("Loading collection…")
+          )
+        assert.are.equal(1, status_calls_in_run_with)
+
+        UIManager.runWith:clear()
+        status_calls_in_run_with = 0
+
+        manager.coll_menu:onMenuHold(manager.coll_menu.item_table[1])
+        assert.truthy(captured_update_cb)
+        captured_update_cb()
+        assert
+          .spy(UIManager.runWith).was
+          .called(1)
+        assert
+          .spy(UIManager.runWith).was
+          .called_with(
+            UIManager,
+            match.is_function(),
+            mock_gettext("Loading collection…")
+          )
+        assert.are.equal(1, status_calls_in_run_with)
+      end
+    )
+
+    it(
+      "verifies localized Loading collection string in zh_CN and zh_TW",
+      function()
+        local saved_gettext = package.loaded["gettext"]
+        package.loaded["gettext"] = nil
+        local real_gettext = require("gettext")
+        finally(function()
+          real_gettext.changeLang("C")
+          package.loaded["gettext"] = saved_gettext
+        end)
+
+        real_gettext.changeLang("zh_CN")
+        assert.are.equal(
+          "正在加载分组…",
+          real_gettext("Loading collection…")
+        )
+
+        real_gettext.changeLang("zh_TW")
+        assert.are.equal(
+          "正在載入分組…",
+          real_gettext("Loading collection…")
+        )
+      end
+    )
   end)
 end)

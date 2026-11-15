@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:15-0800\n"
+"POT-Creation-Date: 2026-11-15 15:23-0800\n"
 "PO-Revision-Date: 2024-11-20 16:20+0000\n"
 "Last-Translator: zwim <martin.zwicknagl@kirchbichl.net>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -670,6 +670,9 @@ msgstr "Sammlungen"
 
 msgid "Favorites"
 msgstr "Favoriten"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Entferne aus Sammlung"

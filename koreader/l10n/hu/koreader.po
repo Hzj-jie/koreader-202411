@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:15-0800\n"
+"POT-Creation-Date: 2026-11-15 15:23-0800\n"
 "PO-Revision-Date: 2024-10-02 07:35+0000\n"
 "Last-Translator: Sari Gabor <sarigaborj@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/koreader/"
@@ -660,6 +660,9 @@ msgstr "Gyűjtemények"
 
 msgid "Favorites"
 msgstr "Kedvencek"
+
+msgid "Loading collection…"
+msgstr ""
 
 msgid "Remove from collection"
 msgstr "Eltávolítás a gyűjteményből"
