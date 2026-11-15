@@ -1413,4 +1413,384 @@ describe("MathPuzzle Screen and Plugin", function()
       UIManager:close(screen)
     end
   )
+
+  describe("math_equato_100", function()
+    local function findWidgets(screen)
+      local is_input_btn = {}
+      for _, btn in ipairs(screen.input_buttons) do
+        is_input_btn[btn] = true
+      end
+
+      local check_btn
+      local text_widgets = {}
+      local function walk(widget, visited)
+        if type(widget) ~= "table" or visited[widget] then
+          return
+        end
+        visited[widget] = true
+        if widget.frame and widget.dimen then
+          if widget.text == require("gettext")("Check") and not is_input_btn[widget] then
+            check_btn = widget
+          end
+        elseif not widget.frame and type(widget.text) == "string" and widget.dimen then
+          table.insert(text_widgets, widget)
+        end
+        for _, child in ipairs(widget) do
+          walk(child, visited)
+        end
+      end
+      walk(screen[1], {})
+      return check_btn, text_widgets
+    end
+
+    it(
+      "should render math_equato_100 as a 3x3 equation grid with number bank within screen bounds",
+      function()
+        local Device = require("device")
+        local Font = require("ui/font")
+        local gettext = require("gettext")
+        local Screen = Device.screen
+        local TextWidget = require("ui/widget/textwidget")
+        local screen = createScreen(nil, "math_equato_100")
+        UIManager:show(screen)
+
+        local test_bb = Screen.bb
+          or Blitbuffer.new(Screen:getWidth(), Screen:getHeight())
+        screen:paintTo(test_bb, 0, 0)
+
+        assert.are.equal(5, #screen.problems)
+        assert.are.equal(5, #screen.input_buttons)
+        assert.are.equal(5, #screen.mark_widgets)
+        assert.are.equal(5, #screen.mark_containers)
+
+        local probs = screen.problems
+        for i = 1, 5 do
+          assert.are.equal(i, screen.input_buttons[i].prob_id)
+        end
+
+        local bank = {}
+        for i = 1, 5 do
+          bank[i] = probs[i].answer
+        end
+        table.sort(bank)
+        local expected_bank_text =
+          string.format(gettext("Number bank: %s"), table.concat(bank, "  "))
+
+        local check_btn, text_widgets = findWidgets(screen)
+        assert.is_not_nil(check_btn)
+
+        local bank_widget
+        local given_widgets = { {}, {}, {} }
+        local sym_widgets = {}
+        for _, tw in ipairs(text_widgets) do
+          if tw.text == expected_bank_text then
+            bank_widget = tw
+          elseif tw.text == "+" or tw.text == "−" or tw.text == "=" then
+            table.insert(sym_widgets, tw)
+          end
+        end
+        assert.is_not_nil(bank_widget)
+        -- 3 rows * 2 + 3 cols * 2 = 12 symbol widgets on the grid
+        local grid_syms = {}
+        local title_bottom = screen.title_bar.dimen.y + screen.title_bar.dimen.h
+        for _, sw in ipairs(sym_widgets) do
+          if
+            sw.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h
+            and sw.dimen.y + sw.dimen.h < check_btn.dimen.y
+          then
+            table.insert(grid_syms, sw)
+          end
+        end
+        assert.are.equal(12, #grid_syms)
+
+        -- Map all 9 cell widgets (5 input_buttons + 4 given TextWidgets)
+        local cell_boxes = { {}, {}, {} }
+        for _, btn in ipairs(screen.input_buttons) do
+          local p = probs[btn.prob_id]
+          cell_boxes[p.row][p.col] = btn.dimen
+        end
+        for r = 1, 3 do
+          for c = 1, 3 do
+            if probs.grid[r][c] ~= false then
+              local expected_str = tostring(probs.grid[r][c])
+              for _, tw in ipairs(text_widgets) do
+                if
+                  tw.text == expected_str
+                  and tw.dimen.y > bank_widget.dimen.y
+                  and tw.dimen.y < check_btn.dimen.y
+                then
+                  given_widgets[r][c] = tw
+                  cell_boxes[r][c] = tw.dimen
+                  break
+                end
+              end
+              assert.is_not_nil(given_widgets[r][c])
+            end
+          end
+        end
+
+        -- Row y order and vertical center alignment across columns; column x alignment across rows
+        local row_cy = {}
+        local col_cx = {}
+        for r = 1, 3 do
+          local sum_cy = 0
+          for c = 1, 3 do
+            local d = cell_boxes[r][c]
+            assert.is_not_nil(d)
+            assert.is_true(d.x >= 0 and d.x + d.w <= Screen:getWidth())
+            assert.is_true(d.y >= title_bottom and d.y + d.h < check_btn.dimen.y)
+            sum_cy = sum_cy + (d.y + d.h / 2)
+          end
+          row_cy[r] = sum_cy / 3
+          for c = 1, 3 do
+            local d = cell_boxes[r][c]
+            assert.is_true(math.abs((d.y + d.h / 2) - row_cy[r]) <= 2)
+          end
+        end
+        assert.is_true(row_cy[1] < row_cy[2])
+        assert.is_true(row_cy[2] < row_cy[3])
+
+        for c = 1, 3 do
+          local sum_cx = 0
+          for r = 1, 3 do
+            local d = cell_boxes[r][c]
+            sum_cx = sum_cx + (d.x + d.w / 2)
+          end
+          col_cx[c] = sum_cx / 3
+          for r = 1, 3 do
+            local d = cell_boxes[r][c]
+            assert.is_true(math.abs((d.x + d.w / 2) - col_cx[c]) <= 2)
+          end
+        end
+        assert.is_true(col_cx[1] < col_cx[2])
+        assert.is_true(col_cx[2] < col_cx[3])
+
+        -- Bank sits above grid and inside screen bounds
+        assert.is_true(bank_widget.dimen.y >= title_bottom)
+        assert.is_true(bank_widget.dimen.x >= 0)
+        assert.is_true(bank_widget.dimen.x + bank_widget.dimen.w <= Screen:getWidth())
+        assert.is_true(bank_widget.dimen.y + bank_widget.dimen.h <= cell_boxes[1][1].y)
+
+        -- Horizontal and vertical symbol positions between cells
+        for _, r in ipairs({ 1, 2, 3 }) do
+          for s = 1, 2 do
+            local sym = probs.row_ops[r][s]
+            local found = false
+            for _, sw in ipairs(grid_syms) do
+              local cx = sw.dimen.x + sw.dimen.w / 2
+              local cy = sw.dimen.y + sw.dimen.h / 2
+              if
+                sw.text == sym
+                and math.abs(cy - row_cy[r]) <= 4
+                and cx > col_cx[s]
+                and cx < col_cx[s + 1]
+              then
+                found = true
+                break
+              end
+            end
+            assert.is_true(found)
+          end
+        end
+        for _, c in ipairs({ 1, 2, 3 }) do
+          for s = 1, 2 do
+            local sym = probs.col_ops[c][s]
+            local found = false
+            for _, sw in ipairs(grid_syms) do
+              local cx = sw.dimen.x + sw.dimen.w / 2
+              local cy = sw.dimen.y + sw.dimen.h / 2
+              if
+                sw.text == sym
+                and math.abs(cx - col_cx[c]) <= 4
+                and cy > row_cy[s]
+                and cy < row_cy[s + 1]
+              then
+                found = true
+                break
+              end
+            end
+            assert.is_true(found)
+          end
+        end
+
+        -- Per-blank marks directly above each blank button
+        local min_mark_h = TextWidget:new({
+          text = " ✓",
+          face = Font:getFace("xx_smallinfofont"),
+        })
+          :getSize().h
+        for i = 1, 5 do
+          local btn = screen.input_buttons[i]
+          local mc = screen.mark_containers[i]
+          assert.is_true(mc.dimen.x >= 0 and mc.dimen.x + mc.dimen.w <= Screen:getWidth())
+          assert.is_true(mc.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h)
+          assert.are.equal(btn.dimen.x, mc.dimen.x)
+          assert.are.equal(btn.dimen.y, mc.dimen.y + mc.dimen.h)
+          assert.is_true(mc:getSize().h >= min_mark_h)
+        end
+
+        UIManager:close(screen)
+      end
+    )
+
+    it(
+      "should preserve left-to-right equato grid order under RTL UI layout",
+      function()
+        local BD = require("ui/bidi")
+        local orig_mirrored = BD.mirroredUILayout
+        finally(function()
+          BD.mirroredUILayout = orig_mirrored
+        end)
+        BD.mirroredUILayout = function()
+          return true
+        end
+
+        local Device = require("device")
+        local Screen = Device.screen
+        local screen = createScreen(nil, "math_equato_100")
+        UIManager:show(screen)
+        local test_bb = Screen.bb
+          or Blitbuffer.new(Screen:getWidth(), Screen:getHeight())
+        screen:paintTo(test_bb, 0, 0)
+
+        local gettext = require("gettext")
+        local check_btn, text_widgets = findWidgets(screen)
+        assert.is_not_nil(check_btn)
+
+        local bank = {}
+        for i = 1, 5 do
+          bank[i] = screen.problems[i].answer
+        end
+        table.sort(bank)
+        local expected_bank_text =
+          string.format(gettext("Number bank: %s"), table.concat(bank, "  "))
+        local bank_widget
+        for _, tw in ipairs(text_widgets) do
+          if tw.text == expected_bank_text then
+            bank_widget = tw
+            break
+          end
+        end
+        assert.is_not_nil(bank_widget)
+
+        local col_cx = { 0, 0, 0 }
+        local col_n = { 0, 0, 0 }
+        for _, btn in ipairs(screen.input_buttons) do
+          local p = screen.problems[btn.prob_id]
+          col_cx[p.col] = col_cx[p.col] + (btn.dimen.x + btn.dimen.w / 2)
+          col_n[p.col] = col_n[p.col] + 1
+        end
+        for r = 1, 3 do
+          for c = 1, 3 do
+            if screen.problems.grid[r][c] ~= false then
+              local expected = tostring(screen.problems.grid[r][c])
+              for _, tw in ipairs(text_widgets) do
+                if
+                  tw.text == expected
+                  and tw.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h
+                  and tw.dimen.y < check_btn.dimen.y
+                then
+                  col_cx[c] = col_cx[c] + (tw.dimen.x + tw.dimen.w / 2)
+                  col_n[c] = col_n[c] + 1
+                  break
+                end
+              end
+            end
+          end
+        end
+        for c = 1, 3 do
+          assert.is_true(col_n[c] == 3)
+          col_cx[c] = col_cx[c] / 3
+        end
+        assert.is_true(col_cx[1] < col_cx[2])
+        assert.is_true(col_cx[2] < col_cx[3])
+
+        UIManager:close(screen)
+      end
+    )
+
+    it(
+      "should navigate blanks in row-major order, grade per blank, clear single marks, and switch from mode menu",
+      function()
+        local plugin = createMockPlugin()
+        plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+        local menu = plugin:showModeSelection(plugin.screen)
+        local target_item
+        for _, item in ipairs(menu.item_table) do
+          if item.text == Generator.getModeById("math_equato_100").title then
+            target_item = item
+            break
+          end
+        end
+        assert.is_not_nil(target_item)
+        target_item.callback()
+
+        local screen = plugin.screen
+        assert.are.equal("math_equato_100", screen.mode.id)
+        assert.are.equal(5, #screen.problems)
+        assert.are.equal(5, #screen.input_buttons)
+
+        assert.are.equal(1, screen.focused_idx)
+        for idx = 1, 5 do
+          assert.are.equal(idx, screen.focused_idx)
+          assert.are.equal(idx, screen.input_buttons[idx].prob_id)
+          screen:nextField()
+        end
+        assert.are.equal(1, screen.focused_idx)
+
+        for idx = 1, 5 do
+          local val = idx == 3 and (screen.problems[idx].answer + 1)
+            or screen.problems[idx].answer
+          screen.input_buttons[idx]:setText(tostring(val))
+        end
+        screen:checkAnswers()
+
+        assert.are.equal(4, plugin.session_correct)
+        assert.are.equal(1, plugin.session_wrong)
+        assert.are.equal(" ✓", screen.mark_widgets[2].text)
+        assert.is_truthy(screen.mark_widgets[3].text:find("✗"))
+        assert.are.equal(" ✓", screen.mark_widgets[4].text)
+
+        screen:selectField(3)
+        screen:inputDigit("9")
+        assert.are.equal("", screen.mark_widgets[3].text)
+        assert.is_false(screen.problems[3].checked)
+        assert.is_nil(screen.problems[3].is_correct)
+        assert.are.equal(" ✓", screen.mark_widgets[2].text)
+        assert.are.equal(" ✓", screen.mark_widgets[4].text)
+
+        UIManager:close(menu)
+        UIManager:close(screen)
+      end
+    )
+
+    it("verifies localized strings for Math Equato in zh_CN and zh_TW", function()
+      local gettext = require("gettext")
+      finally(function()
+        gettext.changeLang("C")
+      end)
+
+      gettext.changeLang("zh_CN")
+      assert.are.equal(
+        "100以内算式方阵（加减法）",
+        gettext("Math Equato (+, -) within 100")
+      )
+      assert.are.equal(
+        "每个数只用一次，使横向和纵向的等式都成立",
+        gettext("Use each number once to make every row and column equation true")
+      )
+      assert.are.equal("可用数字：%s", gettext("Number bank: %s"))
+
+      gettext.changeLang("zh_TW")
+      assert.are.equal(
+        "100以內算式方陣（加減法）",
+        gettext("Math Equato (+, -) within 100")
+      )
+      assert.are.equal(
+        "每個數只用一次，使橫向和縱向的等式都成立",
+        gettext("Use each number once to make every row and column equation true")
+      )
+      assert.are.equal("可用數字：%s", gettext("Number bank: %s"))
+    end)
+  end)
 end)
