@@ -1443,6 +1443,125 @@ describe("MathPuzzle Screen and Plugin", function()
       return check_btn, text_widgets
     end
 
+    local function collectEquatoGeometry(
+      screen,
+      probs,
+      text_widgets,
+      bank_widget,
+      check_btn
+    )
+      local grid_syms = {}
+      for _, tw in ipairs(text_widgets) do
+        if
+          (tw.text == "+" or tw.text == "−" or tw.text == "=")
+          and tw.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h
+          and tw.dimen.y + tw.dimen.h < check_btn.dimen.y
+        then
+          table.insert(grid_syms, tw)
+        end
+      end
+
+      local given_widgets = { {}, {}, {} }
+      local cell_boxes = { {}, {}, {} }
+      for _, btn in ipairs(screen.input_buttons) do
+        local p = probs[btn.prob_id]
+        cell_boxes[p.row][p.col] = btn.dimen
+      end
+      for r = 1, 3 do
+        for c = 1, 3 do
+          if probs.grid[r][c] ~= false then
+            local expected_str = tostring(probs.grid[r][c])
+            for _, tw in ipairs(text_widgets) do
+              if
+                tw.text == expected_str
+                and tw.dimen.y > bank_widget.dimen.y
+                and tw.dimen.y < check_btn.dimen.y
+              then
+                given_widgets[r][c] = tw
+                cell_boxes[r][c] = tw.dimen
+                break
+              end
+            end
+            assert.is_not_nil(given_widgets[r][c])
+          end
+        end
+      end
+
+      local row_cy = {}
+      local col_cx = {}
+      for r = 1, 3 do
+        local sum_cy = 0
+        for c = 1, 3 do
+          local d = cell_boxes[r][c]
+          assert.is_not_nil(d)
+          sum_cy = sum_cy + (d.y + d.h / 2)
+        end
+        row_cy[r] = sum_cy / 3
+        for c = 1, 3 do
+          local d = cell_boxes[r][c]
+          assert.is_true(math.abs((d.y + d.h / 2) - row_cy[r]) <= 2)
+        end
+      end
+      for c = 1, 3 do
+        local sum_cx = 0
+        for r = 1, 3 do
+          local d = cell_boxes[r][c]
+          sum_cx = sum_cx + (d.x + d.w / 2)
+        end
+        col_cx[c] = sum_cx / 3
+        for r = 1, 3 do
+          local d = cell_boxes[r][c]
+          assert.is_true(math.abs((d.x + d.w / 2) - col_cx[c]) <= 2)
+        end
+      end
+
+      return cell_boxes, grid_syms, row_cy, col_cx
+    end
+
+    local function assertEquatoSymbols(grid_syms, row_cy, col_cx, probs)
+      assert.are.equal(12, #grid_syms)
+      for _, r in ipairs({ 1, 2, 3 }) do
+        for s = 1, 2 do
+          local sym = probs.row_ops[r][s]
+          local found = false
+          for _, sw in ipairs(grid_syms) do
+            local cx = sw.dimen.x + sw.dimen.w / 2
+            local cy = sw.dimen.y + sw.dimen.h / 2
+            if
+              sw.text == sym
+              and math.abs(cy - row_cy[r]) <= 4
+              and cx > col_cx[s]
+              and cx < col_cx[s + 1]
+            then
+              found = true
+              break
+            end
+          end
+          assert.is_true(found)
+        end
+      end
+      for _, c in ipairs({ 1, 2, 3 }) do
+        for s = 1, 2 do
+          local sym = probs.col_ops[c][s]
+          local found = false
+          for _, sw in ipairs(grid_syms) do
+            local cx = sw.dimen.x + sw.dimen.w / 2
+            local cy = sw.dimen.y + sw.dimen.h / 2
+            if
+              sw.text == sym
+              and math.abs(cx - col_cx[c]) <= 4
+              and cy > row_cy[s]
+              and cy < row_cy[s + 1]
+            then
+              found = true
+              break
+            end
+          end
+          assert.is_true(found)
+        end
+      end
+    end
+
     it(
       "should render math_equato_100 as a 3x3 equation grid with number bank within screen bounds",
       function()
@@ -1480,88 +1599,26 @@ describe("MathPuzzle Screen and Plugin", function()
         assert.is_not_nil(check_btn)
 
         local bank_widget
-        local given_widgets = { {}, {}, {} }
-        local sym_widgets = {}
         for _, tw in ipairs(text_widgets) do
           if tw.text == expected_bank_text then
             bank_widget = tw
-          elseif tw.text == "+" or tw.text == "−" or tw.text == "=" then
-            table.insert(sym_widgets, tw)
+            break
           end
         end
         assert.is_not_nil(bank_widget)
-        -- 3 rows * 2 + 3 cols * 2 = 12 symbol widgets on the grid
-        local grid_syms = {}
+
         local title_bottom = screen.title_bar.dimen.y + screen.title_bar.dimen.h
-        for _, sw in ipairs(sym_widgets) do
-          if
-            sw.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h
-            and sw.dimen.y + sw.dimen.h < check_btn.dimen.y
-          then
-            table.insert(grid_syms, sw)
-          end
-        end
-        assert.are.equal(12, #grid_syms)
-
-        -- Map all 9 cell widgets (5 input_buttons + 4 given TextWidgets)
-        local cell_boxes = { {}, {}, {} }
-        for _, btn in ipairs(screen.input_buttons) do
-          local p = probs[btn.prob_id]
-          cell_boxes[p.row][p.col] = btn.dimen
-        end
+        local cell_boxes, grid_syms, row_cy, col_cx =
+          collectEquatoGeometry(screen, probs, text_widgets, bank_widget, check_btn)
         for r = 1, 3 do
-          for c = 1, 3 do
-            if probs.grid[r][c] ~= false then
-              local expected_str = tostring(probs.grid[r][c])
-              for _, tw in ipairs(text_widgets) do
-                if
-                  tw.text == expected_str
-                  and tw.dimen.y > bank_widget.dimen.y
-                  and tw.dimen.y < check_btn.dimen.y
-                then
-                  given_widgets[r][c] = tw
-                  cell_boxes[r][c] = tw.dimen
-                  break
-                end
-              end
-              assert.is_not_nil(given_widgets[r][c])
-            end
-          end
-        end
-
-        -- Row y order and vertical center alignment across columns; column x alignment across rows
-        local row_cy = {}
-        local col_cx = {}
-        for r = 1, 3 do
-          local sum_cy = 0
           for c = 1, 3 do
             local d = cell_boxes[r][c]
-            assert.is_not_nil(d)
             assert.is_true(d.x >= 0 and d.x + d.w <= Screen:getWidth())
             assert.is_true(d.y >= title_bottom and d.y + d.h < check_btn.dimen.y)
-            sum_cy = sum_cy + (d.y + d.h / 2)
-          end
-          row_cy[r] = sum_cy / 3
-          for c = 1, 3 do
-            local d = cell_boxes[r][c]
-            assert.is_true(math.abs((d.y + d.h / 2) - row_cy[r]) <= 2)
           end
         end
         assert.is_true(row_cy[1] < row_cy[2])
         assert.is_true(row_cy[2] < row_cy[3])
-
-        for c = 1, 3 do
-          local sum_cx = 0
-          for r = 1, 3 do
-            local d = cell_boxes[r][c]
-            sum_cx = sum_cx + (d.x + d.w / 2)
-          end
-          col_cx[c] = sum_cx / 3
-          for r = 1, 3 do
-            local d = cell_boxes[r][c]
-            assert.is_true(math.abs((d.x + d.w / 2) - col_cx[c]) <= 2)
-          end
-        end
         assert.is_true(col_cx[1] < col_cx[2])
         assert.is_true(col_cx[2] < col_cx[3])
 
@@ -1571,47 +1628,7 @@ describe("MathPuzzle Screen and Plugin", function()
         assert.is_true(bank_widget.dimen.x + bank_widget.dimen.w <= Screen:getWidth())
         assert.is_true(bank_widget.dimen.y + bank_widget.dimen.h <= cell_boxes[1][1].y)
 
-        -- Horizontal and vertical symbol positions between cells
-        for _, r in ipairs({ 1, 2, 3 }) do
-          for s = 1, 2 do
-            local sym = probs.row_ops[r][s]
-            local found = false
-            for _, sw in ipairs(grid_syms) do
-              local cx = sw.dimen.x + sw.dimen.w / 2
-              local cy = sw.dimen.y + sw.dimen.h / 2
-              if
-                sw.text == sym
-                and math.abs(cy - row_cy[r]) <= 4
-                and cx > col_cx[s]
-                and cx < col_cx[s + 1]
-              then
-                found = true
-                break
-              end
-            end
-            assert.is_true(found)
-          end
-        end
-        for _, c in ipairs({ 1, 2, 3 }) do
-          for s = 1, 2 do
-            local sym = probs.col_ops[c][s]
-            local found = false
-            for _, sw in ipairs(grid_syms) do
-              local cx = sw.dimen.x + sw.dimen.w / 2
-              local cy = sw.dimen.y + sw.dimen.h / 2
-              if
-                sw.text == sym
-                and math.abs(cx - col_cx[c]) <= 4
-                and cy > row_cy[s]
-                and cy < row_cy[s + 1]
-              then
-                found = true
-                break
-              end
-            end
-            assert.is_true(found)
-          end
-        end
+        assertEquatoSymbols(grid_syms, row_cy, col_cx, probs)
 
         -- Per-blank marks directly above each blank button
         local min_mark_h = TextWidget:new({
@@ -1638,11 +1655,37 @@ describe("MathPuzzle Screen and Plugin", function()
       function()
         local BD = require("ui/bidi")
         local orig_mirrored = BD.mirroredUILayout
+        local orig_generate = Generator.generateProblems
         finally(function()
           BD.mirroredUILayout = orig_mirrored
+          Generator.generateProblems = orig_generate
         end)
         BD.mirroredUILayout = function()
           return true
+        end
+        Generator.generateProblems = function()
+          return {
+            { row = 1, col = 1, answer = 13 },
+            { row = 1, col = 2, answer = 2 },
+            { row = 2, col = 2, answer = 3 },
+            { row = 2, col = 3, answer = 6 },
+            { row = 3, col = 3, answer = 5 },
+            grid = {
+              { false, false, 11 },
+              { 9, false, false },
+              { 4, 1, false },
+            },
+            row_ops = {
+              { "−", "=" },
+              { "=", "+" },
+              { "+", "=" },
+            },
+            col_ops = {
+              { "−", "=" },
+              { "=", "−" },
+              { "=", "+" },
+            },
+          }
         end
 
         local Device = require("device")
@@ -1673,37 +1716,13 @@ describe("MathPuzzle Screen and Plugin", function()
         end
         assert.is_not_nil(bank_widget)
 
-        local col_cx = { 0, 0, 0 }
-        local col_n = { 0, 0, 0 }
-        for _, btn in ipairs(screen.input_buttons) do
-          local p = screen.problems[btn.prob_id]
-          col_cx[p.col] = col_cx[p.col] + (btn.dimen.x + btn.dimen.w / 2)
-          col_n[p.col] = col_n[p.col] + 1
-        end
-        for r = 1, 3 do
-          for c = 1, 3 do
-            if screen.problems.grid[r][c] ~= false then
-              local expected = tostring(screen.problems.grid[r][c])
-              for _, tw in ipairs(text_widgets) do
-                if
-                  tw.text == expected
-                  and tw.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h
-                  and tw.dimen.y < check_btn.dimen.y
-                then
-                  col_cx[c] = col_cx[c] + (tw.dimen.x + tw.dimen.w / 2)
-                  col_n[c] = col_n[c] + 1
-                  break
-                end
-              end
-            end
-          end
-        end
-        for c = 1, 3 do
-          assert.is_true(col_n[c] == 3)
-          col_cx[c] = col_cx[c] / 3
-        end
+        local _, grid_syms, row_cy, col_cx =
+          collectEquatoGeometry(screen, screen.problems, text_widgets, bank_widget, check_btn)
+        assert.is_true(row_cy[1] < row_cy[2])
+        assert.is_true(row_cy[2] < row_cy[3])
         assert.is_true(col_cx[1] < col_cx[2])
         assert.is_true(col_cx[2] < col_cx[3])
+        assertEquatoSymbols(grid_syms, row_cy, col_cx, screen.problems)
 
         UIManager:close(screen)
       end
