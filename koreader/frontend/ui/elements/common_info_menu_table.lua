@@ -5,6 +5,7 @@ local Device = require("device")
 local Event = require("ui/event")
 local FfiUtil = require("ffi/util")
 local KeyValuePage = require("ui/widget/keyvaluepage")
+local Menu = require("ui/widget/menu")
 local Notification = require("ui/widget/notification")
 local UIManager = require("ui/uimanager")
 local Version = require("version")
@@ -202,9 +203,13 @@ common_info.about = {
           {
             text = gettext("Binary versions"),
             callback = function()
-              UIManager:show(KeyValuePage:new({
+              UIManager:show(Menu:new({
                 title = gettext("Binary versions"),
-                kv_pairs = require("binary_versions"):getKeyValuePairs(),
+                item_table = require("binary_versions"):getMenuItems(),
+                is_borderless = true,
+                is_popout = false,
+                title_bar_fm_style = true,
+                multilines_show_more_text = true,
               }))
             end,
           },
