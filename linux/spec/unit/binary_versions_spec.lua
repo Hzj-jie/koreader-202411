@@ -9,13 +9,17 @@ describe("BinaryVersions", function()
   end)
 
   it("enumerates all 42 ELF binaries in order", function()
-    local kv_pairs = BinaryVersions:getKeyValuePairs()
-    assert.are.equal(42, #kv_pairs)
+    assert.is_nil(BinaryVersions.getKeyValuePairs)
+    local items = BinaryVersions:getMenuItems()
+    assert.are.equal(42, #items)
 
     local section = 1
     local prev_path = ""
-    for _, pair in ipairs(kv_pairs) do
-      local path = pair[1]
+    for _, item in ipairs(items) do
+      assert.is_false(item.select_enabled)
+      assert.is_nil(item.dim)
+      local path = item.text:match("^(.-): .+$")
+      assert.is_string(path)
       local cur_section = path:match("^common/") and 2 or (path:match("^libs/") and 3 or 1)
       assert.is_true(cur_section >= section)
       if cur_section == section then
@@ -40,8 +44,9 @@ describe("BinaryVersions", function()
     }
 
     local by_path = {}
-    for _, pair in ipairs(BinaryVersions:getKeyValuePairs()) do
-      local path, ver = pair[1], pair[2]
+    for _, item in ipairs(BinaryVersions:getMenuItems()) do
+      assert.is_false(item.select_enabled)
+      local path, ver = item.text:match("^(.-): (.+)$")
       by_path[path] = ver
       assert.is_string(ver)
       assert.is_true(#ver > 0)
@@ -92,25 +97,28 @@ describe("BinaryVersions", function()
       lfs.rmdir(tmp_dir)
     end)
 
-    local expected = T(
-      gettext("Last modified: %1"),
-      os.date("%Y-%m-%d %H:%M", fixed_time)
-    )
-    local kv_pairs = BinaryVersions:getKeyValuePairs()
-    assert.are.equal(1, #kv_pairs)
-    assert.are.equal("libs/libdummy_unknown.so", kv_pairs[1][1])
-    assert.are.equal(expected, kv_pairs[1][2])
+    assert.are.same({
+      {
+        text = "libs/libdummy_unknown.so: " .. T(
+          gettext("Last modified: %1"),
+          os.date("%Y-%m-%d %H:%M", fixed_time)
+        ),
+        select_enabled = false,
+      },
+    }, BinaryVersions:getMenuItems())
   end)
 
-  it("shows Binary versions button in About dialog and opens KeyValuePage", function()
+  it("shows Binary versions button in About dialog and opens Menu", function()
     local UIManager = require("ui/uimanager")
     local common_info = require("ui/elements/common_info_menu_table")
     local shown = {}
     stub(UIManager, "show", function(_self, widget)
       table.insert(shown, widget)
     end)
+    spy.on(UIManager, "close")
     finally(function()
       UIManager.show:revert()
+      UIManager.close:revert()
     end)
 
     common_info.about.callback()
@@ -120,9 +128,19 @@ describe("BinaryVersions", function()
 
     btn.callback()
     assert.are.equal(2, #shown)
-    local kv_page = shown[2]
-    assert.are.equal(gettext("Binary versions"), kv_page.title)
-    assert.are.equal(42, #kv_page.kv_pairs)
+    local menu = shown[2]
+    assert.are.equal(gettext("Binary versions"), menu.title)
+    assert.is_true(menu.is_borderless)
+    assert.is_false(menu.is_popout)
+    assert.is_true(menu.title_bar_fm_style)
+    assert.is_true(menu.multilines_show_more_text)
+    assert.is_table(menu.item_table)
+    assert.are.equal(42, #menu.item_table)
+    assert.is_false(menu.item_table[1].select_enabled)
+    assert.is_nil(menu.item_table[1].dim)
+
+    assert.is_true(menu:onMenuSelect(menu.item_table[1]))
+    assert.spy(UIManager.close).was_not_called()
   end)
 
   it("scans version banners straddling a 64 KiB read boundary", function()
@@ -146,6 +164,11 @@ describe("BinaryVersions", function()
     f:close()
 
     assert(lfs.chdir(tmpdir))
-    assert.are.same({ { "libs/libkoreader-djvu.so", "DjVuLibre-3.5.28" } }, BinaryVersions:getKeyValuePairs())
+    assert.are.same({
+      {
+        text = "libs/libkoreader-djvu.so: DjVuLibre-3.5.28",
+        select_enabled = false,
+      },
+    }, BinaryVersions:getMenuItems())
   end)
 end)

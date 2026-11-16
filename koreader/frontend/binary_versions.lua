@@ -280,17 +280,20 @@ local function resolveVersion(path)
   )
 end
 
-function BinaryVersions:getKeyValuePairs()
-  local kv_pairs = {}
+function BinaryVersions:getMenuItems()
+  local items = {}
   for _, group in ipairs({ { ".", false }, { "common", true }, { "libs", true } }) do
     local paths = {}
     collectElfFiles(group[1], group[2], paths)
     table.sort(paths)
     for _, path in ipairs(paths) do
-      table.insert(kv_pairs, { path, resolveVersion(path) })
+      table.insert(items, {
+        text = path .. ": " .. resolveVersion(path),
+        select_enabled = false,
+      })
     end
   end
-  return kv_pairs
+  return items
 end
 
 return BinaryVersions
