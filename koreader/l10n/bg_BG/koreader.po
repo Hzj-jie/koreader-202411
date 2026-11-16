@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-13 12:22-0800\n"
+"POT-Creation-Date: 2026-11-15 18:51-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: 109247019824 <stoyan@gmx.com>\n"
 "Language-Team: Bulgarian <https://hosted.weblate.org/projects/koreader/"
@@ -15184,6 +15184,12 @@ msgstr ""
 msgid "Chain addition and subtraction steps within 100"
 msgstr ""
 
+msgid "Math Equato (+, -) within 100"
+msgstr ""
+
+msgid "Use each number once to make every row and column equation true"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -15196,6 +15202,10 @@ msgid "%1 minute"
 msgid_plural "%1 minutes"
 msgstr[0] ""
 msgstr[1] ""
+
+#, lua-format
+msgid "Number bank: %s"
+msgstr ""
 
 msgid "Check"
 msgstr ""

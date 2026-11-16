@@ -437,6 +437,29 @@ function MathPuzzleScreen:_buildUI()
     end
   end
 
+  local function createTopMarkSlot(i, width, height, face)
+    local mark_widget = TextWidget:new({
+      text = "",
+      face = face,
+      max_width = width,
+    })
+    local mark_container = FrameContainer:new({
+      width = width,
+      height = height,
+      background = Blitbuffer.COLOR_WHITE,
+      bordersize = 0,
+      padding = 0,
+      margin = 0,
+      CenterContainer:new({
+        dimen = Geom:new({ w = width, h = height }),
+        mark_widget,
+      }),
+    })
+    self.mark_widgets[i] = mark_widget
+    self.mark_containers[i] = mark_container
+    return mark_container
+  end
+
   local columns_group
   if self.mode.type == "math_snake" then
     local cols = 4
@@ -461,29 +484,9 @@ function MathPuzzleScreen:_buildUI()
 
     local step_slots = {}
     for i = 1, count do
-      local mark_widget = TextWidget:new({
-        text = "",
-        face = mark_face,
-        max_width = node_w,
-      })
-      local mark_container = FrameContainer:new({
-        width = node_w,
-        height = mark_h,
-        background = Blitbuffer.COLOR_WHITE,
-        bordersize = 0,
-        padding = 0,
-        margin = 0,
-        CenterContainer:new({
-          dimen = Geom:new({ w = node_w, h = mark_h }),
-          mark_widget,
-        }),
-      })
-      self.mark_widgets[i] = mark_widget
-      self.mark_containers[i] = mark_container
-
       step_slots[i] = VerticalGroup:new({
         align = "center",
-        mark_container,
+        createTopMarkSlot(i, node_w, mark_h, mark_face),
         createAnswerButton(
           i,
           self.problems[i],
@@ -557,6 +560,124 @@ function MathPuzzleScreen:_buildUI()
           turn_conn,
           turn_spacer,
         }))
+      end
+    end
+  elseif self.mode.type == "math_equato" then
+    local node_w = Screen:scaleBySize(68)
+    local h_conn_w = Screen:scaleBySize(34)
+    local node_h = Screen:scaleBySize(32)
+    local pad = Screen:scaleBySize(2)
+    local small_face = Font:getFace("xx_smallinfofont")
+    local op_face = Font:getFace("x_smallinfofont")
+    local given_face = Font:getFace("cfont", 20)
+    local mark_h = TextWidget:new({ text = " ✓", face = small_face })
+      :getSize().h
+    local v_op_h = TextWidget:new({ text = "=", face = op_face })
+      :getSize().h
+
+    local bank = {}
+    local blank_at = { {}, {}, {} }
+    local blank_buttons = {}
+    for i, prob in ipairs(self.problems) do
+      table.insert(bank, prob.answer)
+      blank_at[prob.row][prob.col] = i
+      blank_buttons[i] = createAnswerButton(
+        i,
+        prob,
+        node_w,
+        node_h,
+        pad,
+        pad
+      )
+    end
+    table.sort(bank)
+    local box_h = blank_buttons[1]:getSize().h
+
+    columns_group = VerticalGroup:new({
+      align = "center",
+      TextWidget:new({
+        text = string.format(
+          gettext("Number bank: %s"),
+          table.concat(bank, "  ")
+        ),
+        face = small_face,
+      }),
+      VerticalSpan:new({ height = Screen:scaleBySize(6) }),
+    })
+
+    for r = 1, 3 do
+      local row_group = HorizontalGroup:new({
+        align = "center",
+        allow_mirroring = false,
+      })
+      for c = 1, 3 do
+        local blank_idx = blank_at[r][c]
+        if blank_idx then
+          table.insert(
+            row_group,
+            VerticalGroup:new({
+              align = "center",
+              createTopMarkSlot(blank_idx, node_w, mark_h, small_face),
+              blank_buttons[blank_idx],
+            })
+          )
+        else
+          table.insert(
+            row_group,
+            VerticalGroup:new({
+              align = "center",
+              VerticalSpan:new({ height = mark_h }),
+              CenterContainer:new({
+                dimen = Geom:new({ w = node_w, h = box_h }),
+                TextWidget:new({
+                  text = tostring(self.problems.grid[r][c]),
+                  face = given_face,
+                  bold = true,
+                }),
+              }),
+            })
+          )
+        end
+        if c < 3 then
+          table.insert(
+            row_group,
+            VerticalGroup:new({
+              align = "center",
+              VerticalSpan:new({ height = mark_h }),
+              CenterContainer:new({
+                dimen = Geom:new({ w = h_conn_w, h = box_h }),
+                TextWidget:new({
+                  text = self.problems.row_ops[r][c],
+                  face = op_face,
+                }),
+              }),
+            })
+          )
+        end
+      end
+      table.insert(columns_group, row_group)
+
+      if r < 3 then
+        local v_row = HorizontalGroup:new({
+          align = "center",
+          allow_mirroring = false,
+        })
+        for c = 1, 3 do
+          table.insert(
+            v_row,
+            CenterContainer:new({
+              dimen = Geom:new({ w = node_w, h = v_op_h }),
+              TextWidget:new({
+                text = self.problems.col_ops[c][r],
+                face = op_face,
+              }),
+            })
+          )
+          if c < 3 then
+            table.insert(v_row, HorizontalSpan:new({ width = h_conn_w }))
+          end
+        end
+        table.insert(columns_group, v_row)
       end
     end
   elseif is_single_column then
