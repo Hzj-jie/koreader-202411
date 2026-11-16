@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:23-0800\n"
+"POT-Creation-Date: 2026-11-15 21:54-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Mihai Vasiliu <mihai.vasiliu.93@gmail.com>\n"
 "Language-Team: Moldavian <https://hosted.weblate.org/projects/koreader/"
@@ -16637,13 +16637,13 @@ msgstr "  Ticuri totale (milioane)"
 msgid "  Idle ticks (million)"
 msgstr "  Ticuri inactive (milioane)"
 
-msgid "  Processor usage %"
-msgstr "  Utilizare procesor %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16669,6 +16669,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  Utilizare procesor %"
 
 msgid "Priority / nice"
 msgstr ""

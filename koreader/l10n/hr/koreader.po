@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:23-0800\n"
+"POT-Creation-Date: 2026-11-15 21:54-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -15169,13 +15169,13 @@ msgstr ""
 msgid "  Idle ticks (million)"
 msgstr ""
 
-msgid "  Processor usage %"
-msgstr "  Korištenje procesora %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -15201,6 +15201,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  Korištenje procesora %"
 
 msgid "Priority / nice"
 msgstr ""

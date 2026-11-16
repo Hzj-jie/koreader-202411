@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:23-0800\n"
+"POT-Creation-Date: 2026-11-15 21:54-0800\n"
 "PO-Revision-Date: 2024-02-27 20:00+0000\n"
 "Last-Translator: shetozz <a.teama3317@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -16666,13 +16666,13 @@ msgstr ""
 msgid "  Idle ticks (million)"
 msgstr "  دقّات السكون (مليون)"
 
-msgid "  Processor usage %"
-msgstr "  استخدام المعالج %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16698,6 +16698,9 @@ msgstr "  المعرف"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  استخدام المعالج %"
 
 msgid "Priority / nice"
 msgstr ""

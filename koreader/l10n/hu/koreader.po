@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:23-0800\n"
+"POT-Creation-Date: 2026-11-15 21:54-0800\n"
 "PO-Revision-Date: 2024-10-02 07:35+0000\n"
 "Last-Translator: Sari Gabor <sarigaborj@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/koreader/"
@@ -16529,13 +16529,13 @@ msgstr "  Összes ticks (millió)"
 msgid "  Idle ticks (million)"
 msgstr "  Tétlenség ticks (millió)"
 
-msgid "  Processor usage %"
-msgstr "  Processzor használat %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16561,6 +16561,9 @@ msgstr "  Azonosító"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  Processzor használat %"
 
 msgid "Priority / nice"
 msgstr ""

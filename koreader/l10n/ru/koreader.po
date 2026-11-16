@@ -27,7 +27,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:23-0800\n"
+"POT-Creation-Date: 2026-11-15 21:54-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Artem Kaznelson <nook.artem@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/koreader/"
@@ -16716,13 +16716,13 @@ msgstr "  Всего тактов (млн.)"
 msgid "  Idle ticks (million)"
 msgstr "  Тактов простоя (млн.)"
 
-msgid "  Processor usage %"
-msgstr "  Загрузка процессора в %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16748,6 +16748,9 @@ msgstr "  Идентификатор"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  Загрузка процессора в %"
 
 msgid "Priority / nice"
 msgstr ""

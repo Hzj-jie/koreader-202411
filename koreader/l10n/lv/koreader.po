@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 15:23-0800\n"
+"POT-Creation-Date: 2026-11-15 21:54-0800\n"
 "PO-Revision-Date: 2023-04-24 07:37+0000\n"
 "Last-Translator: Einars Sprugis <einars8@gmail.com>\n"
 "Language-Team: Latvian <https://hosted.weblate.org/projects/koreader/"
@@ -16528,13 +16528,13 @@ msgstr "  Total ticks (million)"
 msgid "  Idle ticks (million)"
 msgstr "  Idle ticks (million)"
 
-msgid "  Processor usage %"
-msgstr "  Procesora lietojums %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16560,6 +16560,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  Procesora lietojums %"
 
 msgid "Priority / nice"
 msgstr ""
