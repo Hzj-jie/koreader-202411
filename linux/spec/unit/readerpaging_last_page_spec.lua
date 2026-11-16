@@ -79,4 +79,14 @@ describe("ReaderPaging last_page recovery", function()
     readerui.paging:_gotoPage(0)
     assert.equals(1, readerui.paging.current_page)
   end)
+
+  it("asserts when _gotoPage is called with nil", function()
+    readerui = ReaderUI:new({
+      dimen = Screen:getSize(),
+      document = DocumentRegistry:openDocument(tmp_pdf),
+    })
+    assert.has_error(function()
+      readerui.paging:_gotoPage(nil)
+    end)
+  end)
 end)
