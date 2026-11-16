@@ -431,7 +431,7 @@ describe("MathPuzzle Generator module", function()
           assert.is_number(prob.answer)
           assert.are.equal("", prob.user_answer)
         end
-        if mode.type ~= "math_snake" then
+        if mode.type ~= "math_snake" and mode.type ~= "math_equato" then
           assert.is_string(prob.text)
         end
         assert.is_false(prob.checked)
@@ -468,11 +468,10 @@ describe("MathPuzzle Generator module", function()
     end
   )
 
-  it("should expose math_snake_100 at the end of registered modes", function()
-    local modes = Generator.getModes()
+  it("should expose math_snake_100 mode configuration", function()
     local snake_mode = Generator.getModeById("math_snake_100")
     assert.is_table(snake_mode)
-    assert.are.equal("math_snake_100", modes[#modes].id)
+    assert.are.equal("math_snake_100", snake_mode.id)
     assert.are.equal("math_snake", snake_mode.type)
     assert.are.equal(100, snake_mode.max)
     assert.are.equal(11, snake_mode.question_count)
@@ -622,5 +621,413 @@ describe("MathPuzzle Generator module", function()
     assert.is_false(probs[4].is_correct)
     assert.is_true(probs[3].is_correct)
     assert.is_true(probs[5].is_correct)
+  end)
+
+  describe("math_equato_100", function()
+    local function evalEquatoLine(a, s1, s2, b, c)
+      if s1 == "+" and s2 == "=" then
+        return a + b == c, "+", 2
+      elseif s1 == "−" and s2 == "=" then
+        return a - b == c, "−", 2
+      elseif s1 == "=" and s2 == "+" then
+        return a == b + c, "+", 1
+      elseif s1 == "=" and s2 == "−" then
+        return a == b - c, "−", 1
+      end
+      return false, nil, nil
+    end
+
+    local function verifyEquatoPuzzle(probs)
+      assert.are.equal(5, #probs)
+      assert.is_nil(probs.bank)
+      assert.is_table(probs.grid)
+      assert.is_table(probs.row_ops)
+      assert.is_table(probs.col_ops)
+      assert.are.equal(3, #probs.grid)
+      assert.are.equal(3, #probs.row_ops)
+      assert.are.equal(3, #probs.col_ops)
+
+      local vals = { {}, {}, {} }
+      local given_count = 0
+      local row_blanks = { 0, 0, 0 }
+      local col_blanks = { 0, 0, 0 }
+      for r = 1, 3 do
+        assert.are.equal(3, #probs.grid[r])
+        for c = 1, 3 do
+          local v = probs.grid[r][c]
+          if v ~= false then
+            assert.is_number(v)
+            assert.are.equal(math.floor(v), v)
+            assert.is_true(v >= 1 and v <= 100)
+            vals[r][c] = v
+            given_count = given_count + 1
+          else
+            row_blanks[r] = row_blanks[r] + 1
+            col_blanks[c] = col_blanks[c] + 1
+          end
+        end
+      end
+      assert.are.equal(4, given_count)
+      for k = 1, 3 do
+        assert.is_true(row_blanks[k] >= 1 and row_blanks[k] <= 2)
+        assert.is_true(col_blanks[k] >= 1 and col_blanks[k] <= 2)
+      end
+
+      local prev_key = 0
+      local seen_vals = {}
+      for i, prob in ipairs(probs) do
+        assert.are.equal(i, prob.id)
+        assert.is_nil(prob.text)
+        assert.is_number(prob.row)
+        assert.is_number(prob.col)
+        assert.is_true(prob.row >= 1 and prob.row <= 3)
+        assert.is_true(prob.col >= 1 and prob.col <= 3)
+        assert.is_false(probs.grid[prob.row][prob.col])
+        local key = prob.row * 10 + prob.col
+        assert.is_true(key > prev_key)
+        prev_key = key
+
+        assert.is_number(prob.answer)
+        assert.are.equal(math.floor(prob.answer), prob.answer)
+        assert.is_true(prob.answer >= 1 and prob.answer <= 100)
+        assert.are.equal("", prob.user_answer)
+        assert.is_false(prob.checked)
+        assert.is_nil(prob.is_correct)
+        vals[prob.row][prob.col] = prob.answer
+      end
+
+      for r = 1, 3 do
+        for c = 1, 3 do
+          local v = vals[r][c]
+          assert.is_number(v)
+          assert.is_nil(seen_vals[v])
+          seen_vals[v] = true
+        end
+      end
+
+      local plus_count = 0
+      local minus_count = 0
+      local eq_pos = {}
+      local forms = {}
+
+      for r = 1, 3 do
+        local s1, s2 = probs.row_ops[r][1], probs.row_ops[r][2]
+        assert.are_not.equal("-", s1)
+        assert.are_not.equal("-", s2)
+        local ok, op, eq_slot =
+          evalEquatoLine(vals[r][1], s1, s2, vals[r][2], vals[r][3])
+        assert.is_true(ok)
+        if op == "+" then
+          plus_count = plus_count + 1
+        else
+          minus_count = minus_count + 1
+        end
+        eq_pos[eq_slot] = true
+        forms[s1 .. s2] = true
+      end
+
+      for c = 1, 3 do
+        local s1, s2 = probs.col_ops[c][1], probs.col_ops[c][2]
+        assert.are_not.equal("-", s1)
+        assert.are_not.equal("-", s2)
+        local ok, op, eq_slot =
+          evalEquatoLine(vals[1][c], s1, s2, vals[2][c], vals[3][c])
+        assert.is_true(ok)
+        if op == "+" then
+          plus_count = plus_count + 1
+        else
+          minus_count = minus_count + 1
+        end
+        eq_pos[eq_slot] = true
+        forms[s1 .. s2] = true
+      end
+
+      assert.is_true(plus_count >= 1)
+      assert.is_true(minus_count >= 1)
+      return eq_pos, forms
+    end
+
+    it(
+      "should expose math_equato_100 at the end of registered modes",
+      function()
+        local modes = Generator.getModes()
+        local eq_mode = Generator.getModeById("math_equato_100")
+        assert.is_table(eq_mode)
+        assert.are.equal("math_equato_100", modes[#modes].id)
+        assert.are.equal("math_equato", eq_mode.type)
+        assert.are.equal(100, eq_mode.max)
+        assert.are.equal(5, eq_mode.question_count)
+        assert.is_string(eq_mode.title)
+        assert.is_string(eq_mode.description)
+      end
+    )
+
+    it(
+      "should assert when math_equato_100 is requested with count ~= 5",
+      function()
+        assert.has_error(function()
+          Generator.generateProblems("math_equato_100", 3)
+        end)
+      end
+    )
+
+    it(
+      "should generate valid 3x3 equato grids with distinct values, mixed ops, and movable equals",
+      function()
+        local seen_eq_1 = false
+        local seen_eq_2 = false
+        local seen_forms = {}
+        for _ = 1, 200 do
+          local probs = Generator.generateProblems("math_equato_100")
+          local eq_pos, forms = verifyEquatoPuzzle(probs)
+          if eq_pos[1] then
+            seen_eq_1 = true
+          end
+          if eq_pos[2] then
+            seen_eq_2 = true
+          end
+          for f in pairs(forms) do
+            seen_forms[f] = true
+          end
+        end
+        assert.is_true(seen_eq_1)
+        assert.is_true(seen_eq_2)
+        assert.is_true(seen_forms["+="])
+        assert.is_true(seen_forms["−="])
+        assert.is_true(seen_forms["=+"])
+        assert.is_true(seen_forms["=−"])
+      end
+    )
+
+    it(
+      "should have a unique 5! bank permutation solution and be peel-solvable line by line",
+      function()
+        for _ = 1, 30 do
+          local probs = Generator.generateProblems("math_equato_100")
+          verifyEquatoPuzzle(probs)
+
+          -- Brute-force all 5! = 120 assignments of the bank
+          local bank = {}
+          for i = 1, 5 do
+            bank[i] = probs[i].answer
+          end
+
+          local candidate = { {}, {}, {} }
+          for r = 1, 3 do
+            for c = 1, 3 do
+              candidate[r][c] = probs.grid[r][c]
+            end
+          end
+
+          local function checkCandidate()
+            for r = 1, 3 do
+              if
+                not evalEquatoLine(
+                  candidate[r][1],
+                  probs.row_ops[r][1],
+                  probs.row_ops[r][2],
+                  candidate[r][2],
+                  candidate[r][3]
+                )
+              then
+                return false
+              end
+            end
+            for c = 1, 3 do
+              if
+                not evalEquatoLine(
+                  candidate[1][c],
+                  probs.col_ops[c][1],
+                  probs.col_ops[c][2],
+                  candidate[2][c],
+                  candidate[3][c]
+                )
+              then
+                return false
+              end
+            end
+            return true
+          end
+
+          local valid_count = 0
+          local used = {}
+          local function permute(idx)
+            if idx > 5 then
+              if checkCandidate() then
+                valid_count = valid_count + 1
+              end
+              return
+            end
+            local blank = probs[idx]
+            for b = 1, 5 do
+              if not used[b] then
+                used[b] = true
+                candidate[blank.row][blank.col] = bank[b]
+                permute(idx + 1)
+                used[b] = false
+              end
+            end
+          end
+          permute(1)
+          assert.are.equal(1, valid_count)
+
+          -- Line-by-line peel solver starting from only the 4 givens
+          local solved = { {}, {}, {} }
+          for r = 1, 3 do
+            for c = 1, 3 do
+              if probs.grid[r][c] ~= false then
+                solved[r][c] = probs.grid[r][c]
+              end
+            end
+          end
+
+          local function solveOneMissing(a, b, c, s1, s2, unknown_idx)
+            if s1 == "+" and s2 == "=" then
+              if unknown_idx == 1 then
+                return c - b
+              elseif unknown_idx == 2 then
+                return c - a
+              else
+                return a + b
+              end
+            elseif s1 == "−" and s2 == "=" then
+              if unknown_idx == 1 then
+                return b + c
+              elseif unknown_idx == 2 then
+                return a - c
+              else
+                return a - b
+              end
+            elseif s1 == "=" and s2 == "+" then
+              if unknown_idx == 1 then
+                return b + c
+              elseif unknown_idx == 2 then
+                return a - c
+              else
+                return a - b
+              end
+            elseif s1 == "=" and s2 == "−" then
+              if unknown_idx == 1 then
+                return b - c
+              elseif unknown_idx == 2 then
+                return a + c
+              else
+                return b - a
+              end
+            end
+          end
+
+          local solved_count = 0
+          while solved_count < 5 do
+            local progressed = false
+            for r = 1, 3 do
+              local missing_idx
+              local missing_n = 0
+              for c = 1, 3 do
+                if not solved[r][c] then
+                  missing_n = missing_n + 1
+                  missing_idx = c
+                end
+              end
+              if missing_n == 1 then
+                solved[r][missing_idx] = solveOneMissing(
+                  solved[r][1],
+                  solved[r][2],
+                  solved[r][3],
+                  probs.row_ops[r][1],
+                  probs.row_ops[r][2],
+                  missing_idx
+                )
+                solved_count = solved_count + 1
+                progressed = true
+              end
+            end
+            for c = 1, 3 do
+              local missing_idx
+              local missing_n = 0
+              for r = 1, 3 do
+                if not solved[r][c] then
+                  missing_n = missing_n + 1
+                  missing_idx = r
+                end
+              end
+              if missing_n == 1 then
+                solved[missing_idx][c] = solveOneMissing(
+                  solved[1][c],
+                  solved[2][c],
+                  solved[3][c],
+                  probs.col_ops[c][1],
+                  probs.col_ops[c][2],
+                  missing_idx
+                )
+                solved_count = solved_count + 1
+                progressed = true
+              end
+            end
+            assert.is_true(progressed)
+          end
+
+          for _, prob in ipairs(probs) do
+            assert.are.equal(prob.answer, solved[prob.row][prob.col])
+          end
+        end
+      end
+    )
+
+    it(
+      "should terminate and enforce invariants under constant min/max random stubs",
+      function()
+        local active_stub
+        finally(function()
+          if active_stub then
+            active_stub:revert()
+          end
+        end)
+
+        active_stub = stub(math, "random", function(lo)
+          if lo then
+            return lo
+          end
+          return 0
+        end)
+        verifyEquatoPuzzle(Generator.generateProblems("math_equato_100"))
+        active_stub:revert()
+        active_stub = nil
+
+        active_stub = stub(math, "random", function(lo, hi)
+          if hi then
+            return hi
+          elseif lo then
+            return lo
+          end
+          return 1
+        end)
+        verifyEquatoPuzzle(Generator.generateProblems("math_equato_100"))
+        active_stub:revert()
+        active_stub = nil
+      end
+    )
+
+    it("should grade math_equato_100 blanks in checkAnswers", function()
+      local probs = Generator.generateProblems("math_equato_100")
+      local empty_res = Generator.checkAnswers(probs)
+      assert.are.equal(5, empty_res.total)
+      assert.are.equal(0, empty_res.correct_count)
+
+      for _, prob in ipairs(probs) do
+        prob.user_answer = tostring(prob.answer)
+      end
+      local full_res = Generator.checkAnswers(probs)
+      assert.are.equal(5, full_res.total)
+      assert.are.equal(5, full_res.correct_count)
+
+      probs[3].user_answer = tostring(probs[3].answer + 1)
+      local partial_res = Generator.checkAnswers(probs)
+      assert.are.equal(5, partial_res.total)
+      assert.are.equal(4, partial_res.correct_count)
+      assert.is_false(probs[3].is_correct)
+      assert.is_true(probs[2].is_correct)
+      assert.is_true(probs[4].is_correct)
+    end)
   end)
 end)

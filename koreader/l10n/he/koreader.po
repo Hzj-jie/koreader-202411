@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 14:52-0800\n"
+"POT-Creation-Date: 2026-11-15 18:52-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -14782,6 +14782,12 @@ msgstr ""
 msgid "Chain addition and subtraction steps within 100"
 msgstr ""
 
+msgid "Math Equato (+, -) within 100"
+msgstr ""
+
+msgid "Use each number once to make every row and column equation true"
+msgstr ""
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr ""
@@ -14796,6 +14802,10 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 msgstr[3] ""
+
+#, lua-format
+msgid "Number bank: %s"
+msgstr ""
 
 msgid "Check"
 msgstr ""

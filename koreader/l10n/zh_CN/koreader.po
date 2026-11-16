@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 14:52-0800\n"
+"POT-Creation-Date: 2026-11-15 18:52-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -14516,6 +14516,12 @@ msgstr "100以内算式接龙（加减法）"
 msgid "Chain addition and subtraction steps within 100"
 msgstr "100以内的连续加减法接龙计算"
 
+msgid "Math Equato (+, -) within 100"
+msgstr "100以内算式方阵（加减法）"
+
+msgid "Use each number once to make every row and column equation true"
+msgstr "每个数只用一次，使横向和纵向的等式都成立"
+
 #, lua-format
 msgid "Correct: %d  ·  Wrong: %d  ·  Score: %s"
 msgstr "正确：%d  ·  错误：%d  ·  正确率：%s"
@@ -14527,6 +14533,10 @@ msgstr "用时：%s"
 msgid "%1 minute"
 msgid_plural "%1 minutes"
 msgstr[0] "%1 分钟"
+
+#, lua-format
+msgid "Number bank: %s"
+msgstr "可用数字：%s"
 
 msgid "Check"
 msgstr "检查"
