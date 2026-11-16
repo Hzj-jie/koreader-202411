@@ -18560,16 +18560,19 @@ msgid "  Idle ticks (million)"
 msgstr ""
 
 #: plugins/systemstat.koplugin/main.lua:342
-#: plugins/systemstat.koplugin/main.lua:420
-msgid "  Processor usage %"
+msgid "1-min system workload"
 msgstr ""
 
 #: plugins/systemstat.koplugin/main.lua:348
-msgid "5 minutes usage %"
+msgid "5-min system workload"
 msgstr ""
 
 #: plugins/systemstat.koplugin/main.lua:354
-msgid "15 minutes usage %"
+msgid "15-min system workload"
+msgstr ""
+
+#: plugins/systemstat.koplugin/main.lua:420
+msgid "  Processor usage %"
 msgstr ""
 
 #: plugins/systemstat.koplugin/main.lua:359

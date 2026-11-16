@@ -20264,17 +20264,20 @@ msgid "  Idle ticks (million)"
 msgstr "  閒置的處理器週期（百萬）"
 
 #: plugins/systemstat.koplugin/main.lua:342
+msgid "1-min system workload"
+msgstr "1分鐘系統工作負載"
+
+#: plugins/systemstat.koplugin/main.lua:348
+msgid "5-min system workload"
+msgstr "5分鐘系統工作負載"
+
+#: plugins/systemstat.koplugin/main.lua:354
+msgid "15-min system workload"
+msgstr "15分鐘系統工作負載"
+
 #: plugins/systemstat.koplugin/main.lua:420
 msgid "  Processor usage %"
 msgstr "  處理器用量百分比"
-
-#: plugins/systemstat.koplugin/main.lua:348
-msgid "5 minutes usage %"
-msgstr "5分鐘使用率 %"
-
-#: plugins/systemstat.koplugin/main.lua:354
-msgid "15 minutes usage %"
-msgstr "15分鐘使用率 %"
 
 #: plugins/systemstat.koplugin/main.lua:359
 msgid "Usage % during awake"

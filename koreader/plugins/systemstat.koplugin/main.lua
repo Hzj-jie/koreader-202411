@@ -339,20 +339,20 @@ function SystemStat:appendSystemInfo()
   })
   if #self.sys_stat.cpu.average > 0 then
     self:put({
-      gettext("  Processor usage %"),
-      string.format("%.2f", self.sys_stat.cpu.average[1] * 100),
+      "  " .. gettext("1-min system workload"),
+      string.format("%.2f%%", self.sys_stat.cpu.average[1] * 100),
     })
   end
   if #self.sys_stat.cpu.average > 1 then
     self:put({
-      "  " .. gettext("5 minutes usage %"),
-      string.format("%.2f", self.sys_stat.cpu.average[2] * 100),
+      "  " .. gettext("5-min system workload"),
+      string.format("%.2f%%", self.sys_stat.cpu.average[2] * 100),
     })
   end
   if #self.sys_stat.cpu.average > 2 then
     self:put({
-      "  " .. gettext("15 minutes usage %"),
-      string.format("%.2f", self.sys_stat.cpu.average[3] * 100),
+      "  " .. gettext("15-min system workload"),
+      string.format("%.2f%%", self.sys_stat.cpu.average[3] * 100),
     })
   end
   self:put({
