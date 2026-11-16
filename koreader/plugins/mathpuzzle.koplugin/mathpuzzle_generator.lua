@@ -147,6 +147,16 @@ Generator.MODES = {
     max = 100,
     question_count = 11,
   },
+  {
+    id = "math_equato_100",
+    title = gettext("Math Equato (+, -) within 100"),
+    description = gettext(
+      "Use each number once to make every row and column equation true"
+    ),
+    type = "math_equato",
+    max = 100,
+    question_count = 5,
+  },
 }
 
 function Generator.getModes()
@@ -505,12 +515,138 @@ local function generateMathSnakeProblems(mode, count)
   return problems
 end
 
+local function shuffleThree()
+  local p = { 1, 2, 3 }
+  for i = 3, 2, -1 do
+    local j = math.random(1, i)
+    p[i], p[j] = p[j], p[i]
+  end
+  return p
+end
+
+local function generateMathEquatoProblems(mode, count)
+  assert(count == 5)
+  local max_val = mode.max
+  assert(max_val >= 13)
+
+  local v = math.random(1, math.floor((max_val - 6) / 7))
+  local u = math.random(v + 1, math.floor((max_val - 4 * v - 3) / 3))
+  local y = math.random(u + v + 1, math.floor((max_val - u - 2 * v - 1) / 2))
+  local x = math.random(y + v + 1, max_val - u - v - y)
+  local base = {
+    { x, u + v, x + u + v },
+    { y + v, v, y },
+    { x + y + v, u, x + y + u + v },
+  }
+
+  local sr = shuffleThree()
+  local sc = shuffleThree()
+  local vals = { {}, {}, {} }
+  for r = 1, 3 do
+    for c = 1, 3 do
+      vals[r][c] = base[sr[r]][sc[c]]
+    end
+  end
+
+  local row_ops = { {}, {}, {} }
+  local col_ops = { {}, {}, {} }
+  local lines = {}
+  for r = 1, 3 do
+    table.insert(
+      lines,
+      { a = vals[r][1], b = vals[r][2], c = vals[r][3], target = row_ops[r] }
+    )
+  end
+  for c = 1, 3 do
+    table.insert(
+      lines,
+      { a = vals[1][c], b = vals[2][c], c = vals[3][c], target = col_ops[c] }
+    )
+  end
+
+  local saw_plus = false
+  local saw_minus = false
+  local free_targets = {}
+  for _, line in ipairs(lines) do
+    if line.c > line.a and line.c > line.b then
+      line.target[1], line.target[2] = "+", "="
+      saw_plus = true
+    elseif line.b > line.a and line.b > line.c then
+      line.target[1], line.target[2] = "=", "−"
+      saw_minus = true
+    else
+      table.insert(free_targets, line.target)
+    end
+  end
+
+  for idx, target in ipairs(free_targets) do
+    local use_plus
+    if idx == #free_targets and not saw_plus then
+      use_plus = true
+    elseif idx == #free_targets and not saw_minus then
+      use_plus = false
+    else
+      use_plus = math.random(1, 2) == 1
+    end
+    if use_plus then
+      target[1], target[2] = "=", "+"
+      saw_plus = true
+    else
+      target[1], target[2] = "−", "="
+      saw_minus = true
+    end
+  end
+  assert(saw_plus and saw_minus)
+
+  local rr = shuffleThree()
+  local cc = shuffleThree()
+  local is_blank = { {}, {}, {} }
+  local path = {
+    { rr[1], cc[1] },
+    { rr[2], cc[1] },
+    { rr[2], cc[2] },
+    { rr[3], cc[2] },
+    { rr[3], cc[3] },
+  }
+  for _, pos in ipairs(path) do
+    is_blank[pos[1]][pos[2]] = true
+  end
+
+  local grid = { {}, {}, {} }
+  local problems = {
+    grid = grid,
+    row_ops = row_ops,
+    col_ops = col_ops,
+  }
+  for r = 1, 3 do
+    for c = 1, 3 do
+      if is_blank[r][c] then
+        grid[r][c] = false
+        table.insert(problems, {
+          id = #problems + 1,
+          row = r,
+          col = c,
+          answer = vals[r][c],
+          user_answer = "",
+          checked = false,
+        })
+      else
+        grid[r][c] = vals[r][c]
+      end
+    end
+  end
+
+  return problems
+end
+
 function Generator.generateProblems(mode_id, count)
   local mode = type(mode_id) == "table" and mode_id
     or Generator.getModeById(mode_id)
   count = count or mode.question_count or 10
   if mode.type == "math_snake" then
     return generateMathSnakeProblems(mode, count)
+  elseif mode.type == "math_equato" then
+    return generateMathEquatoProblems(mode, count)
   end
   local problems = {}
   local seen = {}
