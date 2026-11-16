@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 18:52-0800\n"
+"POT-Creation-Date: 2026-11-15 21:52-0800\n"
 "PO-Revision-Date: 2024-05-24 07:40+0000\n"
 "Last-Translator: Monirzadeh <Monirzadeh@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/koreader/"
@@ -15751,13 +15751,13 @@ msgstr ""
 msgid "  Idle ticks (million)"
 msgstr ""
 
-msgid "  Processor usage %"
-msgstr "  مصرف پردازنده %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -15783,6 +15783,9 @@ msgstr ""
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  مصرف پردازنده %"
 
 msgid "Priority / nice"
 msgstr ""

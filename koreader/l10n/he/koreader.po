@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 18:52-0800\n"
+"POT-Creation-Date: 2026-11-15 21:52-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -16320,13 +16320,13 @@ msgstr "  סה\"כ ticks (מיליון)"
 msgid "  Idle ticks (million)"
 msgstr "  ticks סרק (מיליון)"
 
-msgid "  Processor usage %"
-msgstr "  אחוזי השימוש במעבד"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16352,6 +16352,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  אחוזי השימוש במעבד"
 
 msgid "Priority / nice"
 msgstr ""

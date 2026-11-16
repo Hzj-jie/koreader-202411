@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 18:52-0800\n"
+"POT-Creation-Date: 2026-11-15 21:52-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -16022,14 +16022,14 @@ msgstr "  总时钟周期（百万）"
 msgid "  Idle ticks (million)"
 msgstr "  闲置时钟周期（百万）"
 
-msgid "  Processor usage %"
-msgstr "  处理器使用率 %"
+msgid "1-min system workload"
+msgstr "1分钟系统工作负载"
 
-msgid "5 minutes usage %"
-msgstr "5分钟使用率 %"
+msgid "5-min system workload"
+msgstr "5分钟系统工作负载"
 
-msgid "15 minutes usage %"
-msgstr "15分钟使用率 %"
+msgid "15-min system workload"
+msgstr "15分钟系统工作负载"
 
 msgid "Usage % during awake"
 msgstr "唤醒期间使用率 %"
@@ -16054,6 +16054,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr "总滴答数"
+
+msgid "  Processor usage %"
+msgstr "  处理器使用率 %"
 
 msgid "Priority / nice"
 msgstr "优先级 / Nice"
@@ -17019,6 +17022,12 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "注释"
+
+#~ msgid "5 minutes usage %"
+#~ msgstr "5分钟使用率 %"
+
+#~ msgid "15 minutes usage %"
+#~ msgstr "15分钟使用率 %"
 
 #~ msgid ""
 #~ "A previous history backup already exists, are you sure to override it?"

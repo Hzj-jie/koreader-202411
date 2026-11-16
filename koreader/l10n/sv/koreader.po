@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 18:52-0800\n"
+"POT-Creation-Date: 2026-11-15 21:52-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -16260,13 +16260,13 @@ msgstr "  Ticks totalt (miljon)"
 msgid "  Idle ticks (million)"
 msgstr "  Overksamma ticks (miljon)"
 
-msgid "  Processor usage %"
-msgstr "  Processoranvändning %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16292,6 +16292,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  Processoranvändning %"
 
 msgid "Priority / nice"
 msgstr ""
