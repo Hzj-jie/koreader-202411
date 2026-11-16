@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 14:28-0800\n"
+"POT-Creation-Date: 2026-11-15 21:51-0800\n"
 "PO-Revision-Date: 2024-11-20 17:30+0000\n"
 "Last-Translator: Frans de Jonge <fransdejonge@gmail.com>\n"
 "Language-Team: Dutch <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -16723,13 +16723,13 @@ msgstr "  Totaal ticks (in miljoen)"
 msgid "  Idle ticks (million)"
 msgstr "  Stationaire ticks (in miljoen)"
 
-msgid "  Processor usage %"
-msgstr "  Processorgebruik %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16755,6 +16755,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  Processorgebruik %"
 
 msgid "Priority / nice"
 msgstr ""

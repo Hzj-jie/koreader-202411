@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 14:28-0800\n"
+"POT-Creation-Date: 2026-11-15 21:51-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: kr <harum@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -16182,13 +16182,13 @@ msgstr "  전체 틱 (백만)"
 msgid "  Idle ticks (million)"
 msgstr "  유휴 틱 (백만)"
 
-msgid "  Processor usage %"
-msgstr "  프로세서 사용량 %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16214,6 +16214,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  프로세서 사용량 %"
 
 msgid "Priority / nice"
 msgstr ""
