@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 14:28-0800\n"
+"POT-Creation-Date: 2026-11-15 21:51-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -16470,13 +16470,13 @@ msgstr "  合計 ticks (百万)"
 msgid "  Idle ticks (million)"
 msgstr "  アイドル ticks (百万)"
 
-msgid "  Processor usage %"
-msgstr "  プロセッサ使用状況 %"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16502,6 +16502,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  プロセッサ使用状況 %"
 
 msgid "Priority / nice"
 msgstr ""
