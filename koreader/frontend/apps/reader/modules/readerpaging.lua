@@ -1194,9 +1194,7 @@ end
 
 -- wrapper for bounds checking
 function ReaderPaging:_gotoPage(number, orig_mode)
-  if not number then
-    return true
-  end
+  assert(type(number) == "number")
   if number > self.number_of_pages then
     logger.warn("page number too high: " .. number .. "!")
     number = self.number_of_pages
