@@ -159,6 +159,18 @@ function Gestures:init()
   if not self.settings_data then
     self.settings_data = LuaSettings:open(gestures_path)
   end
+  if type(self.settings_data.data) ~= "table" then
+    self.settings_data.data = {}
+  end
+  for key, value in pairs(self.settings_data.data) do
+    if type(value) ~= "table" then
+      self.settings_data.data[key] = nil
+    end
+  end
+  self.settings_data.data[self.ges_mode] =
+    self.settings_data.data[self.ges_mode] or util.tableDeepCopy(self.defaults)
+  self.settings_data.data["custom_multiswipes"] =
+    self.settings_data.data["custom_multiswipes"] or {}
   self.gestures = self.settings_data.data[self.ges_mode]
   self.custom_multiswipes = self.settings_data.data["custom_multiswipes"]
 
@@ -520,8 +532,11 @@ function Gestures:genCustomMultiswipeSubmenu()
           -- remove from list of custom multiswipes
           self.custom_multiswipes[item] = nil
           -- remove any settings for the muliswipe
-          self.settings_data.data["gesture_fm"][item] = nil
-          self.settings_data.data["gesture_reader"][item] = nil
+          for _, section in ipairs({ "gesture_fm", "gesture_reader" }) do
+            if self.settings_data.data[section] then
+              self.settings_data.data[section][item] = nil
+            end
+          end
           self.updated = true
 
           --menu.item_table = self:genMultiswipeMenu()
@@ -1362,35 +1377,37 @@ end
 function Gestures:updateProfiles(action_old_name, action_new_name)
   for _, section in ipairs({ "gesture_fm", "gesture_reader" }) do
     local gestures = self.settings_data.data[section]
-    for gesture_name, gesture in pairs(gestures) do
-      if gesture[action_old_name] then
-        if gesture.settings and gesture.settings.order then
-          for i, action in ipairs(gesture.settings.order) do
-            if action == action_old_name then
-              if action_new_name then
-                gesture.settings.order[i] = action_new_name
-              else
-                table.remove(gesture.settings.order, i)
-                if #gesture.settings.order == 0 then
-                  gesture.settings.order = nil
-                  if next(gesture.settings) == nil then
-                    gesture.settings = nil
+    if gestures then
+      for gesture_name, gesture in pairs(gestures) do
+        if gesture[action_old_name] then
+          if gesture.settings and gesture.settings.order then
+            for i, action in ipairs(gesture.settings.order) do
+              if action == action_old_name then
+                if action_new_name then
+                  gesture.settings.order[i] = action_new_name
+                else
+                  table.remove(gesture.settings.order, i)
+                  if #gesture.settings.order == 0 then
+                    gesture.settings.order = nil
+                    if next(gesture.settings) == nil then
+                      gesture.settings = nil
+                    end
                   end
                 end
+                break
               end
-              break
             end
           end
-        end
-        gesture[action_old_name] = nil
-        if action_new_name then
-          gesture[action_new_name] = true
-        else
-          if next(gesture) == nil then
-            self.settings_data.data[section][gesture_name] = nil
+          gesture[action_old_name] = nil
+          if action_new_name then
+            gesture[action_new_name] = true
+          else
+            if next(gesture) == nil then
+              self.settings_data.data[section][gesture_name] = nil
+            end
           end
+          self.updated = true
         end
-        self.updated = true
       end
     end
   end
