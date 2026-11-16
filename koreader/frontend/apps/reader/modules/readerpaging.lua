@@ -1194,7 +1194,7 @@ end
 
 -- wrapper for bounds checking
 function ReaderPaging:_gotoPage(number, orig_mode)
-  if number == self.current_page or not number then
+  if not number then
     return true
   end
   if number > self.number_of_pages then
@@ -1203,6 +1203,9 @@ function ReaderPaging:_gotoPage(number, orig_mode)
   elseif number < 1 then
     logger.warn("page number too low: " .. number .. "!")
     number = 1
+  end
+  if number == self.current_page then
+    return true
   end
   -- this is an event to allow other controllers to be aware of this change
   UIManager:broadcastEvent(Event:new("PageUpdate", number, orig_mode))
