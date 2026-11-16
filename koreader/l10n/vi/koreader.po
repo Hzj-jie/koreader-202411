@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 18:51-0800\n"
+"POT-Creation-Date: 2026-11-15 21:52-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -16098,13 +16098,13 @@ msgstr "  Tổng bộ đếm - ticks (hàng triệu)"
 msgid "  Idle ticks (million)"
 msgstr "  Bộ đếm thời gian rỗi - Idle ticks (hàng triệu)"
 
-msgid "  Processor usage %"
-msgstr "  % vi xử lý sử dụng"
-
-msgid "5 minutes usage %"
+msgid "1-min system workload"
 msgstr ""
 
-msgid "15 minutes usage %"
+msgid "5-min system workload"
+msgstr ""
+
+msgid "15-min system workload"
 msgstr ""
 
 msgid "Usage % during awake"
@@ -16130,6 +16130,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr ""
+
+msgid "  Processor usage %"
+msgstr "  % vi xử lý sử dụng"
 
 msgid "Priority / nice"
 msgstr ""

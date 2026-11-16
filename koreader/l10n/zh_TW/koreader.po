@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 18:51-0800\n"
+"POT-Creation-Date: 2026-11-15 21:52-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -16048,14 +16048,14 @@ msgstr "  總處理器週期（百萬）"
 msgid "  Idle ticks (million)"
 msgstr "  閒置的處理器週期（百萬）"
 
-msgid "  Processor usage %"
-msgstr "  處理器用量百分比"
+msgid "1-min system workload"
+msgstr "1分鐘系統工作負載"
 
-msgid "5 minutes usage %"
-msgstr "5分鐘使用率 %"
+msgid "5-min system workload"
+msgstr "5分鐘系統工作負載"
 
-msgid "15 minutes usage %"
-msgstr "15分鐘使用率 %"
+msgid "15-min system workload"
+msgstr "15分鐘系統工作負載"
 
 msgid "Usage % during awake"
 msgstr "喚醒期間使用率 %"
@@ -16080,6 +16080,9 @@ msgstr "  ID"
 
 msgid "Total ticks"
 msgstr "總時脈滴答數"
+
+msgid "  Processor usage %"
+msgstr "  處理器用量百分比"
 
 msgid "Priority / nice"
 msgstr "優先權 / Nice"
@@ -17045,6 +17048,12 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "註釋"
+
+#~ msgid "5 minutes usage %"
+#~ msgstr "5分鐘使用率 %"
+
+#~ msgid "15 minutes usage %"
+#~ msgstr "15分鐘使用率 %"
 
 #~ msgid "network unreachable"
 #~ msgstr "無法連線至網路"
