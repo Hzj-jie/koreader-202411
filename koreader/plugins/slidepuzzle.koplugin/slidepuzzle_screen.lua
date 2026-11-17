@@ -66,7 +66,7 @@ function Screen:init()
   self.live_tick_accum = 0 -- seconds ticked during current run (not yet folded into game.elapsed)
   self.tick_scheduled = false
   if Device:hasKeys() then
-    self.key_events.Close = { { Device.input.group.Back } }
+    self.key_events.Exit = { { Device.input.group.Back } }
   end
   self.header_text = TextWidget:new({
     face = Font:getFace("smallinfofont"),
@@ -150,7 +150,6 @@ function Screen:buildLayout()
           text = I18n.t("Close"),
           background = Blitbuffer.COLOR_WHITE,
           callback = function()
-            self:onClose()
             UIManager:close(self)
           end,
         },
@@ -515,6 +514,11 @@ function Screen:showStats()
     face = Font:getFace("infont"),
     text = table.concat(lines, "\n"),
   }))
+end
+
+function Screen:onExit()
+  UIManager:close(self)
+  return true
 end
 
 function Screen:onClose()
