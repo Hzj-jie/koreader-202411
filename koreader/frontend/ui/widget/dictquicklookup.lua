@@ -707,7 +707,7 @@ function DictQuickLookup:init()
   })
 
   self.movable = MovableContainer:new({
-    anchor = not is_large_window and self.word_boxes and function()
+    anchor = not is_large_window and function()
       return MovableContainer.boxesAnchor(self.word_boxes)
     end or nil,
     anchor_min_y = margin_top,

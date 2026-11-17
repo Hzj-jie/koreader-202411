@@ -636,6 +636,9 @@ describe("DictQuickLookup", function()
       local margin_top = Size.margin.default
       local pad = Size.padding.small
       local bb = Blitbuffer.new(screen_w, screen_h)
+      finally(function()
+        bb:free()
+      end)
 
       -- Centered (no word_boxes): offset stays 0 and still hold toggles alpha
       local centered = DictQuickLookup:new({
@@ -693,9 +696,8 @@ describe("DictQuickLookup", function()
         word_boxes = { top_box },
       })
       below:paintTo(bb, 0, 0)
-      local below_size = below.dict_frame:getSize()
       assert.are.equal(
-        math.floor((screen_w - below_size.w) / 2),
+        math.floor((screen_w - below.dict_frame:getSize().w) / 2),
         below.dict_frame.dimen.x
       )
       assert.are.equal(top_box.y + top_box.h + pad, below.dict_frame.dimen.y)
@@ -716,39 +718,38 @@ describe("DictQuickLookup", function()
       )
 
       -- Tall selection fitting neither above nor below: picks side with more room inside bounds
-      local max_y = screen_h - margin_top
-      local tall_top_box = Geom:new({
-        x = 20,
-        y = margin_top + 10,
-        w = 80,
-        h = screen_h - margin_top - 140,
-      })
       local fallback_bottom = DictQuickLookup:new({
         word = "test",
         results = createDummyResults(),
-        word_boxes = { tall_top_box },
+        word_boxes = {
+          Geom:new({
+            x = 20,
+            y = margin_top + 10,
+            w = 80,
+            h = screen_h - margin_top - 140,
+          }),
+        },
       })
       fallback_bottom:paintTo(bb, 0, 0)
       assert.are.equal(
-        max_y - fallback_bottom.dict_frame:getSize().h,
+        screen_h - margin_top - fallback_bottom.dict_frame:getSize().h,
         fallback_bottom.dict_frame.dimen.y
       )
 
-      local tall_bottom_box = Geom:new({
-        x = 20,
-        y = 140,
-        w = 80,
-        h = screen_h - margin_top - 150,
-      })
       local fallback_top = DictQuickLookup:new({
         word = "test",
         results = createDummyResults(),
-        word_boxes = { tall_bottom_box },
+        word_boxes = {
+          Geom:new({
+            x = 20,
+            y = 140,
+            w = 80,
+            h = screen_h - margin_top - 150,
+          }),
+        },
       })
       fallback_top:paintTo(bb, 0, 0)
       assert.are.equal(margin_top, fallback_top.dict_frame.dimen.y)
-
-      bb:free()
     end)
 
     it("should be modal by default", function()

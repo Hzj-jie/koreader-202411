@@ -1568,12 +1568,14 @@ function ReaderHighlight:onShowHighlightMenu(index)
     end
   end
 
-  local target = index and self.ui.annotation.annotations[index]
-    or self.selected_text
   self.highlight_dialog = ButtonDialog:new({
     buttons = highlight_buttons,
     anchor = function()
-      return MovableContainer.boxesAnchor(self:_getHighlightScreenBoxes(target))
+      return MovableContainer.boxesAnchor(
+        self:_getHighlightScreenBoxes(
+          index and self.ui.annotation.annotations[index] or self.selected_text
+        )
+      )
     end,
     tap_close_callback = function()
       self:onTap()
@@ -1600,7 +1602,8 @@ function ReaderHighlight:_getHighlightScreenBoxes(target)
   if self.ui.rolling then
     if target.sboxes then
       return target.sboxes
-    elseif target.pos0 and target.pos1 then
+    else
+      assert(target.pos0 and target.pos1)
       return self.ui.document:getScreenBoxesFromPositions(
         target.pos0,
         target.pos1,
@@ -1612,7 +1615,8 @@ function ReaderHighlight:_getHighlightScreenBoxes(target)
       self.hold_pos.page,
       target.sboxes
     )
-  elseif target.pos0 and target.pos1 then
+  else
+    assert(target.pos0 and target.pos1)
     local screen_boxes = {}
     for _, page in ipairs(self.ui.view:getCurrentPageList()) do
       local page_target = target.ext and target.ext[page]

@@ -255,7 +255,6 @@ describe("Readerhighlight module", function()
       it(
         "should position edit dialog away from reflowed saved highlight",
         function()
-          local Size = require("ui/size")
           local highlight = readerui.highlight
           highlight:onHold(nil, { pos = Geom:new({ x = 260, y = 70 }) })
           highlight:onHoldPan(nil, { pos = Geom:new({ x = 260, y = 150 }) })
@@ -277,13 +276,16 @@ describe("Readerhighlight module", function()
           assert.truthy(highlight.edit_highlight_dialog)
           highlight.edit_highlight_dialog:paintTo(Screen.bb, 0, 0)
 
-          local pboxes = readerui.document:getPageBoxesFromPositions(
-            31,
-            item.pos0,
-            item.pos1
-          )
           local sboxes = {}
-          for _, box in ipairs(pboxes) do
+          for _, box in
+            ipairs(
+              readerui.document:getPageBoxesFromPositions(
+                31,
+                item.pos0,
+                item.pos1
+              )
+            )
+          do
             local rect = readerui.view:pageToScreenTransform(31, box)
             if rect then
               table.insert(sboxes, rect)
@@ -291,7 +293,7 @@ describe("Readerhighlight module", function()
           end
           local bbox = Geom.boundingBox(sboxes)
           local moved = highlight.edit_highlight_dialog.movable:getMovedDimen()
-          local pad = Size.padding.small
+          local pad = require("ui/size").padding.small
           assert.is_true(
             moved.y == bbox.y + bbox.h + pad
               or moved.y + moved.h == bbox.y - pad
@@ -1969,9 +1971,8 @@ describe("Readerhighlight module", function()
       )
 
       it("positions dialogs away from multi-line rolling highlights", function()
-        local Size = require("ui/size")
         local highlight = readerui.highlight
-        local pad = Size.padding.small
+        local pad = require("ui/size").padding.small
         local boxes_top = {
           Geom:new({ x = 60, y = 40, w = 400, h = 24 }),
           Geom:new({ x = 60, y = 70, w = 320, h = 24 }),
@@ -2035,9 +2036,8 @@ describe("Readerhighlight module", function()
       it(
         "positions highlight dialog away from real EPUB pan selection",
         function()
-          local Size = require("ui/size")
           local highlight = readerui.highlight
-          local pad = Size.padding.small
+          local pad = require("ui/size").padding.small
           readerui.rolling:onGotoPage(10)
           readerui:paintTo(Screen.bb, 0, 0)
 
@@ -2075,7 +2075,6 @@ describe("Readerhighlight module", function()
       it(
         "positions multi-page paging ext highlights using visible pages only",
         function()
-          local Size = require("ui/size")
           local highlight = readerui.highlight
           local orig_rolling = readerui.rolling
           local orig_paging = readerui.paging
@@ -2090,12 +2089,7 @@ describe("Readerhighlight module", function()
           readerui.view.getCurrentPageList = function()
             return { 2 }
           end
-          readerui.document.getPageBoxesFromPositions = function(
-            _,
-            page,
-            p0,
-            p1
-          )
+          readerui.document.getPageBoxesFromPositions = function(_, page)
             table.insert(queried_pages, page)
             return {
               Geom:new({ x = 10, y = -100, w = 50, h = 20 }),
@@ -2146,8 +2140,10 @@ describe("Readerhighlight module", function()
           highlight:onShowHighlightDialog(1)
           highlight.edit_highlight_dialog:paintTo(Screen.bb, 0, 0)
           assert.are.same({ 2 }, queried_pages)
-          local moved = highlight.edit_highlight_dialog.movable:getMovedDimen()
-          assert.is_true(moved.y >= 80 + Size.padding.small)
+          assert.is_true(
+            highlight.edit_highlight_dialog.movable:getMovedDimen().y
+              >= 80 + require("ui/size").padding.small
+          )
         end
       )
 
