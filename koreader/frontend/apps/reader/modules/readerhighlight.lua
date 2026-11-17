@@ -1610,14 +1610,18 @@ function ReaderHighlight:_getHighlightScreenBoxes(target)
         true
       )
     end
-  elseif target.sboxes then
-    return self.ui.view:pageBoxesToScreenBoxes(
-      self.hold_pos.page,
-      target.sboxes
-    )
+  end
+
+  local screen_boxes = {}
+  if target.sboxes then
+    for _, box in ipairs(target.sboxes) do
+      local rect = self.ui.view:pageToScreenTransform(self.hold_pos.page, box)
+      if rect then
+        table.insert(screen_boxes, rect)
+      end
+    end
   else
     assert(target.pos0 and target.pos1)
-    local screen_boxes = {}
     for _, page in ipairs(self.ui.view:getCurrentPageList()) do
       local page_target = target.ext and target.ext[page]
       local pos0, pos1
@@ -1634,16 +1638,17 @@ function ReaderHighlight:_getHighlightScreenBoxes(target)
         local boxes =
           self.ui.document:getPageBoxesFromPositions(page, pos0, pos1)
         if boxes then
-          for _, rect in
-            ipairs(self.ui.view:pageBoxesToScreenBoxes(page, boxes))
-          do
-            table.insert(screen_boxes, rect)
+          for _, box in ipairs(boxes) do
+            local rect = self.ui.view:pageToScreenTransform(page, box)
+            if rect then
+              table.insert(screen_boxes, rect)
+            end
           end
         end
       end
     end
-    return screen_boxes
   end
+  return screen_boxes
 end
 
 function ReaderHighlight:_resetHoldTimer(clear)

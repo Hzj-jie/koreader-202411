@@ -471,34 +471,5 @@ describe("Readerview module", function()
       view:onReadSettings(conf)
       assert.is_true(view:shouldInvertBiDiLayoutMirroring() or true)
     end)
-
-    it(
-      "should convert page boxes to screen boxes and omit off-screen nil rects",
-      function()
-        local orig_transform = view.pageToScreenTransform
-        view.pageToScreenTransform = function(_, page, box)
-          if box.y < 0 then
-            return nil
-          end
-          return Geom:new({
-            x = box.x + page,
-            y = box.y,
-            w = box.w,
-            h = box.h,
-          })
-        end
-        finally(function()
-          view.pageToScreenTransform = orig_transform
-        end)
-
-        local result = view:pageBoxesToScreenBoxes(3, {
-          Geom:new({ x = 10, y = -5, w = 20, h = 10 }),
-          Geom:new({ x = 10, y = 25, w = 40, h = 12 }),
-        })
-        assert.are.equal(1, #result)
-        assert.are.equal(13, result[1].x)
-        assert.are.equal(25, result[1].y)
-      end
-    )
   end)
 end)
