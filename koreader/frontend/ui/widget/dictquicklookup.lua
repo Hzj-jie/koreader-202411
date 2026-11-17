@@ -24,7 +24,6 @@ local Translator = require("ui/translator")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
@@ -599,22 +598,15 @@ function DictQuickLookup:init()
 
   -- Margin from screen edges
   local margin_top = Size.margin.default
-  local margin_bottom = Size.margin.default
+  local footer_h = 0
   if self.ui and self.ui.view and self.ui.view.footer_visible then
     -- We want to let the footer visible (as it can show time, battery level
     -- and wifi state, which might be useful when spending time reading
     -- definitions or wikipedia articles)
-    margin_bottom = margin_bottom + self.ui.view.footer:getHeight()
+    footer_h = self.ui.view.footer:getHeight()
   end
-  local avail_height = Screen:getHeight() - margin_top - margin_bottom
-  -- Region in which the window will be aligned center/top/bottom:
-  self.region = Geom:new({
-    x = 0,
-    y = margin_top,
-    w = Screen:getWidth(),
-    h = avail_height,
-  })
-  self.align = "center"
+  local usable_height = Screen:getHeight() - footer_h
+  local avail_height = usable_height - 2 * margin_top
 
   local others_height = frame_bordersize * 2 -- DictQuickLookup border
     + self.dict_title:getHeight()
@@ -660,51 +652,6 @@ function DictQuickLookup:init()
       Math.round(self.definition_height / self.definition_line_height)
     self.definition_height = nb_lines * self.definition_line_height
     self.height = self.definition_height + others_height
-    if self.word_boxes and #self.word_boxes > 0 then
-      -- Try to not hide the highlighted word. We don't want to always
-      -- get near it if we can stay center, so that more context around
-      -- the word is still visible with the dict result.
-      -- But if we were to be drawn over the word, move a bit if possible.
-
-      -- In most cases boxes will be a single sbox, but handle multiple
-      -- sboxes by taking the top and bottom y values.
-      local word_box_top
-      local word_box_bottom
-      for _, box in ipairs(self.word_boxes) do
-        local box_top = box.y
-        local box_bottom = box.y + box.h
-        if not word_box_top or word_box_top > box_top then
-          word_box_top = box_top
-        end
-        if not word_box_bottom or word_box_bottom < box_bottom then
-          word_box_bottom = box_bottom
-        end
-      end
-
-      -- Don't stick to the box, ensure a minimal padding between box and
-      -- window.
-      word_box_top = word_box_top - Size.padding.small
-      word_box_bottom = word_box_bottom + Size.padding.small
-
-      local half_visible_height = (avail_height - self.height) / 2
-      if
-        word_box_bottom > half_visible_height
-        and word_box_top <= half_visible_height + self.height
-      then
-        -- word would be covered by our centered window
-        if word_box_bottom <= avail_height - self.height then
-          -- Window can be moved just below word
-          self.region.y = word_box_bottom
-          self.region.h = self.region.h - word_box_bottom
-          self.align = "top"
-        elseif word_box_top > self.height then
-          -- Window can be moved just above word
-          self.region.y = 0
-          self.region.h = word_box_top
-          self.align = "bottom"
-        end
-      end
-    end
   end
 
   -- Instantiate self.text_widget
@@ -760,6 +707,11 @@ function DictQuickLookup:init()
   })
 
   self.movable = MovableContainer:new({
+    anchor = not is_large_window and self.word_boxes and function()
+      return MovableContainer.boxesAnchor(self.word_boxes)
+    end or nil,
+    anchor_min_y = margin_top,
+    anchor_max_y = margin_top + avail_height,
     -- We'll handle these events ourselves, and call appropriate
     -- MovableContainer's methods when we didn't process the event
     ignore_events = {
@@ -779,12 +731,13 @@ function DictQuickLookup:init()
     self.dict_frame,
   })
 
-  self[1] = WidgetContainer:new({
-    align = self.align,
-    dimen = self.region,
+  self[1] = CenterContainer:new({
+    dimen = Geom:new({
+      w = Screen:getWidth(),
+      h = usable_height,
+    }),
     self.movable,
   })
-  self.movable:setMovedOffset(self.region)
 
   -- NT: add dict_title.left_button and lookup_edit_button to FocusManager.
   -- It is better to add these two buttons into self.movable, but it is not a FocusManager.
@@ -894,7 +847,7 @@ function DictQuickLookup:_instantiateScrollWidget()
 end
 
 function DictQuickLookup:update()
-  -- self[1] is a WidgetContainer, its free method will call free on each of its child widget with a free method.
+  -- self[1] is a CenterContainer, its free method will call free on each of its child widget with a free method.
   -- Here, that's the definitions' TextBoxWidget & HtmlBoxWidget,
   -- to release their bb, MuPDF instance, and scheduled image_update_action.
   self[1]:free()
@@ -922,7 +875,7 @@ function DictQuickLookup:update()
   -- Update main text widgets
   if self.is_html and self.shw_widget then
     -- Reuse our ScrollHtmlWidget (self.shw_widget)
-    -- NOTE: The recursive free via our WidgetContainer (self[1]) above already released the previous MµPDF document instance ;)
+    -- NOTE: The recursive free via our CenterContainer (self[1]) above already released the previous MµPDF document instance ;)
     self.text_widget.htmlbox_widget:setContent(
       self.definition,
       self:getHtmlDictionaryCss(),
@@ -941,7 +894,7 @@ function DictQuickLookup:update()
     self.text_widget.text_widget.images = self.images
     -- Scroll back to the top, àla TextBoxWidget:scrollToTop
     self.text_widget.text_widget.virtual_line_num = 1
-    -- NOTE: The recursive free via our WidgetContainer (self[1]) above already free'd us ;)
+    -- NOTE: The recursive free via our CenterContainer (self[1]) above already free'd us ;)
     self.text_widget.text_widget:init()
     -- Reset the scrollbar's state
     self.text_widget:resetScroll()

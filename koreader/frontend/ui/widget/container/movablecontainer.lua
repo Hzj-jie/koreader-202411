@@ -20,6 +20,7 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Math = require("optmath")
+local Size = require("ui/size")
 local UIManager = require("ui/uimanager")
 local Screen = Device.screen
 local logger = require("logger")
@@ -44,6 +45,9 @@ local MovableContainer = InputContainer:extend({
   -- 'anchor' should be a Geom object (a widget's 'dimen', or a point), and
   -- can be a function returning that object
   anchor = nil,
+  -- Optional vertical placement bounds for ensureAnchor (default: full screen)
+  anchor_min_y = nil,
+  anchor_max_y = nil,
   _anchor_ensured = nil,
 
   -- Current move offset (use getMovedOffset()/setMovedOffset() to access them)
@@ -123,6 +127,20 @@ function MovableContainer:setMovedOffset(offset_point)
   end
 end
 
+--- Builds a vertically-padded anchor from screen boxes for ensureAnchor.
+-- @tparam {Geom,...}|nil boxes Screen-space rectangles to avoid covering.
+-- @treturn table|nil Anchor bounds omitting `x` (keeps horizontal centering).
+-- @treturn boolean|nil `true` (`prefers_pop_down`) when an anchor is returned.
+function MovableContainer.boxesAnchor(boxes)
+  if not boxes or #boxes == 0 then
+    return nil
+  end
+  local bbox = Geom.boundingBox(boxes)
+  local pad = Size.padding.small
+  -- Leave x nil so ensureAnchor preserves the parent container's centering.
+  return { y = bbox.y - pad, h = bbox.h + 2 * pad }, true
+end
+
 function MovableContainer:ensureAnchor(x, y)
   local anchor_dimen = self.anchor
   local prefers_pop_down
@@ -137,20 +155,26 @@ function MovableContainer:ensureAnchor(x, y)
   local content_w, content_h = self:getSize().w, self:getSize().h
   local screen_w, screen_h = Screen:getWidth(), Screen:getHeight()
   local left, top
-  if BD.mirroredUILayout() then
-    left = anchor_dimen.x + anchor_dimen.w - content_w
+  if anchor_dimen.x == nil then
+    left = x
   else
-    left = anchor_dimen.x
+    if BD.mirroredUILayout() then
+      left = anchor_dimen.x + anchor_dimen.w - content_w
+    else
+      left = anchor_dimen.x
+    end
+    if left < 0 then
+      left = 0
+    elseif left + content_w > screen_w then
+      left = screen_w - content_w
+    end
   end
-  if left < 0 then
-    left = 0
-  elseif left + content_w > screen_w then
-    left = screen_w - content_w
-  end
+  local min_y = self.anchor_min_y or 0
+  local max_y = self.anchor_max_y or screen_h
   -- We prefer displaying above the anchor if there is room (so it looks like popping up)
   -- except if anchor() returned prefers_pop_down
-  local h_remaining_if_above = anchor_dimen.y - content_h
-  local h_remaining_if_below = screen_h
+  local h_remaining_if_above = anchor_dimen.y - min_y - content_h
+  local h_remaining_if_below = max_y
     - (anchor_dimen.y + anchor_dimen.h + content_h)
   if h_remaining_if_above >= 0 and not prefers_pop_down then
     -- Enough room above the anchor
@@ -163,14 +187,14 @@ function MovableContainer:ensureAnchor(x, y)
     top = anchor_dimen.y - content_h
   else -- both negative
     if h_remaining_if_above >= h_remaining_if_below then
-      top = 0
+      top = min_y
     else
-      top = screen_h - content_h
+      top = max_y - content_h
     end
   end
   -- Ensure we show the top if we would overflow
-  if top < 0 then
-    top = 0
+  if top < min_y then
+    top = min_y
   end
   -- Make the initial offsets so that we display at left/top
   self._moved_offset_x = left - x
