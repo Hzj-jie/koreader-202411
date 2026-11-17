@@ -249,12 +249,8 @@ describe("network_manager module", function()
         local MockTime = require("mock_time")
         MockTime:install()
 
-        local BackgroundRunnerWidget = requireBackgroundRunner()
-        BackgroundRunnerWidget:init()
-        BackgroundRunnerWidget:allowBlockingJobs(true)
+        requireBackgroundRunner():allowBlockingJobs(true)
 
-        local PluginShare = require("pluginshare")
-        PluginShare.stopBackgroundRunner = false
         NetworkMgr.last_online_check_time = 0
         NetworkMgr.was_online = nil
 
@@ -600,12 +596,8 @@ describe("network_manager module", function()
         local MockTime = require("mock_time")
         MockTime:install()
 
-        local BackgroundRunnerWidget = requireBackgroundRunner()
-        BackgroundRunnerWidget:init()
-        BackgroundRunnerWidget:allowBlockingJobs(true)
+        requireBackgroundRunner():allowBlockingJobs(true)
 
-        local PluginShare = require("pluginshare")
-        PluginShare.stopBackgroundRunner = false
         NetworkMgr.last_online_check_time = 0
         NetworkMgr.was_online = nil
 
