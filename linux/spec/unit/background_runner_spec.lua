@@ -348,6 +348,39 @@ describe("BackgroundRunner widget tests", function()
     assert.are.equal(3, executed)
   end)
 
+  it("does not run inserted jobs while suspended", function()
+    local runner = requireBackgroundRunner():new({
+      dimen = Device.screen:getSize(),
+    })
+    UIManager:show(runner)
+    finally(function()
+      UIManager:close(runner)
+      require("util").clearTable(PluginShare.backgroundJobs)
+      PluginShare.stopBackgroundRunner = nil
+    end)
+
+    UIManager:broadcastEvent("Suspend")
+
+    local executed = 0
+    require("background_jobs").insert({
+      when = "asap",
+      executable = function()
+        executed = executed + 1
+      end,
+    })
+
+    for _ = 1, 5 do
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.are.equal(0, executed)
+    end
+
+    UIManager:broadcastEvent("Resume")
+    MockTime:increase(2)
+    UIManager:handleInput()
+    assert.are.equal(1, executed)
+  end)
+
   it("should not start multiple times after multiple onResume", function()
     local executed = 0
     local job = {
@@ -457,4 +490,24 @@ describe("BackgroundRunner widget tests", function()
       assert.is_not_nil(results[2].exception)
     end
   )
+
+  it("schedules queued jobs on module load without init() or notify", function()
+    stopBackgroundRunner()
+    MockTime:increase(2)
+    UIManager:handleInput()
+
+    local executed = false
+    table.insert(PluginShare.backgroundJobs, {
+      when = "asap",
+      executable = function()
+        executed = true
+      end,
+    })
+
+    assert.is_nil(requireBackgroundRunner().init)
+
+    MockTime:increase(2)
+    UIManager:handleInput()
+    assert.is_true(executed)
+  end)
 end)

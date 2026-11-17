@@ -324,11 +324,6 @@ local BackgroundRunnerWidget = WidgetContainer:extend({
   name = "backgroundrunner",
 })
 
-function BackgroundRunnerWidget:init()
-  PluginShare.stopBackgroundRunner = false
-  BackgroundRunner:schedule()
-end
-
 function BackgroundRunnerWidget:onSuspend()
   logger.dbg("BackgroundRunnerWidget:onSuspend()")
   PluginShare.stopBackgroundRunner = true
@@ -339,12 +334,13 @@ function BackgroundRunnerWidget:onResume()
   -- Avoid jobs being executed right after resume, treat all the jobs as freshly
   -- inserted.
   BackgroundRunner:resetInsertTime()
-  self:init()
+  PluginShare.stopBackgroundRunner = false
+  BackgroundRunner:schedule()
 end
 
 function BackgroundRunnerWidget:onBackgroundJobsUpdated()
   logger.dbg("BackgroundRunnerWidget:onBackgroundJobsUpdated()")
-  self:init()
+  BackgroundRunner:schedule()
 end
 
 if util.isTesting() then
@@ -352,5 +348,7 @@ if util.isTesting() then
     ALLOW_BLOCKING_JOBS = v
   end
 end
+
+BackgroundRunner:schedule()
 
 return BackgroundRunnerWidget
