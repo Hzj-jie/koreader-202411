@@ -35,7 +35,7 @@ describe("BackgroundRunner widget tests", function()
     local widget = requireBackgroundRunner()
     local i = 1
     while true do
-      local name, val = debug.getupvalue(widget.init, i)
+      local name, val = debug.getupvalue(widget.onBackgroundJobsUpdated, i)
       if not name then
         break
       end
@@ -381,6 +381,39 @@ describe("BackgroundRunner widget tests", function()
     MockTime:increase(2)
     UIManager:handleInput()
     assert.are.equal(3, executed)
+  end)
+
+  it("does not run inserted jobs while suspended", function()
+    local runner = requireBackgroundRunner():new({
+      dimen = Device.screen:getSize(),
+    })
+    UIManager:show(runner)
+    finally(function()
+      UIManager:close(runner)
+      require("util").clearTable(PluginShare.backgroundJobs)
+      PluginShare.stopBackgroundRunner = nil
+    end)
+
+    UIManager:broadcastEvent("Suspend")
+
+    local executed = 0
+    require("background_jobs").insert({
+      when = "asap",
+      executable = function()
+        executed = executed + 1
+      end,
+    })
+
+    for _ = 1, 5 do
+      MockTime:increase(2)
+      UIManager:handleInput()
+      assert.are.equal(0, executed)
+    end
+
+    UIManager:broadcastEvent("Resume")
+    MockTime:increase(2)
+    UIManager:handleInput()
+    assert.are.equal(1, executed)
   end)
 
   it("should not start multiple times after multiple onResume", function()
@@ -1237,8 +1270,7 @@ describe("BackgroundRunner widget tests", function()
   end)
 
   it("cleans up running jobs when BackgroundRunnerWidget exits", function()
-    local BackgroundRunnerWidget =
-      require("plugins/backgroundrunner.koplugin/main")
+    local BackgroundRunnerWidget = requireBackgroundRunner()
     local CommandRunner =
       require("plugins/backgroundrunner.koplugin/commandrunner")
     local ffiUtil = require("ffi/util")
@@ -1284,8 +1316,6 @@ describe("BackgroundRunner widget tests", function()
   end)
 
   it("cleans up running jobs on onRestart event", function()
-    local BackgroundRunnerWidget =
-      require("plugins/backgroundrunner.koplugin/main")
     local CommandRunner =
       require("plugins/backgroundrunner.koplugin/commandrunner")
     local ffiUtil = require("ffi/util")
@@ -1315,7 +1345,7 @@ describe("BackgroundRunner widget tests", function()
     }
     table.insert(CommandRunner.running_jobs, mock_entry)
 
-    local widget = BackgroundRunnerWidget:new()
+    local widget = requireBackgroundRunner():new()
     assert.is_function(widget.onRestart)
     widget:onRestart()
 
@@ -1572,4 +1602,24 @@ describe("BackgroundRunner widget tests", function()
       assert.is_true(BackgroundRunner.scheduled)
     end
   )
+
+  it("schedules queued jobs on module load without init() or notify", function()
+    stopBackgroundRunner()
+    MockTime:increase(2)
+    UIManager:handleInput()
+
+    local executed = false
+    table.insert(PluginShare.backgroundJobs, {
+      when = "asap",
+      executable = function()
+        executed = true
+      end,
+    })
+
+    assert.is_nil(requireBackgroundRunner().init)
+
+    MockTime:increase(2)
+    UIManager:handleInput()
+    assert.is_true(executed)
+  end)
 end)
