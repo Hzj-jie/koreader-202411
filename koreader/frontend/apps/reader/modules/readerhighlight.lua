@@ -7,6 +7,7 @@ local Event = require("ui/event")
 local Geom = require("ui/geometry")
 local InfoMessage = require("ui/widget/infomessage")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local MovableContainer = require("ui/widget/container/movablecontainer")
 local Notification = require("ui/widget/notification")
 local RadioButtonWidget = require("ui/widget/radiobuttonwidget")
 local ReaderAnnotation = require("apps/reader/modules/readerannotation")
@@ -449,13 +450,6 @@ local long_press_action = {
   { gettext("Fulltext search"), "search" },
 }
 
-local highlight_dialog_position = {
-  { gettext("Top"), "top" },
-  { gettext("Center"), "center" },
-  { gettext("Bottom"), "bottom" },
-  { gettext("Gesture position"), "gesture" },
-}
-
 function ReaderHighlight:addToMainMenu(menu_items)
   -- insert table to main reader menu
   if
@@ -847,32 +841,6 @@ If you wish your highlights to be saved in the document, just move it to a writa
       end,
     })
   end
-  -- highlight dialog position
-  local sub_item_table = {}
-  for i, v in ipairs(highlight_dialog_position) do
-    table.insert(sub_item_table, {
-      text = v[1],
-      checked_func = function()
-        return (G_reader_settings:read("highlight_dialog_position") or "center")
-          == v[2]
-      end,
-      callback = function()
-        G_reader_settings:save("highlight_dialog_position", v[2])
-      end,
-    })
-  end
-  table.insert(menu_items.long_press.sub_item_table, {
-    text_func = function()
-      local position = G_reader_settings:read("highlight_dialog_position")
-        or "center"
-      for __, v in ipairs(highlight_dialog_position) do
-        if v[2] == position then
-          return T(gettext("Highlight dialog position: %1"), v[1]:lower())
-        end
-      end
-    end,
-    sub_item_table = sub_item_table,
-  })
   if Device:isTouchDevice() then
     -- highlight very-long-press interval
     table.insert(menu_items.long_press.sub_item_table, {
@@ -1116,7 +1084,6 @@ function ReaderHighlight:clear(clear_id)
   end
   self.is_word_selection = false
   self.selected_text_start_xpointer = nil
-  self.gest_pos = nil
   if self.hold_pos then
     self.hold_pos = nil
     self.selected_text = nil
@@ -1552,7 +1519,7 @@ function ReaderHighlight:onShowHighlightDialog(index)
   self.edit_highlight_dialog = ButtonDialog:new({ -- in self for unit tests
     buttons = buttons,
     anchor = function()
-      return self:_getDialogAnchor(self.edit_highlight_dialog, item)
+      return MovableContainer.boxesAnchor(self:_getHighlightScreenBoxes(item))
     end,
   })
   self.ui.annotation:trackChangingWidget(self.edit_highlight_dialog)
@@ -1601,13 +1568,12 @@ function ReaderHighlight:onShowHighlightMenu(index)
     end
   end
 
+  local target = index and self.ui.annotation.annotations[index]
+    or self.selected_text
   self.highlight_dialog = ButtonDialog:new({
     buttons = highlight_buttons,
     anchor = function()
-      return self:_getDialogAnchor(
-        self.highlight_dialog,
-        not self.gest_pos and self.ui.annotation.annotations[index]
-      )
+      return MovableContainer.boxesAnchor(self:_getHighlightScreenBoxes(target))
     end,
     tap_close_callback = function()
       self:onTap()
@@ -1627,62 +1593,53 @@ dbg:guard(ReaderHighlight, "onShowHighlightMenu", function(self)
   )
 end)
 
-function ReaderHighlight:_getDialogAnchor(dialog, item)
-  local position = G_reader_settings:read("highlight_dialog_position")
-    or "center"
-  if position == "center" then
-    return
-  end
-  local dialog_box = dialog:getContentSize()
-  local anchor_x = math.floor((self.screen_w - dialog_box.w) / 2) -- center by width
-  local anchor_y, prefers_pop_down
-  if position == "top" then
-    anchor_y = Size.padding.small -- do not stick to the edge
-    prefers_pop_down = true
-  elseif position == "bottom" then
-    anchor_y = self.screen_h - Size.padding.small
-  else -- "gesture"
-    local pos0, pos1
-    if item then -- highlight
-      if self.ui.rolling then
-        local y, x = self.ui.document:getScreenPositionFromXPointer(item.pos0)
-        pos0 = x ~= nil and y ~= nil and { x = x, y = y } or nil
-        y, x = self.ui.document:getScreenPositionFromXPointer(item.pos1)
-        pos1 = x ~= nil and y ~= nil and { x = x, y = y } or nil
-      else
-        pos0, pos1 = item.pos0, item.pos1
+--- Returns screen-space bounding boxes for a highlight or selection.
+-- @tparam table target Saved annotation item or `self.selected_text`.
+-- @treturn {Geom,...}|nil Screen-space rectangles for visible parts of `target`.
+function ReaderHighlight:_getHighlightScreenBoxes(target)
+  if self.ui.rolling then
+    if target.sboxes then
+      return target.sboxes
+    elseif target.pos0 and target.pos1 then
+      return self.ui.document:getScreenBoxesFromPositions(
+        target.pos0,
+        target.pos1,
+        true
+      )
+    end
+  elseif target.sboxes then
+    return self.ui.view:pageBoxesToScreenBoxes(
+      self.hold_pos.page,
+      target.sboxes
+    )
+  elseif target.pos0 and target.pos1 then
+    local screen_boxes = {}
+    for _, page in ipairs(self.ui.view:getCurrentPageList()) do
+      local page_target = target.ext and target.ext[page]
+      local pos0, pos1
+      if page_target then
+        pos0, pos1 = page_target.pos0, page_target.pos1
+      elseif
+        not target.ext
+        and target.pos0.page <= page
+        and page <= target.pos1.page
+      then
+        pos0, pos1 = target.pos0, target.pos1
       end
-    else -- gesture
-      pos0, pos1 = unpack(self.gest_pos)
-      self.gest_pos = nil
-    end
-    if pos0 == nil or pos1 == nil then
-      return
-    end -- fallback to "center"
-    if pos0.y > pos1.y then -- try to show the dialog below the highlight
-      pos1 = pos0
-    end
-    local text_box = self.ui.document:getWordFromPosition(pos1, true)
-    if text_box then
-      text_box = text_box.sbox
-      if text_box and self.ui.paging then
-        text_box = self.ui.view:pageToScreenTransform(
-          self.ui.paging.current_page,
-          text_box
-        )
+      if pos0 and pos1 then
+        local boxes =
+          self.ui.document:getPageBoxesFromPositions(page, pos0, pos1)
+        if boxes then
+          for _, rect in
+            ipairs(self.ui.view:pageBoxesToScreenBoxes(page, boxes))
+          do
+            table.insert(screen_boxes, rect)
+          end
+        end
       end
     end
-    if text_box == nil then
-      return
-    end -- fallback to "center"
-    anchor_y = text_box.y + text_box.h + Size.padding.small -- do not stick to the box
-    if anchor_y + dialog_box.h <= self.screen_h - Size.padding.small then -- enough room below box with gest_pos
-      prefers_pop_down = true
-    else -- above box with gest_pos
-      anchor_y = text_box.y - Size.padding.small
-    end
+    return screen_boxes
   end
-  return { x = anchor_x, y = anchor_y, h = 0, w = 0 }, prefers_pop_down
 end
 
 function ReaderHighlight:_resetHoldTimer(clear)
@@ -1800,7 +1757,6 @@ function ReaderHighlight:onHold(arg, ges)
     logger.dbg("not inside page area")
     return false
   end
-  self.gest_pos = { self.hold_pos, self.hold_pos }
 
   self.allow_hold_pan_corner_scroll = false -- reset this, don't allow that yet
 
@@ -2048,7 +2004,6 @@ function ReaderHighlight:onHoldPan(_, ges)
   local old_text = self.selected_text and self.selected_text.text
   self.selected_text =
     self.ui.document:getTextFromPositions(self.hold_pos, self.holdpan_pos)
-  self.gest_pos = { self.hold_pos, self.holdpan_pos }
   self.is_word_selection = false
 
   if self.selected_text and self.selected_text.pos0 then
@@ -2093,12 +2048,6 @@ Copy the language data files (e.g., eng.traineddata for English and spa.trainedd
 )
 
 function ReaderHighlight:lookup(selected_text, selected_link)
-  -- convert sboxes to word boxes
-  local word_boxes = {}
-  for i, sbox in ipairs(selected_text.sboxes) do
-    word_boxes[i] = self.ui.view:pageToScreenTransform(self.hold_pos.page, sbox)
-  end
-
   -- if we extracted text directly
   if #selected_text.text > 0 and self.hold_pos then
     UIManager:broadcastEvent(
@@ -2106,7 +2055,7 @@ function ReaderHighlight:lookup(selected_text, selected_link)
         "LookupWord",
         selected_text.text,
         false,
-        word_boxes,
+        self:_getHighlightScreenBoxes(selected_text),
         self,
         selected_link
       )
@@ -2133,7 +2082,14 @@ function ReaderHighlight:lookup(selected_text, selected_link)
     logger.dbg("OCRed text:", text)
     if text and text ~= "" then
       UIManager:broadcastEvent(
-        Event:new("LookupWord", text, false, word_boxes, self, selected_link)
+        Event:new(
+          "LookupWord",
+          text,
+          false,
+          self:_getHighlightScreenBoxes(selected_text),
+          self,
+          selected_link
+        )
       )
     else
       self:showWidget(InfoMessage:new({
@@ -2495,7 +2451,9 @@ function ReaderHighlight:lookupWikipedia()
     UIManager:broadcastEvent(
       Event:new(
         "LookupWikipedia",
-        util.cleanupSelectedText(self.selected_text.text)
+        util.cleanupSelectedText(self.selected_text.text),
+        false,
+        self:_getHighlightScreenBoxes(self.selected_text)
       )
     )
   end
@@ -2528,7 +2486,12 @@ function ReaderHighlight:highlightDictLookup()
   self:highlightFromHoldPos()
   if self.selected_text then
     UIManager:broadcastEvent(
-      Event:new("LookupWord", util.cleanupSelectedText(self.selected_text.text))
+      Event:new(
+        "LookupWord",
+        util.cleanupSelectedText(self.selected_text.text),
+        false,
+        self:_getHighlightScreenBoxes(self.selected_text)
+      )
     )
   end
 end

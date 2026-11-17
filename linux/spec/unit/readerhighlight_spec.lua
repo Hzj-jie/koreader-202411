@@ -252,6 +252,53 @@ describe("Readerhighlight module", function()
         Screen:shot("screenshots/reader_highlight_text_pdf_reflowed.png")
         assert.truthy(#readerui.annotation.annotations == 1)
       end)
+      it(
+        "should position edit dialog away from reflowed saved highlight",
+        function()
+          local Size = require("ui/size")
+          local highlight = readerui.highlight
+          highlight:onHold(nil, { pos = Geom:new({ x = 260, y = 70 }) })
+          highlight:onHoldPan(nil, { pos = Geom:new({ x = 260, y = 150 }) })
+          highlight:saveHighlight(true)
+          highlight:clear()
+          assert.are.equal(1, #readerui.annotation.annotations)
+
+          local item = readerui.annotation.annotations[1]
+          local word_spy = spy.on(readerui.document, "getWordFromPosition")
+          finally(function()
+            readerui.document.getWordFromPosition:revert()
+            if highlight.edit_highlight_dialog then
+              UIManager:close(highlight.edit_highlight_dialog)
+              highlight.edit_highlight_dialog = nil
+            end
+          end)
+
+          highlight:onShowHighlightDialog(1)
+          assert.truthy(highlight.edit_highlight_dialog)
+          highlight.edit_highlight_dialog:paintTo(Screen.bb, 0, 0)
+
+          local pboxes = readerui.document:getPageBoxesFromPositions(
+            31,
+            item.pos0,
+            item.pos1
+          )
+          local sboxes = {}
+          for _, box in ipairs(pboxes) do
+            local rect = readerui.view:pageToScreenTransform(31, box)
+            if rect then
+              table.insert(sboxes, rect)
+            end
+          end
+          local bbox = Geom.boundingBox(sboxes)
+          local moved = highlight.edit_highlight_dialog.movable:getMovedDimen()
+          local pad = Size.padding.small
+          assert.is_true(
+            moved.y == bbox.y + bbox.h + pad
+              or moved.y + moved.h == bbox.y - pad
+          )
+          assert.spy(word_spy).was_not_called()
+        end
+      )
     end)
   end)
 
@@ -415,7 +462,6 @@ describe("Readerhighlight module", function()
           break
         end
       end
-      G_reader_settings:save("highlight_dialog_position", "center")
       G_reader_settings:save("default_highlight_action", "ask")
       readerui.highlight:clear()
       readerui.annotation.annotations = {}
@@ -1885,5 +1931,307 @@ describe("Readerhighlight module", function()
         readerui.annotation.annotations = {}
       end
     )
+
+    describe("dialog and lookup positioning", function()
+      it(
+        "removes highlight_dialog_position menu option and gest_pos",
+        function()
+          local T = require("ffi/util").template
+          local gettext = require("gettext")
+          local highlight = readerui.highlight
+          local menu_items = {}
+          highlight:addToMainMenu(menu_items)
+
+          assert.is_table(menu_items.long_press)
+          local forbidden_titles = {}
+          for _, label in ipairs({
+            gettext("Top"),
+            gettext("Center"),
+            gettext("Bottom"),
+            gettext("Gesture position"),
+          }) do
+            forbidden_titles[T(
+              gettext("Highlight dialog position: %1"),
+              label:lower()
+            )] =
+              true
+          end
+          for _, item in ipairs(menu_items.long_press.sub_item_table) do
+            if item.text_func then
+              assert.is_nil(forbidden_titles[item.text_func()])
+            end
+          end
+
+          assert.is_nil(highlight._getDialogAnchor)
+          highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 70 }) })
+          assert.is_nil(highlight.gest_pos)
+        end
+      )
+
+      it("positions dialogs away from multi-line rolling highlights", function()
+        local Size = require("ui/size")
+        local highlight = readerui.highlight
+        local pad = Size.padding.small
+        local boxes_top = {
+          Geom:new({ x = 60, y = 40, w = 400, h = 24 }),
+          Geom:new({ x = 60, y = 70, w = 320, h = 24 }),
+        }
+        local boxes_bottom = {
+          Geom:new({ x = 60, y = 720, w = 400, h = 20 }),
+          Geom:new({ x = 60, y = 750, w = 320, h = 20 }),
+        }
+        local current_boxes = boxes_top
+        local orig_get_boxes = readerui.document.getScreenBoxesFromPositions
+        readerui.document.getScreenBoxesFromPositions = function()
+          return current_boxes
+        end
+        finally(function()
+          readerui.document.getScreenBoxesFromPositions = orig_get_boxes
+          if highlight.highlight_dialog then
+            UIManager:close(highlight.highlight_dialog)
+            highlight.highlight_dialog = nil
+          end
+          if highlight.edit_highlight_dialog then
+            UIManager:close(highlight.edit_highlight_dialog)
+            highlight.edit_highlight_dialog = nil
+          end
+        end)
+
+        highlight.selected_text = {
+          pos0 = "/1/4/2/1:0",
+          pos1 = "/1/4/2/1:20",
+          text = "top multi line",
+        }
+        highlight:onShowHighlightMenu()
+        highlight.highlight_dialog:paintTo(Screen.bb, 0, 0)
+        local moved_top = highlight.highlight_dialog.movable:getMovedDimen()
+        assert.is_true(moved_top.y >= 94 + pad)
+        UIManager:close(highlight.highlight_dialog)
+        highlight.highlight_dialog = nil
+
+        current_boxes = boxes_bottom
+        highlight:onShowHighlightMenu()
+        highlight.highlight_dialog:paintTo(Screen.bb, 0, 0)
+        local moved_bottom = highlight.highlight_dialog.movable:getMovedDimen()
+        assert.is_true(moved_bottom.y + moved_bottom.h <= 720 - pad)
+        UIManager:close(highlight.highlight_dialog)
+        highlight.highlight_dialog = nil
+
+        readerui.annotation.annotations = {
+          {
+            pos0 = "/1/4/2/1:0",
+            pos1 = "/1/4/2/1:20",
+            drawer = "lighten",
+            text = "bottom multi line",
+          },
+        }
+        highlight:onShowHighlightDialog(1)
+        highlight.edit_highlight_dialog:paintTo(Screen.bb, 0, 0)
+        local moved_edit =
+          highlight.edit_highlight_dialog.movable:getMovedDimen()
+        assert.is_true(moved_edit.y + moved_edit.h <= 720 - pad)
+      end)
+
+      it(
+        "positions highlight dialog away from real EPUB pan selection",
+        function()
+          local Size = require("ui/size")
+          local highlight = readerui.highlight
+          local pad = Size.padding.small
+          readerui.rolling:onGotoPage(10)
+          readerui:paintTo(Screen.bb, 0, 0)
+
+          finally(function()
+            if highlight.highlight_dialog then
+              UIManager:close(highlight.highlight_dialog)
+              highlight.highlight_dialog = nil
+            end
+          end)
+
+          assert.is_true(
+            highlight:onHold(nil, { pos = Geom:new({ x = 400, y = 110 }) })
+          )
+          highlight:onHoldPan(nil, { pos = Geom:new({ x = 400, y = 170 }) })
+          assert.is_nil(highlight.gest_pos)
+          assert.is_not_nil(highlight.selected_text)
+
+          highlight:onShowHighlightMenu()
+          highlight.highlight_dialog:paintTo(Screen.bb, 0, 0)
+          local sboxes = readerui.document:getScreenBoxesFromPositions(
+            highlight.selected_text.pos0,
+            highlight.selected_text.pos1,
+            true
+          )
+          assert.is_true(#sboxes > 0)
+          local bbox = Geom.boundingBox(sboxes)
+          local moved = highlight.highlight_dialog.movable:getMovedDimen()
+          assert.is_true(
+            moved.y >= bbox.y + bbox.h + pad
+              or moved.y + moved.h <= bbox.y - pad
+          )
+        end
+      )
+
+      it(
+        "positions multi-page paging ext highlights using visible pages only",
+        function()
+          local Size = require("ui/size")
+          local highlight = readerui.highlight
+          local orig_rolling = readerui.rolling
+          local orig_paging = readerui.paging
+          local orig_get_pages = readerui.view.getCurrentPageList
+          local orig_transform = readerui.view.pageToScreenTransform
+          local orig_get_page_boxes =
+            readerui.document.getPageBoxesFromPositions
+
+          local queried_pages = {}
+          readerui.rolling = nil
+          readerui.paging = { current_page = 2 }
+          readerui.view.getCurrentPageList = function()
+            return { 2 }
+          end
+          readerui.document.getPageBoxesFromPositions = function(
+            _,
+            page,
+            p0,
+            p1
+          )
+            table.insert(queried_pages, page)
+            return {
+              Geom:new({ x = 10, y = -100, w = 50, h = 20 }),
+              Geom:new({ x = 20, y = 40, w = 100, h = 20 }),
+            }
+          end
+          readerui.view.pageToScreenTransform = function(_, page, rect)
+            if rect.y < 0 then
+              return nil
+            end
+            return Geom:new({
+              x = rect.x,
+              y = rect.y + page * 10,
+              w = rect.w,
+              h = rect.h,
+            })
+          end
+          finally(function()
+            readerui.rolling = orig_rolling
+            readerui.paging = orig_paging
+            readerui.view.getCurrentPageList = orig_get_pages
+            readerui.view.pageToScreenTransform = orig_transform
+            readerui.document.getPageBoxesFromPositions = orig_get_page_boxes
+            if highlight.edit_highlight_dialog then
+              UIManager:close(highlight.edit_highlight_dialog)
+              highlight.edit_highlight_dialog = nil
+            end
+          end)
+
+          readerui.annotation.annotations = {
+            {
+              drawer = "lighten",
+              text = "extended highlight",
+              pos0 = { page = 1, x = 10, y = 600 },
+              pos1 = { page = 2, x = 120, y = 60 },
+              ext = {
+                [1] = {
+                  pos0 = { x = 10, y = 600 },
+                  pos1 = { x = 500, y = 780 },
+                },
+                [2] = {
+                  pos0 = { x = 20, y = 40 },
+                  pos1 = { x = 120, y = 60 },
+                },
+              },
+            },
+          }
+          highlight:onShowHighlightDialog(1)
+          highlight.edit_highlight_dialog:paintTo(Screen.bb, 0, 0)
+          assert.are.same({ 2 }, queried_pages)
+          local moved = highlight.edit_highlight_dialog.movable:getMovedDimen()
+          assert.is_true(moved.y >= 80 + Size.padding.small)
+        end
+      )
+
+      it(
+        "passes screen boxes for lookup, lookupWikipedia, and highlightDictLookup",
+        function()
+          local highlight = readerui.highlight
+          local expected_boxes = {
+            Geom:new({ x = 30, y = 90, w = 80, h = 24 }),
+          }
+          local orig_rolling = readerui.rolling
+          local orig_paging = readerui.paging
+          local orig_ocr_text = readerui.document.getOCRText
+          local orig_ocr_word = readerui.document.getOCRWord
+          local orig_get_boxes = readerui.document.getScreenBoxesFromPositions
+          readerui.document.getScreenBoxesFromPositions = function()
+            return expected_boxes
+          end
+          local orig_broadcast = UIManager.broadcastEvent
+          local events = {}
+          UIManager.broadcastEvent = function(_, ev)
+            table.insert(events, ev)
+          end
+          local show_stub = stub(highlight, "showWidget")
+          finally(function()
+            readerui.rolling = orig_rolling
+            readerui.paging = orig_paging
+            readerui.document.getOCRText = orig_ocr_text
+            readerui.document.getOCRWord = orig_ocr_word
+            readerui.document.getScreenBoxesFromPositions = orig_get_boxes
+            UIManager.broadcastEvent = orig_broadcast
+            highlight.showWidget:revert()
+          end)
+
+          highlight.selected_text = {
+            pos0 = "/1/4/2/1:0",
+            pos1 = "/1/4/2/1:20",
+            text = "  verona ",
+          }
+          highlight:lookupWikipedia()
+          assert.are.equal(1, #events)
+          assert.are.equal("onLookupWikipedia", events[1].handler)
+          assert.are.equal("verona", events[1].args[1])
+          assert.is_false(events[1].args[2])
+          assert.are.same(expected_boxes, events[1].args[3])
+
+          events = {}
+          highlight:highlightDictLookup()
+          assert.are.equal(1, #events)
+          assert.are.equal("onLookupWord", events[1].handler)
+          assert.are.equal("verona", events[1].args[1])
+          assert.is_false(events[1].args[2])
+          assert.are.same(expected_boxes, events[1].args[3])
+          assert.is_nil(events[1].args[4])
+
+          -- Non-empty text on hold triggers LookupWord with highlight = self and screen boxes
+          events = {}
+          highlight.hold_pos = { page = 1 }
+          highlight:lookup({
+            pos0 = "/1/4/2/1:0",
+            pos1 = "/1/4/2/1:20",
+            text = "romeo",
+          })
+          assert.are.equal(1, #events)
+          assert.are.equal("onLookupWord", events[1].handler)
+          assert.are.same(expected_boxes, events[1].args[3])
+          assert.are.equal(highlight, events[1].args[4])
+
+          -- Empty text on paging selection falls back to OCR InfoMessage
+          readerui.rolling = nil
+          readerui.paging = { current_page = 1 }
+          readerui.document.getOCRText = function()
+            return ""
+          end
+          readerui.document.getOCRWord = function()
+            return ""
+          end
+          highlight:lookup({
+            text = "",
+            sboxes = { Geom:new({ x = 10, y = 20, w = 30, h = 15 }) },
+          })
+          assert.stub(show_stub).was_called()
+        end
+      )
+    end)
   end)
 end)

@@ -346,6 +346,21 @@ function ReaderView:pageToScreenTransform(page, rect)
   end
 end
 
+--- Converts page-space boxes on `page` into visible screen-space boxes.
+-- @tparam number page Page number.
+-- @tparam {Geom,...} boxes Page-space rectangles.
+-- @treturn {Geom,...} Screen-space rectangles (off-screen nil transforms omitted).
+function ReaderView:pageBoxesToScreenBoxes(page, boxes)
+  local screen_boxes = {}
+  for _, box in ipairs(boxes) do
+    local rect = self:pageToScreenTransform(page, box)
+    if rect then
+      table.insert(screen_boxes, rect)
+    end
+  end
+  return screen_boxes
+end
+
 --[[
 Get page area on screen for a given page number
 --]]
@@ -576,11 +591,8 @@ end
 
 function ReaderView:drawTempHighlight(bb, x, y)
   for page, boxes in pairs(self.highlight.temp) do
-    for i = 1, #boxes do
-      local rect = self:pageToScreenTransform(page, boxes[i])
-      if rect then
-        self:drawHighlightRect(bb, x, y, rect, self.highlight.temp_drawer)
-      end
+    for _, rect in ipairs(self:pageBoxesToScreenBoxes(page, boxes)) do
+      self:drawHighlightRect(bb, x, y, rect, self.highlight.temp_drawer)
     end
   end
 end
@@ -610,19 +622,16 @@ function ReaderView:drawPageSavedHighlight(bb, x, y)
           colorful = true
         end
         local draw_note_mark = item.note and self.highlight.note_mark
-        for _, box in ipairs(boxes) do
-          local rect = self:pageToScreenTransform(page, box)
-          if rect then
-            self:drawHighlightRect(
-              bb,
-              x,
-              y,
-              rect,
-              item.drawer,
-              color,
-              draw_note_mark
-            )
-          end
+        for _, rect in ipairs(self:pageBoxesToScreenBoxes(page, boxes)) do
+          self:drawHighlightRect(
+            bb,
+            x,
+            y,
+            rect,
+            item.drawer,
+            color,
+            draw_note_mark
+          )
         end
       end
     end
