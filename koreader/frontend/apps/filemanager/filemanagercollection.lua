@@ -134,17 +134,6 @@ function FileManagerCollection:onShowColl(collection_name)
   return true
 end
 
-function FileManagerCollection:getAutoCollectionStatus(file)
-  if self.ui.document and self.ui.document.file == file then
-    local summary = self.ui.doc_settings:readTableRef("summary")
-    if summary.status and summary.status ~= "" then
-      return summary.status
-    end
-    return "reading"
-  end
-  return DocSettings.getStatus(file)
-end
-
 function FileManagerCollection:updateItemTable(show_last_item)
   local item_table = {}
   local auto_coll = AUTO_COLLECTION_BY_NAME[self.coll_menu.collection_name]
@@ -155,7 +144,7 @@ function FileManagerCollection:updateItemTable(show_last_item)
         if
           attr
           and attr.mode == "file"
-          and self:getAutoCollectionStatus(file) == auto_coll.status
+          and DocSettings.getStatus(file) == auto_coll.status
         then
           table.insert(item_table, {
             file = file,
