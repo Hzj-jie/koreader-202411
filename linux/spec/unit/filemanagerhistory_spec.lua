@@ -151,7 +151,7 @@ describe("FileManagerHistory", function()
         end
       end
     end)
-    mock_readhistory._flush = spy.new(function()
+    mock_readhistory.flush = spy.new(function()
       return true
     end)
     mock_readhistory.reload = spy.new(function() end)
@@ -1151,18 +1151,18 @@ describe("FileManagerHistory", function()
 
         assert.spy(popen_stub).was_not_called()
         assert.spy(mock_notification.notify).was_called(1)
-        assert.spy(mock_readhistory._flush).was_not_called()
+        assert.spy(mock_readhistory.flush).was_not_called()
         assert.is_equal("old_history", read_dummy(temp_dir .. "/history.lua"))
         assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
         assert.is_equal(0, #shown_dialogs)
       end
     )
 
-    it("restores backup and preserves lastfile when _flush fails", function()
+    it("restores backup and preserves lastfile when flush fails", function()
       write_dummy(temp_dir .. "/history.lua", "old_history")
       write_metadata("My Book 1.sdr/metadata.epub.lua", 100)
       popen_stub = spy.on(io, "popen")
-      mock_readhistory._flush = spy.new(function()
+      mock_readhistory.flush = spy.new(function()
         return false
       end)
 
@@ -1178,12 +1178,12 @@ describe("FileManagerHistory", function()
     end)
 
     it(
-      "preserves previous ReadHistory.hist when _flush fails with no prior history.lua",
+      "preserves previous ReadHistory.hist when flush fails with no prior history.lua",
       function()
         local prev_hist = mock_readhistory.hist
         write_metadata("My Book 1.sdr/metadata.epub.lua", 100)
         popen_stub = spy.on(io, "popen")
-        mock_readhistory._flush = spy.new(function()
+        mock_readhistory.flush = spy.new(function()
           return false
         end)
 
@@ -1232,7 +1232,7 @@ describe("FileManagerHistory", function()
           { file = home_dir .. "/dir/My Book 2.pdf", time = 300 },
           { file = home_dir .. "/My Book 1.epub", time = 100 },
         }, mock_readhistory.hist)
-        assert.spy(mock_readhistory._flush).was_called(1)
+        assert.spy(mock_readhistory.flush).was_called(1)
         assert.is_equal(0, mock_readhistory.last_read_time)
         assert.spy(mock_readhistory.reload).was_called(1)
         assert.spy(mock_readhistory.ensureLastFile).was_called(1)

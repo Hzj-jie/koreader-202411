@@ -293,7 +293,7 @@ describe("ReadHistory module", function()
     end
     if no_flush then
       h:_reduce()
-      h:_flush()
+      h:flush()
     end
 
     assert.is.same(500, #h.hist)
