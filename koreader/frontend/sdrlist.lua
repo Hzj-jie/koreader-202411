@@ -286,20 +286,11 @@ function SdrList:rebuildFromDisk()
     self
   )
   local docsettings_dir = DataStorage:getDocSettingsDir():gsub("/+$", "")
-  if util.directoryExists(docsettings_dir) then
-    local prefix_len = #docsettings_dir
-    scanMetadataFiles(docsettings_dir, function(path)
-      if
-        path:sub(1, prefix_len) == docsettings_dir
-        and path:sub(prefix_len + 1, prefix_len + 1) == "/"
-      then
-        return path
-          :sub(prefix_len + 1)
-          :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-      end
-      return path, 0
-    end, new_files, self)
-  end
+  scanMetadataFiles(docsettings_dir, function(path)
+    return path
+      :sub(#docsettings_dir + 1)
+      :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+  end, new_files, self)
   -- Preserve valid hash-located entries that cannot be reversed from disk hashes.
   for file in pairs(self.files) do
     if
