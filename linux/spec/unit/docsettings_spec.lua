@@ -126,6 +126,7 @@ describe("docsettings module", function()
     d:save("c", "d")
     d:close()
     -- Now the sidecar file should be written.
+    lfs.mkdir(DataStorage:getHistoryDir())
 
     local legacy_files = {
       docsettings:getHistoryPath(file),
@@ -168,6 +169,7 @@ describe("docsettings module", function()
     for i, v in ipairs(legacy_files) do
       d:save("a", i)
       d:flush()
+      lfs.mkdir(DataStorage:getHistoryDir())
       assert.False(
         os.rename(doc_dir .. "/" .. d.sidecar_filename, v .. "1") == nil
       )
@@ -1636,12 +1638,11 @@ describe("docsettings module", function()
       end)
 
       it("finds sidecar in legacy history", function()
+        lfs.mkdir(DataStorage:getHistoryDir())
         local hist_file = docsettings:getHistoryPath(test_file)
-        local f_out = io.open(hist_file, "w")
-        if f_out then
-          f_out:write("return { ['title'] = 'Legacy' }\n")
-          f_out:close()
-        end
+        local f_out = assert(io.open(hist_file, "w"))
+        f_out:write("return { ['title'] = 'Legacy' }\n")
+        f_out:close()
 
         local cand = docsettings:_findSidecarFile(test_file)
         assert.is_not_nil(cand)
