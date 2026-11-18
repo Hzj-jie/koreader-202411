@@ -525,17 +525,19 @@ describe("Updater module", function()
           )
           writeFile(pkg_update .. "/frontend/version.lua", "new-version")
 
-          local ok, _, code = os.execute(table.concat({
-            "chmod +x " .. shellQuote(pkg_install .. "/fbink"),
-            "&&",
-            "KO_UPDATE_SLEEP=0",
-            "TMPDIR=" .. shellQuote(pkg_tmp),
-            "/bin/sh",
-            shellQuote(repo_root .. "/" .. pkg .. "/ko_update.sh"),
-            shellQuote(pkg_update),
-            shellQuote(pkg_install),
-          }, " "))
-          assert.is_true(ok == true or ok == 0, pkg .. " exit=" .. tostring(code))
+          assert.are.equal(
+            0,
+            os.execute(table.concat({
+              "chmod +x " .. shellQuote(pkg_install .. "/fbink"),
+              "&&",
+              "KO_UPDATE_SLEEP=0",
+              "TMPDIR=" .. shellQuote(pkg_tmp),
+              "/bin/sh",
+              shellQuote(repo_root .. "/" .. pkg .. "/ko_update.sh"),
+              shellQuote(pkg_update),
+              shellQuote(pkg_install),
+            }, " "))
+          )
 
           assert.is_false(exists(pkg_install .. "/frontend/device/wakeupmgr.lua"))
           assert.is_false(exists(pkg_install .. "/libs/libcurl.so.4"))
@@ -566,15 +568,19 @@ describe("Updater module", function()
     it(
       "invokes remote rm -rf for removed-files.txt entries from remove-removed-files.sh",
       function()
-        local repo_root = os.getenv("KO_WORKSPACE_DIR") or ".."
-        local expected_args = { "root@kindle-host", "rm", "-rf", "--" }
-        for line in
-          io.lines(repo_root .. "/koreader/data/removed-files.txt")
-        do
-          if line ~= "" and line:sub(1, 1) ~= "#" then
-            table.insert(expected_args, "/mnt/us/koreader/" .. line)
-          end
-        end
+        assert(util.makePath(temp_root .. "/koreader/data"))
+        assert(lfs.mkdir(temp_root .. "/pw2"))
+        writeFile(
+          temp_root .. "/remove-removed-files.sh",
+          readFile(
+            (os.getenv("KO_WORKSPACE_DIR") or "..")
+              .. "/remove-removed-files.sh"
+          )
+        )
+        writeFile(
+          temp_root .. "/koreader/data/removed-files.txt",
+          "# comment\n\ncustom/obsolete.lua\n../extensions/koreader/bin"
+        )
 
         local stub_bin = temp_root .. "/bin"
         local ssh_log = temp_root .. "/ssh_args.log"
@@ -584,21 +590,30 @@ describe("Updater module", function()
           "#!/bin/sh\nfor arg in \"$@\"; do printf '%s\\n' \"$arg\" >> \"$STUB_SSH_LOG\"; done\n"
         )
 
-        local ok, _, code = os.execute(table.concat({
-          "chmod +x " .. shellQuote(stub_bin .. "/ssh"),
-          "&&",
-          "(cd " .. shellQuote(repo_root .. "/pw2"),
-          "&& PATH=" .. shellQuote(stub_bin) .. ':"$PATH"',
-          "STUB_SSH_LOG=" .. shellQuote(ssh_log),
-          "bash ../remove-removed-files.sh kindle-host /mnt/us/)",
-        }, " "))
-        assert.is_true(ok == true or ok == 0, "exit=" .. tostring(code))
+        assert.are.equal(
+          0,
+          os.execute(table.concat({
+            "chmod +x " .. shellQuote(stub_bin .. "/ssh"),
+            "&&",
+            "(cd " .. shellQuote(temp_root .. "/pw2"),
+            "&& PATH=" .. shellQuote(stub_bin) .. ':"$PATH"',
+            "STUB_SSH_LOG=" .. shellQuote(ssh_log),
+            "bash ../remove-removed-files.sh kindle-host /mnt/us/)",
+          }, " "))
+        )
 
         local actual_args = {}
         for line in io.lines(ssh_log) do
           table.insert(actual_args, line)
         end
-        assert.are.same(expected_args, actual_args)
+        assert.are.same({
+          "root@kindle-host",
+          "rm",
+          "-rf",
+          "--",
+          "/mnt/us/koreader/custom/obsolete.lua",
+          "/mnt/us/koreader/../extensions/koreader/bin",
+        }, actual_args)
       end
     )
   end)
