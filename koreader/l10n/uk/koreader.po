@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-19 16:36+0000\n"
 "Last-Translator: Vitalii <stopchan@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/koreader/"
@@ -657,20 +657,14 @@ msgstr[1] "%1 документи з метаданими на основі хе�
 msgstr[2] "%1 документів з метаданими на основі хешу"
 msgstr[3] "%1 документ з метаданими на основі хешу"
 
-msgid "Reading"
-msgstr "Поточні"
-
-msgid "On hold"
-msgstr "Утримується"
-
-msgid "Finished"
-msgstr "Завершено"
-
 msgid "Collections"
 msgstr "Збірки"
 
 msgid "Favorites"
 msgstr "Обране"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1439,6 +1433,15 @@ msgstr "Домівка"
 
 msgid "Unread"
 msgstr "Непрочитане"
+
+msgid "Reading"
+msgstr "Поточні"
+
+msgid "On hold"
+msgstr "Утримується"
+
+msgid "Finished"
+msgstr "Завершено"
 
 msgid "Reset this document?"
 msgstr "Скинути цей документ?"

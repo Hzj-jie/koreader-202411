@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -628,20 +628,14 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "%1 個帶有基於雜湊詮釋資料的文件"
 
-msgid "Reading"
-msgstr "正在閱讀"
-
-msgid "On hold"
-msgstr "等候中"
-
-msgid "Finished"
-msgstr "已完成"
-
 msgid "Collections"
 msgstr "整理分組"
 
 msgid "Favorites"
 msgstr "最愛"
+
+msgid "Status: %1"
+msgstr "狀態：%1"
 
 msgid "Loading collection…"
 msgstr "正在載入分組…"
@@ -1393,6 +1387,15 @@ msgstr "家資料夾"
 
 msgid "Unread"
 msgstr "未讀"
+
+msgid "Reading"
+msgstr "正在閱讀"
+
+msgid "On hold"
+msgstr "等候中"
+
+msgid "Finished"
+msgstr "已完成"
 
 msgid "Reset this document?"
 msgstr "要重置此文件嗎？"

@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Matthaiks <kitynska@gmail.com>\n"
 "Language-Team: Polish <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -668,20 +668,14 @@ msgstr[1] "%1 dokumenty z metadanymi opartymi na skrótach"
 msgstr[2] "%1 dokumentów z metadanymi opartymi na skrótach"
 msgstr[3] "%1 dokumentów z metadanymi opartymi na skrótach"
 
-msgid "Reading"
-msgstr "Czytam"
-
-msgid "On hold"
-msgstr "Na później"
-
-msgid "Finished"
-msgstr "Zakończona"
-
 msgid "Collections"
 msgstr "Kolekcje"
 
 msgid "Favorites"
 msgstr "Ulubione"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1452,6 +1446,15 @@ msgstr "Folder domowy"
 
 msgid "Unread"
 msgstr "Nieprzeczytana"
+
+msgid "Reading"
+msgstr "Czytam"
+
+msgid "On hold"
+msgstr "Na później"
+
+msgid "Finished"
+msgstr "Zakończona"
 
 msgid "Reset this document?"
 msgstr "Zresetować ten dokument?"

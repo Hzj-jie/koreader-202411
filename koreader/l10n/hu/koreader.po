@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-10-02 07:35+0000\n"
 "Last-Translator: Sari Gabor <sarigaborj@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/koreader/"
@@ -646,20 +646,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 dokumentum hash-alapú metaadatokkal"
 msgstr[1] "%1 dokumentumok hash-alapú metaadatokkal"
 
-msgid "Reading"
-msgstr "Olvasva"
-
-msgid "On hold"
-msgstr "Félretesz"
-
-msgid "Finished"
-msgstr "Befejezett"
-
 msgid "Collections"
 msgstr "Gyűjtemények"
 
 msgid "Favorites"
 msgstr "Kedvencek"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1421,6 +1415,15 @@ msgstr "Kezdőmappa"
 
 msgid "Unread"
 msgstr "Olvasatlan"
+
+msgid "Reading"
+msgstr "Olvasva"
+
+msgid "On hold"
+msgstr "Félretesz"
+
+msgid "Finished"
+msgstr "Befejezett"
 
 msgid "Reset this document?"
 msgstr "Visszaállítja ezt a dokumentumot?"

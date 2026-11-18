@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-14 04:33+0000\n"
 "Last-Translator: sonix-github <sonix.internet@gmail.com>\n"
 "Language-Team: Slovak <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -671,20 +671,14 @@ msgstr[3] ""
 "%1 dokumentov čo majú názov pre metadáta ako reťazec kontrolného súčtu z "
 "písmen a číslic"
 
-msgid "Reading"
-msgstr "Čítanie"
-
-msgid "On hold"
-msgstr "Pozastavené"
-
-msgid "Finished"
-msgstr "Dokončené"
-
 msgid "Collections"
 msgstr "Zbierky"
 
 msgid "Favorites"
 msgstr "Obľúbené"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1457,6 +1451,15 @@ msgstr "Domovský priečinok"
 
 msgid "Unread"
 msgstr "Neprečítané"
+
+msgid "Reading"
+msgstr "Čítanie"
+
+msgid "On hold"
+msgstr "Pozastavené"
+
+msgid "Finished"
+msgstr "Dokončené"
 
 msgid "Reset this document?"
 msgstr "Obnoviť nastavenia pre tento dokument?"

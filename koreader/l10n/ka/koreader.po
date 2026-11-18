@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2021-02-16 16:09+0000\n"
 "Last-Translator: Beka Arabuli <arabulibeqa@gmail.com>\n"
 "Language-Team: Georgian <https://hosted.weblate.org/projects/koreader/"
@@ -593,21 +593,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr ""
-
-msgid "On hold"
-msgstr ""
-
-msgid "Finished"
-msgstr ""
-
 #, fuzzy
 msgid "Collections"
 msgstr "კრებულიდან წაშლა"
 
 msgid "Favorites"
 msgstr "რჩეულები"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1375,6 +1369,15 @@ msgid "Home"
 msgstr ""
 
 msgid "Unread"
+msgstr ""
+
+msgid "Reading"
+msgstr ""
+
+msgid "On hold"
+msgstr ""
+
+msgid "Finished"
 msgstr ""
 
 #, fuzzy

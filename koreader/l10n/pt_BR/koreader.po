@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Denilson Sousa <deni.sousa09@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
@@ -653,20 +653,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 documento com metadados baseados em hash"
 msgstr[1] "%1 documentos com metadados baseados em hash"
 
-msgid "Reading"
-msgstr "Lendo"
-
-msgid "On hold"
-msgstr "Em espera"
-
-msgid "Finished"
-msgstr "Concluído"
-
 msgid "Collections"
 msgstr "Coleções"
 
 msgid "Favorites"
 msgstr "Favoritos"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1428,6 +1422,15 @@ msgstr "Início"
 
 msgid "Unread"
 msgstr "Não lido"
+
+msgid "Reading"
+msgstr "Lendo"
+
+msgid "On hold"
+msgstr "Em espera"
+
+msgid "Finished"
+msgstr "Concluído"
 
 msgid "Reset this document?"
 msgstr "Redefinir este documento?"

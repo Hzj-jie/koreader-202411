@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-13 19:39+0000\n"
 "Last-Translator: eevan78 <ivan.pesic@gmail.com>\n"
 "Language-Team: Serbian <https://hosted.weblate.org/projects/koreader/"
@@ -647,20 +647,14 @@ msgstr[0] "%1 документ са метаподацима базираним 
 msgstr[1] "%1 документа са метаподацима базираним на хешу"
 msgstr[2] "%1 докумената са метаподацима базираним на хешу"
 
-msgid "Reading"
-msgstr "Чита се"
-
-msgid "On hold"
-msgstr "На чекању"
-
-msgid "Finished"
-msgstr "Прочитано"
-
 msgid "Collections"
 msgstr "Збирке"
 
 msgid "Favorites"
 msgstr "Омиљено"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1426,6 +1420,15 @@ msgstr "Почетак"
 
 msgid "Unread"
 msgstr "Непрочитано"
+
+msgid "Reading"
+msgstr "Чита се"
+
+msgid "On hold"
+msgstr "На чекању"
+
+msgid "Finished"
+msgstr "Прочитано"
 
 msgid "Reset this document?"
 msgstr "Да ресетујем овај документ?"

@@ -27,7 +27,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Artem Kaznelson <nook.artem@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/koreader/"
@@ -671,20 +671,14 @@ msgstr[1] "%1 документа с метаданными на основе х�
 msgstr[2] "%1 документов с метаданными на основе хэша"
 msgstr[3] "%1 документов с метаданными на основе хэша"
 
-msgid "Reading"
-msgstr "Читаю"
-
-msgid "On hold"
-msgstr "Отложено"
-
-msgid "Finished"
-msgstr "Завершено"
-
 msgid "Collections"
 msgstr "Подборки"
 
 msgid "Favorites"
 msgstr "Избранное"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1455,6 +1449,15 @@ msgstr "Домашняя"
 
 msgid "Unread"
 msgstr "Не прочитано"
+
+msgid "Reading"
+msgstr "Читаю"
+
+msgid "On hold"
+msgstr "Отложено"
+
+msgid "Finished"
+msgstr "Завершено"
 
 msgid "Reset this document?"
 msgstr "Сбросить данный документ?"

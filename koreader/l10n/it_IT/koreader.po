@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Enrico Segre <enricoalbertoernestosegre@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/koreader/"
@@ -649,20 +649,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 documento con metadati basati su hash"
 msgstr[1] "%1 documenti con metadati basati su hash"
 
-msgid "Reading"
-msgstr "Lettura"
-
-msgid "On hold"
-msgstr "In attesa"
-
-msgid "Finished"
-msgstr "Finito"
-
 msgid "Collections"
 msgstr "Collezioni"
 
 msgid "Favorites"
 msgstr "Preferiti"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1425,6 +1419,15 @@ msgstr "Cartella principale"
 
 msgid "Unread"
 msgstr "Non letti"
+
+msgid "Reading"
+msgstr "Lettura"
+
+msgid "On hold"
+msgstr "In attesa"
+
+msgid "Finished"
+msgstr "Finito"
 
 msgid "Reset this document?"
 msgstr "Reimpostare questo documento?"

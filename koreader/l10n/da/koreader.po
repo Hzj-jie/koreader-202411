@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2022-08-10 20:21+0000\n"
 "Last-Translator: Erasmus Montanus <kbmdoyxnkwbhcozgvr@kvhrs.com>\n"
 "Language-Team: Danish <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -628,21 +628,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr ""
-
-msgid "On hold"
-msgstr ""
-
-msgid "Finished"
-msgstr ""
-
 #, fuzzy
 msgid "Collections"
 msgstr "Fjern fra samling"
 
 msgid "Favorites"
 msgstr "Favoritter"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1436,6 +1430,15 @@ msgid "Home"
 msgstr ""
 
 msgid "Unread"
+msgstr ""
+
+msgid "Reading"
+msgstr ""
+
+msgid "On hold"
+msgstr ""
+
+msgid "Finished"
 msgstr ""
 
 msgid "Reset this document?"

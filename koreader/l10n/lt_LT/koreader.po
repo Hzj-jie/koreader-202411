@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2023-11-21 21:04+0000\n"
 "Last-Translator: Laurynas <laurynastautvydas11@gmail.com>\n"
 "Language-Team: Lithuanian <https://hosted.weblate.org/projects/koreader/"
@@ -656,21 +656,15 @@ msgstr[1] "%1 dokumentai su maiša paremtais metaduomenimis"
 msgstr[2] "%1 dokumentai su maiša paremtais metaduomenimis"
 msgstr[3] "%1 dokumentų su maiša paremtais metaduomenimis"
 
-msgid "Reading"
-msgstr "Skaitomas"
-
-msgid "On hold"
-msgstr "Atidėtas"
-
-msgid "Finished"
-msgstr "Baigta"
-
 #, fuzzy
 msgid "Collections"
 msgstr "Pašalinti iš kolekcijos"
 
 msgid "Favorites"
 msgstr "Mėgstamiausi"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1481,6 +1475,15 @@ msgstr "Pagrindinis"
 
 msgid "Unread"
 msgstr "Neperskaitytas"
+
+msgid "Reading"
+msgstr "Skaitomas"
+
+msgid "On hold"
+msgstr "Atidėtas"
+
+msgid "Finished"
+msgstr "Baigta"
 
 msgid "Reset this document?"
 msgstr "Atstatyti šį dokumentą?"

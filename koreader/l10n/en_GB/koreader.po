@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Chris Heywood <cheywood@users.noreply.hosted.weblate.org>\n"
 "Language-Team: English (United Kingdom) <https://hosted.weblate.org/projects/"
@@ -634,20 +634,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 document with hash-based metadata"
 msgstr[1] "%1 documents with hash-based metadata"
 
-msgid "Reading"
-msgstr "Reading"
-
-msgid "On hold"
-msgstr "On hold"
-
-msgid "Finished"
-msgstr "Finished"
-
 msgid "Collections"
 msgstr "Collections"
 
 msgid "Favorites"
 msgstr "Favourites"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1405,6 +1399,15 @@ msgstr "Home"
 
 msgid "Unread"
 msgstr "Unread"
+
+msgid "Reading"
+msgstr "Reading"
+
+msgid "On hold"
+msgstr "On hold"
+
+msgid "Finished"
+msgstr "Finished"
 
 msgid "Reset this document?"
 msgstr "Reset this document?"

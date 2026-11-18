@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -635,20 +635,14 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 
-msgid "Reading"
-msgstr "Đang đọc"
-
-msgid "On hold"
-msgstr "Lưu trữ"
-
-msgid "Finished"
-msgstr "Đã hoàn thành"
-
 msgid "Collections"
 msgstr "Bộ sưu tập"
 
 msgid "Favorites"
 msgstr "Yêu thích"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1408,6 +1402,15 @@ msgstr "Thư mục chính"
 
 msgid "Unread"
 msgstr "Chưa đọc"
+
+msgid "Reading"
+msgstr "Đang đọc"
+
+msgid "On hold"
+msgstr "Lưu trữ"
+
+msgid "Finished"
+msgstr "Đã hoàn thành"
 
 msgid "Reset this document?"
 msgstr "Đặt tài liệu này về mặc địch?"

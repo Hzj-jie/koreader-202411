@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -620,21 +620,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr "Irakurtzen"
-
-msgid "On hold"
-msgstr "Itxaroten"
-
-msgid "Finished"
-msgstr "Amaituta"
-
 #, fuzzy
 msgid "Collections"
 msgstr "Joan aurreko kokalekura"
 
 msgid "Favorites"
 msgstr "Gogokoenak"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1422,6 +1416,15 @@ msgstr "Hasiera"
 
 msgid "Unread"
 msgstr "Irakurri gabe"
+
+msgid "Reading"
+msgstr "Irakurtzen"
+
+msgid "On hold"
+msgstr "Itxaroten"
+
+msgid "Finished"
+msgstr "Amaituta"
 
 #, fuzzy
 msgid "Reset this document?"

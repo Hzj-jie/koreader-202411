@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Mihai Vasiliu <mihai.vasiliu.93@gmail.com>\n"
 "Language-Team: Moldavian <https://hosted.weblate.org/projects/koreader/"
@@ -650,20 +650,14 @@ msgstr[0] "1 document cu metadate bazate pe suma de control"
 msgstr[1] "%1 documente cu metadate bazate pe suma de control"
 msgstr[2] "%1 de documente cu metadate bazate pe suma de control"
 
-msgid "Reading"
-msgstr "În citire"
-
-msgid "On hold"
-msgstr "Amînat"
-
-msgid "Finished"
-msgstr "Finalizat"
-
 msgid "Collections"
 msgstr "Colecții"
 
 msgid "Favorites"
 msgstr "Favorite"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1428,6 +1422,15 @@ msgstr "Acasă"
 
 msgid "Unread"
 msgstr "Necitit"
+
+msgid "Reading"
+msgstr "În citire"
+
+msgid "On hold"
+msgstr "Amînat"
+
+msgid "Finished"
+msgstr "Finalizat"
 
 msgid "Reset this document?"
 msgstr "Resetezi acest document?"

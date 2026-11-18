@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-09-11 05:09+0000\n"
 "Last-Translator: Marek <marek@pavelka.xyz>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -647,20 +647,14 @@ msgstr[0] "1 dokument s metadaty založenými na hash"
 msgstr[1] "%1 dokumenty s metadaty založenými na hash"
 msgstr[2] "%1 dokumentů s metadaty založenými na hash"
 
-msgid "Reading"
-msgstr "Čteno"
-
-msgid "On hold"
-msgstr "Odloženo"
-
-msgid "Finished"
-msgstr "Dočteno"
-
 msgid "Collections"
 msgstr "Sbírky"
 
 msgid "Favorites"
 msgstr "Oblíbené"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1425,6 +1419,15 @@ msgstr "Domovská složka"
 
 msgid "Unread"
 msgstr "Nepřečteno"
+
+msgid "Reading"
+msgstr "Čteno"
+
+msgid "On hold"
+msgstr "Odloženo"
+
+msgid "Finished"
+msgstr "Dočteno"
 
 msgid "Reset this document?"
 msgstr "Obnovit tento dokument?"

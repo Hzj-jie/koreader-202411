@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-18 15:26+0000\n"
 "Last-Translator: Ichnilatis <sophronios.sp@gmail.com>\n"
 "Language-Team: Greek <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -658,20 +658,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 έγγραφο με μεταδεδομένα βασισμένα σε κατακερματισμό"
 msgstr[1] "%1 έγγραφα με μεταδεδομένα βασισμένα σε κατακερματισμό"
 
-msgid "Reading"
-msgstr "Υπό ανάγνωση"
-
-msgid "On hold"
-msgstr "Σε αναμονή"
-
-msgid "Finished"
-msgstr "Τελείωσε"
-
 msgid "Collections"
 msgstr "Συλλογές"
 
 msgid "Favorites"
 msgstr "Αγαπημένα"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1437,6 +1431,15 @@ msgstr "Αρχικός Φάκελος"
 
 msgid "Unread"
 msgstr "Μη αναγνωσμένο"
+
+msgid "Reading"
+msgstr "Υπό ανάγνωση"
+
+msgid "On hold"
+msgstr "Σε αναμονή"
+
+msgid "Finished"
+msgstr "Τελείωσε"
 
 msgid "Reset this document?"
 msgstr "Να γίνει επαναφορά αυτού του εγγράφου στις αρχικές ρυθμίσεις;"

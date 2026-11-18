@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2020-09-20 07:38+0000\n"
 "Last-Translator: OIS <mistresssilvara@hotmail.com>\n"
 "Language-Team: Occidental <https://hosted.weblate.org/projects/koreader/"
@@ -567,20 +567,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr ""
-
-msgid "On hold"
-msgstr ""
-
-msgid "Finished"
-msgstr ""
-
 #, fuzzy
 msgid "Collections"
 msgstr "Adjustar li hora"
 
 msgid "Favorites"
+msgstr ""
+
+msgid "Status: %1"
 msgstr ""
 
 msgid "Loading collection…"
@@ -1322,6 +1316,15 @@ msgid "Home"
 msgstr ""
 
 msgid "Unread"
+msgstr ""
+
+msgid "Reading"
+msgstr ""
+
+msgid "On hold"
+msgstr ""
+
+msgid "Finished"
 msgstr ""
 
 msgid "Reset this document?"

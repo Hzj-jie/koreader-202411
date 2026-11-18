@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -636,20 +636,14 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 
-msgid "Reading"
-msgstr "読書中"
-
-msgid "On hold"
-msgstr "保留"
-
-msgid "Finished"
-msgstr "完了"
-
 msgid "Collections"
 msgstr "コレクション"
 
 msgid "Favorites"
 msgstr "お気に入り"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1453,6 +1447,15 @@ msgstr "ホーム"
 #, fuzzy
 msgid "Unread"
 msgstr "スプレッド(広げる)"
+
+msgid "Reading"
+msgstr "読書中"
+
+msgid "On hold"
+msgstr "保留"
+
+msgid "Finished"
+msgstr "完了"
 
 msgid "Reset this document?"
 msgstr "この文書をリセットしますか？"

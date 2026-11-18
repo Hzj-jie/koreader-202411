@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -646,20 +646,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 belgenin üst verileri karma temelli"
 msgstr[1] "%1 belgenin üst verileri karma temelli"
 
-msgid "Reading"
-msgstr "Okunuyor"
-
-msgid "On hold"
-msgstr "Bekliyor"
-
-msgid "Finished"
-msgstr "Tamamlandı"
-
 msgid "Collections"
 msgstr "Derlemeler"
 
 msgid "Favorites"
 msgstr "Sık Kullanılanlar"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1422,6 +1416,15 @@ msgstr "Başlangıç"
 
 msgid "Unread"
 msgstr "Okunmamış"
+
+msgid "Reading"
+msgstr "Okunuyor"
+
+msgid "On hold"
+msgstr "Bekliyor"
+
+msgid "Finished"
+msgstr "Tamamlandı"
 
 msgid "Reset this document?"
 msgstr "Bu belge sıfırlansın mı?"

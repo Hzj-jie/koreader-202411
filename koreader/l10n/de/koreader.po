@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-20 16:20+0000\n"
 "Last-Translator: zwim <martin.zwicknagl@kirchbichl.net>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -656,20 +656,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 Dokument mit hashbasierten Metadaten"
 msgstr[1] "%1 Dokumente mit hashbasierten Metadaten"
 
-msgid "Reading"
-msgstr "Lesen"
-
-msgid "On hold"
-msgstr "Zurückgestellt"
-
-msgid "Finished"
-msgstr "Beendet"
-
 msgid "Collections"
 msgstr "Sammlungen"
 
 msgid "Favorites"
 msgstr "Favoriten"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1432,6 +1426,15 @@ msgstr "Home"
 
 msgid "Unread"
 msgstr "Ungelesen"
+
+msgid "Reading"
+msgstr "Lesen"
+
+msgid "On hold"
+msgstr "Zurückgestellt"
+
+msgid "Finished"
+msgstr "Beendet"
 
 msgid "Reset this document?"
 msgstr "Dokument zurücksetzen?"

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -634,21 +634,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr "Leser"
-
-msgid "On hold"
-msgstr ""
-
-msgid "Finished"
-msgstr "Ferdig"
-
 #, fuzzy
 msgid "Collections"
 msgstr "Fjern fra samling"
 
 msgid "Favorites"
 msgstr "Favoritter"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1427,6 +1421,15 @@ msgstr "Hjem"
 
 msgid "Unread"
 msgstr ""
+
+msgid "Reading"
+msgstr "Leser"
+
+msgid "On hold"
+msgstr ""
+
+msgid "Finished"
+msgstr "Ferdig"
 
 msgid "Reset this document?"
 msgstr "Tilbakestille dette dokumentet?"

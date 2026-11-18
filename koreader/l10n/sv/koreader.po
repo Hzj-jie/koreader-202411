@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -644,20 +644,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr "Läser"
-
-msgid "On hold"
-msgstr "I vänteläge"
-
-msgid "Finished"
-msgstr "Färdig"
-
 #, fuzzy
 msgid "Collections"
 msgstr "Gå tillbaka till föregående plats"
 
 msgid "Favorites"
+msgstr ""
+
+msgid "Status: %1"
 msgstr ""
 
 msgid "Loading collection…"
@@ -1456,6 +1450,15 @@ msgstr ""
 #, fuzzy
 msgid "Unread"
 msgstr "Spridning"
+
+msgid "Reading"
+msgstr "Läser"
+
+msgid "On hold"
+msgstr "I vänteläge"
+
+msgid "Finished"
+msgstr "Färdig"
 
 #, fuzzy
 msgid "Reset this document?"

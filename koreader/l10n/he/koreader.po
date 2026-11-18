@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:10-0800\n"
+"POT-Creation-Date: 2026-11-17 21:16-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -645,20 +645,14 @@ msgstr[1] "שני מסמכים עם נתוני על מבוססי גיבוב"
 msgstr[2] "%1 מסמכים עם נתוני על מבוססי גיבוב"
 msgstr[3] "%1 מסמכים עם נתוני על מבוססי גיבוב"
 
-msgid "Reading"
-msgstr "בקריאה"
-
-msgid "On hold"
-msgstr "בהמתנה"
-
-msgid "Finished"
-msgstr "הושלם"
-
 msgid "Collections"
 msgstr "אוספים"
 
 msgid "Favorites"
 msgstr "מועדפים"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -1426,6 +1420,15 @@ msgstr "בית"
 
 msgid "Unread"
 msgstr "לא נקרא"
+
+msgid "Reading"
+msgstr "בקריאה"
+
+msgid "On hold"
+msgstr "בהמתנה"
+
+msgid "Finished"
+msgstr "הושלם"
 
 msgid "Reset this document?"
 msgstr "לאפס את המסמך הזה?"
