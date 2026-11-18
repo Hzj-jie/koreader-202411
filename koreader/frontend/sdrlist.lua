@@ -28,20 +28,18 @@ local function normalizePath(file)
 end
 
 local function scanMetadataFiles(root, extractor, out_files, sdr_list)
-  local p = io.popen(util.shell_escape({ "find", root, "-name", "metadata.*.lua" }))
-  if not p then
-    return false
-  end
-  for line in p:lines() do
-    local doc_path, replaced = extractor(line)
-    if replaced > 0 and doc_path ~= "" and not sdr_list:ignorePath(doc_path) then
+  util.findFiles(root, function(path)
+    local doc_path, replaced = extractor(path)
+    if
+      replaced > 0
+      and doc_path ~= ""
+      and not sdr_list:ignorePath(doc_path)
+    then
       if util.fileExists(doc_path) then
         out_files[normalizePath(doc_path)] = true
       end
     end
-  end
-  p:close()
-  return true
+  end)
 end
 
 function SdrList:ignoreFile(file)
@@ -279,48 +277,28 @@ function SdrList:rebuildFromDisk()
   self:reload()
   local DocSettings = require("docsettings")
   local new_files = {}
-  if
-    not scanMetadataFiles(
-      G_named_settings.home_dir(),
-      function(line)
-        return line:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-      end,
-      new_files,
-      self
-    )
-  then
-    require("ui/widget/notification"):notify(
-      gettext("Failed to scan metadata files for reading status collections.")
-    )
-    return false
-  end
+  scanMetadataFiles(
+    G_named_settings.home_dir():gsub("(.+)/+$", "%1"),
+    function(path)
+      return path:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+    end,
+    new_files,
+    self
+  )
   local docsettings_dir = DataStorage:getDocSettingsDir():gsub("/+$", "")
   if util.directoryExists(docsettings_dir) then
     local prefix_len = #docsettings_dir
-    if
-      not scanMetadataFiles(
-        docsettings_dir,
-        function(line)
-          if
-            line:sub(1, prefix_len) == docsettings_dir
-            and line:sub(prefix_len + 1, prefix_len + 1) == "/"
-          then
-            return line:sub(prefix_len + 1):gsub(
-              "%.sdr/metadata(%.[^/%.]+)%.lua$",
-              "%1"
-            )
-          end
-          return line, 0
-        end,
-        new_files,
-        self
-      )
-    then
-      require("ui/widget/notification"):notify(
-        gettext("Failed to scan metadata files for reading status collections.")
-      )
-      return false
-    end
+    scanMetadataFiles(docsettings_dir, function(path)
+      if
+        path:sub(1, prefix_len) == docsettings_dir
+        and path:sub(prefix_len + 1, prefix_len + 1) == "/"
+      then
+        return path
+          :sub(prefix_len + 1)
+          :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+      end
+      return path, 0
+    end, new_files, self)
   end
   -- Preserve valid hash-located entries that cannot be reversed from disk hashes.
   for file in pairs(self.files) do

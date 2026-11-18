@@ -284,7 +284,7 @@ describe("SdrList module", function()
   )
 
   it(
-    "rebuilds index without -type d across doc, dir, and valid hash entries",
+    "rebuilds index without io.popen across doc, dir, and valid hash entries",
     function()
       local real_home = ffiutil.realpath(home_dir)
       local doc_book = real_home .. "/doc_book.epub"
@@ -341,46 +341,19 @@ describe("SdrList module", function()
       assert.is_true(hasSdrEntry(hash_book))
       assert.is_true(hasSdrEntry(missing_book))
 
-      local cmds = {}
-      local orig_popen = io.popen
-      local popen_stub = stub(io, "popen", function(cmd, mode)
-        table.insert(cmds, cmd)
-        return orig_popen(cmd, mode)
-      end)
-      local notify_stub
+      local popen_spy = spy.on(io, "popen")
       finally(function()
-        popen_stub:revert()
-        if notify_stub then
-          notify_stub:revert()
-        end
+        popen_spy:revert()
       end)
 
       assert.is_true(SdrList:rebuildFromDisk())
-      assert.is_true(#cmds >= 1)
-      for _, cmd in ipairs(cmds) do
-        assert.is_nil(cmd:find("-type d", 1, true))
-      end
+      assert.spy(popen_spy).was_not_called()
 
       assert.are.same({ doc_book, hash_book, dir_book }, SdrList:getFiles())
       assert.is_false(hasSdrEntry(orphan_book))
       assert.is_false(hasSdrEntry(missing_book))
       assert.is_false(hasSdrEntry(trash_book))
       assert.is_false(hasSdrEntry(nested_trash_book))
-
-      -- On io.popen failure, notify and keep existing cached paths
-      popen_stub:revert()
-      popen_stub = stub(io, "popen", function()
-        return nil, "spawn failed"
-      end)
-      notify_stub = stub(Notification, "notify")
-
-      assert.is_false(SdrList:rebuildFromDisk())
-      assert.stub(Notification.notify).was_called(1)
-      assert.stub(Notification.notify).was_called_with(
-        Notification,
-        gettext("Failed to scan metadata files for reading status collections.")
-      )
-      assert.are.same({ doc_book, hash_book, dir_book }, SdrList:getFiles())
     end
   )
 end)
