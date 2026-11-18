@@ -22,23 +22,14 @@ local AUTO_COLLECTIONS = {
   {
     name = "__auto_reading",
     status = "reading",
-    title_func = function()
-      return gettext("Reading")
-    end,
   },
   {
     name = "__auto_abandoned",
     status = "abandoned",
-    title_func = function()
-      return gettext("On hold")
-    end,
   },
   {
     name = "__auto_complete",
     status = "complete",
-    title_func = function()
-      return gettext("Finished")
-    end,
   },
 }
 
@@ -84,7 +75,10 @@ function FileManagerCollection:getCollectionTitle(collection_name)
   end
   local auto_coll = AUTO_COLLECTION_BY_NAME[collection_name]
   if auto_coll then
-    return auto_coll.title_func()
+    return T(
+      gettext("Status: %1"),
+      filemanagerutil.statusToString(auto_coll.status)
+    )
   end
   return collection_name
 end
@@ -488,7 +482,7 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
     if not self.selected_collections then
       for _, auto_coll in ipairs(AUTO_COLLECTIONS) do
         table.insert(item_table, {
-          text = auto_coll.title_func(),
+          text = self:getCollectionTitle(auto_coll.name),
           name = auto_coll.name,
         })
       end
