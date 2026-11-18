@@ -5,17 +5,8 @@ local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 
-local history_file = ffiutil.joinPath(DataStorage:getDataDir(), "history.lua")
 local sdr_list_file =
   ffiutil.joinPath(DataStorage:getDataDir(), "sdr_list.lua")
-
-local ignore_patterns = {
-  "^batterystat%.log$",
-  "^crash%.log$",
-  "^crash%.prev%.log$",
-  "^koreader%.crash%..*%.log$",
-  "^quickstart%-.*%.html$",
-}
 
 local SdrList = {
   files = {},
@@ -42,19 +33,6 @@ local function scanMetadataFiles(root, extractor, out_files, sdr_list)
   end)
 end
 
-function SdrList:ignoreFile(file)
-  local filename = ffiutil.basename(file)
-  if not require("ui/widget/filechooser"):show_file(filename) then
-    return true
-  end
-  for _, pattern in ipairs(ignore_patterns) do
-    if filename:match(pattern) then
-      return true
-    end
-  end
-  return false
-end
-
 function SdrList:ignorePath(file)
   local FileChooser = require("ui/widget/filechooser")
   local dir = ffiutil.dirname(normalizePath(file))
@@ -73,7 +51,7 @@ function SdrList:ignorePath(file)
   then
     return true
   end
-  return self:ignoreFile(file)
+  return require("readhistory"):ignoreFile(file)
 end
 
 function SdrList:_flush()
@@ -97,28 +75,16 @@ end
 
 function SdrList:_seedFromReadHistory()
   local DocSettings = require("docsettings")
-  local hist_entries
-  local loaded_history = package.loaded["readhistory"]
-  if loaded_history then
-    hist_entries = loaded_history.hist
-  elseif util.fileExists(history_file) then
-    local ok, data = pcall(dofile, history_file)
-    if ok and type(data) == "table" then
-      hist_entries = data
-    end
-  end
   self.files = {}
-  if hist_entries then
-    for _, v in ipairs(hist_entries) do
-      local file = v.file and normalizePath(v.file)
-      if
-        file
-        and file ~= ""
-        and not self:ignorePath(file)
-        and DocSettings:hasSidecarFile(file)
-      then
-        self.files[file] = true
-      end
+  for _, v in ipairs(require("readhistory").hist) do
+    local file = v.file and normalizePath(v.file)
+    if
+      file
+      and file ~= ""
+      and not self:ignorePath(file)
+      and DocSettings:hasSidecarFile(file)
+    then
+      self.files[file] = true
     end
   end
   self.seeded = true

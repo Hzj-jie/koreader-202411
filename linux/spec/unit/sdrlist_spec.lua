@@ -24,6 +24,7 @@ describe("SdrList module", function()
   end
 
   local function reloadModule()
+    package.loaded["readhistory"] = nil
     package.loaded["sdrlist"] = nil
     SdrList = require("sdrlist")
     return SdrList
@@ -100,6 +101,7 @@ describe("SdrList module", function()
     _G.G_named_settings = orig_named_settings
     package.loaded["sdrlist"] = nil
     package.loaded["docsettings"] = nil
+    package.loaded["readhistory"] = nil
     ffiutil.purgeDir(ffiutil.dirname(data_dir))
   end)
 
@@ -164,17 +166,21 @@ describe("SdrList module", function()
     writeDummy(b1, "1")
     writeDummy(b2, "2")
 
+    local ReadHistory = require("readhistory")
+    local ignore_spy = spy.on(ReadHistory, "ignoreFile")
     local write_stub = spy.on(util, "writeToFile")
     finally(function()
+      ignore_spy:revert()
       write_stub:revert()
     end)
 
-    assert.is_false(SdrList:ignoreFile(hidden_dir_book))
     assert.is_true(SdrList:ignorePath(hidden_dir_book))
+    assert.spy(ignore_spy).was_not_called()
     assert.is_true(SdrList:ignorePath(nested_trash_book))
     assert.is_true(SdrList:ignorePath(sdr_dir_book))
     assert.is_true(SdrList:ignorePath(nested_sdr_book))
     assert.is_false(SdrList:addItem(ignored))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, ignored)
     assert.is_false(SdrList:addItem(hidden))
     assert.is_false(SdrList:addItem(hidden_dir_book))
     assert.is_false(SdrList:addItem(nested_trash_book))
