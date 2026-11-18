@@ -16,38 +16,12 @@ fi
 TARGET="$1"
 TARGET_DIR="${2%/}"
 
-REMOVED_FILES=(
-  "frontend/device/kindle/mockrtc.lua"
-  "frontend/device/wakeupmgr.lua"
-  "frontend/ui/data/onetime_migration.lua"
-  "frontend/ui/data/settings_migration.lua"
-  "frontend/ui/elements/avoid_flashing_ui.lua"
-  "frontend/ui/elements/flash_keyboard.lua"
-  "frontend/ui/elements/flash_ui.lua"
-  "frontend/ui/elements/screen_notification_menu_table.lua"
-  "frontend/ui/hook_container.lua"
-  "frontend/ui/otamanager.lua"
-  "frontend/ui/plugin/insert_menu.lua"
-  "frontend/ui/widget/buttondialogtitle.lua"
-  "frontend/userpatch.lua"
-  "plugins/gestures.koplugin/migration.lua"
-  "plugins/timesync.koplugin"
-  "plugins/weather.koplugin/settings.lua"
-  "plugins/simpleui.koplugin"
-  "plugins/kochess.koplugin"
-  "plugins/AnnotationSync.koplugin/l10n"
-  "plugins/AnnotationSync.koplugin/defaults/settings/hotkeys.lua"
-  "plugins/backgroundrunner.koplugin/keyed_job_filter.lua"
-  "zsync2"
-  "spinning_zsync"
-  "ffi.so"
-  "libs/libcurl.so.4"
-  "../extensions/koreader/bin"
-)
-
 REMOTE_PATHS=()
-for item in "${REMOVED_FILES[@]}"; do
+while IFS= read -r item || [ -n "${item}" ]; do
+  case "${item}" in
+    "" | "#"*) continue ;;
+  esac
   REMOTE_PATHS+=("${TARGET_DIR}/koreader/${item}")
-done
+done < "$(dirname "${BASH_SOURCE[0]}")/koreader/data/removed-files.txt"
 
 ssh "root@${TARGET}" rm -rf -- "${REMOTE_PATHS[@]}"
