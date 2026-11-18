@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-10-31 18:39+0000\n"
 "Last-Translator: \"Joan O.\" <ccumwusl@sharklasers.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/koreader/"
@@ -645,20 +645,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 document amb metadades basades en hash"
 msgstr[1] "%1 documents amb metadades basades en hash"
 
-msgid "Reading"
-msgstr "En lectura"
-
-msgid "On hold"
-msgstr "En espera"
-
-msgid "Finished"
-msgstr "Acabat"
-
 msgid "Collections"
 msgstr "Col·leccions"
 
 msgid "Favorites"
 msgstr "Preferits"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -882,9 +876,6 @@ msgstr "Neteja"
 
 msgid "Filter by book status"
 msgstr "Filtra per estat del llibre"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1423,6 +1414,15 @@ msgstr "Inici"
 
 msgid "Unread"
 msgstr "No llegit"
+
+msgid "Reading"
+msgstr "En lectura"
+
+msgid "On hold"
+msgstr "En espera"
+
+msgid "Finished"
+msgstr "Acabat"
 
 msgid "Reset this document?"
 msgstr "Reiniciar aquest document?"
@@ -2943,15 +2943,6 @@ msgstr "Seleccionar i subratllar"
 msgid "Fulltext search"
 msgstr "Cercar a texte complet"
 
-msgid "Top"
-msgstr "Dalt"
-
-msgid "Bottom"
-msgstr "Baix"
-
-msgid "Gesture position"
-msgstr "Posició del gest"
-
 msgid "Start content selection"
 msgstr "Iniciar selecció de contingut"
 
@@ -3058,9 +3049,6 @@ msgstr "Pulsació llarga en el text"
 
 msgid "Dictionary on single word selection"
 msgstr "Buscar en diccionari en seleccionar una sola paraula"
-
-msgid "Highlight dialog position: %1"
-msgstr "Posició del diàleg de subratllat: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Interval de pulsació molt llarga per a subratllat: %1 s"
@@ -6295,9 +6283,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Fina"
@@ -6385,6 +6370,12 @@ msgstr "Marge superior"
 
 msgid "Top/Bottom Margins"
 msgstr "Marges superior/inferior"
+
+msgid "Top"
+msgstr "Dalt"
+
+msgid "Bottom"
+msgstr "Baix"
 
 msgid "Bottom Margin"
 msgstr "Marge inferior"
@@ -17603,6 +17594,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "anotacions"
+
+#~ msgid "Gesture position"
+#~ msgstr "Posició del gest"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Posició del diàleg de subratllat: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

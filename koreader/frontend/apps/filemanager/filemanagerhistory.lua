@@ -460,45 +460,23 @@ end
 function FileManagerHistory:doBuildHistory()
   local updated = false
   UIManager:runWith(function()
-    local p = io.popen(util.shell_escape({
-      "find",
-      G_named_settings.home_dir(),
-      "-name",
-      "metadata.*.lua",
-      "-exec",
-      "stat",
-      "-c",
-      "%n %Y",
-      "{}",
-      ";",
-    }))
-    if not p then
-      Notification:notify(
-        gettext("Failed to scan metadata files for reading history.")
-      )
-      return
-    end
-    local files = {}
-    for line in p:lines() do
-      local f, t = line:match("^(.+) (%d+)$")
-      if f and t then
-        table.insert(files, { f, tonumber(t) })
-      end
-    end
-    p:close()
-    table.sort(files, function(l, r)
-      return l[2] > r[2]
-    end)
     local records = {}
-    for _, v in ipairs(files) do
-      local book_path, replaced = v[1]:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-      if replaced > 0 then
-        table.insert(records, {
-          file = book_path,
-          time = v[2],
-        })
+    util.findFiles(
+      G_named_settings.home_dir():gsub("(.+)/+$", "%1"),
+      function(path, _, attr)
+        local book_path, replaced =
+          path:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+        if replaced > 0 then
+          table.insert(records, {
+            file = book_path,
+            time = attr.modification,
+          })
+        end
       end
-    end
+    )
+    table.sort(records, function(l, r)
+      return l.time > r.time
+    end)
     local backed_up = false
     if util.fileExists(history_file) then
       local ok, err = os.rename(history_file, history_backup_file)

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-05-24 07:40+0000\n"
 "Last-Translator: Monirzadeh <Monirzadeh@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/koreader/"
@@ -637,20 +637,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "۱ سند با فراداده براساس هش"
 msgstr[1] "%1 سند با فراداده براساس هش"
 
-msgid "Reading"
-msgstr "در حال مطالعه"
-
-msgid "On hold"
-msgstr "درانتظار"
-
-msgid "Finished"
-msgstr "پایان‌یافته"
-
 msgid "Collections"
 msgstr "مجموعه‌ها"
 
 msgid "Favorites"
 msgstr "موارد برگزیده"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -877,9 +871,6 @@ msgstr "پاک‌کردن"
 
 msgid "Filter by book status"
 msgstr "فیلتر براساس وضعیت کتاب"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1415,6 +1406,15 @@ msgstr "خانه"
 
 msgid "Unread"
 msgstr "خوانده نشده"
+
+msgid "Reading"
+msgstr "در حال مطالعه"
+
+msgid "On hold"
+msgstr "درانتظار"
+
+msgid "Finished"
+msgstr "پایان‌یافته"
 
 msgid "Reset this document?"
 msgstr "این سند بازنشانی شود؟"
@@ -2915,15 +2915,6 @@ msgstr "انتخاب و هایلایت"
 msgid "Fulltext search"
 msgstr "جستجوی کامل متن"
 
-msgid "Top"
-msgstr "بالا"
-
-msgid "Bottom"
-msgstr "پایین"
-
-msgid "Gesture position"
-msgstr "موقعیت ژست‌های حرکتی"
-
 msgid "Start content selection"
 msgstr "شروع به انتخاب محتوا"
 
@@ -3035,9 +3026,6 @@ msgstr "لمس طولانی متن"
 
 msgid "Dictionary on single word selection"
 msgstr "لغتنامه در هنگام انتخاب تک کلمه"
-
-msgid "Highlight dialog position: %1"
-msgstr "موقعیت پنجره هایلایت: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "فاصله زمانی لمس بسیار طولانی هایلایت: %1 ثانیه"
@@ -6013,9 +6001,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "نازک"
@@ -6096,6 +6081,12 @@ msgstr "حاشیه بالا"
 
 msgid "Top/Bottom Margins"
 msgstr "حاشیه بالا/پایین"
+
+msgid "Top"
+msgstr "بالا"
+
+msgid "Bottom"
+msgstr "پایین"
 
 msgid "Bottom Margin"
 msgstr "حاشیه پایین"
@@ -16647,6 +16638,12 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "چرخش"
+
+#~ msgid "Gesture position"
+#~ msgstr "موقعیت ژست‌های حرکتی"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "موقعیت پنجره هایلایت: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

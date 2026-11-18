@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Mihai Vasiliu <mihai.vasiliu.93@gmail.com>\n"
 "Language-Team: Romanian <https://hosted.weblate.org/projects/koreader/"
@@ -650,20 +650,14 @@ msgstr[0] "1 document cu metadate bazate pe suma de control"
 msgstr[1] "%1 documente cu metadate bazate pe suma de control"
 msgstr[2] "%1 de documente cu metadate bazate pe suma de control"
 
-msgid "Reading"
-msgstr "În citire"
-
-msgid "On hold"
-msgstr "Amânat"
-
-msgid "Finished"
-msgstr "Finalizat"
-
 msgid "Collections"
 msgstr "Colecții"
 
 msgid "Favorites"
 msgstr "Favorite"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -889,9 +883,6 @@ msgstr "Șterge"
 
 msgid "Filter by book status"
 msgstr "Filtrează după starea cărții"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1431,6 +1422,15 @@ msgstr "Acasă"
 
 msgid "Unread"
 msgstr "Necitit"
+
+msgid "Reading"
+msgstr "În citire"
+
+msgid "On hold"
+msgstr "Amânat"
+
+msgid "Finished"
+msgstr "Finalizat"
 
 msgid "Reset this document?"
 msgstr "Resetezi acest document?"
@@ -2947,15 +2947,6 @@ msgstr "Selectează și evidențiază"
 msgid "Fulltext search"
 msgstr "Caută în text"
 
-msgid "Top"
-msgstr "Sus"
-
-msgid "Bottom"
-msgstr "Jos"
-
-msgid "Gesture position"
-msgstr "Poziție gest"
-
 msgid "Start content selection"
 msgstr "Începe selecție conținut"
 
@@ -3062,9 +3053,6 @@ msgstr "Apasă lung pe text"
 
 msgid "Dictionary on single word selection"
 msgstr "Dicționar la selecția unui singur cuvânt"
-
-msgid "Highlight dialog position: %1"
-msgstr "Poziție dialog evidențiere: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Interval apăsare-foarte-lungă evidențiere: %1 s"
@@ -6420,9 +6408,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Subțire"
@@ -6507,6 +6492,12 @@ msgstr "Margine sus"
 
 msgid "Top/Bottom Margins"
 msgstr "Margini sus/jos"
+
+msgid "Top"
+msgstr "Sus"
+
+msgid "Bottom"
+msgstr "Jos"
 
 msgid "Bottom Margin"
 msgstr "Margine jos"
@@ -17663,6 +17654,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "adnotări"
+
+#~ msgid "Gesture position"
+#~ msgstr "Poziție gest"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Poziție dialog evidențiere: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

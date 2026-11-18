@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-11-14 04:33+0000\n"
 "Last-Translator: sonix-github <sonix.internet@gmail.com>\n"
 "Language-Team: Slovak <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -671,20 +671,14 @@ msgstr[3] ""
 "%1 dokumentov čo majú názov pre metadáta ako reťazec kontrolného súčtu z "
 "písmen a číslic"
 
-msgid "Reading"
-msgstr "Čítanie"
-
-msgid "On hold"
-msgstr "Pozastavené"
-
-msgid "Finished"
-msgstr "Dokončené"
-
 msgid "Collections"
 msgstr "Zbierky"
 
 msgid "Favorites"
 msgstr "Obľúbené"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -912,9 +906,6 @@ msgstr "Vymazať"
 
 msgid "Filter by book status"
 msgstr "Filtrovať podľa stavu knihy"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1460,6 +1451,15 @@ msgstr "Domovský priečinok"
 
 msgid "Unread"
 msgstr "Neprečítané"
+
+msgid "Reading"
+msgstr "Čítanie"
+
+msgid "On hold"
+msgstr "Pozastavené"
+
+msgid "Finished"
+msgstr "Dokončené"
 
 msgid "Reset this document?"
 msgstr "Obnoviť nastavenia pre tento dokument?"
@@ -2975,15 +2975,6 @@ msgstr "Vybrať a zvýrazniť"
 msgid "Fulltext search"
 msgstr "Hľadanie textu"
 
-msgid "Top"
-msgstr "Hore"
-
-msgid "Bottom"
-msgstr "Dole"
-
-msgid "Gesture position"
-msgstr "Poloha gesta"
-
 msgid "Start content selection"
 msgstr "Spustiť výber obsahu"
 
@@ -3093,9 +3084,6 @@ msgstr "Dlhé stlačenie na texte"
 
 msgid "Dictionary on single word selection"
 msgstr "Slovník po výbere jedného slova"
-
-msgid "Highlight dialog position: %1"
-msgstr "Umiestnenie ponuky pre zvýraznenie: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Interval veľmi dlhého stlačenia pre zvýraznenie: %1 s"
@@ -6458,9 +6446,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Tenké"
@@ -6546,6 +6531,12 @@ msgstr "Vrchný okraj"
 
 msgid "Top/Bottom Margins"
 msgstr "Horné/dolné okraje"
+
+msgid "Top"
+msgstr "Hore"
+
+msgid "Bottom"
+msgstr "Dole"
 
 msgid "Bottom Margin"
 msgstr "Spodný okraj"
@@ -17755,6 +17746,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "komentáre"
+
+#~ msgid "Gesture position"
+#~ msgstr "Poloha gesta"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Umiestnenie ponuky pre zvýraznenie: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

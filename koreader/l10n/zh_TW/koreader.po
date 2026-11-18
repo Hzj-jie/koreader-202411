@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -628,20 +628,14 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "%1 個帶有基於雜湊詮釋資料的文件"
 
-msgid "Reading"
-msgstr "正在閱讀"
-
-msgid "On hold"
-msgstr "等候中"
-
-msgid "Finished"
-msgstr "已完成"
-
 msgid "Collections"
 msgstr "整理分組"
 
 msgid "Favorites"
 msgstr "最愛"
+
+msgid "Status: %1"
+msgstr "狀態：%1"
 
 msgid "Loading collection…"
 msgstr "正在載入分組…"
@@ -863,9 +857,6 @@ msgstr "清除"
 
 msgid "Filter by book status"
 msgstr "按書籍狀態過濾"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr "掃描閱讀歷史的詮釋資料檔案失敗。"
 
 msgid "Failed to back up reading history: %1"
 msgstr "備份閱讀歷史失敗：%1"
@@ -1396,6 +1387,15 @@ msgstr "家資料夾"
 
 msgid "Unread"
 msgstr "未讀"
+
+msgid "Reading"
+msgstr "正在閱讀"
+
+msgid "On hold"
+msgstr "等候中"
+
+msgid "Finished"
+msgstr "已完成"
 
 msgid "Reset this document?"
 msgstr "要重置此文件嗎？"
@@ -2864,15 +2864,6 @@ msgstr "選擇並標注"
 msgid "Fulltext search"
 msgstr "全文搜尋"
 
-msgid "Top"
-msgstr "上"
-
-msgid "Bottom"
-msgstr "下"
-
-msgid "Gesture position"
-msgstr "手勢位置"
-
 msgid "Start content selection"
 msgstr "開始內容選擇"
 
@@ -2966,9 +2957,6 @@ msgstr "長按文字"
 
 msgid "Dictionary on single word selection"
 msgstr "選擇單一文字時開啟字典"
-
-msgid "Highlight dialog position: %1"
-msgstr "標註對話方塊位置：%1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "高亮時間非常久的長按間隔：%1 秒"
@@ -6162,9 +6150,6 @@ msgstr "儲存閱讀狀態分組索引失敗。"
 msgid "Failed to load reading status collection index."
 msgstr "載入閱讀狀態分組索引失敗。"
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr "掃描閱讀狀態分組的詮釋資料檔案失敗。"
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "淡體"
@@ -6246,6 +6231,12 @@ msgstr "上邊距"
 
 msgid "Top/Bottom Margins"
 msgstr "上/下邊距"
+
+msgid "Top"
+msgstr "上"
+
+msgid "Bottom"
+msgstr "下"
 
 msgid "Bottom Margin"
 msgstr "下邊距"
@@ -16988,6 +16979,18 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "註釋"
+
+#~ msgid "Failed to scan metadata files for reading history."
+#~ msgstr "掃描閱讀歷史的詮釋資料檔案失敗。"
+
+#~ msgid "Gesture position"
+#~ msgstr "手勢位置"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "標註對話方塊位置：%1"
+
+#~ msgid "Failed to scan metadata files for reading status collections."
+#~ msgstr "掃描閱讀狀態分組的詮釋資料檔案失敗。"
 
 #~ msgid "5 minutes usage %"
 #~ msgstr "5分鐘使用率 %"

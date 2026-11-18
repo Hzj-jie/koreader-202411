@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-07-03 19:59+0000\n"
 "Last-Translator: Tình <ddtinh2503@gmail.com>\n"
 "Language-Team: Vietnamese <https://hosted.weblate.org/projects/koreader/"
@@ -635,20 +635,14 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 
-msgid "Reading"
-msgstr "Đang đọc"
-
-msgid "On hold"
-msgstr "Lưu trữ"
-
-msgid "Finished"
-msgstr "Đã hoàn thành"
-
 msgid "Collections"
 msgstr "Bộ sưu tập"
 
 msgid "Favorites"
 msgstr "Yêu thích"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -872,9 +866,6 @@ msgstr "Xóa"
 
 msgid "Filter by book status"
 msgstr "Lọc theo trạng thái sách"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1411,6 +1402,15 @@ msgstr "Thư mục chính"
 
 msgid "Unread"
 msgstr "Chưa đọc"
+
+msgid "Reading"
+msgstr "Đang đọc"
+
+msgid "On hold"
+msgstr "Lưu trữ"
+
+msgid "Finished"
+msgstr "Đã hoàn thành"
 
 msgid "Reset this document?"
 msgstr "Đặt tài liệu này về mặc địch?"
@@ -2923,16 +2923,6 @@ msgstr "Đánh dấu lựa chọn"
 msgid "Fulltext search"
 msgstr "Tìm kiếm toàn văn"
 
-msgid "Top"
-msgstr "trên"
-
-msgid "Bottom"
-msgstr "dưới"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "Quản lý cử chỉ"
-
 msgid "Start content selection"
 msgstr "Bắt đầu lựa chọn nội dung"
 
@@ -3040,10 +3030,6 @@ msgstr "Nhấn giữ chữ"
 
 msgid "Dictionary on single word selection"
 msgstr "Lựa chọn dịch từng từ một"
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "Làm mờ đánh dấu: %1"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -6311,9 +6297,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "rất mỏng"
@@ -6397,6 +6380,12 @@ msgstr "Lề trên"
 
 msgid "Top/Bottom Margins"
 msgstr "Lề trên/dưới"
+
+msgid "Top"
+msgstr "trên"
+
+msgid "Bottom"
+msgstr "dưới"
 
 msgid "Bottom Margin"
 msgstr "Lề dưới"
@@ -17057,6 +17046,14 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "chú giải"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "Quản lý cử chỉ"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Làm mờ đánh dấu: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

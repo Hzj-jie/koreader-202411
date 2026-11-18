@@ -24,6 +24,7 @@ describe("SdrList module", function()
   end
 
   local function reloadModule()
+    package.loaded["readhistory"] = nil
     package.loaded["sdrlist"] = nil
     SdrList = require("sdrlist")
     return SdrList
@@ -100,6 +101,7 @@ describe("SdrList module", function()
     _G.G_named_settings = orig_named_settings
     package.loaded["sdrlist"] = nil
     package.loaded["docsettings"] = nil
+    package.loaded["readhistory"] = nil
     ffiutil.purgeDir(ffiutil.dirname(data_dir))
   end)
 
@@ -164,17 +166,21 @@ describe("SdrList module", function()
     writeDummy(b1, "1")
     writeDummy(b2, "2")
 
+    local ReadHistory = require("readhistory")
+    local ignore_spy = spy.on(ReadHistory, "ignoreFile")
     local write_stub = spy.on(util, "writeToFile")
     finally(function()
+      ignore_spy:revert()
       write_stub:revert()
     end)
 
-    assert.is_false(SdrList:ignoreFile(hidden_dir_book))
     assert.is_true(SdrList:ignorePath(hidden_dir_book))
+    assert.spy(ignore_spy).was_not_called()
     assert.is_true(SdrList:ignorePath(nested_trash_book))
     assert.is_true(SdrList:ignorePath(sdr_dir_book))
     assert.is_true(SdrList:ignorePath(nested_sdr_book))
     assert.is_false(SdrList:addItem(ignored))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, ignored)
     assert.is_false(SdrList:addItem(hidden))
     assert.is_false(SdrList:addItem(hidden_dir_book))
     assert.is_false(SdrList:addItem(nested_trash_book))
@@ -284,7 +290,7 @@ describe("SdrList module", function()
   )
 
   it(
-    "rebuilds index without -type d across doc, dir, and valid hash entries",
+    "rebuilds index without io.popen across doc, dir, and valid hash entries",
     function()
       local real_home = ffiutil.realpath(home_dir)
       local doc_book = real_home .. "/doc_book.epub"
@@ -341,46 +347,19 @@ describe("SdrList module", function()
       assert.is_true(hasSdrEntry(hash_book))
       assert.is_true(hasSdrEntry(missing_book))
 
-      local cmds = {}
-      local orig_popen = io.popen
-      local popen_stub = stub(io, "popen", function(cmd, mode)
-        table.insert(cmds, cmd)
-        return orig_popen(cmd, mode)
-      end)
-      local notify_stub
+      local popen_spy = spy.on(io, "popen")
       finally(function()
-        popen_stub:revert()
-        if notify_stub then
-          notify_stub:revert()
-        end
+        popen_spy:revert()
       end)
 
       assert.is_true(SdrList:rebuildFromDisk())
-      assert.is_true(#cmds >= 1)
-      for _, cmd in ipairs(cmds) do
-        assert.is_nil(cmd:find("-type d", 1, true))
-      end
+      assert.spy(popen_spy).was_not_called()
 
       assert.are.same({ doc_book, hash_book, dir_book }, SdrList:getFiles())
       assert.is_false(hasSdrEntry(orphan_book))
       assert.is_false(hasSdrEntry(missing_book))
       assert.is_false(hasSdrEntry(trash_book))
       assert.is_false(hasSdrEntry(nested_trash_book))
-
-      -- On io.popen failure, notify and keep existing cached paths
-      popen_stub:revert()
-      popen_stub = stub(io, "popen", function()
-        return nil, "spawn failed"
-      end)
-      notify_stub = stub(Notification, "notify")
-
-      assert.is_false(SdrList:rebuildFromDisk())
-      assert.stub(Notification.notify).was_called(1)
-      assert.stub(Notification.notify).was_called_with(
-        Notification,
-        gettext("Failed to scan metadata files for reading status collections.")
-      )
-      assert.are.same({ doc_book, hash_book, dir_book }, SdrList:getFiles())
     end
   )
 end)

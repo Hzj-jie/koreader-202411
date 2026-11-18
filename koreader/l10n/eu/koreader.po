@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -620,21 +620,15 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr "Irakurtzen"
-
-msgid "On hold"
-msgstr "Itxaroten"
-
-msgid "Finished"
-msgstr "Amaituta"
-
 #, fuzzy
 msgid "Collections"
 msgstr "Joan aurreko kokalekura"
 
 msgid "Favorites"
 msgstr "Gogokoenak"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -895,9 +889,6 @@ msgstr "Garbitu"
 #, fuzzy
 msgid "Filter by book status"
 msgstr "Aktibatu laster-marka"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1425,6 +1416,15 @@ msgstr "Hasiera"
 
 msgid "Unread"
 msgstr "Irakurri gabe"
+
+msgid "Reading"
+msgstr "Irakurtzen"
+
+msgid "On hold"
+msgstr "Itxaroten"
+
+msgid "Finished"
+msgstr "Amaituta"
 
 #, fuzzy
 msgid "Reset this document?"
@@ -2977,16 +2977,6 @@ msgstr "Pantaila"
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr "Goian"
-
-msgid "Bottom"
-msgstr "Behean"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "Pantaila-babesle mezua"
-
 #, fuzzy
 msgid "Start content selection"
 msgstr "Joan aurreko kokalekura"
@@ -3096,10 +3086,6 @@ msgstr "Joan karpeta nagusira"
 
 msgid "Dictionary on single word selection"
 msgstr ""
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "Nabarmentze ekintza"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -6118,9 +6104,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Fina"
@@ -6201,6 +6184,12 @@ msgstr "Goiko marjina"
 
 msgid "Top/Bottom Margins"
 msgstr "Goiko/beheko marjinak"
+
+msgid "Top"
+msgstr "Goian"
+
+msgid "Bottom"
+msgstr "Behean"
 
 msgid "Bottom Margin"
 msgstr "Beheko marjina"
@@ -16572,6 +16561,14 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Kokapena"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "Pantaila-babesle mezua"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Nabarmentze ekintza"
 
 #~ msgid ""
 #~ "Couldn't extract archive:\n"

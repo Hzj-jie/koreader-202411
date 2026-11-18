@@ -5,17 +5,8 @@ local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local util = require("util")
 
-local history_file = ffiutil.joinPath(DataStorage:getDataDir(), "history.lua")
 local sdr_list_file =
   ffiutil.joinPath(DataStorage:getDataDir(), "sdr_list.lua")
-
-local ignore_patterns = {
-  "^batterystat%.log$",
-  "^crash%.log$",
-  "^crash%.prev%.log$",
-  "^koreader%.crash%..*%.log$",
-  "^quickstart%-.*%.html$",
-}
 
 local SdrList = {
   files = {},
@@ -28,33 +19,18 @@ local function normalizePath(file)
 end
 
 local function scanMetadataFiles(root, extractor, out_files, sdr_list)
-  local p = io.popen(util.shell_escape({ "find", root, "-name", "metadata.*.lua" }))
-  if not p then
-    return false
-  end
-  for line in p:lines() do
-    local doc_path, replaced = extractor(line)
-    if replaced > 0 and doc_path ~= "" and not sdr_list:ignorePath(doc_path) then
+  util.findFiles(root, function(path)
+    local doc_path, replaced = extractor(path)
+    if
+      replaced > 0
+      and doc_path ~= ""
+      and not sdr_list:ignorePath(doc_path)
+    then
       if util.fileExists(doc_path) then
         out_files[normalizePath(doc_path)] = true
       end
     end
-  end
-  p:close()
-  return true
-end
-
-function SdrList:ignoreFile(file)
-  local filename = ffiutil.basename(file)
-  if not require("ui/widget/filechooser"):show_file(filename) then
-    return true
-  end
-  for _, pattern in ipairs(ignore_patterns) do
-    if filename:match(pattern) then
-      return true
-    end
-  end
-  return false
+  end)
 end
 
 function SdrList:ignorePath(file)
@@ -75,7 +51,7 @@ function SdrList:ignorePath(file)
   then
     return true
   end
-  return self:ignoreFile(file)
+  return require("readhistory"):ignoreFile(file)
 end
 
 function SdrList:_flush()
@@ -99,28 +75,16 @@ end
 
 function SdrList:_seedFromReadHistory()
   local DocSettings = require("docsettings")
-  local hist_entries
-  local loaded_history = package.loaded["readhistory"]
-  if loaded_history then
-    hist_entries = loaded_history.hist
-  elseif util.fileExists(history_file) then
-    local ok, data = pcall(dofile, history_file)
-    if ok and type(data) == "table" then
-      hist_entries = data
-    end
-  end
   self.files = {}
-  if hist_entries then
-    for _, v in ipairs(hist_entries) do
-      local file = v.file and normalizePath(v.file)
-      if
-        file
-        and file ~= ""
-        and not self:ignorePath(file)
-        and DocSettings:hasSidecarFile(file)
-      then
-        self.files[file] = true
-      end
+  for _, v in ipairs(require("readhistory").hist) do
+    local file = v.file and normalizePath(v.file)
+    if
+      file
+      and file ~= ""
+      and not self:ignorePath(file)
+      and DocSettings:hasSidecarFile(file)
+    then
+      self.files[file] = true
     end
   end
   self.seeded = true
@@ -279,49 +243,20 @@ function SdrList:rebuildFromDisk()
   self:reload()
   local DocSettings = require("docsettings")
   local new_files = {}
-  if
-    not scanMetadataFiles(
-      G_named_settings.home_dir(),
-      function(line)
-        return line:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-      end,
-      new_files,
-      self
-    )
-  then
-    require("ui/widget/notification"):notify(
-      gettext("Failed to scan metadata files for reading status collections.")
-    )
-    return false
-  end
+  scanMetadataFiles(
+    G_named_settings.home_dir():gsub("(.+)/+$", "%1"),
+    function(path)
+      return path:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+    end,
+    new_files,
+    self
+  )
   local docsettings_dir = DataStorage:getDocSettingsDir():gsub("/+$", "")
-  if util.directoryExists(docsettings_dir) then
-    local prefix_len = #docsettings_dir
-    if
-      not scanMetadataFiles(
-        docsettings_dir,
-        function(line)
-          if
-            line:sub(1, prefix_len) == docsettings_dir
-            and line:sub(prefix_len + 1, prefix_len + 1) == "/"
-          then
-            return line:sub(prefix_len + 1):gsub(
-              "%.sdr/metadata(%.[^/%.]+)%.lua$",
-              "%1"
-            )
-          end
-          return line, 0
-        end,
-        new_files,
-        self
-      )
-    then
-      require("ui/widget/notification"):notify(
-        gettext("Failed to scan metadata files for reading status collections.")
-      )
-      return false
-    end
-  end
+  scanMetadataFiles(docsettings_dir, function(path)
+    return path
+      :sub(#docsettings_dir + 1)
+      :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+  end, new_files, self)
   -- Preserve valid hash-located entries that cannot be reversed from disk hashes.
   for file in pairs(self.files) do
     if

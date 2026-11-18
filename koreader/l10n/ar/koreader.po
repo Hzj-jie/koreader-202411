@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-02-27 20:00+0000\n"
 "Last-Translator: shetozz <a.teama3317@gmail.com>\n"
 "Language-Team: Arabic <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -678,21 +678,15 @@ msgstr[3] "%1 ملفات ذات بيانات تعريفية مبنية على ا
 msgstr[4] "%1 ملفا ذوي بيانات تعريفية مبنية على التشفير"
 msgstr[5] "%1 ملف ذو بيانات تعريفية مبنية على التشفير"
 
-msgid "Reading"
-msgstr "تتمُّ قراءته"
-
-msgid "On hold"
-msgstr "تمَّ تعليقُ قراءته"
-
-msgid "Finished"
-msgstr "انتهى"
-
 #, fuzzy
 msgid "Collections"
 msgstr "إزالة من المجموعة"
 
 msgid "Favorites"
 msgstr "المفضّلة"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -953,9 +947,6 @@ msgstr "مسح"
 
 msgid "Filter by book status"
 msgstr "عرض حسب حالة الكتاب"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1528,6 +1519,15 @@ msgstr "الصفحة الرئيسة"
 #, fuzzy
 msgid "Unread"
 msgstr "ابسط"
+
+msgid "Reading"
+msgstr "تتمُّ قراءته"
+
+msgid "On hold"
+msgstr "تمَّ تعليقُ قراءته"
+
+msgid "Finished"
+msgstr "انتهى"
 
 #, fuzzy
 msgid "Reset this document?"
@@ -3081,16 +3081,6 @@ msgstr "حدد وقم بالتظليل"
 msgid "Fulltext search"
 msgstr "ابحثٌ في النّص"
 
-msgid "Top"
-msgstr "أعلى"
-
-msgid "Bottom"
-msgstr "الأسفل"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "رِسالةُ شاشةِ الإيقاف"
-
 #, fuzzy
 msgid "Start content selection"
 msgstr "الرجوع إلى تحديد النص"
@@ -3214,10 +3204,6 @@ msgstr "الضغط لفترة طويلة على النص"
 
 msgid "Dictionary on single word selection"
 msgstr "قاموس على تحديد كلمة واحدة"
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "تعتيم التظليل: %1"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -6513,9 +6499,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "رقيق"
@@ -6600,6 +6583,12 @@ msgstr "الهامش العلوي"
 
 msgid "Top/Bottom Margins"
 msgstr "الهوامش العلوية / السفلية"
+
+msgid "Top"
+msgstr "أعلى"
+
+msgid "Bottom"
+msgstr "الأسفل"
 
 msgid "Bottom Margin"
 msgstr "الهامس السفلي"
@@ -17628,6 +17617,14 @@ msgstr "والا باغ"
 #, fuzzy
 msgid "annotations"
 msgstr "دوران"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "رِسالةُ شاشةِ الإيقاف"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "تعتيم التظليل: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-11-19 16:36+0000\n"
 "Last-Translator: Vitalii <stopchan@gmail.com>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/koreader/"
@@ -657,20 +657,14 @@ msgstr[1] "%1 документи з метаданими на основі хе�
 msgstr[2] "%1 документів з метаданими на основі хешу"
 msgstr[3] "%1 документ з метаданими на основі хешу"
 
-msgid "Reading"
-msgstr "Поточні"
-
-msgid "On hold"
-msgstr "Утримується"
-
-msgid "Finished"
-msgstr "Завершено"
-
 msgid "Collections"
 msgstr "Збірки"
 
 msgid "Favorites"
 msgstr "Обране"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -898,9 +892,6 @@ msgstr "Очистити"
 
 msgid "Filter by book status"
 msgstr "Фільтрувати за станом книги"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1442,6 +1433,15 @@ msgstr "Домівка"
 
 msgid "Unread"
 msgstr "Непрочитане"
+
+msgid "Reading"
+msgstr "Поточні"
+
+msgid "On hold"
+msgstr "Утримується"
+
+msgid "Finished"
+msgstr "Завершено"
 
 msgid "Reset this document?"
 msgstr "Скинути цей документ?"
@@ -2952,15 +2952,6 @@ msgstr "Вибрати й виділити"
 msgid "Fulltext search"
 msgstr "Пошук по всьому тексту"
 
-msgid "Top"
-msgstr "Верх"
-
-msgid "Bottom"
-msgstr "Низ"
-
-msgid "Gesture position"
-msgstr "Положення жесту"
-
 msgid "Start content selection"
 msgstr "Почати вибір вмісту"
 
@@ -3066,9 +3057,6 @@ msgstr "Затискання тексту"
 
 msgid "Dictionary on single word selection"
 msgstr "Словник при виборі одного слова"
-
-msgid "Highlight dialog position: %1"
-msgstr "Позиція діалогу виділення: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Інтервал довгого затискання для виділення: %1 с"
@@ -6413,9 +6401,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Тонкий"
@@ -6500,6 +6485,12 @@ msgstr "Верхнє поле"
 
 msgid "Top/Bottom Margins"
 msgstr "Нижнє/Верхнє поле"
+
+msgid "Top"
+msgstr "Верх"
+
+msgid "Bottom"
+msgstr "Низ"
 
 msgid "Bottom Margin"
 msgstr "Нижнє поле"
@@ -17663,6 +17654,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "анотації"
+
+#~ msgid "Gesture position"
+#~ msgstr "Положення жесту"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Позиція діалогу виділення: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

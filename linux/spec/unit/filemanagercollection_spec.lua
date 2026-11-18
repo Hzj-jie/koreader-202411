@@ -157,6 +157,15 @@ describe("filemanagercollection", function()
     package.loaded["ui/widget/notification"] = mock_notification
 
     package.loaded["apps/filemanager/filemanagerutil"] = {
+      statusToString = function(status)
+        local map = {
+          new = mock_gettext("Unread"),
+          reading = mock_gettext("Reading"),
+          abandoned = mock_gettext("On hold"),
+          complete = mock_gettext("Finished"),
+        }
+        return map[status]
+      end,
       genStatusButtonsRow = function()
         return { text = "Mock Status Row" }
       end,
@@ -554,15 +563,33 @@ describe("filemanagercollection", function()
       assert.are.equal("Sci-Fi", menu.item_table[2].name)
       assert.are.equal(1, menu.item_table[2].mandatory) -- count is 1
 
-      assert.are.equal(mock_gettext("Reading"), menu.item_table[3].text)
+      assert.are.equal(
+        require("ffi/util").template(
+          mock_gettext("Status: %1"),
+          mock_gettext("Reading")
+        ),
+        menu.item_table[3].text
+      )
       assert.are.equal("__auto_reading", menu.item_table[3].name)
       assert.is_nil(menu.item_table[3].mandatory)
 
-      assert.are.equal(mock_gettext("On hold"), menu.item_table[4].text)
+      assert.are.equal(
+        require("ffi/util").template(
+          mock_gettext("Status: %1"),
+          mock_gettext("On hold")
+        ),
+        menu.item_table[4].text
+      )
       assert.are.equal("__auto_abandoned", menu.item_table[4].name)
       assert.is_nil(menu.item_table[4].mandatory)
 
-      assert.are.equal(mock_gettext("Finished"), menu.item_table[5].text)
+      assert.are.equal(
+        require("ffi/util").template(
+          mock_gettext("Status: %1"),
+          mock_gettext("Finished")
+        ),
+        menu.item_table[5].text
+      )
       assert.are.equal("__auto_complete", menu.item_table[5].name)
       assert.is_nil(menu.item_table[5].mandatory)
 
@@ -1198,7 +1225,7 @@ describe("filemanagercollection", function()
 
   describe("reading status auto collections", function()
     it(
-      "populates virtual collections from SdrList and live document status without touching ReadCollection",
+      "populates virtual collections from SdrList and DocSettings.getStatus without touching ReadCollection",
       function()
         mock_sdr_list.files = {
           "/books/reading.epub",
@@ -1229,37 +1256,57 @@ describe("filemanagercollection", function()
           lfs_attr_stub:revert()
         end)
 
+        assert.is_nil(FileManagerCollection.getAutoCollectionStatus)
         mock_ui.document = { file = "/books/open_live.epub" }
         mock_ui.doc_settings = {
-          readTableRef = function()
+          readTableRef = spy.new(function()
             return { status = "complete" }
-          end,
+          end),
         }
 
         local manager = FileManagerCollection:new({ ui = mock_ui })
         manager:onShowColl("__auto_complete")
 
         local menu = require("ui/uimanager").getLastShownWidget()
-        assert.are.equal(mock_gettext("Finished") .. " (2)", menu.title)
-        assert.are.equal(2, #menu.item_table)
+        assert.are.equal(
+          require("ffi/util").template(
+            mock_gettext("Status: %1"),
+            mock_gettext("Finished")
+          ) .. " (1)",
+          menu.title
+        )
+        assert.are.equal(1, #menu.item_table)
         assert.are.equal("/books/finished.epub", menu.item_table[1].file)
         assert.are.equal("finished.epub", menu.item_table[1].text)
         assert.are.equal(1, menu.item_table[1].order)
-        assert.are.equal("/books/open_live.epub", menu.item_table[2].file)
-        assert.are.equal(2, menu.item_table[2].order)
         assert.is_nil(mock_read_collection.coll["__auto_complete"])
 
         manager:onShowColl("__auto_reading")
         menu = require("ui/uimanager").getLastShownWidget()
-        assert.are.equal(mock_gettext("Reading") .. " (1)", menu.title)
-        assert.are.equal(1, #menu.item_table)
+        assert.are.equal(
+          require("ffi/util").template(
+            mock_gettext("Status: %1"),
+            mock_gettext("Reading")
+          ) .. " (2)",
+          menu.title
+        )
+        assert.are.equal(2, #menu.item_table)
         assert.are.equal("/books/reading.epub", menu.item_table[1].file)
+        assert.are.equal("/books/open_live.epub", menu.item_table[2].file)
+        assert.are.equal(2, menu.item_table[2].order)
 
         manager:onShowColl("__auto_abandoned")
         menu = require("ui/uimanager").getLastShownWidget()
-        assert.are.equal(mock_gettext("On hold") .. " (1)", menu.title)
+        assert.are.equal(
+          require("ffi/util").template(
+            mock_gettext("Status: %1"),
+            mock_gettext("On hold")
+          ) .. " (1)",
+          menu.title
+        )
         assert.are.equal(1, #menu.item_table)
         assert.are.equal("/books/hold.epub", menu.item_table[1].file)
+        assert.spy(mock_ui.doc_settings.readTableRef).was.not_called()
       end
     )
 

@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-08-22 05:01+0000\n"
 "Last-Translator: Assem Askarova "
 "<assask499@users.noreply.hosted.weblate.org>\n"
@@ -636,20 +636,14 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 
-msgid "Reading"
-msgstr "読書中"
-
-msgid "On hold"
-msgstr "保留"
-
-msgid "Finished"
-msgstr "完了"
-
 msgid "Collections"
 msgstr "コレクション"
 
 msgid "Favorites"
 msgstr "お気に入り"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -897,9 +891,6 @@ msgstr "クリア"
 
 msgid "Filter by book status"
 msgstr "書籍のステータスでフィルター"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1456,6 +1447,15 @@ msgstr "ホーム"
 #, fuzzy
 msgid "Unread"
 msgstr "スプレッド(広げる)"
+
+msgid "Reading"
+msgstr "読書中"
+
+msgid "On hold"
+msgstr "保留"
+
+msgid "Finished"
+msgstr "完了"
 
 msgid "Reset this document?"
 msgstr "この文書をリセットしますか？"
@@ -3006,16 +3006,6 @@ msgstr "選択したらハイライトする"
 msgid "Fulltext search"
 msgstr "全文検索"
 
-msgid "Top"
-msgstr "上"
-
-msgid "Bottom"
-msgstr "下"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "スクリーンセイバー メッセージ"
-
 msgid "Start content selection"
 msgstr "コンテンツの選択を開始します"
 
@@ -3121,10 +3111,6 @@ msgstr "文字を長押しする"
 
 msgid "Dictionary on single word selection"
 msgstr "1 つの単語を選択する場合辞書を表示"
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "ハイライト不透明度: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "ハイライトにする長押し間隔: %1 s"
@@ -6340,9 +6326,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "超極細"
@@ -6427,6 +6410,12 @@ msgstr "上余白"
 
 msgid "Top/Bottom Margins"
 msgstr "上下余白"
+
+msgid "Top"
+msgstr "上"
+
+msgid "Bottom"
+msgstr "下"
 
 msgid "Bottom Margin"
 msgstr "下余白"
@@ -17453,6 +17442,14 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "回転"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "スクリーンセイバー メッセージ"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "ハイライト不透明度: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-11-20 16:20+0000\n"
 "Last-Translator: zwim <martin.zwicknagl@kirchbichl.net>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -656,20 +656,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 Dokument mit hashbasierten Metadaten"
 msgstr[1] "%1 Dokumente mit hashbasierten Metadaten"
 
-msgid "Reading"
-msgstr "Lesen"
-
-msgid "On hold"
-msgstr "Zurückgestellt"
-
-msgid "Finished"
-msgstr "Beendet"
-
 msgid "Collections"
 msgstr "Sammlungen"
 
 msgid "Favorites"
 msgstr "Favoriten"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -893,9 +887,6 @@ msgstr "Leeren"
 
 msgid "Filter by book status"
 msgstr "Nach Buchstatus filtern"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1435,6 +1426,15 @@ msgstr "Home"
 
 msgid "Unread"
 msgstr "Ungelesen"
+
+msgid "Reading"
+msgstr "Lesen"
+
+msgid "On hold"
+msgstr "Zurückgestellt"
+
+msgid "Finished"
+msgstr "Beendet"
 
 msgid "Reset this document?"
 msgstr "Dokument zurücksetzen?"
@@ -2969,15 +2969,6 @@ msgstr "Auswählen und Hervorheben"
 msgid "Fulltext search"
 msgstr "Volltextsuche"
 
-msgid "Top"
-msgstr "Oben"
-
-msgid "Bottom"
-msgstr "Unten"
-
-msgid "Gesture position"
-msgstr "Position der Geste"
-
 msgid "Start content selection"
 msgstr "Auswahl der Inhalte starten"
 
@@ -3083,9 +3074,6 @@ msgstr "Langer Druck auf Text"
 
 msgid "Dictionary on single word selection"
 msgstr "Wörterbuch zur Einzelwortauswahl"
-
-msgid "Highlight dialog position: %1"
-msgstr "Dialogposition hervorheben: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Intervall für sehr langes Drücken hervorheben: %1 s"
@@ -6475,9 +6463,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Dünn"
@@ -6563,6 +6548,12 @@ msgstr "Oberer Rand"
 
 msgid "Top/Bottom Margins"
 msgstr "Oben/Unten Ränder"
+
+msgid "Top"
+msgstr "Oben"
+
+msgid "Bottom"
+msgstr "Unten"
 
 msgid "Bottom Margin"
 msgstr "Unterer Rand"
@@ -17808,6 +17799,12 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "Anmerkungen"
+
+#~ msgid "Gesture position"
+#~ msgstr "Position der Geste"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Dialogposition hervorheben: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

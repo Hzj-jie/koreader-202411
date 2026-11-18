@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-11-18 09:00+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -645,20 +645,14 @@ msgstr[1] "שני מסמכים עם נתוני על מבוססי גיבוב"
 msgstr[2] "%1 מסמכים עם נתוני על מבוססי גיבוב"
 msgstr[3] "%1 מסמכים עם נתוני על מבוססי גיבוב"
 
-msgid "Reading"
-msgstr "בקריאה"
-
-msgid "On hold"
-msgstr "בהמתנה"
-
-msgid "Finished"
-msgstr "הושלם"
-
 msgid "Collections"
 msgstr "אוספים"
 
 msgid "Favorites"
 msgstr "מועדפים"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -886,9 +880,6 @@ msgstr "ניקוי"
 
 msgid "Filter by book status"
 msgstr "סינון לפי מצב הספר"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1429,6 +1420,15 @@ msgstr "בית"
 
 msgid "Unread"
 msgstr "לא נקרא"
+
+msgid "Reading"
+msgstr "בקריאה"
+
+msgid "On hold"
+msgstr "בהמתנה"
+
+msgid "Finished"
+msgstr "הושלם"
 
 msgid "Reset this document?"
 msgstr "לאפס את המסמך הזה?"
@@ -2913,15 +2913,6 @@ msgstr "בחירה והדגשה"
 msgid "Fulltext search"
 msgstr "חפש במסמך"
 
-msgid "Top"
-msgstr "למעלה"
-
-msgid "Bottom"
-msgstr "למטה"
-
-msgid "Gesture position"
-msgstr "מקום מחוות האצבע"
-
 msgid "Start content selection"
 msgstr "התחלת בחירת תוכן"
 
@@ -3026,9 +3017,6 @@ msgstr "נגיעה ארוכה בטקסט"
 
 msgid "Dictionary on single word selection"
 msgstr "מילון בבחירת מילה בודדת"
-
-msgid "Highlight dialog position: %1"
-msgstr "מקום חלונית הדגשה: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "מרווח זמן להדגשה בלחיצה ארוכה מאוד: %1 שנ׳"
@@ -6277,9 +6265,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "דק"
@@ -6364,6 +6349,12 @@ msgstr "שוליים עליונים"
 
 msgid "Top/Bottom Margins"
 msgstr "שוליים עליונים/תחתונים"
+
+msgid "Top"
+msgstr "למעלה"
+
+msgid "Bottom"
+msgstr "למטה"
 
 msgid "Bottom Margin"
 msgstr "שוליים תחתונים"
@@ -17278,6 +17269,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "הסברים"
+
+#~ msgid "Gesture position"
+#~ msgstr "מקום מחוות האצבע"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "מקום חלונית הדגשה: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

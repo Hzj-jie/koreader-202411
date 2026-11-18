@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-10-02 07:35+0000\n"
 "Last-Translator: Sari Gabor <sarigaborj@gmail.com>\n"
 "Language-Team: Hungarian <https://hosted.weblate.org/projects/koreader/"
@@ -646,20 +646,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "1 dokumentum hash-alapú metaadatokkal"
 msgstr[1] "%1 dokumentumok hash-alapú metaadatokkal"
 
-msgid "Reading"
-msgstr "Olvasva"
-
-msgid "On hold"
-msgstr "Félretesz"
-
-msgid "Finished"
-msgstr "Befejezett"
-
 msgid "Collections"
 msgstr "Gyűjtemények"
 
 msgid "Favorites"
 msgstr "Kedvencek"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -883,9 +877,6 @@ msgstr "Törlés"
 
 msgid "Filter by book status"
 msgstr "Szűrés könyvállapotra"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1424,6 +1415,15 @@ msgstr "Kezdőmappa"
 
 msgid "Unread"
 msgstr "Olvasatlan"
+
+msgid "Reading"
+msgstr "Olvasva"
+
+msgid "On hold"
+msgstr "Félretesz"
+
+msgid "Finished"
+msgstr "Befejezett"
 
 msgid "Reset this document?"
 msgstr "Visszaállítja ezt a dokumentumot?"
@@ -2965,15 +2965,6 @@ msgstr "Kiválasztás és kiemelés"
 msgid "Fulltext search"
 msgstr "Teljes-szöveges keresés"
 
-msgid "Top"
-msgstr "Felül"
-
-msgid "Bottom"
-msgstr "Alul"
-
-msgid "Gesture position"
-msgstr "Kézmozdulat pozíció"
-
 msgid "Start content selection"
 msgstr "Tartalom kijelölés"
 
@@ -3076,9 +3067,6 @@ msgstr "Nyomvatartás a szövegen"
 
 msgid "Dictionary on single word selection"
 msgstr "Szótár egyetlen szó kiválasztásakor"
-
-msgid "Highlight dialog position: %1"
-msgstr "Kiemelés dialógus pozíció: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Hosszan nyomásra kiemelés időzítése: %1 mp"
@@ -6320,9 +6308,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Vékony"
@@ -6407,6 +6392,12 @@ msgstr "Felső margó"
 
 msgid "Top/Bottom Margins"
 msgstr "F/A margó"
+
+msgid "Top"
+msgstr "Felül"
+
+msgid "Bottom"
+msgstr "Alul"
 
 msgid "Bottom Margin"
 msgstr "Alsó margó"
@@ -17555,6 +17546,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "megjegyzések"
+
+#~ msgid "Gesture position"
+#~ msgstr "Kézmozdulat pozíció"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Kiemelés dialógus pozíció: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

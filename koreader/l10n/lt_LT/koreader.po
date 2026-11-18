@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2023-11-21 21:04+0000\n"
 "Last-Translator: Laurynas <laurynastautvydas11@gmail.com>\n"
 "Language-Team: Lithuanian <https://hosted.weblate.org/projects/koreader/"
@@ -656,21 +656,15 @@ msgstr[1] "%1 dokumentai su maiša paremtais metaduomenimis"
 msgstr[2] "%1 dokumentai su maiša paremtais metaduomenimis"
 msgstr[3] "%1 dokumentų su maiša paremtais metaduomenimis"
 
-msgid "Reading"
-msgstr "Skaitomas"
-
-msgid "On hold"
-msgstr "Atidėtas"
-
-msgid "Finished"
-msgstr "Baigta"
-
 #, fuzzy
 msgid "Collections"
 msgstr "Pašalinti iš kolekcijos"
 
 msgid "Favorites"
 msgstr "Mėgstamiausi"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -922,9 +916,6 @@ msgstr "Išvalyti"
 
 msgid "Filter by book status"
 msgstr "Filtruoti pagal knygos būseną"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1484,6 +1475,15 @@ msgstr "Pagrindinis"
 
 msgid "Unread"
 msgstr "Neperskaitytas"
+
+msgid "Reading"
+msgstr "Skaitomas"
+
+msgid "On hold"
+msgstr "Atidėtas"
+
+msgid "Finished"
+msgstr "Baigta"
 
 msgid "Reset this document?"
 msgstr "Atstatyti šį dokumentą?"
@@ -3066,15 +3066,6 @@ msgstr "Pažymėti ir paryškinti"
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr "Viršuje"
-
-msgid "Bottom"
-msgstr "Apačioje"
-
-msgid "Gesture position"
-msgstr "Gesto pozicija"
-
 msgid "Start content selection"
 msgstr "Pradėti turinio atranką"
 
@@ -3192,9 +3183,6 @@ msgstr "Ilgai paspausti ant teksto"
 
 msgid "Dictionary on single word selection"
 msgstr "Žodynas pažymėjus vieną žodį"
-
-msgid "Highlight dialog position: %1"
-msgstr "Paryškinimo dialogo pozicija: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Paryškinimo labai ilgo paspaudimo intervalas: %1 s"
@@ -6103,9 +6091,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "Plonas"
@@ -6184,6 +6169,12 @@ msgstr "Viršutinė paraštė"
 
 msgid "Top/Bottom Margins"
 msgstr "Viršutinės/apatinė paraštės"
+
+msgid "Top"
+msgstr "Viršuje"
+
+msgid "Bottom"
+msgstr "Apačioje"
 
 msgid "Bottom Margin"
 msgstr "Apatinė paraštė"
@@ -16365,6 +16356,12 @@ msgstr ""
 #, fuzzy
 msgid "annotations"
 msgstr "Pasukimas"
+
+#~ msgid "Gesture position"
+#~ msgstr "Gesto pozicija"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Paryškinimo dialogo pozicija: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

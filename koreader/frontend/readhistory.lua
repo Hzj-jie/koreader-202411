@@ -347,7 +347,25 @@ function ReadHistory:removeItem(item, idx, no_flush)
 end
 
 function ReadHistory:ignoreFile(file)
-  return require("sdrlist"):ignoreFile(file)
+  local filename = ffiutil.basename(file)
+  if
+    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
+  then
+    return true
+  end
+  local exclude_files = { -- const
+    "^batterystat%.log$",
+    "^crash%.log$",
+    "^crash%.prev%.log$",
+    "^koreader%.crash%..*%.log$",
+    "^quickstart%-.*%.html$",
+  }
+  for _, pattern in ipairs(exclude_files) do
+    if filename:match(pattern) then
+      return true
+    end
+  end
+  return false
 end
 
 function ReadHistory:_ignoreItem(file, ts)
@@ -357,7 +375,11 @@ function ReadHistory:_ignoreItem(file, ts)
   end
   -- Note, the logic won't impact the existing items, but only the ones newly
   -- added.
-  return require("sdrlist"):ignorePath(file)
+  local path = ffiutil.dirname(file)
+  if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
+    return true
+  end
+  return self:ignoreFile(file)
 end
 
 --- Adds new item (last opened document) to the top of the history list.

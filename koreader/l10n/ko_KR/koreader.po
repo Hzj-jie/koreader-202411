@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: kr <harum@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -634,20 +634,14 @@ msgid "1 document with hash-based metadata"
 msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] "해시 기반 메타데이터가 있는 %1 개 문서"
 
-msgid "Reading"
-msgstr "읽는 중"
-
-msgid "On hold"
-msgstr "보류 중"
-
-msgid "Finished"
-msgstr "끝냄"
-
 msgid "Collections"
 msgstr "콜렉션"
 
 msgid "Favorites"
 msgstr "즐겨찾기"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -869,9 +863,6 @@ msgstr "지우기"
 
 msgid "Filter by book status"
 msgstr "책 상태별 필터"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -1402,6 +1393,15 @@ msgstr "홈"
 
 msgid "Unread"
 msgstr "읽지 않음"
+
+msgid "Reading"
+msgstr "읽는 중"
+
+msgid "On hold"
+msgstr "보류 중"
+
+msgid "Finished"
+msgstr "끝냄"
 
 msgid "Reset this document?"
 msgstr "이 문서를 재설정할까요?"
@@ -2885,15 +2885,6 @@ msgstr "선택과 강조 표시"
 msgid "Fulltext search"
 msgstr "전문 검색"
 
-msgid "Top"
-msgstr "위쪽"
-
-msgid "Bottom"
-msgstr "아래쪽"
-
-msgid "Gesture position"
-msgstr "제스처 위치"
-
 msgid "Start content selection"
 msgstr "콘텐츠 선택 시작"
 
@@ -2988,9 +2979,6 @@ msgstr "텍스트를 길게 누르기"
 
 msgid "Dictionary on single word selection"
 msgstr "한 낱말 선택할 때 사전"
-
-msgid "Highlight dialog position: %1"
-msgstr "강조 표시 대화 상자 위치: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "강조 표시를 위해 아주 길게 누르는 간격: %1초"
@@ -6230,9 +6218,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr "얇게"
@@ -6317,6 +6302,12 @@ msgstr "위쪽 여백"
 
 msgid "Top/Bottom Margins"
 msgstr "위/아래 여백"
+
+msgid "Top"
+msgstr "위쪽"
+
+msgid "Bottom"
+msgstr "아래쪽"
 
 msgid "Bottom Margin"
 msgstr "아래쪽 여백"
@@ -17160,6 +17151,12 @@ msgstr "왈라백"
 
 msgid "annotations"
 msgstr "주석"
+
+#~ msgid "Gesture position"
+#~ msgstr "제스처 위치"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "강조 표시 대화 상자 위치: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

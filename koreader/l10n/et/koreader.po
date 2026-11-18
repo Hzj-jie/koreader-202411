@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:54-0800\n"
+"POT-Creation-Date: 2026-11-17 21:24-0800\n"
 "PO-Revision-Date: 2024-10-03 09:55+0000\n"
 "Last-Translator: Priit Jõerüüt <hwlate@joeruut.com>\n"
 "Language-Team: Estonian <https://hosted.weblate.org/projects/koreader/"
@@ -611,20 +611,14 @@ msgid_plural "%1 documents with hash-based metadata"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Reading"
-msgstr ""
-
-msgid "On hold"
-msgstr ""
-
-msgid "Finished"
-msgstr ""
-
 msgid "Collections"
 msgstr "Kogud"
 
 msgid "Favorites"
 msgstr "Lemmikud"
+
+msgid "Status: %1"
+msgstr ""
 
 msgid "Loading collection…"
 msgstr ""
@@ -845,9 +839,6 @@ msgid "Clear"
 msgstr ""
 
 msgid "Filter by book status"
-msgstr ""
-
-msgid "Failed to scan metadata files for reading history."
 msgstr ""
 
 msgid "Failed to back up reading history: %1"
@@ -1352,6 +1343,15 @@ msgid "Home"
 msgstr ""
 
 msgid "Unread"
+msgstr ""
+
+msgid "Reading"
+msgstr ""
+
+msgid "On hold"
+msgstr ""
+
+msgid "Finished"
 msgstr ""
 
 msgid "Reset this document?"
@@ -2713,15 +2713,6 @@ msgstr ""
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr ""
-
-msgid "Bottom"
-msgstr ""
-
-msgid "Gesture position"
-msgstr ""
-
 msgid "Start content selection"
 msgstr ""
 
@@ -2811,9 +2802,6 @@ msgid "Long-press on text"
 msgstr ""
 
 msgid "Dictionary on single word selection"
-msgstr ""
-
-msgid "Highlight dialog position: %1"
 msgstr ""
 
 msgid "Highlight very-long-press interval: %1 s"
@@ -5593,9 +5581,6 @@ msgstr ""
 msgid "Failed to load reading status collection index."
 msgstr ""
 
-msgid "Failed to scan metadata files for reading status collections."
-msgstr ""
-
 msgctxt "Font weight class"
 msgid "Thin"
 msgstr ""
@@ -5668,6 +5653,12 @@ msgid "Top Margin"
 msgstr ""
 
 msgid "Top/Bottom Margins"
+msgstr ""
+
+msgid "Top"
+msgstr ""
+
+msgid "Bottom"
 msgstr ""
 
 msgid "Bottom Margin"

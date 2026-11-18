@@ -22,23 +22,14 @@ local AUTO_COLLECTIONS = {
   {
     name = "__auto_reading",
     status = "reading",
-    title_func = function()
-      return gettext("Reading")
-    end,
   },
   {
     name = "__auto_abandoned",
     status = "abandoned",
-    title_func = function()
-      return gettext("On hold")
-    end,
   },
   {
     name = "__auto_complete",
     status = "complete",
-    title_func = function()
-      return gettext("Finished")
-    end,
   },
 }
 
@@ -84,7 +75,10 @@ function FileManagerCollection:getCollectionTitle(collection_name)
   end
   local auto_coll = AUTO_COLLECTION_BY_NAME[collection_name]
   if auto_coll then
-    return auto_coll.title_func()
+    return T(
+      gettext("Status: %1"),
+      filemanagerutil.statusToString(auto_coll.status)
+    )
   end
   return collection_name
 end
@@ -134,17 +128,6 @@ function FileManagerCollection:onShowColl(collection_name)
   return true
 end
 
-function FileManagerCollection:getAutoCollectionStatus(file)
-  if self.ui.document and self.ui.document.file == file then
-    local summary = self.ui.doc_settings:readTableRef("summary")
-    if summary.status and summary.status ~= "" then
-      return summary.status
-    end
-    return "reading"
-  end
-  return DocSettings.getStatus(file)
-end
-
 function FileManagerCollection:updateItemTable(show_last_item)
   local item_table = {}
   local auto_coll = AUTO_COLLECTION_BY_NAME[self.coll_menu.collection_name]
@@ -155,7 +138,7 @@ function FileManagerCollection:updateItemTable(show_last_item)
         if
           attr
           and attr.mode == "file"
-          and self:getAutoCollectionStatus(file) == auto_coll.status
+          and DocSettings.getStatus(file) == auto_coll.status
         then
           table.insert(item_table, {
             file = file,
@@ -499,7 +482,7 @@ function FileManagerCollection:updateCollListItemTable(do_init, item_number)
     if not self.selected_collections then
       for _, auto_coll in ipairs(AUTO_COLLECTIONS) do
         table.insert(item_table, {
-          text = auto_coll.title_func(),
+          text = self:getCollectionTitle(auto_coll.name),
           name = auto_coll.name,
         })
       end
