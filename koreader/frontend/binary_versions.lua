@@ -141,9 +141,6 @@ local resolvers = {
   { "^sdcv$", function()
     return readCommandFirstLine("./sdcv --version")
   end },
-  { "^tar$", function()
-    return readCommandFirstLine("./tar --version")
-  end },
   { "^wmctrl$", function(path)
     return scanFilePattern(path, "wmctrl %d+%.%d+")
   end },
