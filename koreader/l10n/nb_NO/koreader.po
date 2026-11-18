@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-17 19:10-0800\n"
 "PO-Revision-Date: 2023-05-24 21:23+0000\n"
 "Last-Translator: Arne Holmen <aholmen084@gmail.com>\n"
 "Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/"
@@ -895,9 +895,6 @@ msgstr "Tøm"
 
 msgid "Filter by book status"
 msgstr "Filtrere etter status på bok"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -6216,9 +6213,6 @@ msgid "Failed to save reading status collection index."
 msgstr ""
 
 msgid "Failed to load reading status collection index."
-msgstr ""
-
-msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 #, fuzzy

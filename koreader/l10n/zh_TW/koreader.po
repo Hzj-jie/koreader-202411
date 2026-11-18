@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-17 19:10-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -863,9 +863,6 @@ msgstr "清除"
 
 msgid "Filter by book status"
 msgstr "按書籍狀態過濾"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr "掃描閱讀歷史的詮釋資料檔案失敗。"
 
 msgid "Failed to back up reading history: %1"
 msgstr "備份閱讀歷史失敗：%1"
@@ -6174,9 +6171,6 @@ msgstr "儲存閱讀狀態分組索引失敗。"
 
 msgid "Failed to load reading status collection index."
 msgstr "載入閱讀狀態分組索引失敗。"
-
-msgid "Failed to scan metadata files for reading status collections."
-msgstr "掃描閱讀狀態分組的詮釋資料檔案失敗。"
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -17028,6 +17022,12 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "註釋"
+
+#~ msgid "Failed to scan metadata files for reading history."
+#~ msgstr "掃描閱讀歷史的詮釋資料檔案失敗。"
+
+#~ msgid "Failed to scan metadata files for reading status collections."
+#~ msgstr "掃描閱讀狀態分組的詮釋資料檔案失敗。"
 
 #~ msgid "5 minutes usage %"
 #~ msgstr "5分鐘使用率 %"

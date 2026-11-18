@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-17 19:10-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -861,9 +861,6 @@ msgstr "Isprazni"
 #, fuzzy
 msgid "Filter by book status"
 msgstr "Stanje knjige"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -5930,9 +5927,6 @@ msgid "Failed to save reading status collection index."
 msgstr ""
 
 msgid "Failed to load reading status collection index."
-msgstr ""
-
-msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 msgctxt "Font weight class"

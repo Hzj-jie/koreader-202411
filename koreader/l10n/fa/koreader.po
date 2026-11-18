@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-17 19:10-0800\n"
 "PO-Revision-Date: 2024-05-24 07:40+0000\n"
 "Last-Translator: Monirzadeh <Monirzadeh@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Persian <https://hosted.weblate.org/projects/koreader/"
@@ -877,9 +877,6 @@ msgstr "پاک‌کردن"
 
 msgid "Filter by book status"
 msgstr "فیلتر براساس وضعیت کتاب"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -6024,9 +6021,6 @@ msgid "Failed to save reading status collection index."
 msgstr ""
 
 msgid "Failed to load reading status collection index."
-msgstr ""
-
-msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 msgctxt "Font weight class"

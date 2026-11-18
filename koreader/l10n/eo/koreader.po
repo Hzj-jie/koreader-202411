@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-17 19:10-0800\n"
 "PO-Revision-Date: 2024-01-31 04:14+0000\n"
 "Last-Translator: Radoŝ Porka <animatorzPolski@gmail.com>\n"
 "Language-Team: Esperanto <https://hosted.weblate.org/projects/koreader/"
@@ -867,9 +867,6 @@ msgstr "Viŝi"
 #, fuzzy
 msgid "Filter by book status"
 msgstr "    Uzita elcento"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -5873,9 +5870,6 @@ msgid "Failed to save reading status collection index."
 msgstr ""
 
 msgid "Failed to load reading status collection index."
-msgstr ""
-
-msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 msgctxt "Font weight class"

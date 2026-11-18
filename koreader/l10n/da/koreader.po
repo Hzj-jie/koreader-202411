@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-17 19:10-0800\n"
 "PO-Revision-Date: 2022-08-10 20:21+0000\n"
 "Last-Translator: Erasmus Montanus <kbmdoyxnkwbhcozgvr@kvhrs.com>\n"
 "Language-Team: Danish <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -889,9 +889,6 @@ msgstr "Ryd"
 
 msgid "Filter by book status"
 msgstr "Filtrér efter bogstatus"
-
-msgid "Failed to scan metadata files for reading history."
-msgstr ""
 
 msgid "Failed to back up reading history: %1"
 msgstr ""
@@ -5759,9 +5756,6 @@ msgid "Failed to save reading status collection index."
 msgstr ""
 
 msgid "Failed to load reading status collection index."
-msgstr ""
-
-msgid "Failed to scan metadata files for reading status collections."
 msgstr ""
 
 msgctxt "Font weight class"
