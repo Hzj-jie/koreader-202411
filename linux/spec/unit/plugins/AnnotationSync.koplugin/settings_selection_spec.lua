@@ -365,7 +365,7 @@ describe("AnnotationSync Settings Selection", function()
 
       -- Verify pull applies {}
       G_reader_settings:save("style_tweaks", { foo = "bar" })
-      sync_instance.manager:_writeLocalSettingValue("reader:style_tweaks", {})
+      sync_instance.manager:writeLocalSettingValue("reader:style_tweaks", {})
       assert.are.same({}, G_reader_settings:readTable("style_tweaks"))
     end
   )

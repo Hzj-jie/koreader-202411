@@ -116,7 +116,7 @@ describe("AnnotationSync settings values and pull menus", function()
   )
 
   it(
-    "_writeLocalSettingValue sets a nested reader setting and keeps its siblings",
+    "writeLocalSettingValue sets a nested reader setting and keeps its siblings",
     function()
       G_reader_settings:save("rv_nest", { keep = 1, sub = { old = true } })
       local before = G_reader_settings:read("rv_nest")
@@ -125,7 +125,7 @@ describe("AnnotationSync settings values and pull menus", function()
         G_reader_settings:delete("rv_nest")
       end)
 
-      local ok = manager:_writeLocalSettingValue("reader:rv_nest.sub.new", 42)
+      local ok = manager:writeLocalSettingValue("reader:rv_nest.sub.new", 42)
       assert.is_true(ok)
 
       local after = G_reader_settings:read("rv_nest")
@@ -141,7 +141,7 @@ describe("AnnotationSync settings values and pull menus", function()
   )
 
   it(
-    "_writeLocalSettingValue writes plugin settings and defaults to their files and rejects a key without a domain",
+    "writeLocalSettingValue writes plugin settings and defaults to their files and rejects a key without a domain",
     function()
       finally(function()
         os.remove(DataStorage:getSettingsDir() .. "/rv_plugin2.lua")
@@ -149,18 +149,18 @@ describe("AnnotationSync settings values and pull menus", function()
       end)
 
       assert.is_true(
-        manager:_writeLocalSettingValue("settings/rv_plugin2:x.y", "z")
+        manager:writeLocalSettingValue("settings/rv_plugin2:x.y", "z")
       )
       local p_s =
         LuaSettings:open(DataStorage:getSettingsDir() .. "/rv_plugin2.lua")
       assert.are.equal("z", p_s:read("x").y)
 
-      assert.is_true(manager:_writeLocalSettingValue("defaults:RV_DEFAULT2", 3))
+      assert.is_true(manager:writeLocalSettingValue("defaults:RV_DEFAULT2", 3))
       local d_s = LuaSettings:open(test_data_dir .. "/defaults.custom.lua")
       assert.are.equal(3, d_s:read("RV_DEFAULT2"))
 
       assert.has_error(function()
-        manager:_writeLocalSettingValue("no_colon", 1)
+        manager:writeLocalSettingValue("no_colon", 1)
       end)
     end
   )
@@ -177,7 +177,7 @@ describe("AnnotationSync settings values and pull menus", function()
       G_defaults:flush()
 
       assert.is_true(
-        manager:_writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0)
+        manager:writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0)
       )
 
       assert.is_nil(LuaSettings:open(custom_file):read("DTAP_ZONE_MENU"))

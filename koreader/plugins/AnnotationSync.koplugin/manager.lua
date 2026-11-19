@@ -814,7 +814,7 @@ local function save_nested_setting(settings_obj, parts, value)
   settings_obj:flush()
 end
 
-function SyncManager:_writeLocalSettingValue(key, value)
+function SyncManager:writeLocalSettingValue(key, value)
   local domain, full_key = assert(self:parseSettingKey(key))
 
   local LuaSettings = require("luasettings")
