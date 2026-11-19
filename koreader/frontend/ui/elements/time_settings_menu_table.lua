@@ -220,8 +220,7 @@ local function add_sync_time()
 
   local function syncNTPOnly()
     local txt
-    local ok = os.execute(ntp_cmd) == 0
-    if not ok then
+    if os.execute(ntp_cmd) ~= 0 then
       txt = gettext(
         "Failed to retrieve time from server. Please check your network configuration."
       )
@@ -237,20 +236,18 @@ local function add_sync_time()
         os.execute(string.format("/usr/sbin/setdate '%d'", os.time()))
       end
     end
-    return ok, txt
+    return txt
   end
 
   local last_sync_time = nil
 
   local function syncNTP()
-    local ok, txt
+    local txt
     UIManager:runWith(function()
-      ok, txt = syncNTPOnly()
+      txt = syncNTPOnly()
     end, gettext("Synchronizing time. This may take several seconds."))
 
-    if ok then
-      last_sync_time = time.monotonic()
-    end
+    last_sync_time = time.monotonic()
 
     UIManager:show(InfoMessage:new({
       text = txt,
@@ -293,10 +290,8 @@ local function add_sync_time()
       BackgroundJobs.insertKeyed({
         executable = "fork",
         action = syncNTPOnly,
-        callback = function(job)
-          if job.result == true then
-            last_sync_time = time.monotonic()
-          end
+        callback = function()
+          last_sync_time = time.monotonic()
         end,
       })
     end,
