@@ -324,7 +324,13 @@ function NewsDownloader:syncNewsFeeds()
     }))
     return
   end
-  if #feed_config <= 0 then
+  local valid_feeds = 0
+  for _, feed in ipairs(feed_config) do
+    if feed[1] and feed.limit then
+      valid_feeds = valid_feeds + 1
+    end
+  end
+  if valid_feeds <= 0 then
     logger.err("NewsDownloader: empty feed list.", self.feed_config_path)
     UIManager:show(ConfirmBox:new({
       text = gettext(
@@ -386,7 +392,8 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
     end
   end
 
-  if not added_any and _current_fork_feed ~= nil then
+  if not added_any then
+    assert(_current_fork_feed ~= nil)
     Notification:notify(gettext("Sync is already in progress."))
     return
   end

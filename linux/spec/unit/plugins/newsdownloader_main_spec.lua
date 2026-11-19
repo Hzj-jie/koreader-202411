@@ -690,6 +690,34 @@ describe("NewsDownloader main plugin module", function()
       )
       assert.are.equal(gettext("Edit feed list"), shown_widgets[1].ok_text)
 
+      -- 2b. Preflight: invalid-only feed configs show ConfirmBox without starting sync
+      for _, invalid_feeds in ipairs({
+        { {} },
+        { { [1] = "https://example.com/missing-limit.xml" } },
+        { { limit = 5 } },
+        {
+          { [1] = "https://example.com/missing-limit.xml" },
+          { limit = 3 },
+        },
+      }) do
+        inst:saveConfig(invalid_feeds)
+        shown_widgets = {}
+        notifications = {}
+        captured_job = nil
+        inst:syncNewsFeeds()
+        assert.are.equal(0, #notifications)
+        assert.is_nil(captured_job)
+        assert.are.equal(1, #shown_widgets)
+        assert.are.equal(
+          gettext(
+            "Feed list is empty. If you want to download news, you'll have to add a feed first."
+          ),
+          shown_widgets[1].text
+        )
+        assert.are.equal(gettext("Edit feed list"), shown_widgets[1].ok_text)
+        assert.are.equal(gettext("Close"), shown_widgets[1].cancel_text)
+      end
+
       -- 3. Valid config dispatches BackgroundJobs.insertKeyed with fork
       local valid_config = {
         {
@@ -777,6 +805,31 @@ describe("NewsDownloader main plugin module", function()
           limit = "5",
         })
       end)
+
+      -- 10. Preflight: mixed invalid and valid entries skips invalid ones and syncs valid feed
+      inst:saveConfig({
+        { [1] = "https://example.com/no-limit.xml" },
+        { limit = 4 },
+        { [1] = "https://example.com/mixed-valid.xml", limit = "3" },
+      })
+      shown_widgets = {}
+      notifications = {}
+      captured_job = nil
+      processed_urls = {}
+      processed_limits = {}
+      inst:syncNewsFeeds()
+      assert.are.equal(0, #shown_widgets)
+      assert.are.equal(1, #notifications)
+      assert.are.equal(
+        gettext("Synchronizing news feeds…"),
+        notifications[1]
+      )
+      assert.is_not_nil(captured_job)
+      local mixed_result = captured_job.action()
+      assert.is_true(mixed_result.ok)
+      assert.are.same({ "https://example.com/mixed-valid.xml" }, processed_urls)
+      assert.are.same({ 3 }, processed_limits)
+      captured_job.callback({ result = mixed_result })
     end
   )
 
