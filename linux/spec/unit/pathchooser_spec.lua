@@ -468,7 +468,7 @@ describe("PathChooser widget", function()
       util.isFileRW = original_isFileRW
     end)
 
-    describe("_pathUnwritable()", function()
+    describe("pathUnwritable()", function()
       it(
         "returns false when require_writable is false even if directory is unwritable",
         function()
@@ -478,8 +478,8 @@ describe("PathChooser widget", function()
           util.isDirRW = function()
             return false
           end
-          assert.is_false(pc:_pathUnwritable())
-          assert.is_false(pc:_pathUnwritable("/some/other/path"))
+          assert.is_false(pc:pathUnwritable())
+          assert.is_false(pc:pathUnwritable("/some/other/path"))
         end
       )
 
@@ -492,8 +492,8 @@ describe("PathChooser widget", function()
           util.isDirRW = function()
             return false
           end
-          assert.is_true(pc:_pathUnwritable())
-          assert.is_true(pc:_pathUnwritable("/some/other/path"))
+          assert.is_true(pc:pathUnwritable())
+          assert.is_true(pc:pathUnwritable("/some/other/path"))
         end
       )
 
@@ -506,8 +506,8 @@ describe("PathChooser widget", function()
           util.isDirRW = function()
             return true
           end
-          assert.is_false(pc:_pathUnwritable())
-          assert.is_false(pc:_pathUnwritable("/some/other/path"))
+          assert.is_false(pc:pathUnwritable())
+          assert.is_false(pc:pathUnwritable("/some/other/path"))
         end
       )
 
@@ -521,8 +521,8 @@ describe("PathChooser widget", function()
           return true
         end
         pc.path = "/my/current/dir"
-        pc:_pathUnwritable()
-        pc:_pathUnwritable("/explicit/path")
+        pc:pathUnwritable()
+        pc:pathUnwritable("/explicit/path")
         assert.are.same({ "/my/current/dir", "/explicit/path" }, checked_paths)
       end)
     end)
