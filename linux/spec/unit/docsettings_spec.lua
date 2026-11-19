@@ -6,6 +6,14 @@ describe("docsettings module", function()
       .. docsettings.getSidecarFilename(doc_path)
   end
 
+  local function makeTempDir()
+    local tmp = os.tmpname()
+    os.remove(tmp)
+    local dir = tmp .. "_docsettings"
+    util.makePath(dir)
+    return dir
+  end
+
   setup(function()
     require("commonrequire")
     DataStorage = require("datastorage")
@@ -193,8 +201,14 @@ describe("docsettings module", function()
   end)
 
   it("handles hash sidecar location and hash directory", function()
+    local tmp_dir = makeTempDir()
+    finally(function()
+      G_reader_settings:delete("document_metadata_folder")
+      ffiutil.purgeDir(tmp_dir)
+    end)
+
     G_reader_settings:save("document_metadata_folder", "hash")
-    local file = "/tmp/test_hash_doc.pdf"
+    local file = tmp_dir .. "/test_hash_doc.pdf"
     local f = io.open(file, "w")
     if f then
       f:write("%PDF-1.4 dummy pdf")
@@ -299,7 +313,12 @@ describe("docsettings module", function()
       local hash_dir = DataStorage:getDocSettingsHashDir()
       ffiutil.purgeDir(hash_dir)
 
-      local file = "/tmp/test_hash_custom_doc.epub"
+      local tmp_dir = makeTempDir()
+      finally(function()
+        ffiutil.purgeDir(tmp_dir)
+      end)
+
+      local file = tmp_dir .. "/test_hash_custom_doc.epub"
       local f = io.open(file, "w")
       if f then
         f:write("dummy book")
@@ -424,12 +443,17 @@ describe("docsettings module", function()
   end)
 
   it("handles custom cover, custom metadata, and updateLocation", function()
-    local file = "/tmp/test_custom_doc.epub"
+    local tmp_dir = makeTempDir()
+    finally(function()
+      ffiutil.purgeDir(tmp_dir)
+    end)
+
+    local file = tmp_dir .. "/test_custom_doc.epub"
     local d = docsettings:open(file)
     d:save("author", "Test Author")
     d:flush()
 
-    local tmp_cover = "/tmp/test_cover.jpg"
+    local tmp_cover = tmp_dir .. "/test_cover.jpg"
     local f = io.open(tmp_cover, "w")
     f:write("cover data")
     f:close()
@@ -443,7 +467,7 @@ describe("docsettings module", function()
     assert.is_truthy(found_meta)
 
     -- Test updateLocation copy and move
-    local new_file = "/tmp/test_custom_doc_moved.epub"
+    local new_file = tmp_dir .. "/test_custom_doc_moved.epub"
     docsettings.updateLocation(file, new_file, true) -- copy
     assert.is_true(docsettings:hasSidecarFile(new_file))
 
@@ -456,9 +480,14 @@ describe("docsettings module", function()
   it(
     "handles updateLocation when only custom files exist without sidecar file",
     function()
-      local file = "/tmp/test_custom_only.epub"
-      local new_file = "/tmp/test_custom_only_moved.epub"
-      local tmp_cover = "/tmp/test_cover_only.jpg"
+      local tmp_dir = makeTempDir()
+      finally(function()
+        ffiutil.purgeDir(tmp_dir)
+      end)
+
+      local file = tmp_dir .. "/test_custom_only.epub"
+      local new_file = tmp_dir .. "/test_custom_only_moved.epub"
+      local tmp_cover = tmp_dir .. "/test_cover_only.jpg"
       docsettings.updateLocation(new_file, nil)
       docsettings.updateLocation(file, nil)
       os.remove(tmp_cover)
@@ -490,11 +519,10 @@ describe("docsettings module", function()
   it(
     "preserves original custom cover and metadata when move copyFile fails",
     function()
-      local ffiutil = require("ffi/util")
-      local lfs = require("libs/libkoreader-lfs")
-      local test_dir = "/tmp/test_docsettings_move_fail"
-      util.removePath(test_dir)
-      lfs.mkdir(test_dir)
+      local test_dir = makeTempDir()
+      finally(function()
+        ffiutil.purgeDir(test_dir)
+      end)
       local orig_dir = test_dir .. "/orig"
       local new_dir = test_dir .. "/new"
       lfs.mkdir(orig_dir)
@@ -552,6 +580,7 @@ describe("docsettings module", function()
     local original_isDirRW = util.isDirRW
     local orig_show = UIManager.show
     local shown_notifications
+    local ro_temp_dir
 
     local function createDummyFile(path)
       local f = io.open(path, "w")
@@ -574,6 +603,7 @@ describe("docsettings module", function()
     local orig_isHash = docsettings.isHashLocationEnabled
 
     before_each(function()
+      ro_temp_dir = makeTempDir()
       shown_notifications = {}
       UIManager.show = function(_, widget)
         table.insert(shown_notifications, widget)
@@ -585,18 +615,14 @@ describe("docsettings module", function()
       UIManager.show = orig_show
       docsettings.isHashLocationEnabled = orig_isHash
       G_reader_settings:delete("document_metadata_folder")
-      os.remove("/tmp/test_ro_doc_1.epub")
-      os.remove("/tmp/test_ro_doc_2.epub")
-      os.remove("/tmp/test_ro_doc_3.epub")
-      os.remove("/tmp/test_ro_doc_4.epub")
-      os.remove("/tmp/test_ro_doc_5.epub")
+      ffiutil.purgeDir(ro_temp_dir)
     end)
 
     it(
       "falls back to dir location when doc location is read-only and notifies once",
       function()
         G_reader_settings:save("document_metadata_folder", "doc")
-        local file = "/tmp/test_ro_doc_1.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_1.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -633,7 +659,7 @@ describe("docsettings module", function()
           return true
         end
         G_reader_settings:save("document_metadata_folder", "doc")
-        local file = "/tmp/test_ro_doc_2.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_2.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -665,7 +691,7 @@ describe("docsettings module", function()
           return false
         end
         G_reader_settings:save("document_metadata_folder", "doc")
-        local file = "/tmp/test_ro_doc_2.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_2.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -697,7 +723,7 @@ describe("docsettings module", function()
           return true
         end
         G_reader_settings:save("document_metadata_folder", "doc")
-        local file = "/tmp/test_ro_doc_3.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_3.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -724,7 +750,7 @@ describe("docsettings module", function()
       "falls back to in-memory mode when all storage locations are read-only",
       function()
         G_reader_settings:save("document_metadata_folder", "doc")
-        local file = "/tmp/test_ro_doc_4.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_4.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
 
@@ -747,10 +773,10 @@ describe("docsettings module", function()
     it(
       "falls back to next writable location for flushCustomCover and flushCustomMetadata",
       function()
-        local file = "/tmp/test_ro_custom.epub"
+        local file = ro_temp_dir .. "/test_ro_custom.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
-        local tmp_cover = "/tmp/test_ro_cover.jpg"
+        local tmp_cover = ro_temp_dir .. "/test_ro_cover.jpg"
         local f = io.open(tmp_cover, "w")
         if f then
           f:write("cover data")
@@ -777,9 +803,9 @@ describe("docsettings module", function()
     it(
       "migrates existing custom cover and metadata to fallback directory on flush",
       function()
-        local file = "/tmp/test_ro_doc_5.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_5.epub"
         createDummyFile(file)
-        local tmp_cover = "/tmp/test_ro_cov_mig.jpg"
+        local tmp_cover = ro_temp_dir .. "/test_ro_cov_mig.jpg"
         local f = io.open(tmp_cover, "w")
         if f then
           f:write("cover data")
@@ -828,7 +854,7 @@ describe("docsettings module", function()
           return true
         end
         G_reader_settings:save("document_metadata_folder", "dir")
-        local file = "/tmp/test_ro_doc_dir_pref.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_dir_pref.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -861,7 +887,7 @@ describe("docsettings module", function()
           return true
         end
         G_reader_settings:save("document_metadata_folder", "dir")
-        local file = "/tmp/test_ro_doc_dir_pref2.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_dir_pref2.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -891,7 +917,7 @@ describe("docsettings module", function()
       "falls back to dir location when hash is preferred and hash location is read-only",
       function()
         G_reader_settings:save("document_metadata_folder", "hash")
-        local file = "/tmp/test_ro_doc_hash_pref.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_hash_pref.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -921,7 +947,7 @@ describe("docsettings module", function()
       "falls back to doc location when hash is preferred and both hash and dir are read-only",
       function()
         G_reader_settings:save("document_metadata_folder", "hash")
-        local file = "/tmp/test_ro_doc_hash_pref2.epub"
+        local file = ro_temp_dir .. "/test_ro_doc_hash_pref2.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
         local cands = getCandsMap(file)
@@ -950,10 +976,10 @@ describe("docsettings module", function()
     it(
       "returns nil for flushCustomCover and flushCustomMetadata when all locations are read-only",
       function()
-        local file = "/tmp/test_ro_all_custom.epub"
+        local file = ro_temp_dir .. "/test_ro_all_custom.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
-        local tmp_cover = "/tmp/test_ro_cov_fail.jpg"
+        local tmp_cover = ro_temp_dir .. "/test_ro_cov_fail.jpg"
         local f = io.open(tmp_cover, "w")
         if f then
           f:write("cover data")
@@ -993,10 +1019,10 @@ describe("docsettings module", function()
     it(
       "shows error message when copyFile or writeToFile fails in custom flush",
       function()
-        local file = "/tmp/test_fail_custom_write.epub"
+        local file = ro_temp_dir .. "/test_fail_custom_write.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
-        local tmp_cover = "/tmp/test_fail_cov.jpg"
+        local tmp_cover = ro_temp_dir .. "/test_fail_cov.jpg"
         local f = io.open(tmp_cover, "w")
         if f then
           f:write("cover data")
@@ -1043,10 +1069,10 @@ describe("docsettings module", function()
     it(
       "shows notification when custom cover or metadata falls back to alternate or tmp storage",
       function()
-        local file = "/tmp/test_custom_fallback.epub"
+        local file = ro_temp_dir .. "/test_custom_fallback.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
-        local tmp_cover = "/tmp/test_cov_fallback.jpg"
+        local tmp_cover = ro_temp_dir .. "/test_cov_fallback.jpg"
         local f = io.open(tmp_cover, "w")
         if f then
           f:write("cover data")
@@ -1095,10 +1121,10 @@ describe("docsettings module", function()
     it(
       "shows info message when custom cover or metadata falls back to tmp storage",
       function()
-        local file = "/tmp/test_custom_tmp_fallback.epub"
+        local file = ro_temp_dir .. "/test_custom_tmp_fallback.epub"
         createDummyFile(file)
         local d = docsettings:open(file)
-        local tmp_cover = "/tmp/test_cov_tmp.jpg"
+        local tmp_cover = ro_temp_dir .. "/test_cov_tmp.jpg"
         local f = io.open(tmp_cover, "w")
         if f then
           f:write("cover data")
@@ -1114,9 +1140,14 @@ describe("docsettings module", function()
 
         -- Mock all locations as unwritable except tmp
         local base_tmp = DataStorage:getTmpDir()
+        local cands = getCandsMap(file)
         local orig_isDirRW = util.isDirRW
         util.isDirRW = function(dir, create)
-          if base_tmp and util.stringStartsWith(dir, base_tmp) then
+          if
+            dir ~= cands.doc
+            and base_tmp
+            and util.stringStartsWith(dir, base_tmp)
+          then
             return orig_isDirRW(dir, create)
           end
           return false
@@ -1306,8 +1337,15 @@ describe("docsettings module", function()
           return orig_md5(p)
         end
 
+        local tmp_dir = makeTempDir()
+        finally(function()
+          util.partialMD5 = orig_md5
+          G_reader_settings:delete("document_metadata_folder")
+          ffiutil.purgeDir(tmp_dir)
+        end)
+
         G_reader_settings:save("document_metadata_folder", "doc")
-        local file = "/tmp/test_lazy_md5.epub"
+        local file = tmp_dir .. "/test_lazy_md5.epub"
         local f = io.open(file, "w")
         if f then
           f:write("epub content")
@@ -1315,7 +1353,7 @@ describe("docsettings module", function()
         end
 
         -- Create sidecar in doc location
-        local doc_sdr = "/tmp/test_lazy_md5.sdr"
+        local doc_sdr = tmp_dir .. "/test_lazy_md5.sdr"
         util.makePath(doc_sdr)
         local sidecar_file = doc_sdr .. "/metadata.epub.lua"
         local sf = io.open(sidecar_file, "w")
@@ -1409,7 +1447,15 @@ describe("docsettings module", function()
     )
 
     it("reuses cached partial MD5 hash on repeated calls", function()
-      local file = "/tmp/test_hash_cache.pdf"
+      local tmp_dir = makeTempDir()
+      local orig_partialMD5 = util.partialMD5
+      finally(function()
+        util.partialMD5 = orig_partialMD5
+        G_reader_settings:delete("document_metadata_folder")
+        ffiutil.purgeDir(tmp_dir)
+      end)
+
+      local file = tmp_dir .. "/test_hash_cache.pdf"
       local f = io.open(file, "w")
       if f then
         f:write("%PDF-1.4 test content for md5 cache")
@@ -1417,7 +1463,6 @@ describe("docsettings module", function()
       end
 
       local hash_call_count = 0
-      local orig_partialMD5 = util.partialMD5
       util.partialMD5 = function(p)
         hash_call_count = hash_call_count + 1
         return orig_partialMD5(p)
@@ -1426,19 +1471,22 @@ describe("docsettings module", function()
       G_reader_settings:save("document_metadata_folder", "hash")
       local d1 = docsettings:open(file)
       local d2 = docsettings:open(file)
-      util.partialMD5 = orig_partialMD5
 
       assert.are.equal(1, hash_call_count)
       assert.are.equal(d1.candidates[1].dir, d2.candidates[1].dir)
-      os.remove(file)
     end)
 
     it(
       "removes corrupted or empty candidate file and falls back to next candidate",
       function()
-        local file = "/tmp/test_corrupt.epub"
-        local doc_sdr = "/tmp/test_corrupt.sdr"
-        local dir_sdr = docsettings_dir .. "/tmp/test_corrupt.sdr"
+        local tmp_dir = makeTempDir()
+        local file = tmp_dir .. "/test_corrupt.epub"
+        local doc_sdr = tmp_dir .. "/test_corrupt.sdr"
+        local dir_sdr = docsettings_dir .. doc_sdr
+        finally(function()
+          docsettings.removeSidecarDir(dir_sdr)
+          ffiutil.purgeDir(tmp_dir)
+        end)
         local f = io.open(file, "w")
         if f then
           f:write("dummy")
@@ -1475,8 +1523,7 @@ describe("docsettings module", function()
     it(
       "keeps parent directory even when path contains /docsettings/ substring",
       function()
-        local base_dir = "/tmp/koreader_test_docsettings_"
-          .. tostring(os.time())
+        local base_dir = makeTempDir()
         local sub_dir = base_dir .. "/docsettings/nested"
         local sdr_dir = sub_dir .. "/book.sdr"
         util.makePath(sdr_dir)
@@ -1512,16 +1559,18 @@ describe("docsettings module", function()
     it(
       "keeps parent directory when removing standard sidecar directory",
       function()
-        local parent_dir = "/tmp/koreader_test_standard_" .. tostring(os.time())
+        local parent_dir = makeTempDir()
         local sdr_dir = parent_dir .. "/book.sdr"
         util.makePath(sdr_dir)
+        finally(function()
+          ffiutil.purgeDir(parent_dir)
+        end)
         assert.are.equal("directory", lfs.attributes(sdr_dir, "mode"))
 
         docsettings.removeSidecarDir(sdr_dir)
 
         assert.is_nil(lfs.attributes(sdr_dir, "mode"))
         assert.are.equal("directory", lfs.attributes(parent_dir, "mode"))
-        lfs.rmdir(parent_dir)
       end
     )
 
@@ -1531,15 +1580,18 @@ describe("docsettings module", function()
         assert.has_no_errors(function()
           docsettings.removeSidecarDir(nil)
           docsettings.removeSidecarDir("")
-          docsettings.removeSidecarDir("/tmp/nonexistent_dir_path_12345")
+          docsettings.removeSidecarDir("/nonexistent/koreader_dir_path_12345")
         end)
       end
     )
 
     it("does not delete non-empty directory", function()
-      local test_dir = "/tmp/koreader_nonempty_" .. tostring(os.time())
+      local test_dir = makeTempDir()
       local sdr_dir = test_dir .. "/book.sdr"
       util.makePath(sdr_dir)
+      finally(function()
+        ffiutil.purgeDir(test_dir)
+      end)
       local test_file = sdr_dir .. "/keepme.txt"
       local f = io.open(test_file, "w")
       if f then
@@ -1553,7 +1605,6 @@ describe("docsettings module", function()
       os.remove(test_file)
       docsettings.removeSidecarDir(sdr_dir)
       assert.is_nil(lfs.attributes(sdr_dir, "mode"))
-      lfs.rmdir(test_dir)
     end)
   end)
 
@@ -1580,12 +1631,17 @@ describe("docsettings module", function()
   describe(
     "_findSidecarFile and isSidecarFileNotInPreferredLocation",
     function()
-      local test_file = "/tmp/test_find_sidecar.epub"
+      local find_temp_dir, test_file
+
+      before_each(function()
+        find_temp_dir = makeTempDir()
+        test_file = find_temp_dir .. "/test_find_sidecar.epub"
+      end)
 
       after_each(function()
         G_reader_settings:delete("document_metadata_folder")
         docsettings.updateLocation(test_file, nil)
-        os.remove(test_file)
+        ffiutil.purgeDir(find_temp_dir)
       end)
 
       it("returns nil when doc_path is nil or empty", function()
@@ -1722,9 +1778,11 @@ describe("docsettings module", function()
   end)
 
   describe("getCustomLocationCandidate", function()
-    local test_doc = "/tmp/test_custom_cand.epub"
+    local cand_temp_dir, test_doc
 
     before_each(function()
+      cand_temp_dir = makeTempDir()
+      test_doc = cand_temp_dir .. "/test_custom_cand.epub"
       local f = io.open(test_doc, "w")
       if f then
         f:write("dummy test epub")
@@ -1734,8 +1792,8 @@ describe("docsettings module", function()
 
     after_each(function()
       docsettings.updateLocation(test_doc, nil)
-      os.remove(test_doc)
       G_reader_settings:delete("document_metadata_folder")
+      ffiutil.purgeDir(cand_temp_dir)
     end)
 
     it(
@@ -1743,7 +1801,7 @@ describe("docsettings module", function()
       function()
         local cand = docsettings:getCustomLocationCandidate(test_doc)
         assert.is_table(cand)
-        assert.are.equal("/tmp/test_custom_cand.sdr", cand.dir)
+        assert.are.equal(cand_temp_dir .. "/test_custom_cand.sdr", cand.dir)
       end
     )
 
@@ -1795,9 +1853,17 @@ describe("docsettings module", function()
     it(
       "falls back to next writable directory when new doc directory is read-only",
       function()
-        local orig_file = "/tmp/test_upd_ro_orig.epub"
-        local new_file = "/tmp/test_upd_ro_new.epub"
-        local tmp_cover = "/tmp/test_upd_ro_cov.jpg"
+        local tmp_dir = makeTempDir()
+        local orig_isDirRW = util.isDirRW
+        finally(function()
+          util.isDirRW = orig_isDirRW
+          docsettings.updateLocation(tmp_dir .. "/test_upd_ro_new.epub", nil)
+          docsettings.updateLocation(tmp_dir .. "/test_upd_ro_orig.epub", nil)
+          ffiutil.purgeDir(tmp_dir)
+        end)
+        local orig_file = tmp_dir .. "/test_upd_ro_orig.epub"
+        local new_file = tmp_dir .. "/test_upd_ro_new.epub"
+        local tmp_cover = tmp_dir .. "/test_upd_ro_cov.jpg"
 
         local f = io.open(tmp_cover, "w")
         if f then
@@ -1811,7 +1877,6 @@ describe("docsettings module", function()
         d:flushCustomCover(orig_file, tmp_cover)
         d:close()
 
-        local orig_isDirRW = util.isDirRW
         local new_doc_sdr = docsettings:getSidecarDir(new_file)
         util.isDirRW = function(dir, create)
           if dir == new_doc_sdr then
@@ -1826,21 +1891,25 @@ describe("docsettings module", function()
         local found_cover = docsettings:findCustomCoverFile(new_file)
         assert.is_truthy(found_cover)
         assert.is_false(util.stringStartsWith(found_cover, new_doc_sdr))
-
-        docsettings.updateLocation(new_file, nil)
-        docsettings.updateLocation(orig_file, nil)
-        os.remove(tmp_cover)
-        os.remove(orig_file)
       end
     )
 
     it(
       "guards against nil new_sidecar_dir and warns user when all candidate storages are read-only",
       function()
+        local tmp_dir = makeTempDir()
         local UIManager = require("ui/uimanager")
-        local orig_file = "/tmp/test_upd_all_ro_orig.epub"
-        local new_file = "/tmp/test_upd_all_ro_new.epub"
-        local tmp_cover = "/tmp/test_upd_all_ro_cov.jpg"
+        local orig_show = UIManager.show
+        local orig_isDirRW = util.isDirRW
+        local orig_file = tmp_dir .. "/test_upd_all_ro_orig.epub"
+        local new_file = tmp_dir .. "/test_upd_all_ro_new.epub"
+        local tmp_cover = tmp_dir .. "/test_upd_all_ro_cov.jpg"
+        finally(function()
+          util.isDirRW = orig_isDirRW
+          UIManager.show = orig_show
+          docsettings.updateLocation(orig_file, nil)
+          ffiutil.purgeDir(tmp_dir)
+        end)
 
         local f = io.open(tmp_cover, "w")
         if f then
@@ -1855,12 +1924,10 @@ describe("docsettings module", function()
         d:close()
 
         local shown_warning = nil
-        local orig_show = UIManager.show
         UIManager.show = function(_, widget)
           shown_warning = widget
         end
 
-        local orig_isDirRW = util.isDirRW
         util.isDirRW = function()
           return false
         end
@@ -1884,18 +1951,18 @@ describe("docsettings module", function()
         -- Original sidecar and custom cover must still exist (not purged)
         assert.is_true(docsettings:hasSidecarFile(orig_file))
         assert.is_truthy(docsettings:findCustomCoverFile(orig_file))
-
-        docsettings.updateLocation(orig_file, nil)
-        os.remove(tmp_cover)
-        os.remove(orig_file)
       end
     )
 
     it(
       "removes referenced cache_file_path when deleting via updateLocation",
       function()
-        local file = "/tmp/test_cache_del.epub"
-        local dummy_cache = "/tmp/test_extracted_cache.bin"
+        local tmp_dir = makeTempDir()
+        finally(function()
+          ffiutil.purgeDir(tmp_dir)
+        end)
+        local file = tmp_dir .. "/test_cache_del.epub"
+        local dummy_cache = tmp_dir .. "/test_extracted_cache.bin"
         local f = io.open(file, "w")
         if f then
           f:write("dummy")
@@ -1915,16 +1982,21 @@ describe("docsettings module", function()
         assert.is_truthy(lfs.attributes(dummy_cache, "mode"))
         docsettings.updateLocation(file, nil) -- delete
         assert.is_nil(lfs.attributes(dummy_cache, "mode"))
-        os.remove(file)
       end
     )
 
     it(
       "preserves hash-based sidecar on rename/move when hash location is preferred",
       function()
+        local tmp_dir = makeTempDir()
+        local file1 = tmp_dir .. "/test_hash_move_1.pdf"
+        local file2 = tmp_dir .. "/test_hash_move_2.pdf"
+        finally(function()
+          docsettings.updateLocation(file1, nil)
+          G_reader_settings:delete("document_metadata_folder")
+          ffiutil.purgeDir(tmp_dir)
+        end)
         G_reader_settings:save("document_metadata_folder", "hash")
-        local file1 = "/tmp/test_hash_move_1.pdf"
-        local file2 = "/tmp/test_hash_move_2.pdf"
         local f = io.open(file1, "w")
         if f then
           f:write("%PDF-1.4 dummy pdf content")
@@ -1942,10 +2014,6 @@ describe("docsettings module", function()
         -- Move operation should keep hash sidecar unchanged
         docsettings.updateLocation(file1, file2, false)
         assert.is_truthy(util.fileExists(sidecar_before.file))
-
-        docsettings.updateLocation(file1, nil)
-        os.remove(file1)
-        G_reader_settings:delete("document_metadata_folder")
       end
     )
   end)
@@ -1955,7 +2023,17 @@ describe("docsettings module", function()
       "refreshes candidates when document_metadata_folder changes after open",
       function()
         local UIManager = require("ui/uimanager")
-        local file = "/tmp/test_flush_dyn.epub"
+        local tmp_dir = makeTempDir()
+        local file = tmp_dir .. "/test_flush_dyn.epub"
+        local d
+        finally(function()
+          if d then
+            d:close()
+            d:purge()
+          end
+          G_reader_settings:delete("document_metadata_folder")
+          ffiutil.purgeDir(tmp_dir)
+        end)
         local f = io.open(file, "w")
         if f then
           f:write("dummy")
@@ -1963,7 +2041,7 @@ describe("docsettings module", function()
         end
 
         G_reader_settings:save("document_metadata_folder", "doc")
-        local d = docsettings:open(file)
+        d = docsettings:open(file)
         assert.are.equal("doc", d.candidates[1].location)
 
         -- Write initial settings to doc location
@@ -1986,17 +2064,12 @@ describe("docsettings module", function()
         UIManager.show = orig_show
 
         -- Wrote to internal storage because flush refreshed candidates
-        assert.are.equal(docsettings_dir .. "/tmp/test_flush_dyn.sdr", new_dir)
+        assert.are.equal(docsettings_dir .. tmp_dir .. "/test_flush_dyn.sdr", new_dir)
         -- No read-only warning should be shown!
         assert.are.equal(0, #shown_notifications)
 
         -- Old sidecar in doc location should be purged
         assert.is_nil(lfs.attributes(initial_dir, "mode"))
-
-        d:close()
-        d:purge()
-        os.remove(file)
-        G_reader_settings:delete("document_metadata_folder")
       end
     )
   end)
@@ -2005,8 +2078,17 @@ describe("docsettings module", function()
     it(
       "selectively purges custom cover without deleting metadata.lua",
       function()
-        local file = "/tmp/test_sel_purge.epub"
-        local tmp_cover = "/tmp/test_sel_cov.jpg"
+        local tmp_dir = makeTempDir()
+        local file = tmp_dir .. "/test_sel_purge.epub"
+        local tmp_cover = tmp_dir .. "/test_sel_cov.jpg"
+        local d
+        finally(function()
+          if d then
+            d:close()
+            d:purge()
+          end
+          ffiutil.purgeDir(tmp_dir)
+        end)
         local f1 = io.open(file, "w")
         if f1 then
           f1:write("dummy book")
@@ -2018,7 +2100,7 @@ describe("docsettings module", function()
           f2:close()
         end
 
-        local d = docsettings:open(file)
+        d = docsettings:open(file)
         d:save("title", "Selective Purge Test")
         d:flush()
         d:flushCustomCover(file, tmp_cover)
@@ -2032,11 +2114,6 @@ describe("docsettings module", function()
         d:purge(nil, { custom_cover_file = cover_file })
         assert.is_nil(d:findCustomCoverFile())
         assert.is_truthy(util.fileExists(sidecar_cand.file))
-
-        d:close()
-        d:purge()
-        os.remove(file)
-        os.remove(tmp_cover)
       end
     )
   end)
@@ -2101,7 +2178,7 @@ describe("docsettings module", function()
     it(
       "asserts when flush is called on an instance created by openSettingsFile",
       function()
-        local inst = docsettings.openSettingsFile("/tmp/dummy_settings.lua")
+        local inst = docsettings.openSettingsFile("/nonexistent/dummy_settings.lua")
         assert.has_error(function()
           inst:flush()
         end, "DocSettings: doc_path must not be nil or empty")
@@ -2111,7 +2188,9 @@ describe("docsettings module", function()
     it(
       "shows notification when copyFile fails during flush with custom metadata and preserves file",
       function()
-        local doc_path = "/tmp/test_copy_fail_doc.epub"
+        local tmp_dir = makeTempDir()
+        local doc_path = tmp_dir .. "/test_copy_fail_doc.epub"
+        local fake_meta = tmp_dir .. "/fake_custom_metadata.lua"
         local inst = docsettings:open(doc_path)
         local orig_getCustomMetadata = inst.getCustomMetadataFile
         local orig_copyFile = ffiutil.copyFile
@@ -2121,14 +2200,22 @@ describe("docsettings module", function()
         local orig_show = UIManager.show
         local shown_notification
 
+        finally(function()
+          inst.getCustomMetadataFile = orig_getCustomMetadata
+          ffiutil.copyFile = orig_copyFile
+          os.remove = orig_remove
+          UIManager.show = orig_show
+          ffiutil.purgeDir(tmp_dir)
+        end)
+
         inst.getCustomMetadataFile = function()
-          return "/tmp/fake_custom_metadata.lua"
+          return fake_meta
         end
         ffiutil.copyFile = function()
           return "permission denied"
         end
         os.remove = function(file)
-          if file == "/tmp/fake_custom_metadata.lua" then
+          if file == fake_meta then
             removed = true
           end
           return orig_remove(file)
@@ -2141,19 +2228,15 @@ describe("docsettings module", function()
         assert.truthy(shown_notification)
         assert.are.equal(gettext("Failed to save custom metadata to disk."), shown_notification.text)
         assert.is_false(removed)
-
-        inst.getCustomMetadataFile = orig_getCustomMetadata
-        ffiutil.copyFile = orig_copyFile
-        os.remove = orig_remove
-        UIManager.show = orig_show
-        ffiutil.purgeDir("/tmp/test_copy_fail_doc.sdr")
       end
     )
 
     it(
       "shows notification when copyFile fails during flush with custom cover and preserves file",
       function()
-        local doc_path = "/tmp/test_copy_cover_fail_doc.epub"
+        local tmp_dir = makeTempDir()
+        local doc_path = tmp_dir .. "/test_copy_cover_fail_doc.epub"
+        local fake_cover = tmp_dir .. "/fake_custom_cover.png"
         local inst = docsettings:open(doc_path)
         local orig_getCustomCover = inst.getCustomCoverFile
         local orig_copyFile = ffiutil.copyFile
@@ -2163,14 +2246,22 @@ describe("docsettings module", function()
         local orig_show = UIManager.show
         local shown_notification
 
+        finally(function()
+          inst.getCustomCoverFile = orig_getCustomCover
+          ffiutil.copyFile = orig_copyFile
+          os.remove = orig_remove
+          UIManager.show = orig_show
+          ffiutil.purgeDir(tmp_dir)
+        end)
+
         inst.getCustomCoverFile = function()
-          return "/tmp/fake_custom_cover.png"
+          return fake_cover
         end
         ffiutil.copyFile = function()
           return "permission denied"
         end
         os.remove = function(file)
-          if file == "/tmp/fake_custom_cover.png" then
+          if file == fake_cover then
             removed = true
           end
           return orig_remove(file)
@@ -2183,12 +2274,6 @@ describe("docsettings module", function()
         assert.truthy(shown_notification)
         assert.are.equal(gettext("Failed to save custom cover to disk."), shown_notification.text)
         assert.is_false(removed)
-
-        inst.getCustomCoverFile = orig_getCustomCover
-        ffiutil.copyFile = orig_copyFile
-        os.remove = orig_remove
-        UIManager.show = orig_show
-        ffiutil.purgeDir("/tmp/test_copy_cover_fail_doc.sdr")
       end
     )
   end)

@@ -1,17 +1,23 @@
 describe("DownloadMgr module", function()
   local DownloadMgr
   local UIManager
+  local ffiutil
   local lfs = require("libs/libkoreader-lfs")
+  local temp_dir
 
   setup(function()
     require("commonrequire")
     DownloadMgr = require("ui/downloadmgr")
     UIManager = require("ui/uimanager")
-    lfs.mkdir("/tmp/test_dir")
+    ffiutil = require("ffi/util")
+    local tmp = os.tmpname()
+    os.remove(tmp)
+    temp_dir = tmp .. "_downloadmgr"
+    lfs.mkdir(temp_dir)
   end)
 
   teardown(function()
-    lfs.rmdir("/tmp/test_dir")
+    ffiutil.purgeDir(temp_dir)
   end)
 
   it("should initialize DownloadMgr instance", function()
@@ -33,12 +39,13 @@ describe("DownloadMgr module", function()
       end,
     })
 
-    mgr:chooseDir("/tmp/test_dir")
+    mgr:chooseDir(temp_dir)
     assert.truthy(shown_widget)
-    assert.are.equal("/tmp/test_dir", shown_widget.path)
+    assert.are.equal(temp_dir, shown_widget.path)
 
-    shown_widget.onConfirm("/tmp/chosen_dir")
-    assert.are.equal("/tmp/chosen_dir", confirmed_path)
+    local chosen_dir = temp_dir .. "/chosen_dir"
+    shown_widget.onConfirm(chosen_dir)
+    assert.are.equal(chosen_dir, confirmed_path)
 
     UIManager.show = orig_show
   end)
@@ -52,20 +59,20 @@ describe("DownloadMgr module", function()
         shown_widget = widget
       end
 
-      G_reader_settings:save("download_dir", "/tmp/test_dir")
+      G_reader_settings:save("download_dir", temp_dir)
       local mgr = DownloadMgr:new()
       mgr:chooseDir()
       assert.truthy(shown_widget)
-      assert.are.equal("/tmp/test_dir", shown_widget.path)
+      assert.are.equal(temp_dir, shown_widget.path)
 
       local orig_lastdir = G_named_settings.lastdir
       G_reader_settings:save("download_dir", nil)
       G_named_settings.lastdir = function()
-        return "/tmp/test_dir"
+        return temp_dir
       end
       mgr:chooseDir()
       assert.truthy(shown_widget)
-      assert.are.equal("/tmp/test_dir", shown_widget.path)
+      assert.are.equal(temp_dir, shown_widget.path)
 
       G_named_settings.lastdir = orig_lastdir
       UIManager.show = orig_show
@@ -108,7 +115,7 @@ describe("DownloadMgr module", function()
     end
 
     local mgr = DownloadMgr:new()
-    mgr:chooseDir("/tmp/test_dir")
+    mgr:chooseDir(temp_dir)
     assert.truthy(shown_widget)
     assert.is_true(shown_widget.require_writable)
 
@@ -124,14 +131,16 @@ describe("DownloadMgr module", function()
       table.insert(shown_notifications, widget)
     end
 
+    local rw_dir = temp_dir .. "/rw_dir"
+    local ro_dir = temp_dir .. "/ro_dir"
     util.isDirRW = function(dir)
-      return dir == "/tmp/rw_dir"
+      return dir == rw_dir
     end
 
-    assert.is_true(DownloadMgr.checkDownloadDir("/tmp/rw_dir"))
+    assert.is_true(DownloadMgr.checkDownloadDir(rw_dir))
     assert.are.equal(0, #shown_notifications)
 
-    assert.is_false(DownloadMgr.checkDownloadDir("/tmp/ro_dir"))
+    assert.is_false(DownloadMgr.checkDownloadDir(ro_dir))
     assert.are.equal(1, #shown_notifications)
     assert.is_not_nil(shown_notifications[1].text:find("read%-only"))
 
