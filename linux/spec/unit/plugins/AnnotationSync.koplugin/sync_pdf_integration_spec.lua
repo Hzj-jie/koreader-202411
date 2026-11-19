@@ -509,9 +509,7 @@ describe("AnnotationSync PDF Core Integration", function()
         assert.is_not_nil(res2)
 
         local ds_mod = require("frontend/docsettings")
-        local sidecar = ds_mod:getSidecarDir(readerui.document.file)
-          .. "/"
-          .. ds_mod.getSidecarFilename(readerui.document.file)
+        local sidecar = ds_mod:open(readerui.document.file).candidates[1].file
         local f = io.open(sidecar, "r")
         local content = f and f:read("*a")
         if f then

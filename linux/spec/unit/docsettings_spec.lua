@@ -1,9 +1,10 @@
 describe("docsettings module", function()
   local DataStorage, docsettings, docsettings_dir, ffiutil, gettext, lfs, logger, util
+  local getSidecarDir = function(doc_path)
+    return docsettings:open(doc_path).candidates[1].dir
+  end
   local getSidecarFile = function(doc_path)
-    return docsettings:getSidecarDir(doc_path)
-      .. "/"
-      .. docsettings.getSidecarFilename(doc_path)
+    return docsettings:open(doc_path).candidates[1].file
   end
 
   local function makeTempDir()
@@ -31,28 +32,28 @@ describe("docsettings module", function()
     "should generate sidecar folder path in book folder (by default)",
     function()
       G_reader_settings:delete("document_metadata_folder")
-      assert.Equals("../../foo.sdr", docsettings:getSidecarDir("../../foo.pdf"))
-      assert.Equals("/foo/bar.sdr", docsettings:getSidecarDir("/foo/bar.pdf"))
-      assert.Equals("baz.sdr", docsettings:getSidecarDir("baz.pdf"))
+      assert.Equals("../../foo.sdr", getSidecarDir("../../foo.pdf"))
+      assert.Equals("/foo/bar.sdr", getSidecarDir("/foo/bar.pdf"))
+      assert.Equals("baz.sdr", getSidecarDir("baz.pdf"))
     end
   )
 
   it("should generate sidecar folder path in book folder", function()
     G_reader_settings:save("document_metadata_folder", "doc")
-    assert.Equals("../../foo.sdr", docsettings:getSidecarDir("../../foo.pdf"))
-    assert.Equals("/foo/bar.sdr", docsettings:getSidecarDir("/foo/bar.pdf"))
-    assert.Equals("baz.sdr", docsettings:getSidecarDir("baz.pdf"))
+    assert.Equals("../../foo.sdr", getSidecarDir("../../foo.pdf"))
+    assert.Equals("/foo/bar.sdr", getSidecarDir("/foo/bar.pdf"))
+    assert.Equals("baz.sdr", getSidecarDir("baz.pdf"))
   end)
 
   it("should generate sidecar folder path in docsettings folder", function()
     G_reader_settings:save("document_metadata_folder", "dir")
     assert.Equals(
       docsettings_dir .. "/foo/bar.sdr",
-      docsettings:getSidecarDir("/foo/bar.pdf")
+      getSidecarDir("/foo/bar.pdf")
     )
     assert.Equals(
       docsettings_dir .. "baz.sdr",
-      docsettings:getSidecarDir("baz.pdf")
+      getSidecarDir("baz.pdf")
     )
   end)
 
@@ -129,7 +130,7 @@ describe("docsettings module", function()
     G_reader_settings:delete("document_metadata_folder")
     local file = "file.pdf"
     local d = docsettings:open(file)
-    local doc_dir = docsettings:getSidecarDir(file)
+    local doc_dir = getSidecarDir(file)
     d:save("a", "b")
     d:save("c", "d")
     d:close()
@@ -164,7 +165,7 @@ describe("docsettings module", function()
   it("should respect newest history file", function()
     local file = "file.pdf"
     local d = docsettings:open(file)
-    local doc_dir = docsettings:getSidecarDir(file)
+    local doc_dir = getSidecarDir(file)
 
     local legacy_files = {
       docsettings:getHistoryPath(file),
@@ -215,7 +216,7 @@ describe("docsettings module", function()
       f:close()
     end
 
-    local sidecar_dir = docsettings:getSidecarDir(file)
+    local sidecar_dir = getSidecarDir(file)
     assert.is_truthy(sidecar_dir)
     assert.is_truthy(sidecar_dir:match("%.sdr$"))
 
@@ -1087,7 +1088,7 @@ describe("docsettings module", function()
         end
 
         -- Mock doc location as unwritable so it falls back to dir location
-        local doc_sdr = docsettings:getSidecarDir(file)
+        local doc_sdr = getSidecarDir(file)
         local orig_isDirRW = util.isDirRW
         util.isDirRW = function(dir, create)
           if dir == doc_sdr then
@@ -1809,7 +1810,7 @@ describe("docsettings module", function()
       G_reader_settings:save("document_metadata_folder", "hash")
       local cand = docsettings:getCustomLocationCandidate(test_doc)
       assert.is_table(cand)
-      assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
+      assert.are.equal(getSidecarDir(test_doc), cand.dir)
     end)
 
     it("returns existing sidecar dir when sidecar file exists", function()
@@ -1820,7 +1821,7 @@ describe("docsettings module", function()
 
       local cand = docsettings:getCustomLocationCandidate(test_doc)
       assert.is_table(cand)
-      assert.are.equal(docsettings:getSidecarDir(test_doc), cand.dir)
+      assert.are.equal(getSidecarDir(test_doc), cand.dir)
     end)
 
     it(
@@ -1831,7 +1832,7 @@ describe("docsettings module", function()
         d:flush()
         d:close()
 
-        local existing_sdr = docsettings:getSidecarDir(test_doc)
+        local existing_sdr = getSidecarDir(test_doc)
         local orig_isDirRW = util.isDirRW
         util.isDirRW = function(dir, create)
           if dir == existing_sdr then
@@ -1877,7 +1878,7 @@ describe("docsettings module", function()
         d:flushCustomCover(orig_file, tmp_cover)
         d:close()
 
-        local new_doc_sdr = docsettings:getSidecarDir(new_file)
+        local new_doc_sdr = getSidecarDir(new_file)
         util.isDirRW = function(dir, create)
           if dir == new_doc_sdr then
             return false
@@ -2047,7 +2048,7 @@ describe("docsettings module", function()
         -- Write initial settings to doc location
         d:save("page", 1)
         local initial_dir = d:flush()
-        assert.are.equal(docsettings:getSidecarDir(file), initial_dir)
+        assert.are.equal(getSidecarDir(file), initial_dir)
 
         -- Dynamically change preferred setting to dir (internal storage)
         G_reader_settings:save("document_metadata_folder", "dir")
@@ -2141,7 +2142,7 @@ describe("docsettings module", function()
     end)
 
     it(
-      "correctly handles getSidecarFilename and getSidecarDir matching across / in dot-directories",
+      "correctly handles getSidecarFilename and candidate dir matching across / in dot-directories",
       function()
         G_reader_settings:save("document_metadata_folder", "doc")
         local doc_path = "/home/user/.books/README"
@@ -2151,7 +2152,7 @@ describe("docsettings module", function()
         )
         assert.are.equal(
           "/home/user/.books/README.sdr",
-          docsettings:getSidecarDir(doc_path)
+          getSidecarDir(doc_path)
         )
       end
     )

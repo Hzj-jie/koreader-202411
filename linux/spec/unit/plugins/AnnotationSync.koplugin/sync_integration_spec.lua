@@ -392,7 +392,7 @@ describe("AnnotationSync Core Integration", function()
     it("verifies sidecar directory creation for new books", function()
       local file = readerui.document.file
       sync_instance.manager:addToChangedDocumentsFile(file)
-      local sdr_dir = require("frontend/docsettings"):getSidecarDir(file)
+      local sdr_dir = require("frontend/docsettings"):open(file).candidates[1].dir
       os.execute("rm -rf " .. sdr_dir)
 
       local lfs = require("libs/libkoreader-lfs")

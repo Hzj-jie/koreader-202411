@@ -58,7 +58,7 @@ describe("FileManager module", function()
       .. ".foo"
     util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
 
-    local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)
+    local tmp_sidecar = docsettings:open(tmp_fn).candidates[1].dir
     require("util").makePath(tmp_sidecar)
     local tmp_sidecar_file = tmp_sidecar
       .. "/"
@@ -103,7 +103,7 @@ describe("FileManager module", function()
       .. ".pdf"
     util.copyFile("spec/unit/data/2col.pdf", tmp_fn)
 
-    local tmp_sidecar = docsettings:getSidecarDir(tmp_fn)
+    local tmp_sidecar = docsettings:open(tmp_fn).candidates[1].dir
     require("util").makePath(tmp_sidecar)
     local tmp_sidecar_file = tmp_sidecar
       .. "/"
@@ -1396,7 +1396,7 @@ describe("FileManager module", function()
 
       local book_src = src_dir .. "/book.pdf"
       util.copyFile("spec/unit/data/2col.pdf", book_src)
-      local book_sdr = docsettings:getSidecarDir(book_src)
+      local book_sdr = docsettings:open(book_src).candidates[1].dir
       require("util").makePath(book_sdr)
       local sdr_file = book_sdr .. "/" .. docsettings.getSidecarFilename(book_src)
       local sf = io.open(sdr_file, "w")
@@ -1404,7 +1404,7 @@ describe("FileManager module", function()
       sf:close()
 
       local book_dst = dst_dir .. "/book.pdf"
-      local book_dst_sdr = docsettings:getSidecarDir(book_dst)
+      local book_dst_sdr = docsettings:open(book_dst).candidates[1].dir
 
       ReadCollection:addItem(book_src, "favorites")
       ReadHistory:addItem(book_src)
