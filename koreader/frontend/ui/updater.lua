@@ -53,6 +53,7 @@ function Updater:_performUpdate(pkg)
 
   local downloading_msg = InfoMessage:new({
     text = gettext("Downloading may take several minutes…"),
+    dismissable = false,
   })
   UIManager:show(downloading_msg)
 
