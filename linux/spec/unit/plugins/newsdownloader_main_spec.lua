@@ -808,9 +808,13 @@ describe("NewsDownloader main plugin module", function()
       end
 
       local orig_process = NewsDownloader.processFeedSource
+      local orig_file_extension = NewsDownloader.file_extension
+      NewsDownloader.file_extension = ".mobi"
       local processed_urls = {}
+      local processed_extensions = {}
       NewsDownloader.processFeedSource = function(self_p, url)
         table.insert(processed_urls, url)
+        table.insert(processed_extensions, self_p.file_extension)
       end
 
       finally(function()
@@ -819,6 +823,7 @@ describe("NewsDownloader main plugin module", function()
         time.since = orig_since
         BackgroundJobs.insertKeyed = orig_insert
         NewsDownloader.processFeedSource = orig_process
+        NewsDownloader.file_extension = orig_file_extension
         NewsDownloader.getSettings:revert()
         require("libs/libkoreader-lfs").rmdir(tmp_dir)
       end)
@@ -876,6 +881,7 @@ describe("NewsDownloader main plugin module", function()
       assert.is_true(bg_res.ok)
       assert.are.equal(1, #processed_urls)
       assert.are.equal("https://example.com/feed1.xml", processed_urls[1])
+      assert.are.equal(".mobi", processed_extensions[1])
 
       -- Callback updates feed1 timestamp for both success and error
       captured_job.callback({ result = bg_res })

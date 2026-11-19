@@ -493,7 +493,7 @@ function NewsDownloader.onIdle()
     credentials = oldest_feed.credentials,
     download_dir = download_dir,
     never_download_images = settings:isTrue("never_download_images"),
-    file_extension = ".epub",
+    file_extension = NewsDownloader.file_extension,
   })
 
   triggerNextQueueItem()
