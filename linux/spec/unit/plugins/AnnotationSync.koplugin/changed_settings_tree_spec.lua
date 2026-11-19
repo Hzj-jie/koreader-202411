@@ -288,23 +288,23 @@ describe("AnnotationSync changed settings tree", function()
   end)
 
   it("lists a table default changed to a plain value as one item", function()
-    local old_filter = G_reader_settings:read("show_filter")
-    G_reader_settings:save("show_filter", false)
+    local old_autoexec = G_reader_settings:read("profiles_autoexec")
+    G_reader_settings:save("profiles_autoexec", false)
 
     local root_menu, _, cleanup = open_tree()
     finally(function()
       cleanup()
-      if old_filter == nil then
-        G_reader_settings:delete("show_filter")
+      if old_autoexec == nil then
+        G_reader_settings:delete("profiles_autoexec")
       else
-        G_reader_settings:save("show_filter", old_filter)
+        G_reader_settings:save("profiles_autoexec", old_autoexec)
       end
     end)
 
     assert.is_not_nil(root_menu)
     local found_item
     for _, item in ipairs(root_menu.item_table) do
-      if item.setting_id == "reader:show_filter" then
+      if item.setting_id == "reader:profiles_autoexec" then
         found_item = item
         break
       end
