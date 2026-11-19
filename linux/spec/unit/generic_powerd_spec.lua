@@ -300,11 +300,7 @@ describe("device/generic/powerd", function()
         assert.spy(mock_uimgr.flushSettings).was.called()
         assert.spy(mock_uimgr.broadcastEvent).was.called_with(
           mock_uimgr,
-          match.is_table()
-        )
-        assert.are.equal(
-          "Suspend",
-          mock_uimgr.broadcastEvent.calls[1].vals[2].name
+          "Suspend"
         )
         assert.is_true(mock_device.last_suspend_at > 0)
         assert.spy(mock_device.disableKeyRepeat).was.called()
@@ -320,7 +316,7 @@ describe("device/generic/powerd", function()
         assert.spy(mock_uimgr.updateLastUserActionTime).was.called()
         assert.are.equal(
           "Resume",
-          mock_uimgr.broadcastEvent.calls[2].vals[2].name
+          mock_uimgr.broadcastEvent.calls[2].vals[2]
         )
         -- Capacity caches should be invalidated (set to -61)
         local time = require("ui/time")
@@ -380,7 +376,7 @@ describe("device/generic/powerd", function()
           table.insert(calls, "flushSettings")
         end)
         stub(mock_uimgr, "broadcastEvent", function(_self, ev)
-          table.insert(calls, ev.name)
+          table.insert(calls, ev)
         end)
         powerd.beforeSuspendHW = spy.new(function()
           table.insert(calls, "beforeSuspendHW")
@@ -438,7 +434,7 @@ describe("device/generic/powerd", function()
           table.insert(calls, "forceRepaint")
         end)
         stub(mock_uimgr, "broadcastEvent", function(_self, ev)
-          table.insert(calls, ev.name)
+          table.insert(calls, ev)
         end)
         powerd.afterResumeHW = spy.new(function()
           table.insert(calls, "afterResumeHW")
