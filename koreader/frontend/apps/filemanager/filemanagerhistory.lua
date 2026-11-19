@@ -491,7 +491,7 @@ function FileManagerHistory:doBuildHistory()
     local ReadHistory = require("readhistory")
     local prev_hist = ReadHistory.hist
     ReadHistory.hist = records
-    if not ReadHistory:_flush() then
+    if not ReadHistory:flush() then
       ReadHistory.hist = prev_hist
       if backed_up then
         local ok, err = os.rename(history_backup_file, history_file)

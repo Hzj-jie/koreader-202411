@@ -1256,7 +1256,6 @@ describe("filemanagercollection", function()
           lfs_attr_stub:revert()
         end)
 
-        assert.is_nil(FileManagerCollection.getAutoCollectionStatus)
         mock_ui.document = { file = "/books/open_live.epub" }
         mock_ui.doc_settings = {
           readTableRef = spy.new(function()

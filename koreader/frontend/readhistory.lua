@@ -89,7 +89,7 @@ function ReadHistory:_reduce()
 end
 
 --- Saves history table to a file.
-function ReadHistory:_flush()
+function ReadHistory:flush()
   local content = {}
   for _, v in ipairs(self.hist) do
     table.insert(content, {
@@ -162,7 +162,7 @@ function ReadHistory:_readLegacyHistory()
   end
   if history_updated then
     self:_reduce()
-    self:_flush()
+    self:flush()
   end
   os.remove(history_dir)
 end
@@ -214,7 +214,7 @@ function ReadHistory:updateItem(file, new_filepath)
     local item = self.hist[index]
     item.file = new_filepath
     item.text = new_filepath:gsub(".*/", "")
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -229,7 +229,7 @@ function ReadHistory:updateItems(files, new_path) -- files = { filepath = true, 
     end
   end
   if history_updated then
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -244,7 +244,7 @@ function ReadHistory:updateItemsByPath(old_path, new_path)
     end
   end
   if history_updated then
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -283,7 +283,7 @@ function ReadHistory:folderDeleted(path)
   end
   if history_updated then
     if G_reader_settings:isTrue("autoremove_deleted_items_from_history") then
-      self:_flush()
+      self:flush()
     else
       self:ensureLastFile()
     end
@@ -301,7 +301,7 @@ function ReadHistory:removeItems(files) -- files = { filepath = true, }
   end
   if history_updated then
     if G_reader_settings:isTrue("autoremove_deleted_items_from_history") then
-      self:_flush()
+      self:flush()
     else
       self:ensureLastFile()
     end
@@ -326,7 +326,7 @@ function ReadHistory:clearMissing()
     end
   end
   if history_updated then
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -342,7 +342,7 @@ function ReadHistory:removeItem(item, idx, no_flush)
   table.remove(self.hist, index)
   os.remove(DocSettings:getHistoryPath(item.file))
   if not no_flush then
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -408,7 +408,7 @@ function ReadHistory:addItem(file, ts, no_flush)
   end
   if not no_flush then
     self:_reduce()
-    self:_flush()
+    self:flush()
   end
   return true -- used while adding legacy items
 end
@@ -422,7 +422,7 @@ function ReadHistory:updateLastBookTime(no_flush)
   self.hist[1].time = now
   self.hist[1].mandatory = getMandatory(now)
   if not no_flush then
-    self:_flush()
+    self:flush()
   end
 end
 
