@@ -23,6 +23,7 @@ local BasePowerD = {
 
   is_fl_on = false, -- whether the frontlight is on
   fl_was_on = nil, -- whether the frontlight *was* on before suspend
+  last_suspend_boottime = nil, -- boottime timestamp when suspend started
 }
 
 function BasePowerD:new(o)
@@ -141,6 +142,7 @@ function BasePowerD:beforeSuspend()
   UIManager:flushSettings()
   UIManager:broadcastEvent("Suspend")
   self.device.last_suspend_at = time.realtime()
+  self.last_suspend_boottime = time.boottime_or_realtime()
   -- Disable key repeat to avoid useless chatter (especially where Sleep Covers are concerned...)
   self.device:disableKeyRepeat()
   self:beforeSuspendHW()
@@ -160,8 +162,11 @@ function BasePowerD:afterResume()
   end
 
   self.device.last_resume_at = time.realtime()
-  self.device.total_suspend_time = self.device.total_suspend_time
-    + (self.device.last_resume_at - self.device.last_suspend_at)
+  if self.last_suspend_boottime then
+    self.device.total_suspend_time = self.device.total_suspend_time
+      + math.max(0, time.boottime_or_realtime() - self.last_suspend_boottime)
+    self.last_suspend_boottime = nil
+  end
   -- This is a hacky way to ensure the resume can be treated as an input.
   -- Ideally UIManager should understand the Resume event, but it needs to check every single
   -- event being processed.

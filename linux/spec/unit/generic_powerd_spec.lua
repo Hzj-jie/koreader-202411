@@ -326,6 +326,90 @@ describe("device/generic/powerd", function()
     )
 
     it(
+      "tracks total_suspend_time with boottime_or_realtime across realtime clock jumps",
+      function()
+        local time = require("ui/time")
+        local orig_realtime = time.realtime
+        local orig_boottime = time.boottime_or_realtime
+        finally(function()
+          time.realtime = orig_realtime
+          time.boottime_or_realtime = orig_boottime
+        end)
+
+        local now_realtime = time.s(2000)
+        local now_boottime = time.s(100)
+        time.realtime = function()
+          return now_realtime
+        end
+        time.boottime_or_realtime = function()
+          return now_boottime
+        end
+
+        powerd:UIManagerReady(mock_uimgr)
+        mock_device.total_suspend_time = 0
+
+        -- Suspend, then wall clock jumps backward while boottime advances 120s.
+        powerd:beforeSuspend()
+        assert.are.equal(time.s(2000), mock_device.last_suspend_at)
+        now_realtime = time.s(1500)
+        now_boottime = time.s(220)
+        powerd:afterResume()
+        assert.are.equal(time.s(1500), mock_device.last_resume_at)
+        assert.are.equal(time.s(120), mock_device.total_suspend_time)
+
+        -- Suspend again, then wall clock jumps forward while boottime advances 30s.
+        now_boottime = time.s(300)
+        powerd:beforeSuspend()
+        now_realtime = time.s(1700000000)
+        now_boottime = time.s(330)
+        powerd:afterResume()
+        assert.are.equal(time.s(1700000000), mock_device.last_resume_at)
+        assert.are.equal(time.s(150), mock_device.total_suspend_time)
+      end
+    )
+
+    it(
+      "keeps total_suspend_time unchanged when afterResume is called without beforeSuspend",
+      function()
+        local time = require("ui/time")
+        local orig_realtime = time.realtime
+        local orig_boottime = time.boottime_or_realtime
+        finally(function()
+          time.realtime = orig_realtime
+          time.boottime_or_realtime = orig_boottime
+        end)
+
+        local now_realtime = time.s(500)
+        local now_boottime = time.s(100)
+        time.realtime = function()
+          return now_realtime
+        end
+        time.boottime_or_realtime = function()
+          return now_boottime
+        end
+
+        powerd:UIManagerReady(mock_uimgr)
+        mock_device.total_suspend_time = time.s(20)
+
+        powerd:afterResume()
+        assert.are.equal(time.s(20), mock_device.total_suspend_time)
+        assert.are.equal(time.s(500), mock_device.last_resume_at)
+
+        -- Duplicate afterResume after a real suspend/resume cycle also does not double-count.
+        powerd:beforeSuspend()
+        now_boottime = time.s(145)
+        now_realtime = time.s(545)
+        powerd:afterResume()
+        assert.are.equal(time.s(65), mock_device.total_suspend_time)
+
+        now_boottime = time.s(160)
+        now_realtime = time.s(560)
+        powerd:afterResume()
+        assert.are.equal(time.s(65), mock_device.total_suspend_time)
+      end
+    )
+
+    it(
       "skips restoreKeyRepeat on afterResume when input_no_key_repeat is true",
       function()
         local orig_no_key_repeat = G_reader_settings:read("input_no_key_repeat")
