@@ -319,7 +319,7 @@ function NewsDownloader:syncNewsFeeds()
     UIManager:show(InfoMessage:new({
       text = T(
         gettext("Invalid configuration file. Detailed error message:\n%1"),
-        feed_config
+        ok and ("expected table, got " .. type(feed_config)) or tostring(feed_config)
       ),
     }))
     return
@@ -401,29 +401,21 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
 end
 
 function NewsDownloader:processSingleFeedInBackground(item)
-  assert(item and item.url and item.limit)
-
-  local dummy_inst = setmetatable({
-    download_dir = item.download_dir,
-    file_extension = item.file_extension,
-  }, { __index = NewsDownloader })
-
-  local download_full_article = item.download_full_article == nil
-    or item.download_full_article
-  local include_images = not item.never_download_images and item.include_images
-  local enable_filter = item.enable_filter or item.enable_filter == nil
-  local filter_element = item.filter_element or item.filter_element == nil
+  assert(item and item.url and type(item.limit) == "number")
 
   local unsupported_feeds_urls = {}
-  dummy_inst:processFeedSource(
+  setmetatable({
+    download_dir = item.download_dir,
+    file_extension = item.file_extension,
+  }, { __index = NewsDownloader }):processFeedSource(
     item.url,
     item.credentials,
-    tonumber(item.limit),
+    item.limit,
     unsupported_feeds_urls,
-    download_full_article,
-    include_images,
-    enable_filter,
-    filter_element
+    item.download_full_article == nil or item.download_full_article,
+    not item.never_download_images and item.include_images,
+    item.enable_filter or item.enable_filter == nil,
+    item.filter_element or item.filter_element == nil
   )
 
   return {
@@ -501,7 +493,7 @@ function NewsDownloader.onIdle()
     credentials = oldest_feed.credentials,
     download_dir = download_dir,
     never_download_images = settings:isTrue("never_download_images"),
-    file_extension = ".epub",
+    file_extension = NewsDownloader.file_extension,
   })
 
   triggerNextQueueItem()

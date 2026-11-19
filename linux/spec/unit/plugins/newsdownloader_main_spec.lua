@@ -563,6 +563,7 @@ describe("NewsDownloader main plugin module", function()
     "should delegate news sync to non-blocking background fork job with preflight validation and deduplication (issue #157)",
     function()
       local BackgroundJobs = require("background_jobs")
+      local FFIUtil = require("ffi/util")
       local NetworkMgr = require("ui/network/manager")
       local Notification = require("ui/widget/notification")
       local gettext = require("gettext")
@@ -613,6 +614,7 @@ describe("NewsDownloader main plugin module", function()
 
       local orig_process = NewsDownloader.processFeedSource
       local processed_urls = {}
+      local processed_limits = {}
       NewsDownloader.processFeedSource = function(
         self_p,
         url,
@@ -625,6 +627,7 @@ describe("NewsDownloader main plugin module", function()
         filter_elem
       )
         table.insert(processed_urls, url)
+        table.insert(processed_limits, limit)
       end
 
       finally(function()
@@ -653,6 +656,27 @@ describe("NewsDownloader main plugin module", function()
         )
       )
 
+      -- Preflight: non-table feed config shows descriptive fallback instead of raw %1 or gsub crash
+      for _, case in ipairs({
+        { body = "", expected = "expected table, got nil" },
+        { body = "return true", expected = "expected table, got boolean" },
+      }) do
+        local f = io.open(inst.feed_config_path, "w")
+        f:write(case.body)
+        f:close()
+
+        shown_widgets = {}
+        inst:syncNewsFeeds()
+        assert.are.equal(1, #shown_widgets)
+        assert.are.equal(
+          FFIUtil.template(
+            gettext("Invalid configuration file. Detailed error message:\n%1"),
+            case.expected
+          ),
+          shown_widgets[1].text
+        )
+      end
+
       -- 2. Preflight: empty feed config shows ConfirmBox
       inst:saveConfig({})
       shown_widgets = {}
@@ -670,7 +694,7 @@ describe("NewsDownloader main plugin module", function()
       local valid_config = {
         {
           [1] = "https://example.com/feed.xml",
-          limit = 2,
+          limit = "2",
           download_full_article = true,
           include_images = false,
         },
@@ -708,6 +732,7 @@ describe("NewsDownloader main plugin module", function()
       assert.is_true(bg_result.ok)
       assert.are.equal(1, #processed_urls)
       assert.are.equal("https://example.com/feed.xml", processed_urls[1])
+      assert.are.equal(2, processed_limits[1])
 
       -- 6. Callback updates feed timestamp and notifies on success
       notifications = {}
@@ -743,6 +768,14 @@ describe("NewsDownloader main plugin module", function()
       assert.is_not_nil(captured_job)
       assert.has_no.errors(function()
         captured_job.callback({ result = false })
+      end)
+
+      -- 9. Rejects non-numeric feed limit in processSingleFeedInBackground
+      assert.has.errors(function()
+        NewsDownloader:processSingleFeedInBackground({
+          url = "https://example.com/feed.xml",
+          limit = "5",
+        })
       end)
     end
   )
@@ -797,9 +830,13 @@ describe("NewsDownloader main plugin module", function()
       end
 
       local orig_process = NewsDownloader.processFeedSource
+      local orig_file_extension = NewsDownloader.file_extension
+      NewsDownloader.file_extension = ".mobi"
       local processed_urls = {}
+      local processed_extensions = {}
       NewsDownloader.processFeedSource = function(self_p, url)
         table.insert(processed_urls, url)
+        table.insert(processed_extensions, self_p.file_extension)
       end
 
       finally(function()
@@ -808,6 +845,7 @@ describe("NewsDownloader main plugin module", function()
         time.since = orig_since
         BackgroundJobs.insertKeyed = orig_insert
         NewsDownloader.processFeedSource = orig_process
+        NewsDownloader.file_extension = orig_file_extension
         NewsDownloader.getSettings:revert()
         require("libs/libkoreader-lfs").rmdir(tmp_dir)
       end)
@@ -865,6 +903,7 @@ describe("NewsDownloader main plugin module", function()
       assert.is_true(bg_res.ok)
       assert.are.equal(1, #processed_urls)
       assert.are.equal("https://example.com/feed1.xml", processed_urls[1])
+      assert.are.equal(".mobi", processed_extensions[1])
 
       -- Callback updates feed1 timestamp for both success and error
       captured_job.callback({ result = bg_res })
