@@ -563,6 +563,7 @@ describe("NewsDownloader main plugin module", function()
     "should delegate news sync to non-blocking background fork job with preflight validation and deduplication (issue #157)",
     function()
       local BackgroundJobs = require("background_jobs")
+      local FFIUtil = require("ffi/util")
       local NetworkMgr = require("ui/network/manager")
       local Notification = require("ui/widget/notification")
       local gettext = require("gettext")
@@ -654,6 +655,27 @@ describe("NewsDownloader main plugin module", function()
           true
         )
       )
+
+      -- Preflight: non-table feed config shows descriptive fallback instead of raw %1 or gsub crash
+      for _, case in ipairs({
+        { body = "", expected = "expected table, got nil" },
+        { body = "return true", expected = "expected table, got boolean" },
+      }) do
+        local f = io.open(inst.feed_config_path, "w")
+        f:write(case.body)
+        f:close()
+
+        shown_widgets = {}
+        inst:syncNewsFeeds()
+        assert.are.equal(1, #shown_widgets)
+        assert.are.equal(
+          FFIUtil.template(
+            gettext("Invalid configuration file. Detailed error message:\n%1"),
+            case.expected
+          ),
+          shown_widgets[1].text
+        )
+      end
 
       -- 2. Preflight: empty feed config shows ConfirmBox
       inst:saveConfig({})

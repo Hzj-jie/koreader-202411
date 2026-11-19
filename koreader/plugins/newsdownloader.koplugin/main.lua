@@ -319,7 +319,7 @@ function NewsDownloader:syncNewsFeeds()
     UIManager:show(InfoMessage:new({
       text = T(
         gettext("Invalid configuration file. Detailed error message:\n%1"),
-        feed_config
+        ok and ("expected table, got " .. type(feed_config)) or tostring(feed_config)
       ),
     }))
     return
