@@ -822,15 +822,10 @@ end
 function SyncManager:writeLocalSettingValue(key, value)
   local domain, full_key = assert(self:parseSettingKey(key))
 
-  local LuaSettings = require("luasettings")
   local parts = utils.split_setting_path(full_key)
 
   if domain == "reader" then
     save_nested_setting(G_reader_settings, parts, value)
-
-    local filepath = DataStorage:getDataDir() .. READER_SETTINGS_FILE
-    local settings_obj = LuaSettings:open(filepath)
-    save_nested_setting(settings_obj, parts, value)
     return true
   elseif domain == "defaults" then
     save_nested_setting(G_defaults, parts, value)
@@ -841,7 +836,7 @@ function SyncManager:writeLocalSettingValue(key, value)
       .. "/"
       .. settings_name
       .. ".lua"
-    local settings_obj = LuaSettings:open(filepath)
+    local settings_obj = require("luasettings"):open(filepath)
     save_nested_setting(settings_obj, parts, value)
     return true
   end

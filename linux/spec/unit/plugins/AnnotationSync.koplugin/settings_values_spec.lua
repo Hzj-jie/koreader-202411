@@ -254,6 +254,27 @@ describe("AnnotationSync settings values and pull menus", function()
   )
 
   it(
+    "writeLocalSettingValue updates G_reader_settings without reopening settings.reader.lua via LuaSettings:open",
+    function()
+      local open_spy = spy.on(LuaSettings, "open")
+      G_reader_settings:save("rv_mem_only", "keep_me")
+      finally(function()
+        open_spy:revert()
+        G_reader_settings:delete("rv_mem_only")
+        G_reader_settings:delete("rv_c3_key")
+      end)
+
+      assert.is_true(manager:writeLocalSettingValue("reader:rv_c3_key", 123))
+      assert.spy(open_spy).was_not_called()
+      assert.are.equal("keep_me", G_reader_settings:read("rv_mem_only"))
+      assert.are.equal(123, G_reader_settings:read("rv_c3_key"))
+      local on_disk = dofile(test_data_dir .. "/settings.reader.lua")
+      assert.are.equal("keep_me", on_disk.rv_mem_only)
+      assert.are.equal(123, on_disk.rv_c3_key)
+    end
+  )
+
+  it(
     "an imported defaults setting is still there after the next settings comparison",
     function()
       local old = _G.G_defaults
