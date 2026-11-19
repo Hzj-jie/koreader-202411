@@ -1,1 +1,0 @@
-../../../koreader/plugins/backgroundrunner.koplugin/luawrapper.sh
