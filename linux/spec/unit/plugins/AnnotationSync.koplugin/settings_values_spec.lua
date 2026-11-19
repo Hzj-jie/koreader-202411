@@ -190,6 +190,70 @@ describe("AnnotationSync settings values and pull menus", function()
   )
 
   it(
+    "writeLocalSettingValue avoids FixMe table-read warnings on LuaSettings and handles defaults tables",
+    function()
+      local logger = require("logger")
+      local info_spy = spy.on(logger, "info")
+      local plugin_path = DataStorage:getSettingsDir() .. "/rv_plugin_c2.lua"
+      local p_s = LuaSettings:open(plugin_path)
+      p_s:save("nested", { keep = 1 })
+      p_s:flush()
+      G_reader_settings:save("rv_nest_c2", { keep = true })
+
+      local old_defaults = _G.G_defaults
+      local LuaDefaults = require("luadefaults")
+      _G.G_defaults = LuaDefaults:open()
+
+      finally(function()
+        info_spy:revert()
+        G_reader_settings:delete("rv_nest_c2")
+        G_reader_settings:delete("rv_flat_c2")
+        os.remove(plugin_path)
+        _G.G_defaults = old_defaults
+        os.remove(test_data_dir .. "/defaults.custom.lua")
+      end)
+
+      assert.is_true(
+        manager:writeLocalSettingValue("reader:rv_nest_c2.sub.val", 10)
+      )
+      assert.is_true(manager:writeLocalSettingValue("reader:rv_flat_c2", "ok"))
+      assert.is_true(
+        manager:writeLocalSettingValue("settings/rv_plugin_c2:nested.added", 2)
+      )
+      assert.is_true(
+        manager:writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0.25)
+      )
+      assert.is_true(
+        manager:writeLocalSettingValue(
+          "defaults:DCREREADER_CONFIG_DEFAULT_FONT_SIZE",
+          26
+        )
+      )
+
+      for _, call in ipairs(info_spy.calls) do
+        for _, arg in ipairs(call.vals) do
+          assert.is_nil(tostring(arg):match("FixMe"))
+        end
+      end
+
+      assert.are.same(
+        { keep = true, sub = { val = 10 } },
+        G_reader_settings:readTable("rv_nest_c2")
+      )
+      assert.are.equal("ok", G_reader_settings:read("rv_flat_c2"))
+      assert.are.same(
+        { keep = 1, added = 2 },
+        LuaSettings:open(plugin_path):readTable("nested")
+      )
+      assert.are.equal(0.25, _G.G_defaults:read("DTAP_ZONE_MENU").x)
+      assert.are.equal(
+        26,
+        _G.G_defaults:read("DCREREADER_CONFIG_DEFAULT_FONT_SIZE")
+      )
+    end
+  )
+
+  it(
     "an imported defaults setting is still there after the next settings comparison",
     function()
       local old = _G.G_defaults

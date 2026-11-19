@@ -795,7 +795,12 @@ local function save_nested_setting(settings_obj, parts, value)
     settings_obj:save(parts[1], value)
   else
     local top_key = parts[1]
-    local top_val = settings_obj:read(top_key)
+    local top_val
+    if settings_obj.data ~= nil then
+      top_val = settings_obj:readTable(top_key)
+    else
+      top_val = settings_obj:read(top_key)
+    end
     if type(top_val) ~= "table" then
       top_val = {}
     end
