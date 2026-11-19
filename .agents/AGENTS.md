@@ -25,7 +25,7 @@
         4.  **`dev` (Integration Branch)**: Usually the integration merge of every active feature branch, except for specific experimental branches where stability is not yet assured (such as `new-libs`). Fixes never land directly on `dev`; only `dev`-only integration changes are committed directly on `dev`.
 *   **VCS Push Policy**: Never push commits automatically to remote repositories. Keep changes local, and let the user perform the push, or only push when explicitly requested by the user.
 *   **Symbolic Link Propagation (`lns.sh`)**: When adding or removing files from the `koreader/` directory, run the `./lns.sh` script to propagate the symbolic links to target device platform folders (e.g. `linux/`, `pw2/`, `legacy/`, etc.). You do not need to run `./lns.sh` if only modifying the content of an existing file.
-*   **Tracking Removed Files**: When deleting files from the repository that were previously present under `koreader/`, update [remove-removed-files.sh](../remove-removed-files.sh) to include their paths so they can be cleaned up on target devices.
+*   **Tracking Removed Files**: When deleting files from the repository that were previously present under `koreader/`, add their paths to [removed-files.txt](../koreader/data/removed-files.txt) (used by both `ko_update.sh` during in-app updates and [remove-removed-files.sh](../remove-removed-files.sh)) so they are cleaned up on target devices.
 *   **Related Documentation**:
     *   [testing.md](testing.md): Unit testing conventions, sandbox execution, mocking rules, and test isolation.
     *   [translations.md](translations.md): Internationalization (i18n), GNU gettext extraction, catalog merging, and parser invariants.

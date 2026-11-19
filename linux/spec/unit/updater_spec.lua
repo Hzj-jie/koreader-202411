@@ -1,6 +1,6 @@
 describe("Updater module", function()
   local Updater
-  local Device, FfiUtil, NetworkMgr, UIManager
+  local Device, FfiUtil, NetworkMgr, UIManager, util
   local http, lfs, socketutil, gettext, T
   local orig_currentdir, temp_root, install_dir
 
@@ -8,6 +8,13 @@ describe("Updater module", function()
     local f = assert(io.open(path, "w"))
     f:write(content)
     f:close()
+  end
+
+  local function readFile(path)
+    local f = assert(io.open(path, "r"))
+    local content = f:read("*a")
+    f:close()
+    return content
   end
 
   local function exists(path)
@@ -20,6 +27,7 @@ describe("Updater module", function()
     FfiUtil = require("ffi/util")
     NetworkMgr = require("ui/network/manager")
     UIManager = require("ui/uimanager")
+    util = require("util")
     http = require("socket.http")
     lfs = require("libs/libkoreader-lfs")
     socketutil = require("socketutil")
@@ -432,6 +440,180 @@ describe("Updater module", function()
         assert.is_false(exists(install_dir .. ".update.tmp"))
         assert.is_false(exists(install_dir .. ".update/stale_file"))
         assert.is_true(exists(install_dir .. ".update/ko_update.sh"))
+      end
+    )
+  end)
+
+  describe("removed files cleanup", function()
+    local function shellQuote(s)
+      return "'" .. s:gsub("'", "'\\''") .. "'"
+    end
+
+    it(
+      "validates koreader/data/removed-files.txt and its platform symlinks",
+      function()
+        local repo_root = os.getenv("KO_WORKSPACE_DIR") or ".."
+        local raw = readFile(repo_root .. "/koreader/data/removed-files.txt")
+        local entries = {}
+        local seen = {}
+        for line in raw:gmatch("([^\n]*)\n?") do
+          if line ~= "" and line:sub(1, 1) ~= "#" then
+            assert.are.not_equal("\r", line:sub(-1))
+            assert.are.equal(line, line:match("^%s*(.-)%s*$"))
+            assert.is_nil(line:match("^/"))
+            assert.is_nil(line:match("/$"))
+            assert.is_nil(seen[line])
+            seen[line] = true
+            table.insert(entries, line)
+            local rel = line
+            if rel:sub(1, 3) == "../" then
+              assert.is_truthy(rel:match("^%.%./extensions/.+"))
+              rel = rel:sub(4)
+            end
+            for seg in (rel .. "/"):gmatch("([^/]*)/") do
+              assert.are.not_equal("", seg)
+              assert.are.not_equal(".", seg)
+              assert.are.not_equal("..", seg)
+            end
+          end
+        end
+        assert.is_true(#entries > 0)
+        for _, pkg in ipairs({ "kobo", "legacy", "linux", "pw2" }) do
+          local sym_path = repo_root .. "/" .. pkg .. "/data/removed-files.txt"
+          assert.are.equal("link", lfs.symlinkattributes(sym_path, "mode"))
+          assert.are.equal(raw, readFile(sym_path))
+        end
+      end
+    )
+
+    it(
+      "deletes stale files before copying payload in pw2, legacy, and kobo ko_update.sh",
+      function()
+        local repo_root = os.getenv("KO_WORKSPACE_DIR") or ".."
+        local list_content =
+          readFile(repo_root .. "/koreader/data/removed-files.txt")
+
+        for _, pkg in ipairs({ "pw2", "legacy", "kobo" }) do
+          local sandbox = temp_root .. "/" .. pkg
+          local pkg_install = sandbox .. "/koreader"
+          local pkg_update = sandbox .. "/koreader.update"
+          local pkg_ext_bin = sandbox .. "/extensions/koreader/bin"
+          local pkg_tmp = sandbox .. "/tmp"
+          assert(util.makePath(pkg_install .. "/frontend/device"))
+          assert(util.makePath(pkg_install .. "/libs"))
+          assert(util.makePath(pkg_install .. "/plugins/kochess.koplugin"))
+          assert(util.makePath(pkg_update .. "/data"))
+          assert(util.makePath(pkg_update .. "/frontend"))
+          assert(util.makePath(pkg_update .. "/plugins/kochess.koplugin"))
+          assert(util.makePath(pkg_ext_bin))
+          assert(util.makePath(pkg_tmp))
+
+          writeFile(pkg_install .. "/fbink", "#!/bin/sh\nexit 0\n")
+          writeFile(pkg_install .. "/frontend/device/wakeupmgr.lua", "stale")
+          writeFile(pkg_install .. "/libs/libcurl.so.4", "stale-lib")
+          writeFile(
+            pkg_install .. "/plugins/kochess.koplugin/old.lua",
+            "stale-plugin"
+          )
+          writeFile(pkg_ext_bin .. "/koreader", "stale-ext")
+          writeFile(pkg_install .. "/settings.reader.lua", "user-settings")
+
+          writeFile(pkg_update .. "/data/removed-files.txt", list_content)
+          writeFile(
+            pkg_update .. "/plugins/kochess.koplugin/README.koreader-202411.md",
+            "tombstone"
+          )
+          writeFile(pkg_update .. "/frontend/version.lua", "new-version")
+
+          assert.are.equal(
+            0,
+            os.execute(table.concat({
+              "chmod +x " .. shellQuote(pkg_install .. "/fbink"),
+              "&&",
+              "KO_UPDATE_SLEEP=0",
+              "TMPDIR=" .. shellQuote(pkg_tmp),
+              "/bin/sh",
+              shellQuote(repo_root .. "/" .. pkg .. "/ko_update.sh"),
+              shellQuote(pkg_update),
+              shellQuote(pkg_install),
+            }, " "))
+          )
+
+          assert.is_false(exists(pkg_install .. "/frontend/device/wakeupmgr.lua"))
+          assert.is_false(exists(pkg_install .. "/libs/libcurl.so.4"))
+          assert.is_false(
+            exists(pkg_install .. "/plugins/kochess.koplugin/old.lua")
+          )
+          assert.is_false(exists(pkg_ext_bin))
+          assert.are.equal(
+            "tombstone",
+            readFile(
+              pkg_install
+                .. "/plugins/kochess.koplugin/README.koreader-202411.md"
+            )
+          )
+          assert.are.equal(
+            "new-version",
+            readFile(pkg_install .. "/frontend/version.lua")
+          )
+          assert.are.equal(
+            "user-settings",
+            readFile(pkg_install .. "/settings.reader.lua")
+          )
+          assert.is_false(exists(pkg_update))
+        end
+      end
+    )
+
+    it(
+      "invokes remote rm -rf for removed-files.txt entries from remove-removed-files.sh",
+      function()
+        assert(util.makePath(temp_root .. "/koreader/data"))
+        assert(lfs.mkdir(temp_root .. "/pw2"))
+        writeFile(
+          temp_root .. "/remove-removed-files.sh",
+          readFile(
+            (os.getenv("KO_WORKSPACE_DIR") or "..")
+              .. "/remove-removed-files.sh"
+          )
+        )
+        writeFile(
+          temp_root .. "/koreader/data/removed-files.txt",
+          "# comment\n\ncustom/obsolete.lua\n../extensions/koreader/bin"
+        )
+
+        local stub_bin = temp_root .. "/bin"
+        local ssh_log = temp_root .. "/ssh_args.log"
+        assert(lfs.mkdir(stub_bin))
+        writeFile(
+          stub_bin .. "/ssh",
+          "#!/bin/sh\nfor arg in \"$@\"; do printf '%s\\n' \"$arg\" >> \"$STUB_SSH_LOG\"; done\n"
+        )
+
+        assert.are.equal(
+          0,
+          os.execute(table.concat({
+            "chmod +x " .. shellQuote(stub_bin .. "/ssh"),
+            "&&",
+            "(cd " .. shellQuote(temp_root .. "/pw2"),
+            "&& PATH=" .. shellQuote(stub_bin) .. ':"$PATH"',
+            "STUB_SSH_LOG=" .. shellQuote(ssh_log),
+            "bash ../remove-removed-files.sh kindle-host /mnt/us/)",
+          }, " "))
+        )
+
+        local actual_args = {}
+        for line in io.lines(ssh_log) do
+          table.insert(actual_args, line)
+        end
+        assert.are.same({
+          "root@kindle-host",
+          "rm",
+          "-rf",
+          "--",
+          "/mnt/us/koreader/custom/obsolete.lua",
+          "/mnt/us/koreader/../extensions/koreader/bin",
+        }, actual_args)
       end
     )
   end)
