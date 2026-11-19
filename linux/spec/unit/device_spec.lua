@@ -1101,6 +1101,73 @@ describe("device module", function()
           assert.are.equal("original target content\n", f_read:read("*a"))
           f_read:close()
         end)
+
+        it("sets err when Reader:extractToPath receives a missing entry key", function()
+          local arc = require("ffi/archiver").Reader:new()
+          finally(function()
+            arc:close()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir)
+
+          local tar_path = base_tmp_dir .. "/missing_key.tar"
+          write_ustar_archive(tar_path, {
+            { name = "present.txt", typeflag = "0", data = "ok\n" },
+          })
+          assert.is_true(arc:open(tar_path))
+
+          local ok, err = arc:extractToPath("missing.txt", base_tmp_dir .. "/out.txt")
+          assert.is_false(ok)
+          assert.are.equal("no such path", err)
+          assert.are.equal("no such path", arc.err)
+        end)
+
+        it("fails unpackArchive when extractToPath returns false with nil arc.err", function()
+          local Reader = require("ffi/archiver").Reader
+          stub(Reader, "extractToPath", function()
+            return false
+          end)
+          finally(function()
+            Reader.extractToPath:revert()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir .. "/extract")
+
+          local tar_path = base_tmp_dir .. "/extract_fail.tar"
+          write_ustar_archive(tar_path, {
+            { name = "dict/a.txt", typeflag = "0", data = "hello\n" },
+          })
+
+          local ok, err = test_dev:unpackArchive(tar_path, base_tmp_dir .. "/extract", false)
+          assert.is_false(ok)
+          assert.is_string(err)
+        end)
+
+        it("returns error string from Reader:extractToPath when libarchive extraction fails", function()
+          local arc = require("ffi/archiver").Reader:new()
+          finally(function()
+            arc:close()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir .. "/extract")
+
+          local tar_path = base_tmp_dir .. "/dotdot_attack.tar"
+          write_ustar_archive(tar_path, {
+            { name = "sub/../escape.txt", typeflag = "0", data = "escape\n" },
+          })
+          assert.is_true(arc:open(tar_path))
+
+          local entry = arc:next()
+          assert.is_not_nil(entry)
+          local ok, err = arc:extractToPath(entry.path, base_tmp_dir .. "/extract/" .. entry.path)
+          assert.is_false(ok)
+          assert.is_string(err)
+          assert.are.equal(arc.err, err)
+          assert.is_nil(io.open(base_tmp_dir .. "/extract/escape.txt", "r"))
+        end)
       end)
 
       it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()

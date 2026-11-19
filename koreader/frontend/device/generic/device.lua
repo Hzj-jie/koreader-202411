@@ -1113,18 +1113,20 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
     return false,
       T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
   end
+  local ok = true
   for entry in arc:iterate() do
     local path = entry.path
     if with_stripped_root then
       path = path:gsub("^[^/]+/?", "")
     end
     if path ~= "" then
-      if not arc:extractToPath(entry.path, extract_to .. "/" .. path) then
+      ok = arc:extractToPath(entry.path, extract_to .. "/" .. path)
+      if not ok then
         break
       end
     end
   end
-  local ok = not arc.err
+  ok = ok and not arc.err
   arc:close()
   if not ok then
     return false,

@@ -113,7 +113,8 @@ function Reader:extractToPath(key, dest_path)
   self.err = nil
   local entry = self:seek(key)
   if not entry then
-    return false, "no such path"
+    self.err = "no such path"
+    return false, self.err
   end
   if
     (entry.mode ~= "file" and entry.mode ~= "directory")
@@ -135,7 +136,7 @@ function Reader:extractToPath(key, dest_path)
     self.err = archive_error_string(self.archive)
   end
   libarchive.archive_write_close(dest)
-  return ok
+  return ok, self.err
 end
 
 function Reader:close(keep_info)
