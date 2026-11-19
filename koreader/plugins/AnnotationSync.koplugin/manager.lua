@@ -521,10 +521,15 @@ function SyncManager:_writeAnnotationsJSON(document)
     or (document and document.file)
   assert(file, "document and document.file must exist")
 
+  local tmp_dir = DataStorage:getTmpDir()
+  if not tmp_dir then
+    return false
+  end
+
   local filename = self:_getAnnotationFilename(file)
   return annotations.write_annotations_json(
     self:getAnnotationsForDocument(document),
-    DataStorage:getTmpDir(),
+    tmp_dir,
     filename
   )
 end
@@ -658,6 +663,9 @@ end
 
 function SyncManager:cleanOrphanSyncFiles()
   local tmp_dir = DataStorage:getTmpDir()
+  if not tmp_dir then
+    return
+  end
   local iter, dir_obj, err = lfs.dir(tmp_dir)
   assert(iter, err)
   for entry in iter, dir_obj do

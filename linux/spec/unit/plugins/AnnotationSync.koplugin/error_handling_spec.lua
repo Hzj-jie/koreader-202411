@@ -252,5 +252,20 @@ describe("AnnotationSync Integration - Battery 4 (Error Handling)", function()
         "On-disk sync cache should contain properly preserved emoji text"
       )
     end)
+
+    it("returns false from _writeAnnotationsJSON when getTmpDir returns nil", function()
+      local DataStorage = require("datastorage")
+      local orig_getTmpDir = DataStorage.getTmpDir
+      DataStorage.getTmpDir = function()
+        return nil
+      end
+      finally(function()
+        DataStorage.getTmpDir = orig_getTmpDir
+      end)
+
+      assert.is_false(
+        sync_instance.manager:_writeAnnotationsJSON(readerui.document)
+      )
+    end)
   end)
 end)

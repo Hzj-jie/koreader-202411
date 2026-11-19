@@ -159,13 +159,6 @@ end
 --        finish_cb may run after sync() has returned.
 function SyncService.sync(server, file_path, sync_cb, is_silent, finish_cb)
   local function exec()
-    local file_name = ffiutil.basename(file_path)
-    local income_file_path = DataStorage:getTmpDir()
-      .. "/"
-      .. file_name
-      .. ".temp" -- file downloaded from server
-    local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
-
     local fail_msg = gettext(
       "Something went wrong when syncing, please check your network connection and try again later."
     )
@@ -178,6 +171,17 @@ function SyncService.sync(server, file_path, sync_cb, is_silent, finish_cb)
         timeout = 3,
       }))
     end
+    local tmp_dir = DataStorage:getTmpDir()
+    if not tmp_dir then
+      show_msg()
+      return false
+    end
+    local file_name = ffiutil.basename(file_path)
+    local income_file_path = tmp_dir
+      .. "/"
+      .. file_name
+      .. ".temp" -- file downloaded from server
+    local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
     if server.type ~= "dropbox" and server.type ~= "webdav" then
       show_msg(gettext("Wrong server type."))
       return false
