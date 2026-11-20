@@ -153,18 +153,25 @@ function named_settings.set.BookShortcuts_directory_action(value)
   return G_reader_settings:save("BookShortcuts_directory_action", value, "FM")
 end
 
+local function readValidAutodimStarttime()
+  local v = G_reader_settings:read("autodim_starttime_minutes")
+  if type(v) == "number" and v > 0 then
+    return v
+  end
+end
+
 function named_settings.default.autodim_starttime_minutes()
   -- Kindle auto-shuts off in roughly 10 minutes, cut it into half.
   return 5
 end
 
 function named_settings.autodim_starttime_minutes()
-  return G_reader_settings:read("autodim_starttime_minutes")
+  return readValidAutodimStarttime()
     or named_settings.default.autodim_starttime_minutes()
 end
 
 function named_settings.has.autodim_starttime_minutes()
-  return G_reader_settings:has("autodim_starttime_minutes")
+  return readValidAutodimStarttime() ~= nil
 end
 
 function named_settings.set.autodim_starttime_minutes(value)

@@ -187,7 +187,7 @@ end
 
 function PathChooser:showPlusMenu()
   local button_dialog
-  local is_ro = self:_pathUnwritable()
+  local is_ro = self:pathUnwritable()
   button_dialog = ButtonDialog:new({
     buttons = {
       {
@@ -211,7 +211,7 @@ function PathChooser:showPlusMenu()
           ) .. ")") or ""),
           enabled = not is_ro,
           callback = function()
-            if self:_pathUnwritable() then
+            if self:pathUnwritable() then
               UIManager:show(Notification:new({
                 text = gettext(
                   "Current folder is read-only. Cannot create a new folder."

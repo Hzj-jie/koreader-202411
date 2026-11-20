@@ -275,14 +275,14 @@ describe("MultiInputDialog widget", function()
     })
 
     local save_pos_calls = 0
-    local orig_save_pos = MultiInputDialog._saveViewPos
-    MultiInputDialog._saveViewPos = function(self)
+    local orig_save_pos = MultiInputDialog.saveViewPos
+    MultiInputDialog.saveViewPos = function(self)
       save_pos_calls = save_pos_calls + 1
       return orig_save_pos(self)
     end
 
     finally(function()
-      MultiInputDialog._saveViewPos = orig_save_pos
+      MultiInputDialog.saveViewPos = orig_save_pos
       UIManager:closeIfShown(dialog)
     end)
 

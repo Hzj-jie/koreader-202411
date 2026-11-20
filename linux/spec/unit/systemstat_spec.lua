@@ -428,6 +428,164 @@ describe("systemstat", function()
     assert.are.equal("8.00", values[gettext("Process") .. "::" .. gettext("  Processor usage %")])
   end)
 
+  it(
+    "keeps koreader_awake positive across realtime jumps during suspend",
+    function()
+      local Device = require("device")
+      local gettext = require("gettext")
+      local lfs = require("libs/libkoreader-lfs")
+      local time = require("ui/time")
+      local UIManager = require("ui/uimanager")
+      local BasePowerD = require("device/generic/powerd")
+
+      local orig_io_open = io.open
+      local orig_io_popen = io.popen
+      local orig_lfs_dir = lfs.dir
+      local orig_realtime = time.realtime
+      local orig_boottime = time.boottime_or_realtime
+      local orig_boottime_coarse = time.boottime_or_realtime_coarse
+      local orig_monotonic = time.monotonic
+      local orig_can_suspend = Device.canSuspend
+      local orig_total_suspend = Device.total_suspend_time
+      local orig_last_suspend = Device.last_suspend_at
+      local orig_last_resume = Device.last_resume_at
+      local orig_disable_kr = Device.disableKeyRepeat
+      local orig_restore_kr = Device.restoreKeyRepeat
+      finally(function()
+        io.open = orig_io_open
+        io.popen = orig_io_popen
+        lfs.dir = orig_lfs_dir
+        time.realtime = orig_realtime
+        time.boottime_or_realtime = orig_boottime
+        time.boottime_or_realtime_coarse = orig_boottime_coarse
+        time.monotonic = orig_monotonic
+        Device.canSuspend = orig_can_suspend
+        Device.total_suspend_time = orig_total_suspend
+        Device.last_suspend_at = orig_last_suspend
+        Device.last_resume_at = orig_last_resume
+        Device.disableKeyRepeat = orig_disable_kr
+        Device.restoreKeyRepeat = orig_restore_kr
+        package.unload("device/generic/powerd")
+      end)
+
+      local mock_files = {
+        ["/proc/stat"] = table.concat({
+          "cpu  1000 100 300 5000 200 50 350 0 0 0",
+          "cpu0 500 50 150 2500 100 25 175 0 0 0",
+          "cpu1 500 50 150 2500 100 25 175 0 0 0",
+          "intr 12345",
+        }, "\n"),
+        ["/proc/meminfo"] = table.concat({
+          "MemTotal:        524288 kB",
+          "MemFree:         131072 kB",
+          "MemAvailable:    262144 kB",
+        }, "\n"),
+        ["/proc/loadavg"] = "0.25 0.50 0.75 1/120 1234",
+        ["/proc/uptime"] = "1000.00 800.00",
+        ["/proc/self/stat"] = "4242 (luajit) R 1 4242 4242 0 -1 4194304 100 0 0 0 200 100 30 20 20 0 4 0 12345 10485760 2560",
+      }
+      local function make_mock_file(content)
+        local f = io.tmpfile()
+        f:write(content)
+        f:seek("set")
+        return f
+      end
+      io.open = function(path, mode)
+        if mock_files[path] then
+          return make_mock_file(mock_files[path])
+        end
+        return orig_io_open(path, mode)
+      end
+      io.popen = function(cmd)
+        if cmd:match("^df %-h") then
+          return make_mock_file("")
+        end
+        error("Unexpected io.popen call: " .. tostring(cmd))
+      end
+      lfs.dir = function(path)
+        if path == "/proc" then
+          local entries = { ".", "..", "self", "4242" }
+          local idx = 0
+          return function()
+            idx = idx + 1
+            return entries[idx]
+          end, nil
+        end
+        return orig_lfs_dir(path)
+      end
+
+      local now_realtime = time.s(100)
+      local now_boottime = time.s(1000)
+      time.realtime = function()
+        return now_realtime
+      end
+      time.boottime_or_realtime = function()
+        return now_boottime
+      end
+      time.boottime_or_realtime_coarse = function()
+        return now_boottime
+      end
+      time.monotonic = function()
+        return time.s(350)
+      end
+
+      Device.canSuspend = function()
+        return true
+      end
+      Device.total_suspend_time = 0
+      Device.disableKeyRepeat = function() end
+      Device.restoreKeyRepeat = function() end
+
+      local fresh_widget_cls = dofile("plugins/systemstat.koplugin/main.lua")
+      local powerd = BasePowerD:new({
+        fl_min = 0,
+        fl_max = 10,
+        device = Device,
+      })
+      powerd:UIManagerReady(UIManager)
+
+      -- First suspend with huge forward NTP realtime jump (100s -> 1700000000s) over 200s suspend.
+      now_boottime = time.s(1100)
+      powerd:beforeSuspend()
+      now_boottime = time.s(1300)
+      now_realtime = time.s(1700000000)
+      powerd:afterResume()
+
+      -- Second suspend with backward realtime jump over 50s suspend.
+      now_boottime = time.s(1500)
+      powerd:beforeSuspend()
+      now_boottime = time.s(1550)
+      now_realtime = time.s(1699990000)
+      powerd:afterResume()
+
+      -- Total elapsed boottime = 1600 - 1000 = 600s, suspend = 250s, awake = 350s.
+      now_boottime = time.s(1600)
+      assert.are.equal(time.s(250), Device.total_suspend_time)
+      assert.are.equal(time.s(1700000000), Device.last_suspend_at)
+      assert.are.equal(time.s(1699990000), Device.last_resume_at)
+
+      fresh_widget_cls
+        :new({
+          ui = {
+            menu = {
+              registerToMainMenu = spy.new(function() end),
+            },
+          },
+        })
+        :onShowSysStatistics()
+
+      local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+      local proc_usage
+      for _, pair in ipairs(key_value_page.kv_pairs) do
+        if pair[1] == gettext("  Processor usage %") then
+          proc_usage = pair[2]
+          break
+        end
+      end
+      assert.are.equal("5.00", proc_usage)
+    end
+  )
+
   it("verifies localized system workload strings in zh_CN and zh_TW", function()
     local gettext = require("gettext")
     finally(function()

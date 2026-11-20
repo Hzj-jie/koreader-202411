@@ -211,6 +211,22 @@ describe("AnnotationSync Trash & Restore", function()
   )
 
   it(
+    "cleanOrphanSyncFiles returns safely when getTmpDir returns nil",
+    function()
+      local DataStorage = require("datastorage")
+      local orig_getTmpDir = DataStorage.getTmpDir
+      DataStorage.getTmpDir = function()
+        return nil
+      end
+      finally(function()
+        DataStorage.getTmpDir = orig_getTmpDir
+      end)
+
+      sync_instance.manager:cleanOrphanSyncFiles()
+    end
+  )
+
+  it(
     "should not list restored annotations as deleted (menu ghosting prevention)",
     function()
       local sync_cache_path =

@@ -2509,7 +2509,7 @@ describe("Background Sync Behavior", function()
         remote_store[name] = encode({ L, R })
 
         local lfs = require("libs/libkoreader-lfs")
-        local sdr_dir = DocSettings:getSidecarDir(doc)
+        local sdr_dir = DocSettings:open(doc).candidates[1].dir
 
         fork_like(function()
           -- Simulate user deleting book and its sidecar directory while child runs
@@ -2644,7 +2644,7 @@ describe("Background Sync Behavior", function()
         fork_like(function()
           json_path = last_child_res.json_path
           os.remove(doc)
-          local sdr_dir = DocSettings:getSidecarDir(doc)
+          local sdr_dir = DocSettings:open(doc).candidates[1].dir
           os.execute("rm -rf " .. sdr_dir)
         end)
         sync_manager:addToChangedDocumentsFile(doc)
@@ -2808,7 +2808,7 @@ describe("Background Sync Behavior", function()
       function()
         local DocSettings = require("docsettings")
         local doc = new_doc("sync_cache_readonly_fallback")
-        local preferred_sdr = DocSettings:getSidecarDir(doc)
+        local preferred_sdr = DocSettings:open(doc).candidates[1].dir
         local orig_isDirRW = util.isDirRW
         local fallback_cand
         finally(function()
