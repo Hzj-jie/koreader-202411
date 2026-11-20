@@ -23,9 +23,6 @@ local function calculateKey(job)
     end
     return nil
   end
-  if type(job.executable) == "string" then
-    return job.executable
-  end
   if type(job.executable) == "function" then
     return util.functionFingerprint(job.executable)
   end

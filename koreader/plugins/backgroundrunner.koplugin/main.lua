@@ -40,20 +40,19 @@ local util = require("util")
 --   nil: same as false.
 --   number: times to repeat.
 --
--- executable: string or function
---   string: the command line to be executed. The command or binary will be
---           executed in the lowest priority. Command or binary will be killed
---           if it executes for over 1 hour.
+-- executable: "fork" or function
+--   "fork": executes `job.action` in a forked subprocess at lowest priority
+--           (SCHED_IDLE / nice 19). The subprocess is killed if it executes
+--           for over 1 hour.
 --   function: the action to be executed. The execution cannot be killed, but it
 --             will be considered as timeout if it executes for more than 1
 --             second.
 --   If the executable times out, the job will be blocked, i.e. the repeated
 --   field will be ignored.
 --
--- environment: table or function or nil
---   table: the key-value pairs of all environments set for string executable.
---   function: the function to return a table of environments.
---   nil: ignore.
+-- action: function (required when executable == "fork")
+--   function: the Lua action executed inside the forked subprocess. Its return
+--             value becomes `job.result` (or `false` if the action raises).
 --
 -- callback: function or nil
 --   function: the action to be executed when executable has been finished.
@@ -66,19 +65,15 @@ local util = require("util")
 -- If a job does not contain enough information, it will be ignored.
 --
 -- Once the job is finished, several items will be added to the table:
--- result: number, the return value of the command. In general, 0 means
---         succeeded.
---         For function executable, 1 if the function throws an error.
---         For string executable, several predefined values indicate the
---         internal errors. E.g. 223: the binary crashes. 222: the output is
---         invalid. 127: the command is invalid. 255: the command timed out.
---         Typically, consumers can use following states instead of hardcodeing
---         the error codes.
+-- result: any (for "fork") or number (for function executable)
+--         For function executable, 0 means succeeded, 1 if the function throws
+--         an error.
+--         For "fork", `result` holds the serialized return value of
+--         `job.action`, `false` if `job.action` throws, 222 if child output is
+--         invalid, or 255 if the subprocess timed out.
 -- exception: error, the error returned from function executable. Not available
---            for string executable.
--- timeout: boolean, whether the command times out.
--- bad_command: boolean, whether the command is not found. Not available for
---              function executable.
+--            for "fork".
+-- timeout: boolean, whether the job times out.
 -- blocked: boolean, whether the job is blocked.
 -- start_time: number, the time (fts) when the job was started.
 -- end_time: number, the time (fts) when the job was stopped.
@@ -105,7 +100,6 @@ local function _clone(job)
   result.executable = job.executable
   result.action = job.action
   result.callback = job.callback
-  result.environment = job.environment
   result.catch_exception = job.catch_exception
   result.insert_time = time.monotonic()
   return result
@@ -134,7 +128,7 @@ function BackgroundRunner:_shouldRepeat(job)
 end
 
 function BackgroundRunner:_finishJob(job)
-  -- Shell commands are killed by wrapper.sh and fork jobs by CommandRunner;
+  -- Fork jobs are timed out by CommandRunner;
   -- only function executables are checked here.
   if type(job.executable) == "function" then
     local time_diff = job.end_time - job.start_time
@@ -173,9 +167,9 @@ end
 -- @treturn boolean true if job is valid.
 function BackgroundRunner:_executeJob(job)
   assert(job ~= nil)
-  assert(type(job.executable) == "string" or type(job.executable) == "function")
+  assert(job.executable == "fork" or type(job.executable) == "function")
 
-  if type(job.executable) == "string" then
+  if job.executable == "fork" then
     assert(CommandRunner:isJobSupported(job))
     CommandRunner:start(job)
     return true
@@ -275,11 +269,8 @@ function BackgroundRunner:_execute()
       end
     end
 
-    -- Gated check: string executable commands also require available CommandRunner slots
-    if
-      should_execute
-      and type(job.executable) == "string"
-    then
+    -- Gated check: fork jobs also require available CommandRunner slots
+    if should_execute and job.executable == "fork" then
       should_execute = CommandRunner:canStart()
     end
 

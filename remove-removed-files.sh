@@ -38,6 +38,8 @@ REMOVED_FILES=(
   "plugins/AnnotationSync.koplugin/l10n"
   "plugins/AnnotationSync.koplugin/defaults/settings/hotkeys.lua"
   "plugins/backgroundrunner.koplugin/keyed_job_filter.lua"
+  "plugins/backgroundrunner.koplugin/luawrapper.sh"
+  "plugins/backgroundrunner.koplugin/wrapper.sh"
   "zsync2"
   "spinning_zsync"
   "ffi.so"
