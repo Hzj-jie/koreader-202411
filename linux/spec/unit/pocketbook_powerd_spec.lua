@@ -98,7 +98,7 @@ describe("PocketBookPowerD", function()
     powerd:UIManagerReady({
       flushSettings = function() end,
       broadcastEvent = function(_self, ev)
-        table.insert(events_broadcast, ev.handler)
+        table.insert(events_broadcast, ev)
       end,
       updateLastUserActionTime = function() end,
     })
@@ -120,10 +120,10 @@ describe("PocketBookPowerD", function()
 
     it("broadcasts Suspend and Resume events on suspend/resume", function()
       powerd:beforeSuspend()
-      assert.are.same({ "onSuspend" }, events_broadcast)
+      assert.are.same({ "Suspend" }, events_broadcast)
 
       powerd:afterResume()
-      assert.are.same({ "onSuspend", "onResume" }, events_broadcast)
+      assert.are.same({ "Suspend", "Resume" }, events_broadcast)
     end)
   end)
 

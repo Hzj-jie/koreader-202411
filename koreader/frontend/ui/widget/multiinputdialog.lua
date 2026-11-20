@@ -275,7 +275,7 @@ end
 function MultiInputDialog:onKeyboardHeightChanged()
   local visible = self:isKeyboardVisible()
   local fields = self.input_fields -- backup entered text
-  self:_saveViewPos()
+  self:saveViewPos()
   if self._added_widgets then
     -- prevent these externally added widgets from being freed as :init() will re-add them
     local vgroup = self.dialog_frame[1]

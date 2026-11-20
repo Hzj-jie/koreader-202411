@@ -344,7 +344,7 @@ function InputDialog:init()
   if self.view_pos_callback then
     -- Retrieve cursor position and top line num from our callback.
     -- Mainly used for runtime re-inits.
-    -- c.f., _saveViewPos for the other end of this.
+    -- c.f., saveViewPos for the other end of this.
     -- *May* return nils, in which case, we do *not* want to override our caller's values!
     local top_line_num, charpos = self.view_pos_callback()
     if top_line_num and charpos then
@@ -496,7 +496,7 @@ end
 function InputDialog:reinit()
   local visible = self:isKeyboardVisible()
   self.input = self:getInputText() -- re-init with up-to-date text
-  self:_saveViewPos()
+  self:saveViewPos()
   self._input_widget:onClose() -- proper cleanup of InputText and its keyboard
   if self._added_widgets then
     -- prevent these externally added widgets from being freed as :init() will re-add them
@@ -618,13 +618,13 @@ function InputDialog:onClose()
     active_instances >= 0,
     "InputDialog active instances count went negative!"
   )
-  self:_saveViewPos()
+  self:saveViewPos()
 end
 
 function InputDialog:showKeyboard(ignore_first_hold_release)
   if not self._should_show_keyboard then
     self.input = self:getInputText()
-    self:_saveViewPos()
+    self:saveViewPos()
     self._input_widget:onClose()
     self:free()
     self._should_show_keyboard = true
@@ -644,7 +644,7 @@ end
 function InputDialog:closeKeyboard()
   if self._should_show_keyboard then
     self.input = self:getInputText()
-    self:_saveViewPos()
+    self:saveViewPos()
     self._input_widget:onClose()
     self:free()
     self._should_show_keyboard = false
@@ -704,7 +704,7 @@ function InputDialog:onCloseDialog()
   return false
 end
 
-function InputDialog:_saveViewPos()
+function InputDialog:saveViewPos()
   -- Tell our input widget to poke its text widget so that we'll pickup up to date values
   self._input_widget:resyncPos()
   -- Remember current view & position in case of re-init

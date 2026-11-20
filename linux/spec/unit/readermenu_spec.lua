@@ -35,7 +35,7 @@ describe("ReaderMenu integration", function()
     "should trigger TouchMenu when tapping the top part of the screen",
     function()
       local sample_pdf = "spec/front/unit/data/2col.pdf"
-      purgeDir(DocSettings:getSidecarDir(sample_pdf))
+      purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
       os.remove(DocSettings:getHistoryPath(sample_pdf))
 
       local readerui = ReaderUI:new({
@@ -85,7 +85,7 @@ describe("ReaderMenu integration", function()
     "should trigger TouchMenu when swiping down from the top part of the screen",
     function()
       local sample_pdf = "spec/front/unit/data/2col.pdf"
-      purgeDir(DocSettings:getSidecarDir(sample_pdf))
+      purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
       os.remove(DocSettings:getHistoryPath(sample_pdf))
 
       local readerui = ReaderUI:new({
@@ -128,7 +128,7 @@ describe("ReaderMenu integration", function()
 
   it("should switch tabs on swipe left & right on ReaderMenu", function()
     local sample_pdf = "spec/front/unit/data/2col.pdf"
-    purgeDir(DocSettings:getSidecarDir(sample_pdf))
+    purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
     local readerui = ReaderUI:new({
@@ -205,7 +205,7 @@ describe("ReaderMenu integration", function()
     "should not spawn a new TouchMenu layer when swiping south on top-level TouchMenu",
     function()
       local sample_pdf = "spec/front/unit/data/2col.pdf"
-      purgeDir(DocSettings:getSidecarDir(sample_pdf))
+      purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
       os.remove(DocSettings:getHistoryPath(sample_pdf))
 
       local readerui = ReaderUI:new({
@@ -261,7 +261,7 @@ describe("ReaderMenu integration", function()
 
   it("should close TouchMenu on swipe north", function()
     local sample_pdf = "spec/front/unit/data/2col.pdf"
-    purgeDir(DocSettings:getSidecarDir(sample_pdf))
+    purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
     local readerui = ReaderUI:new({
@@ -308,7 +308,7 @@ describe("ReaderMenu integration", function()
 
   it("should close TouchMenu on tapping up button", function()
     local sample_pdf = "spec/front/unit/data/2col.pdf"
-    purgeDir(DocSettings:getSidecarDir(sample_pdf))
+    purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
     local readerui = ReaderUI:new({
@@ -362,7 +362,7 @@ describe("ReaderMenu integration", function()
     "should cycle through multiple tabs on successive swipe west gestures",
     function()
       local sample_pdf = "spec/front/unit/data/2col.pdf"
-      purgeDir(DocSettings:getSidecarDir(sample_pdf))
+      purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
       os.remove(DocSettings:getHistoryPath(sample_pdf))
 
       local readerui = ReaderUI:new({
@@ -436,7 +436,7 @@ describe("ReaderMenu integration", function()
     local Event = require("ui/event")
     local Geom = require("ui/geometry")
     local sample_pdf = "spec/front/unit/data/2col.pdf"
-    purgeDir(DocSettings:getSidecarDir(sample_pdf))
+    purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
     os.remove(DocSettings:getHistoryPath(sample_pdf))
 
     local readerui = ReaderUI:new({
@@ -491,9 +491,9 @@ describe("ReaderMenu integration", function()
     local file1 = "spec/front/unit/data/2col.pdf"
     local file2 = "spec/front/unit/data/paper.pdf"
 
-    purgeDir(DocSettings:getSidecarDir(file1))
+    purgeDir(DocSettings:open(file1).candidates[1].dir)
     os.remove(DocSettings:getHistoryPath(file1))
-    purgeDir(DocSettings:getSidecarDir(file2))
+    purgeDir(DocSettings:open(file2).candidates[1].dir)
     os.remove(DocSettings:getHistoryPath(file2))
 
     -- 1. Open file1
@@ -573,7 +573,7 @@ describe("ReaderMenu integration", function()
     function()
       local Event = require("ui/event")
       local sample_pdf = "spec/front/unit/data/2col.pdf"
-      purgeDir(DocSettings:getSidecarDir(sample_pdf))
+      purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
       os.remove(DocSettings:getHistoryPath(sample_pdf))
 
       local readerui = ReaderUI:new({

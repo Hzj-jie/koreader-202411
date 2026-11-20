@@ -74,7 +74,7 @@ describe("AnnotationSync imported plugin settings", function()
       end)
 
       assert.is_true(
-        manager:_writeLocalSettingValue(
+        manager:writeLocalSettingValue(
           "settings/bookshortcuts:/books/Imported",
           true
         )
@@ -105,7 +105,7 @@ describe("AnnotationSync imported plugin settings", function()
       end)
 
       assert.is_true(
-        manager:_writeLocalSettingValue(
+        manager:writeLocalSettingValue(
           "settings/wallabag:wallabag.articles_per_sync",
           99
         )

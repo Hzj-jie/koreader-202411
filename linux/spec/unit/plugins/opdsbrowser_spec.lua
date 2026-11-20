@@ -318,15 +318,32 @@ describe("OPDSBrowser module", function()
     it(
       "should handle downloadFile with network responses and overwrite confirmations",
       function()
+        local lfs = require("libs/libkoreader-lfs")
+        local ffiutil = require("ffi/util")
+        local tmp = os.tmpname()
+        os.remove(tmp)
+        local temp_dir = tmp .. "_opds"
+        lfs.mkdir(temp_dir)
+        local orig_download_dir = G_reader_settings:read("download_dir")
+
         local browser = OPDSBrowser:new({ title = "OPDS Catalogs" })
         local downloaded_path = nil
         browser.file_downloaded_callback = function(path)
           downloaded_path = path
         end
-        G_reader_settings:save("download_dir", "/tmp")
+        G_reader_settings:save("download_dir", temp_dir)
 
         local http_stub = stub(http, "request", function(req)
           return 1, 200, {}
+        end)
+        finally(function()
+          http_stub:revert()
+          if orig_download_dir ~= nil then
+            G_reader_settings:save("download_dir", orig_download_dir)
+          else
+            G_reader_settings:delete("download_dir")
+          end
+          ffiutil.purgeDir(temp_dir)
         end)
 
         browser:downloadFile(
@@ -343,8 +360,6 @@ describe("OPDSBrowser module", function()
         end
 
         assert.is_truthy(downloaded_path)
-        http_stub:revert()
-        os.remove("/tmp/test_download.epub")
       end
     )
 
