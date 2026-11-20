@@ -74,7 +74,7 @@ describe("Calibre Wireless module", function()
 
   after_each(function()
     if wireless_inst then
-      wireless_inst:_disconnect()
+      wireless_inst:disconnect()
     end
 
     if FileManager.getCurrentDir.revert then
@@ -311,7 +311,7 @@ describe("Calibre Wireless module", function()
         stub(CalibreMetadata, "clean")
         stub(CalibreSearch, "invalidateCache")
 
-        wireless_inst:_disconnect()
+        wireless_inst:disconnect()
 
         assert.spy(mock_socket.stop).was_called(1)
         assert.is_nil(wireless_inst.calibre_socket)
@@ -329,30 +329,30 @@ describe("Calibre Wireless module", function()
     )
 
     it("should call disconnect onExit and onClose", function()
-      stub(wireless_inst, "_disconnect")
+      stub(wireless_inst, "disconnect")
 
       wireless_inst:onExit()
-      assert.spy(wireless_inst._disconnect).was_called(1)
+      assert.spy(wireless_inst.disconnect).was_called(1)
 
       wireless_inst:onClose()
-      assert.spy(wireless_inst._disconnect).was_called(2)
+      assert.spy(wireless_inst.disconnect).was_called(2)
 
-      wireless_inst._disconnect:revert()
+      wireless_inst.disconnect:revert()
     end)
 
     it("should sleep and reconnect in reconnect", function()
       stub(FFIUtil, "sleep")
-      stub(wireless_inst, "_disconnect")
+      stub(wireless_inst, "disconnect")
       stub(wireless_inst, "connect")
 
       wireless_inst:reconnect()
 
       assert.spy(FFIUtil.sleep).was_called(2)
-      assert.spy(wireless_inst._disconnect).was_called(1)
+      assert.spy(wireless_inst.disconnect).was_called(1)
       assert.spy(wireless_inst.connect).was_called(1)
 
       FFIUtil.sleep:revert()
-      wireless_inst._disconnect:revert()
+      wireless_inst.disconnect:revert()
       wireless_inst.connect:revert()
     end)
   end)
@@ -560,11 +560,11 @@ describe("Calibre Wireless module", function()
 
     it("should handle NOOP opcodes appropriately", function()
       -- Test server eject
-      stub(wireless_inst, "_disconnect")
+      stub(wireless_inst, "disconnect")
       wireless_inst:noop({ ejecting = true })
       assert.is_true(wireless_inst.disconnected_by_server)
-      assert.spy(wireless_inst._disconnect).was_called(1)
-      wireless_inst._disconnect:revert()
+      assert.spy(wireless_inst.disconnect).was_called(1)
+      wireless_inst.disconnect:revert()
 
       -- Test metadata batch count init
       wireless_inst:noop({ count = 5 })

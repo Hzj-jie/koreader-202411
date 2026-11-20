@@ -267,12 +267,6 @@ local function getCandidates(doc_path)
   return candidates
 end
 
--- TODO: For testing purposes only, should be removed once external tests are migrated.
-function DocSettings:getSidecarDir(doc_path)
-  local cands = getCandidates(doc_path)
-  return cands[1] and cands[1].dir
-end
-
 --- Returns `true` if there is a `metadata.lua` file.
 -- @string doc_path path to the document (e.g., `/foo/bar.pdf`)
 -- @treturn bool

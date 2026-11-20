@@ -76,7 +76,7 @@ describe("CervantesPowerD", function()
     powerd:UIManagerReady({
       flushSettings = function() end,
       broadcastEvent = function(_self, ev)
-        table.insert(events_broadcast, ev.handler)
+        table.insert(events_broadcast, ev)
       end,
       updateLastUserActionTime = function() end,
     })
@@ -108,7 +108,7 @@ describe("CervantesPowerD", function()
     it("zeros brightness and broadcasts Suspend before suspend", function()
       powerd.hw_intensity = 45
       powerd:beforeSuspend()
-      assert.are.same({ "onSuspend" }, events_broadcast)
+      assert.are.same({ "Suspend" }, events_broadcast)
       assert.are.equal(0, brightness_set)
     end)
 
@@ -117,7 +117,7 @@ describe("CervantesPowerD", function()
       function()
         powerd.hw_intensity = 45
         powerd:afterResume()
-        assert.are.same({ "onResume" }, events_broadcast)
+        assert.are.same({ "Resume" }, events_broadcast)
         assert.are.equal(45, brightness_set)
       end
     )
@@ -129,7 +129,7 @@ describe("CervantesPowerD", function()
       powerd.hw_intensity = 60
       powerd.fl_warmth = 35
       powerd:afterResume()
-      assert.are.same({ "onResume" }, events_broadcast)
+      assert.are.same({ "Resume" }, events_broadcast)
       assert.are.equal(60, natural_brightness_set.intensity)
       assert.are.equal(35, natural_brightness_set.warmth)
     end)
@@ -139,7 +139,7 @@ describe("CervantesPowerD", function()
       powerd.hw_intensity = 30
       brightness_set = nil
       powerd:afterResume()
-      assert.are.same({ "onResume" }, events_broadcast)
+      assert.are.same({ "Resume" }, events_broadcast)
       assert.are.equal(30, brightness_set)
     end)
   end)

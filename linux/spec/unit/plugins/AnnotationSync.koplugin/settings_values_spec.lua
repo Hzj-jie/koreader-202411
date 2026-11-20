@@ -116,7 +116,7 @@ describe("AnnotationSync settings values and pull menus", function()
   )
 
   it(
-    "_writeLocalSettingValue sets a nested reader setting and keeps its siblings",
+    "writeLocalSettingValue sets a nested reader setting and keeps its siblings",
     function()
       G_reader_settings:save("rv_nest", { keep = 1, sub = { old = true } })
       local before = G_reader_settings:read("rv_nest")
@@ -125,7 +125,7 @@ describe("AnnotationSync settings values and pull menus", function()
         G_reader_settings:delete("rv_nest")
       end)
 
-      local ok = manager:_writeLocalSettingValue("reader:rv_nest.sub.new", 42)
+      local ok = manager:writeLocalSettingValue("reader:rv_nest.sub.new", 42)
       assert.is_true(ok)
 
       local after = G_reader_settings:read("rv_nest")
@@ -141,7 +141,7 @@ describe("AnnotationSync settings values and pull menus", function()
   )
 
   it(
-    "_writeLocalSettingValue writes plugin settings and defaults to their files and rejects a key without a domain",
+    "writeLocalSettingValue writes plugin settings and defaults to their files and rejects a key without a domain",
     function()
       finally(function()
         os.remove(DataStorage:getSettingsDir() .. "/rv_plugin2.lua")
@@ -149,18 +149,18 @@ describe("AnnotationSync settings values and pull menus", function()
       end)
 
       assert.is_true(
-        manager:_writeLocalSettingValue("settings/rv_plugin2:x.y", "z")
+        manager:writeLocalSettingValue("settings/rv_plugin2:x.y", "z")
       )
       local p_s =
         LuaSettings:open(DataStorage:getSettingsDir() .. "/rv_plugin2.lua")
       assert.are.equal("z", p_s:read("x").y)
 
-      assert.is_true(manager:_writeLocalSettingValue("defaults:RV_DEFAULT2", 3))
+      assert.is_true(manager:writeLocalSettingValue("defaults:RV_DEFAULT2", 3))
       local d_s = LuaSettings:open(test_data_dir .. "/defaults.custom.lua")
       assert.are.equal(3, d_s:read("RV_DEFAULT2"))
 
       assert.has_error(function()
-        manager:_writeLocalSettingValue("no_colon", 1)
+        manager:writeLocalSettingValue("no_colon", 1)
       end)
     end
   )
@@ -177,7 +177,7 @@ describe("AnnotationSync settings values and pull menus", function()
       G_defaults:flush()
 
       assert.is_true(
-        manager:_writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0)
+        manager:writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0)
       )
 
       assert.is_nil(LuaSettings:open(custom_file):read("DTAP_ZONE_MENU"))
@@ -186,6 +186,91 @@ describe("AnnotationSync settings values and pull menus", function()
         { x = 0, y = 0, w = 1, h = 1 / 8 },
         require("luadefaults"):open(custom_file):read("DTAP_ZONE_MENU")
       )
+    end
+  )
+
+  it(
+    "writeLocalSettingValue avoids FixMe table-read warnings on LuaSettings and handles defaults tables",
+    function()
+      local logger = require("logger")
+      local info_spy = spy.on(logger, "info")
+      local plugin_path = DataStorage:getSettingsDir() .. "/rv_plugin_c2.lua"
+      local p_s = LuaSettings:open(plugin_path)
+      p_s:save("nested", { keep = 1 })
+      p_s:flush()
+      G_reader_settings:save("rv_nest_c2", { keep = true })
+
+      local old_defaults = _G.G_defaults
+      local LuaDefaults = require("luadefaults")
+      _G.G_defaults = LuaDefaults:open()
+
+      finally(function()
+        info_spy:revert()
+        G_reader_settings:delete("rv_nest_c2")
+        G_reader_settings:delete("rv_flat_c2")
+        os.remove(plugin_path)
+        _G.G_defaults = old_defaults
+        os.remove(test_data_dir .. "/defaults.custom.lua")
+      end)
+
+      assert.is_true(
+        manager:writeLocalSettingValue("reader:rv_nest_c2.sub.val", 10)
+      )
+      assert.is_true(manager:writeLocalSettingValue("reader:rv_flat_c2", "ok"))
+      assert.is_true(
+        manager:writeLocalSettingValue("settings/rv_plugin_c2:nested.added", 2)
+      )
+      assert.is_true(
+        manager:writeLocalSettingValue("defaults:DTAP_ZONE_MENU.x", 0.25)
+      )
+      assert.is_true(
+        manager:writeLocalSettingValue(
+          "defaults:DCREREADER_CONFIG_DEFAULT_FONT_SIZE",
+          26
+        )
+      )
+
+      for _, call in ipairs(info_spy.calls) do
+        for _, arg in ipairs(call.vals) do
+          assert.is_nil(tostring(arg):match("FixMe"))
+        end
+      end
+
+      assert.are.same(
+        { keep = true, sub = { val = 10 } },
+        G_reader_settings:readTable("rv_nest_c2")
+      )
+      assert.are.equal("ok", G_reader_settings:read("rv_flat_c2"))
+      assert.are.same(
+        { keep = 1, added = 2 },
+        LuaSettings:open(plugin_path):readTable("nested")
+      )
+      assert.are.equal(0.25, _G.G_defaults:read("DTAP_ZONE_MENU").x)
+      assert.are.equal(
+        26,
+        _G.G_defaults:read("DCREREADER_CONFIG_DEFAULT_FONT_SIZE")
+      )
+    end
+  )
+
+  it(
+    "writeLocalSettingValue updates G_reader_settings without reopening settings.reader.lua via LuaSettings:open",
+    function()
+      local open_spy = spy.on(LuaSettings, "open")
+      G_reader_settings:save("rv_mem_only", "keep_me")
+      finally(function()
+        open_spy:revert()
+        G_reader_settings:delete("rv_mem_only")
+        G_reader_settings:delete("rv_c3_key")
+      end)
+
+      assert.is_true(manager:writeLocalSettingValue("reader:rv_c3_key", 123))
+      assert.spy(open_spy).was_not_called()
+      assert.are.equal("keep_me", G_reader_settings:read("rv_mem_only"))
+      assert.are.equal(123, G_reader_settings:read("rv_c3_key"))
+      local on_disk = dofile(test_data_dir .. "/settings.reader.lua")
+      assert.are.equal("keep_me", on_disk.rv_mem_only)
+      assert.are.equal(123, on_disk.rv_c3_key)
     end
   )
 
