@@ -1506,7 +1506,7 @@ describe("FileManager module", function()
         util.copyFile("spec/unit/data/2col.pdf", tracked_src)
         util.copyFile("spec/unit/data/2col.pdf", no_sdr_src)
 
-        local sdr_dir = docsettings:getSidecarDir(tracked_src)
+        local sdr_dir = docsettings:open(tracked_src).candidates[1].dir
         core_util.makePath(sdr_dir)
         local f = assert(
           io.open(
