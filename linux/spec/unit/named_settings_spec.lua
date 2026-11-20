@@ -320,6 +320,10 @@ describe("named_settings", function()
 
   describe("autodim_starttime_minutes", function()
     it("should handle autodim_starttime_minutes correctly", function()
+      finally(function()
+        G_reader_settings:delete("autodim_starttime_minutes")
+      end)
+
       assert.are.same(5, named_settings.default.autodim_starttime_minutes())
       assert.is_false(named_settings.has.autodim_starttime_minutes())
       assert.are.same(5, named_settings.autodim_starttime_minutes())
@@ -331,6 +335,12 @@ describe("named_settings", function()
       named_settings.set.autodim_starttime_minutes(nil)
       assert.is_false(named_settings.has.autodim_starttime_minutes())
       assert.are.same(5, named_settings.autodim_starttime_minutes())
+
+      for _, invalid_val in ipairs({ -1, 0, "5", true }) do
+        named_settings.set.autodim_starttime_minutes(invalid_val)
+        assert.is_false(named_settings.has.autodim_starttime_minutes())
+        assert.are.same(5, named_settings.autodim_starttime_minutes())
+      end
     end)
   end)
 end)

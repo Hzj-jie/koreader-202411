@@ -335,7 +335,7 @@ describe("Readerpaging module", function()
     setup(function()
       local purgeDir = require("ffi/util").purgeDir
       local DocSettings = require("docsettings")
-      purgeDir(DocSettings:getSidecarDir(sample_pdf))
+      purgeDir(DocSettings:open(sample_pdf).candidates[1].dir)
       os.remove(DocSettings:getHistoryPath(sample_pdf))
 
       readerui = ReaderUI:new({

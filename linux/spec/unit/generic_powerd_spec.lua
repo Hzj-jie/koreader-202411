@@ -300,11 +300,7 @@ describe("device/generic/powerd", function()
         assert.spy(mock_uimgr.flushSettings).was.called()
         assert.spy(mock_uimgr.broadcastEvent).was.called_with(
           mock_uimgr,
-          match.is_table()
-        )
-        assert.are.equal(
-          "Suspend",
-          mock_uimgr.broadcastEvent.calls[1].vals[2].name
+          "Suspend"
         )
         assert.is_true(mock_device.last_suspend_at > 0)
         assert.spy(mock_device.disableKeyRepeat).was.called()
@@ -320,12 +316,96 @@ describe("device/generic/powerd", function()
         assert.spy(mock_uimgr.updateLastUserActionTime).was.called()
         assert.are.equal(
           "Resume",
-          mock_uimgr.broadcastEvent.calls[2].vals[2].name
+          mock_uimgr.broadcastEvent.calls[2].vals[2]
         )
         -- Capacity caches should be invalidated (set to -61)
         local time = require("ui/time")
         assert.are.equal(time.s(-61), powerd.last_capacity_pull_time)
         assert.are.equal(time.s(-61), powerd.last_aux_capacity_pull_time)
+      end
+    )
+
+    it(
+      "tracks total_suspend_time with boottime_or_realtime across realtime clock jumps",
+      function()
+        local time = require("ui/time")
+        local orig_realtime = time.realtime
+        local orig_boottime = time.boottime_or_realtime
+        finally(function()
+          time.realtime = orig_realtime
+          time.boottime_or_realtime = orig_boottime
+        end)
+
+        local now_realtime = time.s(2000)
+        local now_boottime = time.s(100)
+        time.realtime = function()
+          return now_realtime
+        end
+        time.boottime_or_realtime = function()
+          return now_boottime
+        end
+
+        powerd:UIManagerReady(mock_uimgr)
+        mock_device.total_suspend_time = 0
+
+        -- Suspend, then wall clock jumps backward while boottime advances 120s.
+        powerd:beforeSuspend()
+        assert.are.equal(time.s(2000), mock_device.last_suspend_at)
+        now_realtime = time.s(1500)
+        now_boottime = time.s(220)
+        powerd:afterResume()
+        assert.are.equal(time.s(1500), mock_device.last_resume_at)
+        assert.are.equal(time.s(120), mock_device.total_suspend_time)
+
+        -- Suspend again, then wall clock jumps forward while boottime advances 30s.
+        now_boottime = time.s(300)
+        powerd:beforeSuspend()
+        now_realtime = time.s(1700000000)
+        now_boottime = time.s(330)
+        powerd:afterResume()
+        assert.are.equal(time.s(1700000000), mock_device.last_resume_at)
+        assert.are.equal(time.s(150), mock_device.total_suspend_time)
+      end
+    )
+
+    it(
+      "keeps total_suspend_time unchanged when afterResume is called without beforeSuspend",
+      function()
+        local time = require("ui/time")
+        local orig_realtime = time.realtime
+        local orig_boottime = time.boottime_or_realtime
+        finally(function()
+          time.realtime = orig_realtime
+          time.boottime_or_realtime = orig_boottime
+        end)
+
+        local now_realtime = time.s(500)
+        local now_boottime = time.s(100)
+        time.realtime = function()
+          return now_realtime
+        end
+        time.boottime_or_realtime = function()
+          return now_boottime
+        end
+
+        powerd:UIManagerReady(mock_uimgr)
+        mock_device.total_suspend_time = time.s(20)
+
+        powerd:afterResume()
+        assert.are.equal(time.s(20), mock_device.total_suspend_time)
+        assert.are.equal(time.s(500), mock_device.last_resume_at)
+
+        -- Duplicate afterResume after a real suspend/resume cycle also does not double-count.
+        powerd:beforeSuspend()
+        now_boottime = time.s(145)
+        now_realtime = time.s(545)
+        powerd:afterResume()
+        assert.are.equal(time.s(65), mock_device.total_suspend_time)
+
+        now_boottime = time.s(160)
+        now_realtime = time.s(560)
+        powerd:afterResume()
+        assert.are.equal(time.s(65), mock_device.total_suspend_time)
       end
     )
 
@@ -380,7 +460,7 @@ describe("device/generic/powerd", function()
           table.insert(calls, "flushSettings")
         end)
         stub(mock_uimgr, "broadcastEvent", function(_self, ev)
-          table.insert(calls, ev.name)
+          table.insert(calls, ev)
         end)
         powerd.beforeSuspendHW = spy.new(function()
           table.insert(calls, "beforeSuspendHW")
@@ -438,7 +518,7 @@ describe("device/generic/powerd", function()
           table.insert(calls, "forceRepaint")
         end)
         stub(mock_uimgr, "broadcastEvent", function(_self, ev)
-          table.insert(calls, ev.name)
+          table.insert(calls, ev)
         end)
         powerd.afterResumeHW = spy.new(function()
           table.insert(calls, "afterResumeHW")

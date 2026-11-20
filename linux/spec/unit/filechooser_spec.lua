@@ -497,7 +497,7 @@ describe("FileChooser module", function()
     assert.are_equal("/tmp/book3.epub", fc:getNextFile("/tmp/book1.epub"))
   end)
 
-  it("should test _pathUnwritable with require_writable option", function()
+  it("should test pathUnwritable with require_writable option", function()
     local util = require("util")
     local orig_isDirRW = util.isDirRW
 
@@ -509,18 +509,18 @@ describe("FileChooser module", function()
     util.isDirRW = function()
       return false
     end
-    assert.is_false(fc:_pathUnwritable())
-    assert.is_false(fc:_pathUnwritable("/other"))
+    assert.is_false(fc:pathUnwritable())
+    assert.is_false(fc:pathUnwritable("/other"))
 
     fc.require_writable = true
-    assert.is_true(fc:_pathUnwritable())
-    assert.is_true(fc:_pathUnwritable("/other"))
+    assert.is_true(fc:pathUnwritable())
+    assert.is_true(fc:pathUnwritable("/other"))
 
     util.isDirRW = function()
       return true
     end
-    assert.is_false(fc:_pathUnwritable())
-    assert.is_false(fc:_pathUnwritable("/other"))
+    assert.is_false(fc:pathUnwritable())
+    assert.is_false(fc:pathUnwritable("/other"))
 
     local checked_path = nil
     util.isDirRW = function(p)
@@ -528,9 +528,9 @@ describe("FileChooser module", function()
       return true
     end
     fc.path = "/default/path"
-    fc:_pathUnwritable()
+    fc:pathUnwritable()
     assert.are_equal("/default/path", checked_path)
-    fc:_pathUnwritable("/custom/path")
+    fc:pathUnwritable("/custom/path")
     assert.are_equal("/custom/path", checked_path)
 
     util.isDirRW = orig_isDirRW

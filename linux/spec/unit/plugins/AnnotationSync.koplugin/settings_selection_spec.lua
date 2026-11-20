@@ -365,7 +365,7 @@ describe("AnnotationSync Settings Selection", function()
 
       -- Verify pull applies {}
       G_reader_settings:save("style_tweaks", { foo = "bar" })
-      sync_instance.manager:_writeLocalSettingValue("reader:style_tweaks", {})
+      sync_instance.manager:writeLocalSettingValue("reader:style_tweaks", {})
       assert.are.same({}, G_reader_settings:readTable("style_tweaks"))
     end
   )
@@ -382,19 +382,19 @@ describe("AnnotationSync Settings Selection", function()
       end
       finally(function()
         utils_mod.show_msg = old_show_msg
-        G_reader_settings:save("autodim_duration_seconds", 5)
+        G_reader_settings:save("bookmarks_items_per_page", 14)
         G_reader_settings:flush()
       end)
 
       -- Change setting and select it
-      G_reader_settings:save("autodim_duration_seconds", 777)
+      G_reader_settings:save("bookmarks_items_per_page", 777)
       G_reader_settings:flush()
-      sync_instance.settings.selected_settings["reader:autodim_duration_seconds"] =
+      sync_instance.settings.selected_settings["reader:bookmarks_items_per_page"] =
         true
       sync_instance:saveSettings()
 
-      -- Revert setting back to default (5)
-      G_reader_settings:save("autodim_duration_seconds", 5)
+      -- Revert setting back to default (14)
+      G_reader_settings:save("bookmarks_items_per_page", 14)
       G_reader_settings:flush()
 
       local old_push = remote_mod.push_settings
@@ -410,7 +410,7 @@ describe("AnnotationSync Settings Selection", function()
 
       assert.is_false(pushed)
       assert.is_nil(
-        sync_instance.settings.selected_settings["reader:autodim_duration_seconds"]
+        sync_instance.settings.selected_settings["reader:bookmarks_items_per_page"]
       )
       assert.is_not_nil(msg_shown)
       assert.are.equal(

@@ -69,7 +69,7 @@ describe("Calibre Wireless plugin module", function()
     end)
 
     it(
-      "disconnects socket and cleans metadata and search caches on _disconnect",
+      "disconnects socket and cleans metadata and search caches on disconnect",
       function()
         local socket_stopped = false
         wireless_inst.calibre_socket = {
@@ -103,7 +103,7 @@ describe("Calibre Wireless plugin module", function()
           CalibreSearch.invalidateCache = orig_invalidate
         end)
 
-        wireless_inst:_disconnect()
+        wireless_inst:disconnect()
         assert.is_true(socket_stopped)
         assert.is_nil(wireless_inst.calibre_socket)
         assert.are.equal(test_mq, removed_zmq)
@@ -113,13 +113,13 @@ describe("Calibre Wireless plugin module", function()
       end
     )
 
-    it("reconnects by calling _disconnect and connect", function()
+    it("reconnects by calling disconnect and connect", function()
       local orig_sleep = FFIUtil.sleep
       FFIUtil.sleep = function() end
       local disconnected, connected = false, false
-      local orig_disc = wireless_inst._disconnect
+      local orig_disc = wireless_inst.disconnect
       local orig_conn = wireless_inst.connect
-      wireless_inst._disconnect = function()
+      wireless_inst.disconnect = function()
         disconnected = true
       end
       wireless_inst.connect = function()
@@ -127,7 +127,7 @@ describe("Calibre Wireless plugin module", function()
       end
       finally(function()
         FFIUtil.sleep = orig_sleep
-        wireless_inst._disconnect = orig_disc
+        wireless_inst.disconnect = orig_disc
         wireless_inst.connect = orig_conn
       end)
 
