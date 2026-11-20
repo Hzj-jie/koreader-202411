@@ -386,7 +386,7 @@ describe("InputDialog widget", function()
       local save_pos_calls = 0
       local orig_close_kb = dialog.closeKeyboard
       local orig_unfocus = dialog._input_widget.unfocus
-      local orig_save_pos = dialog._saveViewPos
+      local orig_save_pos = dialog.saveViewPos
       dialog.closeKeyboard = function(self)
         close_kb_calls = close_kb_calls + 1
         return orig_close_kb(self)
@@ -395,7 +395,7 @@ describe("InputDialog widget", function()
         unfocus_calls = unfocus_calls + 1
         return orig_unfocus(self)
       end
-      dialog._saveViewPos = function(self)
+      dialog.saveViewPos = function(self)
         save_pos_calls = save_pos_calls + 1
         return orig_save_pos(self)
       end
@@ -474,16 +474,16 @@ describe("InputDialog widget", function()
     "handles reinit and onKeyboardClosed without unfocusing old inputs",
     function()
       local UIManager = require("ui/uimanager")
-      local orig_save_pos = InputDialog._saveViewPos
+      local orig_save_pos = InputDialog.saveViewPos
       local save_pos_calls = 0
-      InputDialog._saveViewPos = function(self)
+      InputDialog.saveViewPos = function(self)
         save_pos_calls = save_pos_calls + 1
         return orig_save_pos(self)
       end
 
       local dialogs = {}
       finally(function()
-        InputDialog._saveViewPos = orig_save_pos
+        InputDialog.saveViewPos = orig_save_pos
         for _, dlg in ipairs(dialogs) do
           if dlg:isKeyboardVisible() then
             dlg:closeKeyboard()

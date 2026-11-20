@@ -320,8 +320,7 @@ describe("time_settings_menu_table module", function()
 
     -- Failure when NTP command exits with non-zero
     executed_cmds = {}
-    local ok, txt = syncNTPOnly()
-    assert.is_false(ok)
+    local txt = syncNTPOnly()
     assert.are.equal(
       gettext(
         "Failed to retrieve time from server. Please check your network configuration."
@@ -338,9 +337,19 @@ describe("time_settings_menu_table module", function()
       return 0
     end)
 
-    ok, txt = syncNTPOnly()
-    assert.is_true(ok)
+    txt = syncNTPOnly()
     assert.is_string(txt)
+    assert.are_not.equal(
+      gettext(
+        "Failed to retrieve time from server. Please check your network configuration."
+      ),
+      txt
+    )
+    assert.is_true(
+      txt == gettext("Time synchronized.")
+        or txt:find(gettext("New time is %1."):gsub("%%1.*$", ""), 1, true)
+          ~= nil
+    )
     assert.are.equal("ntpdate pool.ntp.org", executed_cmds[1])
     assert.are.equal("hwclock -u -w", executed_cmds[2])
 
@@ -354,9 +363,19 @@ describe("time_settings_menu_table module", function()
       return orig_attributes(path, req)
     end
 
-    ok, txt = syncNTPOnly()
-    assert.is_true(ok)
+    txt = syncNTPOnly()
     assert.is_string(txt)
+    assert.are_not.equal(
+      gettext(
+        "Failed to retrieve time from server. Please check your network configuration."
+      ),
+      txt
+    )
+    assert.is_true(
+      txt == gettext("Time synchronized.")
+        or txt:find(gettext("New time is %1."):gsub("%%1.*$", ""), 1, true)
+          ~= nil
+    )
     local found_setdate = false
     for _, cmd in ipairs(executed_cmds) do
       if cmd:find("^/usr/sbin/setdate") then
@@ -584,7 +603,7 @@ describe("time_settings_menu_table module", function()
     assert.stub(insert_stub).was_called(1)
   end)
 
-  it("retries manual and idle NTP sync when synchronization fails", function()
+  it("enforces 24h cooldown when manual or idle NTP sync fails", function()
     local MockTime = require("mock_time")
     MockTime:install()
 
@@ -679,7 +698,7 @@ describe("time_settings_menu_table module", function()
     assert.is_not_nil(registered_idle_job)
     local idle_fn = registered_idle_job.executable
 
-    -- Failed manual sync does not start the 24h cooldown
+    -- Failed manual sync starts the 24h cooldown and suppresses immediate idle retry
     ntp_exit_code = 1
     auto_item.callback()
     assert.are.equal(
@@ -690,33 +709,68 @@ describe("time_settings_menu_table module", function()
     )
     insert_stub:clear()
     idle_fn()
+    assert.stub(insert_stub).was_not_called()
+
+    -- Retries once the 24h cooldown expires
+    MockTime:increase(86400 + 1)
+    insert_stub:clear()
+    idle_fn()
     assert.stub(insert_stub).was_called(1)
     assert.is_not_nil(captured_job)
 
-    -- Failed background action result does not start the 24h cooldown
-    local action_ok = captured_job.action()
-    assert.is_false(action_ok)
-    captured_job.callback({ result = action_ok, timeout = false })
+    -- Failed background action result restarts the 24h cooldown
+    local action_txt = captured_job.action()
+    assert.are.equal(
+      gettext(
+        "Failed to retrieve time from server. Please check your network configuration."
+      ),
+      action_txt
+    )
+    captured_job.callback({ result = action_txt, timeout = false })
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_not_called()
+
+    -- Timed out fork result restarts the 24h cooldown
+    MockTime:increase(86400 + 1)
     insert_stub:clear()
     idle_fn()
     assert.stub(insert_stub).was_called(1)
-
-    -- Timed out or errored fork result does not start the 24h cooldown
     captured_job.callback({ result = 255, timeout = true })
     insert_stub:clear()
     idle_fn()
-    assert.stub(insert_stub).was_called(1)
+    assert.stub(insert_stub).was_not_called()
 
-    captured_job.callback({ result = false, timeout = false })
+    -- Boolean false fork result restarts the 24h cooldown
+    MockTime:increase(86400 + 1)
     insert_stub:clear()
     idle_fn()
     assert.stub(insert_stub).was_called(1)
+    captured_job.callback({ result = false, timeout = false })
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_not_called()
 
     -- Successful background sync records last_sync_time and suppresses immediate retry
+    MockTime:increase(86400 + 1)
+    insert_stub:clear()
+    idle_fn()
+    assert.stub(insert_stub).was_called(1)
     ntp_exit_code = 0
-    action_ok = captured_job.action()
-    assert.is_true(action_ok)
-    captured_job.callback({ result = action_ok, timeout = false })
+    action_txt = captured_job.action()
+    assert.are_not.equal(
+      gettext(
+        "Failed to retrieve time from server. Please check your network configuration."
+      ),
+      action_txt
+    )
+    assert.is_true(
+      action_txt == gettext("Time synchronized.")
+        or action_txt
+          :find(gettext("New time is %1."):gsub("%%1.*$", ""), 1, true)
+          ~= nil
+    )
+    captured_job.callback({ result = action_txt, timeout = false })
     insert_stub:clear()
     idle_fn()
     assert.stub(insert_stub).was_not_called()

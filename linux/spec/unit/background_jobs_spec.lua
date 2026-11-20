@@ -172,7 +172,7 @@ describe("background_jobs", function()
       assert.has_error(function()
         background_jobs.insertKeyed({
           key = "custom-key",
-          executable = "echo 1",
+          executable = function() end,
         })
       end)
       assert.has_error(function()
@@ -184,11 +184,16 @@ describe("background_jobs", function()
     end)
 
     it(
-      "should raise error if key cannot be determined or is not a string",
+      "should raise error if key cannot be determined",
       function()
         assert.has_error(function()
           background_jobs.insertKeyed({
-            executable = 12345, -- not a string or function, no action
+            executable = 12345, -- not a function or "fork"
+          })
+        end)
+        assert.has_error(function()
+          background_jobs.insertKeyed({
+            executable = "echo 1",
           })
         end)
       end
@@ -225,11 +230,12 @@ describe("background_jobs", function()
     )
 
     it("should filter out duplicate job while first is active", function()
+      local function sync_fn() end
       local res1 = background_jobs.insertKeyed({
-        executable = "sync-command",
+        executable = sync_fn,
       })
       local res2 = background_jobs.insertKeyed({
-        executable = "sync-command",
+        executable = sync_fn,
       })
 
       assert.is_true(res1)
@@ -240,15 +246,16 @@ describe("background_jobs", function()
     it(
       "should allow inserting new job with same executable after previous finishes",
       function()
+        local function reuse_fn() end
         background_jobs.insertKeyed({
-          executable = "reuse-command",
+          executable = reuse_fn,
         })
 
         local job1 = mock_pluginshare.backgroundJobs[4]
         job1.callback({ result = "first" })
 
         local res2 = background_jobs.insertKeyed({
-          executable = "reuse-command",
+          executable = reuse_fn,
         })
 
         assert.is_true(res2)
@@ -290,42 +297,21 @@ describe("background_jobs", function()
     )
 
     it(
-      "should automatically derive key from string executable command and filter duplicates",
-      function()
-        local res1 = background_jobs.insertKeyed({
-          executable = "tar -czf /tmp/backup.tar.gz /sdcard/books",
-        })
-        local res2 = background_jobs.insertKeyed({
-          executable = "tar -czf /tmp/backup.tar.gz /sdcard/books",
-        })
-        local res3 = background_jobs.insertKeyed({
-          executable = "tar -czf /tmp/other.tar.gz /sdcard/books",
-        })
-
-        assert.is_true(res1)
-        assert.is_false(res2)
-        assert.is_true(res3)
-        assert.is_true(
-          background_jobs.hasKey("tar -czf /tmp/backup.tar.gz /sdcard/books")
-        )
-        assert.is_true(
-          background_jobs.hasKey("tar -czf /tmp/other.tar.gz /sdcard/books")
-        )
-      end
-    )
-
-    it(
       "should not use action for key calculation if executable is not fork",
       function()
-        local action = function() end
-        local res = background_jobs.insertKeyed({
-          executable = "tar -czf /tmp/backup.tar.gz /sdcard/books",
+        local exec_fn = function()
+          return 1
+        end
+        local action = function()
+          return 2
+        end
+        assert.is_true(background_jobs.insertKeyed({
+          executable = exec_fn,
           action = action,
-        })
-        assert.is_true(res)
-        assert.is_true(
-          background_jobs.hasKey("tar -czf /tmp/backup.tar.gz /sdcard/books")
-        )
+        }))
+        local util = require("util")
+        assert.is_true(background_jobs.hasKey(util.functionFingerprint(exec_fn)))
+        assert.is_false(background_jobs.hasKey(util.functionFingerprint(action)))
       end
     )
 
@@ -378,50 +364,56 @@ describe("background_jobs", function()
     it(
       "should handle job without callback and release key on completion",
       function()
-        local res = background_jobs.insertKeyed({
-          executable = "echo 1",
-        })
-        assert.is_true(res)
-        assert.is_true(background_jobs.hasKey("echo 1"))
+        local function exec_fn() end
+        local key = require("util").functionFingerprint(exec_fn)
+        assert.is_true(background_jobs.insertKeyed({
+          executable = exec_fn,
+        }))
+        assert.is_true(background_jobs.hasKey(key))
 
         local job =
           mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
         assert.is_function(job.callback)
         job.callback({ result = 0 })
 
-        assert.is_false(background_jobs.hasKey("echo 1"))
+        assert.is_false(background_jobs.hasKey(key))
       end
     )
 
     it("should track multiple concurrent keys independently", function()
-      local res1 = background_jobs.insertKeyed({
-        executable = "echo alpha",
-      })
-      local res2 = background_jobs.insertKeyed({
-        executable = "echo beta",
-      })
+      local function makeFunc(tag)
+        return function()
+          return tag
+        end
+      end
+      local fn_alpha = makeFunc("alpha")
+      local fn_beta = makeFunc("beta")
+      local util = require("util")
+      local key_alpha = util.functionFingerprint(fn_alpha)
+      local key_beta = util.functionFingerprint(fn_beta)
 
-      assert.is_true(res1)
-      assert.is_true(res2)
-      assert.is_true(background_jobs.hasKey("echo alpha"))
-      assert.is_true(background_jobs.hasKey("echo beta"))
+      assert.is_true(background_jobs.insertKeyed({
+        executable = fn_alpha,
+      }))
+      assert.is_true(background_jobs.insertKeyed({
+        executable = fn_beta,
+      }))
 
-      local job1 = mock_pluginshare.backgroundJobs[4]
-      local job2 = mock_pluginshare.backgroundJobs[5]
+      assert.is_true(background_jobs.hasKey(key_alpha))
+      assert.is_true(background_jobs.hasKey(key_beta))
 
-      job1.callback({ result = 1 })
-      assert.is_false(background_jobs.hasKey("echo alpha"))
-      assert.is_true(background_jobs.hasKey("echo beta"))
+      mock_pluginshare.backgroundJobs[4].callback({ result = 1 })
+      assert.is_false(background_jobs.hasKey(key_alpha))
+      assert.is_true(background_jobs.hasKey(key_beta))
 
-      job2.callback({ result = 2 })
-      assert.is_false(background_jobs.hasKey("echo beta"))
+      mock_pluginshare.backgroundJobs[5].callback({ result = 2 })
+      assert.is_false(background_jobs.hasKey(key_beta))
     end)
 
     it("should assert if active key is cleared before callback or invoked twice", function()
-      local res = background_jobs.insertKeyed({
-        executable = "echo double_callback",
-      })
-      assert.is_true(res)
+      assert.is_true(background_jobs.insertKeyed({
+        executable = function() end,
+      }))
       local job =
         mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
       assert.is_function(job.callback)

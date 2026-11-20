@@ -648,6 +648,40 @@ describe("SyncService", function()
       )
 
       it(
+        "getTmpDir returns nil -> false, generic message, does not crash",
+        function()
+          package.loaded["datastorage"].getTmpDir = function()
+            return nil
+          end
+          local gettext = require("gettext")
+          local cb_called = false
+          local finish_res
+          SyncService.sync(
+            server,
+            "/path/to/book.epub",
+            function()
+              cb_called = true
+              return true
+            end,
+            false,
+            function(res)
+              finish_res = res
+            end
+          )
+          mock_network_mgr.cb()
+          assert.is_false(cb_called)
+          assert.is_false(finish_res)
+          assert.truthy(mock_uimanager.shown_widget)
+          assert.are.equal(
+            gettext(
+              "Something went wrong when syncing, please check your network connection and try again later."
+            ),
+            mock_uimanager.shown_widget.text
+          )
+        end
+      )
+
+      it(
         "sync_cb raises -> false, generic message, income temp file removed",
         function()
           local finish_res

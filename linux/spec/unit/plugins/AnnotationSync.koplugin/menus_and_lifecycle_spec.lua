@@ -773,20 +773,20 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
             sync_instance.manager:getLocalSettingValue("unknown:foo", {})
           end)
           assert.has_error(function()
-            sync_instance.manager:_writeLocalSettingValue("no_colon", 1)
+            sync_instance.manager:writeLocalSettingValue("no_colon", 1)
           end)
           assert.has_error(function()
-            sync_instance.manager:_writeLocalSettingValue("unknown:foo", 1)
+            sync_instance.manager:writeLocalSettingValue("unknown:foo", 1)
           end)
 
           assert.is_true(
-            sync_instance.manager:_writeLocalSettingValue(
+            sync_instance.manager:writeLocalSettingValue(
               "settings/gestures:custom_tap",
               "scalar_value"
             )
           )
           assert.is_true(
-            sync_instance.manager:_writeLocalSettingValue(
+            sync_instance.manager:writeLocalSettingValue(
               "settings/gestures:custom_tap.corner.action",
               "toggle_frontlight"
             )
@@ -928,7 +928,7 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           )
 
           assert.is_true(
-            sync_instance.manager:_writeLocalSettingValue(
+            sync_instance.manager:writeLocalSettingValue(
               "defaults:DCREREADER_CONFIG_DEFAULT_FONT_SIZE",
               28
             )
