@@ -428,6 +428,15 @@ describe("Updater module", function()
           .stub(socketutil.set_timeout)
           .was_called_with(socketutil, socketutil.FILE_BLOCK_TIMEOUT, -1)
         assert.stub(UIManager.tickAfterNext).was_called(1)
+        assert.are.equal(2, #shown_widgets)
+        assert.are.equal(
+          gettext("Downloading may take several minutes…"),
+          shown_widgets[2].text
+        )
+        assert.is_false(shown_widgets[2].dismissable)
+        assert.is_nil(shown_widgets[2].key_events.AnyKeyPressed)
+        assert.is_nil(shown_widgets[2].ges_events.TapClose)
+        assert.stub(UIManager.close).was_called_with(UIManager, shown_widgets[2])
         assert.stub(socketutil.reset_timeout).was_called(1)
         assert.stub(Device.unpackArchive).was_called_with(
           Device,
