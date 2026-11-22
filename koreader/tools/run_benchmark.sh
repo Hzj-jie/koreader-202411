@@ -1,6 +1,17 @@
 #!/bin/sh
 
-CDPATH="" cd -- "$(dirname -- "$0")/.." || exit 1
+case "$0" in
+    */*)
+        _bench_dir="${0%/*}"
+        case "${_bench_dir}" in
+            "") _bench_dir="/" ;;
+            /*) ;;
+            *) _bench_dir="./${_bench_dir}" ;;
+        esac
+        ;;
+    *) _bench_dir="." ;;
+esac
+CDPATH="" cd "${_bench_dir%/}/.." || exit 1
 
 BENCH_TMP_DIR="."
 for _cand in "${TMPDIR:-}" /var/tmp /tmp ./tmp; do
@@ -35,14 +46,14 @@ run_benchmark_vm() {
     echo "Benchmarking ${_bench_label} . . ."
     if [ ! -x "./${_bench_bin}" ]; then
         echo "./${_bench_bin} not found or not executable"
-        printf 'return { meta = { status = "MISSING", status_detail = "./%s not found or not executable" } }\n' "${_bench_bin}" >"${_bench_out}"
+        echo "return { meta = { status = \"MISSING\", status_detail = \"./${_bench_bin} not found or not executable\" } }" >"${_bench_out}"
         return 1
     fi
     ./"${_bench_bin}" tools/ui_benchmark.lua run "${_bench_out}" "$@" >>crash.log 2>&1
     _bench_rc=$?
     if [ "${_bench_rc}" -ne 0 ]; then
         echo "${_bench_label} benchmark failed (exit ${_bench_rc})"
-        printf 'return { meta = { status = "ERROR", status_detail = "exit code %s (see crash.log)" } }\n' "${_bench_rc}" >"${_bench_out}"
+        echo "return { meta = { status = \"ERROR\", status_detail = \"exit code ${_bench_rc} (see crash.log)\" } }" >"${_bench_out}"
         return "${_bench_rc}"
     fi
     return 0
@@ -72,7 +83,11 @@ if [ -n "${VIEWER_BIN}" ]; then
     fi
 else
     echo "Neither ./luajit nor ./lua is executable!"
-    printf "KOReader Benchmark Report\n\nError: neither ./luajit nor ./lua is executable.\n" >"${BENCH_LOG}"
+    {
+        echo "KOReader Benchmark Report"
+        echo ""
+        echo "Error: neither ./luajit nor ./lua is executable."
+    } >"${BENCH_LOG}"
     RETURN_VALUE=1
 fi
 

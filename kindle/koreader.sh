@@ -262,7 +262,7 @@ if [ "${RUN_BENCHMARK}" = "yes" ]; then
     if [ "${FROM_KUAL}" = "yes" ]; then
         eips_print_bottom_centered "Running Lua vs LuaJIT benchmark . . ." 1
     fi
-    ./tools/run_benchmark.sh "$@"
+    sh ./tools/run_benchmark.sh "$@" >>crash.log 2>&1
     RETURN_VALUE=$?
 else
     # finally call reader
