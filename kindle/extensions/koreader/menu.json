@@ -21,6 +21,15 @@
 			"exitmenu": false,
 			"status": false,
 			"internal": "status Start KOReader (lua)"
+		},
+		{
+			"name": "Benchmark (Lua vs LuaJIT)",
+			"priority": 4,
+			"action": "/mnt/us/koreader/koreader.sh",
+			"params": "--kual --benchmark",
+			"exitmenu": false,
+			"status": false,
+			"internal": "status Benchmark (Lua vs LuaJIT)"
 		}
 		]
 	}
