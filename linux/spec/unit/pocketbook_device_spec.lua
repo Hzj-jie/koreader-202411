@@ -46,6 +46,7 @@ describe("PocketBook device", function()
       assert.are.equal("PBTouchHDPlus", PocketBook.model)
       assert.is_true(PocketBook:isPocketBook())
       assert.is_true(PocketBook:canAssociateFileExtensions())
+      assert.is_true(PocketBook:hasNetwork())
       assert.are.equal(
         "/mnt/ext1/system/logo/offlogo/cover.bmp",
         PocketBook:getDefaultCoverPath()
@@ -65,6 +66,20 @@ describe("PocketBook device", function()
       poweroff_called = false
       PocketBook:powerOff()
       assert.is_true(poweroff_called)
+    end)
+
+    it("reports hasNetwork = false for PocketBook Basic (613) without Wi-Fi", function()
+      finally(function()
+        ffi.copy(model_c, "PB632")
+        package.loaded["device/pocketbook/device"] = PocketBook
+      end)
+
+      ffi.copy(model_c, "PB613")
+      package.loaded["device/pocketbook/device"] = nil
+      local pb613 = require("device/pocketbook/device")
+      assert.are.equal("PB613B", pb613.model)
+      assert.is_false(pb613:hasWifiToggle())
+      assert.is_false(pb613:hasNetwork())
     end)
   end)
 
