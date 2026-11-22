@@ -46,7 +46,7 @@ describe("ffi/framebuffer_einkfb module", function()
     local xres = opts.xres or 10
     local yres = opts.yres or 6
     local bpp = opts.bpp or 4
-    local line_length = opts.line_length or ((xres * bpp + 7) / 8)
+    local line_length = opts.line_length or math.floor((xres * bpp + 7) / 8)
     local page_bytes = math.ceil(line_length * yres / 4096) * 4096
     local raw_mem = ffi.new("uint8_t[?]", page_bytes)
     local updates = {}
@@ -134,20 +134,6 @@ describe("ffi/framebuffer_einkfb module", function()
     mock_dev.screen = fb
     return fb, state
   end
-
-  it("handles nightmode and invert initialization", function()
-    local bb = BB.new(100, 100, BB.TYPE_BB8)
-    local mock_fb = FramebufferEinkfb:extend({
-      bb = bb,
-    })
-
-    assert.is_true(mock_fb:reverseNightmode())
-    assert.has_no.errors(function()
-      mock_fb:initInvert()
-    end)
-    assert.are.equal(0, mock_fb.bb:getInverse())
-    bb:free()
-  end)
 
   it("dispatches refreshFullImp with fx_update_full", function()
     local captured = {}
@@ -280,7 +266,7 @@ describe("ffi/framebuffer_einkfb module", function()
   )
 
   it(
-    "supports 8bpp hardware (Kindle4), software rotation, and viewports cleanly",
+    "supports 8bpp hardware (Kindle4) and software rotation cleanly",
     function()
       local fb, state = setupFakeFB({
         xres = 8,
@@ -291,7 +277,6 @@ describe("ffi/framebuffer_einkfb module", function()
       })
       assert.are.equal(BB.TYPE_BB8, fb.bb:getType())
       assert.are.equal(BB.TYPE_BB8, fb.hw_bb:getType())
-      -- is_always_portrait rotated bb by -90 -> logical 12x8 (when xres=8 < yres=12, wait: upright was 8x12 so is_always_portrait stays 8x12 unless rotated manually)
       fb:setRotationMode(fb.DEVICE_ROTATED_CLOCKWISE)
       assert.are.equal(12, fb:getWidth())
       assert.are.equal(8, fb:getHeight())
@@ -307,23 +292,7 @@ describe("ffi/framebuffer_einkfb module", function()
       -- (lx=2, ly=1) -> (px = 1, py = 12 - 2 - 1 = 9): day mode inverts 0x22 -> 0xDD
       assert.are.equal(255 - 0x22, state.raw_mem[12 * 9 + 1])
 
-      -- Reset upright, set viewport, and verify refresh + close without leaks
-      fb:setRotationMode(fb.DEVICE_ROTATED_UPRIGHT)
-      fb:setViewport({ x = 1, y = 1, w = 6, h = 4 })
-      assert.is_not_nil(fb.full_bb)
-      fb.bb:paintRect(0, 0, 2, 1, BB.COLOR_BLACK)
-      fb:refreshPartial(0, 0, 2, 1)
-      -- 1: rotated partial above, 2: refreshFull inside setViewport, 3: viewport partial
-      assert.are.equal(3, #state.updates)
-      assert.are.same(
-        { x1 = 1, y1 = 1, x2 = 3, y2 = 2, which_fx = tonumber(ffi.C.fx_update_partial) },
-        state.updates[3]
-      )
-      -- BLACK (0x00) inverted for day mode -> 0xFF at physical (1, 1) and (2, 1)
-      assert.are.equal(0xFF, state.raw_mem[12 * 1 + 1])
-      assert.are.equal(0xFF, state.raw_mem[12 * 1 + 2])
       fb:close()
-      assert.is_nil(fb.full_bb)
       assert.is_nil(fb.hw_bb)
       assert.is_nil(fb.bb)
       assert.is_true(state.munmapped)

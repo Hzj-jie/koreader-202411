@@ -3131,10 +3131,10 @@ Flush a physical dirty rectangle from a `TYPE_BB8` shadow buffer into a
 `TYPE_BB4` or `TYPE_BB8` hardware framebuffer, applying optional bit inversion.
 
 @param dst target hardware buffer (`TYPE_BB4` or `TYPE_BB8`)
-@param x physical X coordinate (default: 0)
-@param y physical Y coordinate (default: 0)
-@param w physical width (default: dst.w)
-@param h physical height (default: dst.h)
+@param x physical X coordinate
+@param y physical Y coordinate
+@param w physical width
+@param h physical height
 @param invert invert pixel bits while flushing (default: false)
 --]]
 function BB_mt.__index:flushShadow(dst, x, y, w, h, invert)
@@ -3143,10 +3143,10 @@ function BB_mt.__index:flushShadow(dst, x, y, w, h, invert)
   cblitbuffer.BB_flush_shadow(
     ffi.cast(P_BlitBuffer_ROData, self),
     ffi.cast(P_BlitBuffer, dst),
-    x or 0,
-    y or 0,
-    w or dst.w,
-    h or dst.h,
+    x,
+    y,
+    w,
+    h,
     invert and 1 or 0
   )
 end
