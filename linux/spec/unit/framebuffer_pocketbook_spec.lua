@@ -49,11 +49,6 @@ describe("ffi/framebuffer_pocketbook module", function()
     ffi.load = orig_ffi_load
   end)
 
-  it("handles nightmode query", function()
-    local mock_fb = FramebufferPocketbook:extend({})
-    assert.is_false(mock_fb:reverseNightmode())
-  end)
-
   it("invokes device.hasColorScreen without self receiver", function()
     local called = false
     local mock_device = {

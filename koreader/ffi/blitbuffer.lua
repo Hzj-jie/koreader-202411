@@ -148,6 +148,8 @@ void BB_color_blit_from_RGB32(BlitBuffer * restrict dest, const BlitBuffer * res
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
 void BB_paint_rounded_corner(BlitBuffer * restrict bb, unsigned int off_x, unsigned int off_y, unsigned int w, unsigned int h,
                         unsigned int bw, unsigned int r, uint8_t c, int anti_alias);
+void BB_flush_shadow(const BlitBuffer * restrict src, BlitBuffer * restrict dst,
+                        unsigned int x, unsigned int y, unsigned int w, unsigned int h, int invert);
 ]])
 
 -- We'll load it later
@@ -3122,6 +3124,31 @@ function BB_mt.__index:darkenRect(x, y, w, h, by)
   else
     self:paintRect(x, y, w, h, color, self.setPixelBlend)
   end
+end
+
+--[[
+Flush a physical dirty rectangle from a `TYPE_BB8` shadow buffer into a
+`TYPE_BB4` or `TYPE_BB8` hardware framebuffer, applying optional bit inversion.
+
+@param dst target hardware buffer (`TYPE_BB4` or `TYPE_BB8`)
+@param x physical X coordinate
+@param y physical Y coordinate
+@param w physical width
+@param h physical height
+@param invert invert pixel bits while flushing (default: false)
+--]]
+function BB_mt.__index:flushShadow(dst, x, y, w, h, invert)
+  assert(self:getType() == TYPE_BB8)
+  assert(dst:getType() == TYPE_BB4 or dst:getType() == TYPE_BB8)
+  cblitbuffer.BB_flush_shadow(
+    ffi.cast(P_BlitBuffer_ROData, self),
+    ffi.cast(P_BlitBuffer, dst),
+    x,
+    y,
+    w,
+    h,
+    invert and 1 or 0
+  )
 end
 
 --[[
