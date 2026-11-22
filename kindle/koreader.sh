@@ -104,6 +104,12 @@ if [ "${1}" = "--lua" ]; then
     LUA_BIN="lua"
 fi
 
+RUN_BENCHMARK="no"
+if [ "${1}" = "--benchmark" ]; then
+    shift 1
+    RUN_BENCHMARK="yes"
+fi
+
 # If we were started by KUAL (either Kindlet or Booklet), we have a few more things to do...
 if [ "${FROM_KUAL}" = "yes" ]; then
     # Yield a bit to let stuff stop properly...
@@ -249,28 +255,37 @@ if [ -e "/etc/init.d/volumd" ] || [ -e "/etc/upstart/volumd.conf" ]; then
     VOLUMD_STOPPED="yes"
 fi
 
-# finally call reader
-logmsg "Starting KOReader . . ."
-# That's not necessary when using KPVBooklet ;).
-if [ "${FROM_KUAL}" = "yes" ]; then
-    eips_print_bottom_centered "Starting KOReader . . ." 1
-fi
-
 mv -f crash.log crash.prev.log || true
 
-RETURN_VALUE=85
-while [ "${RETURN_VALUE}" -eq 85 ]; do
-    ./"${LUA_BIN}" reader.lua "$@" >>crash.log 2>&1
-    RETURN_VALUE=$?
-    if [ "${RETURN_VALUE}" -eq 89 ]; then
-        if [ "${LUA_BIN}" = "lua" ]; then
-            LUA_BIN="luajit"
-        else
-            LUA_BIN="lua"
-        fi
-        RETURN_VALUE=85
+if [ "${RUN_BENCHMARK}" = "yes" ]; then
+    logmsg "Starting Lua vs LuaJIT benchmark . . ."
+    if [ "${FROM_KUAL}" = "yes" ]; then
+        eips_print_bottom_centered "Running Lua vs LuaJIT benchmark . . ." 1
     fi
-done
+    ./tools/run_benchmark.sh "$@"
+    RETURN_VALUE=$?
+else
+    # finally call reader
+    logmsg "Starting KOReader . . ."
+    # That's not necessary when using KPVBooklet ;).
+    if [ "${FROM_KUAL}" = "yes" ]; then
+        eips_print_bottom_centered "Starting KOReader . . ." 1
+    fi
+
+    RETURN_VALUE=85
+    while [ "${RETURN_VALUE}" -eq 85 ]; do
+        ./"${LUA_BIN}" reader.lua "$@" >>crash.log 2>&1
+        RETURN_VALUE=$?
+        if [ "${RETURN_VALUE}" -eq 89 ]; then
+            if [ "${LUA_BIN}" = "lua" ]; then
+                LUA_BIN="luajit"
+            else
+                LUA_BIN="lua"
+            fi
+            RETURN_VALUE=85
+        fi
+    done
+fi
 
 if [ "${RETURN_VALUE}" -ne 0 ]; then
     # Backup the crash.log in case of a crash.
@@ -278,10 +293,14 @@ if [ "${RETURN_VALUE}" -ne 0 ]; then
 fi
 
 # clean up our own process tree in case the reader crashed (if needed, to avoid flooding KUAL's log)
-if pidof "${LUA_BIN}" >/dev/null 2>&1; then
-    logmsg "Sending a SIGTERM to stray KOreader processes . . ."
-    killall -TERM "${LUA_BIN}"
-fi
+for _proc_bin in luajit lua; do
+    if [ "${RUN_BENCHMARK}" = "yes" ] || [ "${_proc_bin}" = "${LUA_BIN}" ]; then
+        if pidof "${_proc_bin}" >/dev/null 2>&1; then
+            logmsg "Sending a SIGTERM to stray KOreader processes (${_proc_bin}) . . ."
+            killall -TERM "${_proc_bin}"
+        fi
+    fi
+done
 
 # Resume volumd, if need be
 if [ "${VOLUMD_STOPPED}" = "yes" ]; then
