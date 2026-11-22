@@ -1,7 +1,7 @@
 describe("CommonInfoMenuTable element", function()
   local CommonInfoMenuTable
   local DataStorage, Device, Event, FfiUtil, Notification, UIManager, Version, dbg, lfs
-  local orig_hasKeyboard, orig_hasWifiToggle, orig_isAndroid
+  local orig_hasKeyboard, orig_hasNetwork, orig_isAndroid
   local orig_lfs_attributes
   local orig_getCurrentRevision, orig_getUncachedCurrentRevision, orig_getShortVersion
 
@@ -24,7 +24,7 @@ describe("CommonInfoMenuTable element", function()
     lfs = require("libs/libkoreader-lfs")
 
     orig_hasKeyboard = Device.hasKeyboard
-    orig_hasWifiToggle = Device.hasWifiToggle
+    orig_hasNetwork = Device.hasNetwork
     orig_isAndroid = Device.isAndroid
     orig_lfs_attributes = lfs.attributes
     orig_getCurrentRevision = Version.getCurrentRevision
@@ -34,7 +34,7 @@ describe("CommonInfoMenuTable element", function()
 
   teardown(function()
     Device.hasKeyboard = orig_hasKeyboard
-    Device.hasWifiToggle = orig_hasWifiToggle
+    Device.hasNetwork = orig_hasNetwork
     Device.isAndroid = orig_isAndroid
     lfs.attributes = orig_lfs_attributes
     Version.getCurrentRevision = orig_getCurrentRevision
@@ -48,7 +48,7 @@ describe("CommonInfoMenuTable element", function()
     Device.hasKeyboard = function()
       return false
     end
-    Device.hasWifiToggle = function()
+    Device.hasNetwork = function()
       return false
     end
     Device.isAndroid = function()
@@ -341,8 +341,8 @@ describe("CommonInfoMenuTable element", function()
   end)
 
   describe("ota_update option", function()
-    it("is omitted when Device does not have wifi toggle", function()
-      Device.hasWifiToggle = function()
+    it("is omitted when Device does not have network", function()
+      Device.hasNetwork = function()
         return false
       end
       lfs.attributes = function(path, attr)
@@ -357,7 +357,7 @@ describe("CommonInfoMenuTable element", function()
     end)
 
     it("is omitted when ./ko_update.sh is absent", function()
-      Device.hasWifiToggle = function()
+      Device.hasNetwork = function()
         return true
       end
       lfs.attributes = function(path, attr)
@@ -372,7 +372,7 @@ describe("CommonInfoMenuTable element", function()
     end)
 
     it("is omitted when DISABLE_OTA_UPDATE is true", function()
-      Device.hasWifiToggle = function()
+      Device.hasNetwork = function()
         return true
       end
       lfs.attributes = function(path, attr)
@@ -392,10 +392,10 @@ describe("CommonInfoMenuTable element", function()
     end)
 
     it(
-      "is included when Device has wifi toggle and ./ko_update.sh exists",
+      "is included when Device has network and ./ko_update.sh exists",
       function()
         local gettext = require("gettext")
-        Device.hasWifiToggle = function()
+        Device.hasNetwork = function()
           return true
         end
         lfs.attributes = function(path, attr)

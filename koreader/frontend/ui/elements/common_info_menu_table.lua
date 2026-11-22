@@ -22,7 +22,7 @@ local common_info = {}
 
 if
   not G_defaults:isTrue("DISABLE_OTA_UPDATE")
-  and Device:hasWifiToggle()
+  and Device:hasNetwork()
   and lfs.attributes("./ko_update.sh", "mode") == "file"
 then
   common_info.ota_update = {
