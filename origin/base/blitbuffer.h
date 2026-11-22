@@ -173,4 +173,6 @@ DLL_PUBLIC void BB_color_blit_from_RGB32(BlitBuffer * restrict dest, const BlitB
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
 DLL_PUBLIC void BB_paint_rounded_corner(BlitBuffer * restrict bb, unsigned int off_x, unsigned int off_y, unsigned int w, unsigned int h,
                         unsigned int bw, unsigned int r, uint8_t c, int anti_aliasing);
+DLL_PUBLIC void BB_flush_shadow(const BlitBuffer * restrict src, BlitBuffer * restrict dst,
+                        unsigned int x, unsigned int y, unsigned int w, unsigned int h, int invert);
 #endif

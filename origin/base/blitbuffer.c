@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -3450,5 +3451,60 @@ void BB_paint_rounded_corner_AA(BlitBuffer * restrict bb, unsigned int off_x, un
             ++y0;
             --y1;
         }
+    }
+}
+
+void BB_flush_shadow(const BlitBuffer * restrict src, BlitBuffer * restrict dst,
+        unsigned int x, unsigned int y, unsigned int w, unsigned int h, int invert) {
+    assert(src != NULL && dst != NULL && src->data != NULL && dst->data != NULL);
+    assert(GET_BB_TYPE(src) == TYPE_BB8);
+    assert(GET_BB_TYPE(dst) == TYPE_BB4 || GET_BB_TYPE(dst) == TYPE_BB8);
+
+    const unsigned int max_w = MIN(src->w, dst->w);
+    const unsigned int max_h = MIN(src->h, dst->h);
+    if (x >= max_w || y >= max_h || w == 0 || h == 0) {
+        return;
+    }
+    const unsigned int x_end = x + MIN(w, max_w - x);
+    const unsigned int y_end = y + MIN(h, max_h - y);
+    const unsigned int cw = x_end - x;
+    const uint8_t inv = invert ? 0xFFU : 0x00U;
+
+    switch (GET_BB_TYPE(dst)) {
+        case TYPE_BB4:
+            for (unsigned int j = y; j < y_end; j++) {
+                const uint8_t * restrict srcp = src->data + (size_t) src->stride * j;
+                uint8_t * restrict dstp = dst->data + (size_t) dst->stride * j;
+                unsigned int i = x;
+                if (i & 1U) {
+                    dstp[i >> 1U] = (uint8_t) ((dstp[i >> 1U] & 0xF0U) | ((srcp[i] ^ inv) >> 4U));
+                    i++;
+                }
+                while (i + 1U < x_end) {
+                    dstp[i >> 1U] = (uint8_t) (((srcp[i] ^ inv) & 0xF0U) | ((srcp[i + 1U] ^ inv) >> 4U));
+                    i += 2U;
+                }
+                if (i < x_end) {
+                    dstp[i >> 1U] = (uint8_t) (((srcp[i] ^ inv) & 0xF0U) | (dstp[i >> 1U] & 0x0FU));
+                }
+            }
+            break;
+        case TYPE_BB8:
+            if (inv == 0U) {
+                for (unsigned int j = y; j < y_end; j++) {
+                    memcpy(dst->data + (size_t) dst->stride * j + x,
+                           src->data + (size_t) src->stride * j + x,
+                           cw);
+                }
+            } else {
+                for (unsigned int j = y; j < y_end; j++) {
+                    const uint8_t * restrict srcp = src->data + (size_t) src->stride * j + x;
+                    uint8_t * restrict dstp = dst->data + (size_t) dst->stride * j + x;
+                    for (unsigned int i = 0; i < cw; i++) {
+                        dstp[i] = srcp[i] ^ 0xFFU;
+                    }
+                }
+            }
+            break;
     }
 }

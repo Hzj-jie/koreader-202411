@@ -256,4 +256,44 @@ describe("Kindle device", function()
       end
     )
   end)
+
+  describe("canUseCBB on einkfb Kindles", function()
+    it(
+      "enables C blitter on Kindle2, KindleDXG, Kindle3, and Kindle4",
+      function()
+        local cases = {
+          { serial = "B002123456789012\n", model = "Kindle2" },
+          { serial = "B009123456789012\n", model = "KindleDXG" },
+          { serial = "B008123456789012\n", model = "Kindle3" },
+          { serial = "B00E123456789012\n", model = "Kindle4" },
+        }
+        local orig_open = io.open
+        local orig_loaded = package.loaded["device/kindle/device"]
+        local usid_path = "/tmp/test_kindle_usid_cbb_" .. ffiUtil.getpid()
+        finally(function()
+          io.open = orig_open
+          os.remove(usid_path)
+          package.loaded["device/kindle/device"] = orig_loaded
+        end)
+
+        for _, case in ipairs(cases) do
+          local f = assert(orig_open(usid_path, "w"))
+          f:write(case.serial)
+          f:close()
+          io.open = function(path, mode)
+            if path == "/proc/usid" then
+              return orig_open(usid_path, mode)
+            end
+            return orig_open(path, mode)
+          end
+          package.loaded["device/kindle/device"] = nil
+          local dev = require("device/kindle/device")
+          assert.are.equal(case.model, dev.model)
+          assert.is_true(dev:canUseCBB())
+          assert.is_false(dev:canHWInvert())
+          assert.is_false(dev:canModifyFBInfo())
+        end
+      end
+    )
+  end)
 end)
