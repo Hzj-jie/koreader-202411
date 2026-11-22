@@ -582,7 +582,7 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       -- Rewrite /mnt/us and /var/tmp in a copy so POSIX sh execution hits our sandbox stubs only
       local raw_sh = readFile(workspace_dir .. "/kindle/koreader.sh")
       local test_sh = raw_sh
-        :gsub("/mnt/us/koreader", ko_dir)
+        :gsub("/mnt/us/koreader([^%.])", ko_dir .. "%1")
         :gsub("/mnt/us/", sandbox .. "/")
         :gsub("/var/tmp", vartmp_dir)
         :gsub("/etc/prettyversion%.txt", sandbox .. "/no_prettyversion")
@@ -655,6 +655,8 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       assert.is_nil(raw_runner:find("eips_print_bottom_centered", 1, true))
       assert.is_nil(raw_runner:find("libkohelper", 1, true))
       assert.is_nil(raw_runner:find("/mnt/us", 1, true))
+      assert.is_nil(raw_runner:find("dirname", 1, true))
+      assert.is_nil(raw_runner:find("printf", 1, true))
 
       local sandbox, plat_dir, tmp_dir, calls_log = createStandalonePlatform()
       finally(function()
@@ -818,6 +820,69 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       for entry in lfs.dir(tmp_dir) do
         assert.is_nil(entry:find("koreader-bench-", 1, true))
       end
+
+      -- Both VMs non-executable: writes error report to benchmark.log and exits non-zero
+      assert.are.same(0, os.execute(string.format("chmod -x %q %q", plat_dir .. "/luajit", plat_dir .. "/lua")))
+      local none_exec_rc = os.execute(
+        string.format("TMPDIR=%q %q >/dev/null 2>&1", tmp_dir, plat_dir .. "/tools/run_benchmark.sh")
+      )
+      assert.is_not.same(0, none_exec_rc)
+      assert.are.same(
+        "KOReader Benchmark Report\n\nError: neither ./luajit nor ./lua is executable.\n",
+        readFile(plat_dir .. "/benchmark.log")
+      )
+    end)
+
+    it("runs run_benchmark.sh without dirname or printf even from leading-dash relative paths", function()
+      local sandbox, _, tmp_dir, calls_log = createStandalonePlatform()
+      finally(function()
+        os.execute(string.format("rm -rf %q", sandbox))
+      end)
+
+      local dash_plat = sandbox .. "/-plat"
+      assert(lfs.mkdir(dash_plat))
+      assert.are.same(0, os.execute(string.format("ln -s %q %q", sandbox .. "/koreader/tools", dash_plat .. "/tools")))
+
+      local bad_bin = sandbox .. "/bad_bin"
+      assert(lfs.mkdir(bad_bin))
+      writeFile(bad_bin .. "/dirname", "#!/bin/sh\necho 'busybox: invalid option --' >&2\nexit 1\n")
+      writeFile(bad_bin .. "/printf", "#!/bin/sh\necho 'printf: not found' >&2\nexit 1\n")
+
+      local stub_vm = string.format(
+        "#!/bin/sh\nname=$(basename \"$0\")\nprintf 'BIN=%%s ARGS=%%s\\n' \"$name\" \"$*\" >>%q\n"
+          .. "if [ \"$2\" = \"run\" ] && [ -n \"$3\" ]; then printf 'return { meta = { status = \"OK\" } }\\n' >\"$3\"; fi\n"
+          .. "if [ \"$2\" = \"compare\" ] && [ -n \"$5\" ]; then cat \"$3\" \"$4\" >\"$5\"; fi\n"
+          .. "exit 0\n",
+        calls_log
+      )
+      writeFile(dash_plat .. "/luajit", stub_vm)
+      writeFile(dash_plat .. "/lua", stub_vm)
+      assert.are.same(
+        0,
+        os.execute(
+          string.format(
+            "chmod +x %q %q %q %q",
+            bad_bin .. "/dirname",
+            bad_bin .. "/printf",
+            dash_plat .. "/luajit",
+            dash_plat .. "/lua"
+          )
+        )
+      )
+
+      local rc = os.execute(
+        string.format(
+          "cd %q && PATH=%q:$PATH TMPDIR=%q sh -- %q 1.5 >/dev/null 2>&1",
+          sandbox,
+          bad_bin,
+          tmp_dir,
+          "-plat/tools/run_benchmark.sh"
+        )
+      )
+      assert.are.same(0, rc)
+      local calls = readFile(calls_log)
+      assert.truthy(calls:find("BIN=luajit ARGS=tools/ui_benchmark.lua show benchmark.log", 1, true))
+      assert.are.same("file", lfs.attributes(dash_plat .. "/benchmark.log", "mode"))
     end)
 
     it("delegates kindle/koreader.sh --kual --benchmark cleanly to tools/run_benchmark.sh", function()
@@ -839,6 +904,8 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       writeFile(ko_dir .. "/luajit", stub_vm)
       writeFile(ko_dir .. "/lua", stub_vm)
       assert.are.same(0, os.execute(string.format("chmod +x %q %q", ko_dir .. "/luajit", ko_dir .. "/lua")))
+      -- Launching must not rely on +x permission on tools/run_benchmark.sh (e.g. vfat mounts)
+      assert.are.same(0, os.execute(string.format("chmod -x %q", ko_dir .. "/tools/run_benchmark.sh")))
 
       local rc = os.execute(
         string.format(
@@ -876,6 +943,28 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       )
       assert.is_not.same(0, fail_rc)
       assert.is_nil(readFile(calls_log):find(" show ", 1, true))
+
+      -- Errors from run_benchmark.sh itself (not only VM invocations) are captured in crash.log and backed up
+      for entry in lfs.dir(sandbox) do
+        if entry:match("^koreader%.crash%.%d+%.log$") then
+          os.remove(sandbox .. "/" .. entry)
+        end
+      end
+      assert.are.same(0, os.execute(string.format("chmod -x %q %q", ko_dir .. "/luajit", ko_dir .. "/lua")))
+      local missing_vm_rc = os.execute(
+        string.format("PATH=%q:$PATH sh %q --kual --benchmark >/dev/null 2>&1", stub_bin, sandbox .. "/koreader.sh")
+      )
+      assert.is_not.same(0, missing_vm_rc)
+      local crash_log = readFile(ko_dir .. "/crash.log")
+      assert.truthy(crash_log:find("Neither ./luajit nor ./lua is executable!", 1, true))
+      local backup_contents
+      for entry in lfs.dir(sandbox) do
+        if entry:match("^koreader%.crash%.%d+%.log$") then
+          backup_contents = readFile(sandbox .. "/" .. entry)
+        end
+      end
+      assert.is_not_nil(backup_contents)
+      assert.truthy(backup_contents:find("Neither ./luajit nor ./lua is executable!", 1, true))
     end)
   end)
 end)
