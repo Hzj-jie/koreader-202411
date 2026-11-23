@@ -234,4 +234,22 @@ common_info.about = {
   end,
 }
 
+if Device:canRestart() then
+  assert(lfs.attributes("./tools/run_benchmark.sh", "mode") == "file")
+  common_info.lua_benchmark = {
+    text = gettext("Lua vs LuaJIT benchmark"),
+    callback = function()
+      UIManager:show(ConfirmBox:new({
+        text = gettext(
+          "KOReader will restart to run the Lua vs LuaJIT benchmark (this can take several minutes on slower devices) and reopen automatically afterward.\n\nStart benchmark now?"
+        ),
+        ok_text = gettext("Benchmark"),
+        ok_callback = function()
+          UIManager:broadcastEvent(Event:new("Restart", 90))
+        end,
+      }))
+    end,
+  }
+end
+
 return common_info

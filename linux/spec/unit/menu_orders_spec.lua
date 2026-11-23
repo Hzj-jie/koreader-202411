@@ -108,4 +108,28 @@ describe("menu_order modules", function()
       assert.are.equal(help_idx - 1, ota_idx)
     end
   end)
+
+  it("should place lua_benchmark before about in help menu", function()
+    local common_menu_order = require("ui/elements/common_menu_order")
+    local fm_order = require("ui/elements/filemanager_menu_order")
+    local reader_order = require("ui/elements/reader_menu_order")
+
+    for _, help_order in ipairs({
+      common_menu_order({}).help,
+      fm_order.help,
+      reader_order.help,
+    }) do
+      local bench_idx, about_idx
+      for i, key in ipairs(help_order) do
+        if key == "lua_benchmark" then
+          bench_idx = i
+        elseif key == "about" then
+          about_idx = i
+        end
+      end
+      assert.is_number(bench_idx)
+      assert.is_number(about_idx)
+      assert.is_true(bench_idx < about_idx)
+    end
+  end)
 end)
