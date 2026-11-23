@@ -231,7 +231,24 @@ function NetworkMgr:_setOnlineState(new_state, check_time)
   end)
 end
 
+local function hasUnmanagedNetwork()
+  return Device:hasNetwork() and not Device:hasWifiToggle()
+end
+
 function NetworkMgr:init()
+  if not Device:hasNetwork() then
+    return self
+  end
+
+  if
+    G_reader_settings:read("http_proxy_enabled")
+    and G_reader_settings:read("http_proxy")
+  then
+    self:setHTTPProxy(G_reader_settings:read("http_proxy"))
+  elseif G_defaults:read("NETWORK_PROXY") then
+    self:setHTTPProxy(G_defaults:read("NETWORK_PROXY"))
+  end
+
   Device:initNetworkManager(self)
   self.last_online_check_time = 0
 
@@ -311,18 +328,18 @@ function NetworkMgr:_turnOffWifi() end
 --     (and let it fail with network errors when offline, instead of looping on unimplemented stuff...).
 -- It's expected to be a cheap operation; if the implementation is heavy, use a cache.
 function NetworkMgr:isWifiOn()
-  return not Device:hasWifiToggle()
+  return hasUnmanagedNetwork()
 end
 -- This function is expected to be overridden by device.
 -- It's expected to be a cheap operation; if the implementation is heavy, use a cache.
 function NetworkMgr:isConnected()
-  return not Device:hasWifiToggle()
+  return hasUnmanagedNetwork()
 end
 
 -- A shortcut of isWifiOn and isConnected, do not expect to be overridden.
 -- The state of isConnected but !isWifiOn is in general not supported.
 function NetworkMgr:_isWifiConnected()
-  if not Device:hasWifiToggle() then
+  if hasUnmanagedNetwork() then
     return true
   end
   return self:isWifiOn() and self:isConnected()
@@ -588,7 +605,13 @@ end
 ---    *NOT* isOnline (i.e., WAN), se be careful with recursive callbacks!
 ---    Should only return false on *explicit* failures,
 ---    in which case the backend will already have called _abortWifiConnection
-function NetworkMgr:_beforeWifiAction()
+function NetworkMgr:_beforeWifiAction(notify_msg)
+  if not Device:hasNetwork() then
+    return
+  end
+  if notify_msg then
+    Notification:notify(notify_msg)
+  end
   if self:_isWifiConnected() then
     UIManager:show(ConfirmBox:new({
       text = gettext(
@@ -656,8 +679,8 @@ end
 
 -- Return a cached online state from the last _isOnline call.
 function NetworkMgr:isOnline()
-  -- For the same reasons as isWifiOn and isConnected above, bypass this on !hasWifiToggle platforms.
-  if not Device:hasWifiToggle() then
+  -- For the same reasons as isWifiOn and isConnected above, bypass this on unmanaged-network platforms.
+  if hasUnmanagedNetwork() then
     return true
   end
 
@@ -681,10 +704,9 @@ end
 -- Returns true if the callback has been "run".
 function NetworkMgr:runWhenOnline(callback)
   if self:willRerunWhenOnline(callback) then
-    Notification:notify(
+    self:_beforeWifiAction(
       gettext("Action will be performed after network being online")
     )
-    self:_beforeWifiAction()
     return false
   end
   return true
@@ -696,10 +718,9 @@ end
 -- Returns true if the callback has been "run"
 function NetworkMgr:runWhenConnected(callback)
   if self:willRerunWhenConnected(callback) then
-    Notification:notify(
+    self:_beforeWifiAction(
       gettext("Action will be performed after network being connected")
     )
-    self:_beforeWifiAction()
     return false
   end
   return true
@@ -1184,15 +1205,6 @@ function NetworkMgr:ipAddress()
   local r = std_out:read("*a")
   std_out:close()
   return r
-end
-
-if
-  G_reader_settings:read("http_proxy_enabled")
-  and G_reader_settings:read("http_proxy")
-then
-  NetworkMgr:setHTTPProxy(G_reader_settings:read("http_proxy"))
-elseif G_defaults:read("NETWORK_PROXY") then
-  NetworkMgr:setHTTPProxy(G_defaults:read("NETWORK_PROXY"))
 end
 
 if util.isTesting() then

@@ -299,8 +299,10 @@ function ReaderMenu:setUpdateItemTable()
   local PluginLoader = require("pluginloader")
   self.menu_items.plugin_management = PluginLoader:genPluginManagerMenu()
 
-  self.menu_items.cloud_storage =
-    require("ui/elements/cloud_storage_menu_table")
+  if Device:hasNetwork() then
+    self.menu_items.cloud_storage =
+      require("ui/elements/cloud_storage_menu_table")
+  end
   -- main menu tab
   -- insert common info
   for k, v in pairs(require("ui/elements/common_info_menu_table")) do

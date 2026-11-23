@@ -1829,5 +1829,23 @@ describe("KOSync plugin tests", function()
         kosync:onDispatcherRegisterActions()
       end
     end)
+
+    it(
+      "returns disabled table and skips saving device_id when Device:hasNetwork() is false",
+      function()
+        local orig_has_network = Device.hasNetwork
+        finally(function()
+          Device.hasNetwork = orig_has_network
+        end)
+
+        Device.hasNetwork = function()
+          return false
+        end
+        G_reader_settings:delete("device_id")
+        local mod = dofile("plugins/kosync.koplugin/main.lua")
+        assert.are.same({ disabled = true }, mod)
+        assert.is_true(G_reader_settings:hasNot("device_id"))
+      end
+    )
   end)
 end)

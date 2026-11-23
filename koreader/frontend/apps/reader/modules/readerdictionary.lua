@@ -295,12 +295,6 @@ function ReaderDictionary:addToMainMenu(menu_items)
         end,
       },
       {
-        text = gettext("Download dictionaries"),
-        sub_item_table_func = function()
-          return self:_genDownloadDictionariesMenu()
-        end,
-      },
-      {
         text_func = function()
           local text = gettext("Enable fuzzy search")
           if G_reader_settings:nilOrFalse("disable_fuzzy_search") then
@@ -407,6 +401,14 @@ function ReaderDictionary:addToMainMenu(menu_items)
       },
     },
   }
+  if Device:hasNetwork() then
+    table.insert(menu_items.dictionary_settings.sub_item_table, 2, {
+      text = gettext("Download dictionaries"),
+      sub_item_table_func = function()
+        return self:_genDownloadDictionariesMenu()
+      end,
+    })
+  end
   if Device:canExternalDictLookup() then
     local function genExternalDictItems()
       local items_table = {}

@@ -1507,6 +1507,136 @@ describe("network_manager module", function()
         end
       )
     end)
+
+    describe("Device:hasNetwork() == false gating", function()
+      it(
+        "skips init, proxy setup, online/connected state, and prompts when Device:hasNetwork() is false",
+        function()
+          local BackgroundJobs = require("background_jobs")
+          local Notification = require("ui/widget/notification")
+          local http = require("socket.http")
+          local orig_mgr = package.loaded["ui/network/manager"]
+          local orig_has_network = Device.hasNetwork
+          local orig_has_toggle = Device.hasWifiToggle
+          local orig_init_nm = Device.initNetworkManager
+          local orig_next_tick = UIManager.nextTick
+          local orig_bg_insert = BackgroundJobs.insert
+          local orig_notify = Notification.notify
+          local orig_show = UIManager.show
+          local orig_proxy = http.PROXY
+          local orig_proxy_enabled = G_reader_settings:read("http_proxy_enabled")
+          local orig_proxy_val = G_reader_settings:read("http_proxy")
+          local orig_wifi_action = G_reader_settings:read("wifi_enable_action")
+
+          finally(function()
+            Device.hasNetwork = orig_has_network
+            Device.hasWifiToggle = orig_has_toggle
+            Device.initNetworkManager = orig_init_nm
+            UIManager.nextTick = orig_next_tick
+            BackgroundJobs.insert = orig_bg_insert
+            Notification.notify = orig_notify
+            UIManager.show = orig_show
+            http.PROXY = orig_proxy
+            if orig_proxy_enabled ~= nil then
+              G_reader_settings:save("http_proxy_enabled", orig_proxy_enabled)
+            else
+              G_reader_settings:delete("http_proxy_enabled")
+            end
+            if orig_proxy_val ~= nil then
+              G_reader_settings:save("http_proxy", orig_proxy_val)
+            else
+              G_reader_settings:delete("http_proxy")
+            end
+            if orig_wifi_action ~= nil then
+              G_reader_settings:save("wifi_enable_action", orig_wifi_action)
+            else
+              G_reader_settings:delete("wifi_enable_action")
+            end
+            package.loaded["ui/network/manager"] = orig_mgr
+          end)
+
+          local init_nm_calls = 0
+          local next_tick_calls = 0
+          local bg_insert_calls = 0
+          local notify_calls = 0
+          local show_calls = 0
+
+          Device.hasNetwork = function()
+            return false
+          end
+          Device.hasWifiToggle = function()
+            return false
+          end
+          Device.initNetworkManager = function()
+            init_nm_calls = init_nm_calls + 1
+          end
+          UIManager.nextTick = function()
+            next_tick_calls = next_tick_calls + 1
+          end
+          BackgroundJobs.insert = function()
+            bg_insert_calls = bg_insert_calls + 1
+          end
+          Notification.notify = function()
+            notify_calls = notify_calls + 1
+          end
+          UIManager.show = function()
+            show_calls = show_calls + 1
+          end
+
+          http.PROXY = nil
+          G_reader_settings:makeTrue("http_proxy_enabled")
+          G_reader_settings:save("http_proxy", "http://127.0.0.1:8888")
+          G_reader_settings:save("wifi_enable_action", "turn_on")
+
+          package.loaded["ui/network/manager"] = nil
+          local no_net_mgr = require("ui/network/manager")
+
+          -- init() skips proxy, initNetworkManager, and startup/background tasks
+          assert.are.equal(0, init_nm_calls)
+          assert.are.equal(0, next_tick_calls)
+          assert.are.equal(0, bg_insert_calls)
+          assert.is_nil(http.PROXY)
+
+          -- Even with hasWifiToggle == false (PocketBook613), offline device reports false across all state helpers
+          assert.is_false(no_net_mgr:isWifiOn())
+          assert.is_false(no_net_mgr:isConnected())
+          assert.is_false(no_net_mgr:_isWifiConnected())
+          assert.is_false(no_net_mgr:isOnline())
+
+          -- Even with hasWifiToggle == true (KindleDXG), all state helpers remain false and callbacks/prompts stay suppressed
+          Device.hasWifiToggle = function()
+            return true
+          end
+          assert.is_false(no_net_mgr:isWifiOn())
+          assert.is_false(no_net_mgr:isConnected())
+          assert.is_false(no_net_mgr:_isWifiConnected())
+          assert.is_false(no_net_mgr:isOnline())
+
+          local cb_calls = 0
+          local cb = function()
+            cb_calls = cb_calls + 1
+          end
+          assert.is_false(no_net_mgr:runWhenOnline(cb))
+          assert.is_false(no_net_mgr:runWhenConnected(cb))
+          no_net_mgr:_beforeWifiAction()
+          assert.are.equal(0, cb_calls)
+          assert.are.equal(0, notify_calls)
+          assert.are.equal(0, show_calls)
+
+          -- Unmanaged networked devices (hasNetwork == true and hasWifiToggle == false) still report online
+          Device.hasNetwork = function()
+            return true
+          end
+          Device.hasWifiToggle = function()
+            return false
+          end
+          assert.is_true(no_net_mgr:isWifiOn())
+          assert.is_true(no_net_mgr:isConnected())
+          assert.is_true(no_net_mgr:_isWifiConnected())
+          assert.is_true(no_net_mgr:isOnline())
+        end
+      )
+    end)
   end)
 
   teardown(function()

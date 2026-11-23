@@ -3,6 +3,9 @@
 
 local DataStorage = require("datastorage")
 local Device = require("device")
+if not Device:hasNetwork() then
+  return { disabled = true }
+end
 local Event = require("ui/event")
 local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")

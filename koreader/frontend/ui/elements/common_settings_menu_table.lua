@@ -130,10 +130,12 @@ common_settings.night_mode = {
     )
   end,
 }
-common_settings.network = {
-  text = gettext("Network"),
-}
-NetworkMgr:getMenuTable(common_settings)
+if Device:hasNetwork() then
+  common_settings.network = {
+    text = gettext("Network"),
+  }
+  NetworkMgr:getMenuTable(common_settings)
+end
 
 common_settings.screen = {
   text = gettext("Screen"),

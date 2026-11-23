@@ -585,5 +585,27 @@ describe("Gestures plugin", function()
         gestures_instance:friendlyMultiswipeName("multiswipe_east_west")
       assert.are.equal("➡ ⬅", name)
     end)
+
+    it("omits Wi-Fi multiswipe defaults when Device:hasNetwork() is false", function()
+      local orig_has_network = Device.hasNetwork
+      local orig_has_toggle = Device.hasWifiToggle
+      finally(function()
+        Device.hasNetwork = orig_has_network
+        Device.hasWifiToggle = orig_has_toggle
+      end)
+
+      Device.hasNetwork = function()
+        return false
+      end
+      Device.hasWifiToggle = function()
+        return true
+      end
+      local defaults = dofile("plugins/gestures.koplugin/defaults.lua")
+      for _, mode in ipairs({ "gesture_fm", "gesture_reader" }) do
+        assert.are.same({}, defaults[mode].multiswipe_northwest_southwest_northwest)
+        assert.are.same({}, defaults[mode].multiswipe_southeast_southwest_northwest)
+        assert.are.same({}, defaults[mode].multiswipe_southeast_northeast_northwest)
+      end
+    end)
   end)
 end)

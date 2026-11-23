@@ -53,6 +53,9 @@ describe("filemanagermenu", function()
       supportsScreensaver = function()
         return true
       end,
+      hasNetwork = function()
+        return true
+      end,
       isStartupScriptUpToDate = function()
         return true
       end,
@@ -837,6 +840,15 @@ describe("filemanagermenu", function()
         exited = true
       end)
       assert.is_true(exited)
+    end)
+
+    it("omits cloud_storage menu entry when Device:hasNetwork() is false", function()
+      mock_device.hasNetwork = function()
+        return false
+      end
+      local menu = FileManagerMenu:new({ ui = mock_ui })
+      menu:setUpdateItemTable()
+      assert.is_nil(menu.menu_items.cloud_storage)
     end)
   end)
 end)

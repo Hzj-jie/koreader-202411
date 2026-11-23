@@ -418,5 +418,28 @@ describe("Readerdictionary module", function()
         UIManager:close(top.widget)
       end
     end)
+
+    it(
+      "omits Download dictionaries menu item when Device:hasNetwork() is false",
+      function()
+        local Device = require("device")
+        local gettext = require("gettext")
+        local orig_has_network = Device.hasNetwork
+        finally(function()
+          Device.hasNetwork = orig_has_network
+        end)
+
+        Device.hasNetwork = function()
+          return false
+        end
+        local menu_items = {}
+        dictionary:addToMainMenu(menu_items)
+        assert.is_table(menu_items.dictionary_settings)
+        assert.is_table(menu_items.dictionary_lookup)
+        for _, item in ipairs(menu_items.dictionary_settings.sub_item_table) do
+          assert.are_not.equal(gettext("Download dictionaries"), item.text)
+        end
+      end
+    )
   end)
 end)
