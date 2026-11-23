@@ -130,45 +130,46 @@ function Calibre:init()
 end
 
 function Calibre:addToMainMenu(menu_items)
-  local sub_item_table = {
-    {
-      text = gettext("Search settings"),
-      keep_menu_open = true,
-      sub_item_table = self:getSearchMenuTable(),
-    },
-  }
-  if Device:hasNetwork() then
-    table.insert(sub_item_table, 1, {
-      text_func = function()
-        if CalibreWireless.calibre_socket then
-          return gettext("Disconnect")
-        else
-          return gettext("Connect")
-        end
-      end,
-      separator = true,
-      enabled_func = function()
-        return G_reader_settings:nilOrTrue("calibre_wireless")
-      end,
-      callback = function()
-        if not CalibreWireless.calibre_socket then
-          CalibreWireless:connect()
-        else
-          CalibreWireless:disconnect()
-        end
-      end,
-    })
-    table.insert(sub_item_table, {
-      text = gettext("Wireless settings"),
-      keep_menu_open = true,
-      sub_item_table = self:getWirelessMenuTable(),
-    })
-  end
   menu_items.calibre = {
     -- its name is "calibre", but all our top menu items are uppercase.
     text = gettext("Calibre"),
-    sub_item_table = sub_item_table,
+    sub_item_table = {
+      {
+        text_func = function()
+          if CalibreWireless.calibre_socket then
+            return gettext("Disconnect")
+          else
+            return gettext("Connect")
+          end
+        end,
+        separator = true,
+        enabled_func = function()
+          return G_reader_settings:nilOrTrue("calibre_wireless")
+        end,
+        callback = function()
+          if not CalibreWireless.calibre_socket then
+            CalibreWireless:connect()
+          else
+            CalibreWireless:disconnect()
+          end
+        end,
+      },
+      {
+        text = gettext("Search settings"),
+        keep_menu_open = true,
+        sub_item_table = self:getSearchMenuTable(),
+      },
+      {
+        text = gettext("Wireless settings"),
+        keep_menu_open = true,
+        sub_item_table = self:getWirelessMenuTable(),
+      },
+    },
   }
+  if not Device:hasNetwork() then
+    table.remove(menu_items.calibre.sub_item_table, 3)
+    table.remove(menu_items.calibre.sub_item_table, 1)
+  end
   -- insert the metadata search
   if
     G_reader_settings:isTrue("calibre_search_from_reader") or not self.ui.view

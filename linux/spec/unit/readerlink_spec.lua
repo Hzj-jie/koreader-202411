@@ -671,5 +671,84 @@ describe("ReaderLink module", function()
         )
       end
     )
+
+    it(
+      "hides online Wikipedia lookup when Device:hasNetwork() is false while keeping saved EPUB access",
+      function()
+        local BD = require("ui/bidi")
+        local DataStorage = require("datastorage")
+        local Device = require("device")
+        local ffiutil = require("ffi/util")
+        local gettext = require("gettext")
+        local lfs = require("libs/libkoreader-lfs")
+        local T = ffiutil.template
+
+        local orig_has_network = Device.hasNetwork
+        local orig_wiki_dir = G_reader_settings:read("wikipedia_save_dir")
+        local orig_lastfile = G_reader_settings:read("lastfile")
+        local wiki_dir = DataStorage:getDataDir() .. "/test_wiki_saved_offline"
+        finally(function()
+          Device.hasNetwork = orig_has_network
+          G_reader_settings:save("wikipedia_save_dir", orig_wiki_dir)
+          G_reader_settings:save("lastfile", orig_lastfile)
+          ffiutil.purgeDir(wiki_dir)
+        end)
+
+        if readerui then
+          readerui:onExit()
+          readerui:onClose()
+          readerui = nil
+        end
+
+        Device.hasNetwork = function()
+          return false
+        end
+        readerui = ReaderUI:new({
+          dimen = Screen:getSize(),
+          document = DocumentRegistry:openDocument(sample_epub),
+        })
+
+        assert.is_nil(readerui.link._external_link_buttons["40_wiki_lookup"])
+        assert.truthy(readerui.link._external_link_buttons["45_wiki_saved"])
+
+        local unsaved_url = "https://en.wikipedia.org/wiki/HasNoNetworkUnsaved"
+        local buttons, title =
+          readerui.link:getButtonsForExternalLinkDialog(unsaved_url)
+        for _, row in ipairs(buttons) do
+          for _, btn in ipairs(row) do
+            assert.are_not.equal(gettext("Read online"), btn.text)
+            assert.are_not.equal(gettext("Read EPUB"), btn.text)
+          end
+        end
+        assert.are.equal(
+          T(gettext("External link:\n\n%1"), BD.url(unsaved_url)),
+          title
+        )
+
+        lfs.mkdir(wiki_dir)
+        local epub_path = wiki_dir .. "/HasNoNetworkSaved.EN.epub"
+        local f = assert(io.open(epub_path, "wb"))
+        f:write("dummy")
+        f:close()
+        G_reader_settings:save("wikipedia_save_dir", wiki_dir)
+        G_reader_settings:save("lastfile", nil)
+
+        local saved_url = "https://en.wikipedia.org/wiki/HasNoNetworkSaved"
+        local saved_buttons =
+          readerui.link:getButtonsForExternalLinkDialog(saved_url)
+        local has_read_online, has_read_epub = false, false
+        for _, row in ipairs(saved_buttons) do
+          for _, btn in ipairs(row) do
+            if btn.text == gettext("Read online") then
+              has_read_online = true
+            elseif btn.text == gettext("Read EPUB") then
+              has_read_epub = true
+            end
+          end
+        end
+        assert.is_false(has_read_online)
+        assert.is_true(has_read_epub)
+      end
+    )
   end)
 end)

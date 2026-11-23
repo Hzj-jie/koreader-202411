@@ -188,40 +188,44 @@ function ReaderLink:init()
       end,
     }
   end
-  self._external_link_buttons["40_wiki_lookup"] = function(this, link_url)
-    return {
-      text = gettext("Read online"),
-      callback = function()
-        UIManager:nextTick(function()
-          UIManager:close(this.external_link_dialog)
-          local wiki_lang, wiki_page = is_wiki_page(link_url)
-          UIManager:broadcastEvent(
-            Event:new(
-              "LookupWikipedia",
-              wiki_page,
-              true,
-              false,
-              true,
-              wiki_lang
+  if Device:hasNetwork() then
+    self._external_link_buttons["40_wiki_lookup"] = function(this, link_url)
+      return {
+        text = gettext("Read online"),
+        callback = function()
+          UIManager:nextTick(function()
+            UIManager:close(this.external_link_dialog)
+            local wiki_lang, wiki_page = is_wiki_page(link_url)
+            UIManager:broadcastEvent(
+              Event:new(
+                "LookupWikipedia",
+                wiki_page,
+                true,
+                false,
+                true,
+                wiki_lang
+              )
             )
-          )
-        end)
-      end,
-      show_in_dialog_func = function()
-        local wiki_lang, wiki_page = is_wiki_page(link_url)
-        if wiki_lang and wiki_page then
-          logger.dbg("Wikipedia link:", wiki_lang, wiki_page)
-          local text = T(
-            gettext("Would you like to read this Wikipedia %1 article?\n\n%2\n"),
-            wiki_lang:upper(),
-            wiki_page:gsub("_", " ")
-          )
-          return true, text
-        else
-          return false
-        end
-      end,
-    }
+          end)
+        end,
+        show_in_dialog_func = function()
+          local wiki_lang, wiki_page = is_wiki_page(link_url)
+          if wiki_lang and wiki_page then
+            logger.dbg("Wikipedia link:", wiki_lang, wiki_page)
+            local text = T(
+              gettext(
+                "Would you like to read this Wikipedia %1 article?\n\n%2\n"
+              ),
+              wiki_lang:upper(),
+              wiki_page:gsub("_", " ")
+            )
+            return true, text
+          else
+            return false
+          end
+        end,
+      }
+    end
   end
   self._external_link_buttons["45_wiki_saved"] = function(this, link_url)
     return {

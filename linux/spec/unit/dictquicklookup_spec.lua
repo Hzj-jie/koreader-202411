@@ -1276,5 +1276,68 @@ describe("DictQuickLookup", function()
       link_btn:callback()
       assert.are.equal("http://koreader.rocks", navigated_link)
     end)
+
+    it(
+      "omits Wikipedia and Translate buttons when Device:hasNetwork() is false",
+      function()
+        local gettext = require("gettext")
+        local orig_has_network = Device.hasNetwork
+        local orig_broadcast = UIManager.broadcastEvent
+        finally(function()
+          Device.hasNetwork = orig_has_network
+          UIManager.broadcastEvent = orig_broadcast
+        end)
+
+        Device.hasNetwork = function()
+          return false
+        end
+
+        local lookup = DictQuickLookup:new({
+          word = "test",
+          results = createDummyResults(),
+          highlight = {
+            saveHighlight = function() end,
+            clear = function() end,
+            getClearId = function()
+              return 1
+            end,
+          },
+          ui = { highlight = {} },
+        })
+
+        assert.is_nil(lookup.button_table:getButtonById("wikipedia"))
+        assert.is_not_nil(lookup.button_table:getButtonById("search"))
+        assert.is_not_nil(lookup.button_table:getButtonById("close"))
+        assert.are.equal(2, #lookup.button_table.buttons)
+        assert.are.equal(2, #lookup.button_table.buttons[2])
+        assert.are.equal("search", lookup.button_table.buttons[2][1].id)
+        assert.are.equal("close", lookup.button_table.buttons[2][2].id)
+
+        local broadcast_ev
+        UIManager.broadcastEvent = function(_, ev)
+          broadcast_ev = ev
+        end
+
+        lookup:onLookupInputWord("hint")
+        assert.truthy(lookup.input_dialog)
+        assert.are.equal(1, #lookup.input_dialog.buttons)
+        assert.are.equal(2, #lookup.input_dialog.buttons[1])
+        assert.are.equal(
+          gettext("Cancel"),
+          lookup.input_dialog.buttons[1][1].text
+        )
+        assert.are.equal(
+          gettext("Search dictionary"),
+          lookup.input_dialog.buttons[1][2].text
+        )
+
+        lookup.input_dialog.getInputText = function()
+          return "offline_word"
+        end
+        lookup.input_dialog.buttons[1][2].callback()
+        assert.truthy(broadcast_ev)
+        assert.are.equal("onLookupWord", broadcast_ev.handler)
+      end
+    )
   end)
 end)

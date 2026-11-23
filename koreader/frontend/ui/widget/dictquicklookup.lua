@@ -569,6 +569,9 @@ function DictQuickLookup:init()
         },
       },
     }
+    if not Device:hasNetwork() then
+      table.remove(buttons[2], 1)
+    end
     if not self.is_wiki and self.selected_link ~= nil then
       -- If highlighting some word part of a link (which should be rare),
       -- add a new first row with a single button to follow this link.
@@ -1282,57 +1285,61 @@ function DictQuickLookup:onForwardingPanRelease(arg, ges)
 end
 
 function DictQuickLookup:onLookupInputWord(hint)
+  local buttons = {
+    {
+      {
+        text = gettext("Translate"),
+        callback = function()
+          local text = self.input_dialog:getInputText()
+          if text ~= "" then
+            UIManager:close(self.input_dialog)
+            Translator:showTranslation(text, true)
+          end
+        end,
+      },
+      {
+        text = gettext("Search Wikipedia"),
+        is_enter_default = self.is_wiki,
+        callback = function()
+          local text = self.input_dialog:getInputText()
+          if text ~= "" then
+            UIManager:close(self.input_dialog)
+            self.is_wiki = true
+            self:lookupWikipedia(false, text, true)
+          end
+        end,
+      },
+    },
+    {
+      {
+        text = gettext("Cancel"),
+        id = "close",
+        callback = function()
+          UIManager:close(self.input_dialog)
+        end,
+      },
+      {
+        text = gettext("Search dictionary"),
+        is_enter_default = not self.is_wiki,
+        callback = function()
+          local text = self.input_dialog:getInputText()
+          if text ~= "" then
+            UIManager:close(self.input_dialog)
+            self.is_wiki = false
+            UIManager:broadcastEvent(Event:new("LookupWord", text, true))
+          end
+        end,
+      },
+    },
+  }
+  if not Device:hasNetwork() then
+    table.remove(buttons, 1)
+  end
   self.input_dialog = InputDialog:new({
     title = gettext("Enter a word or phrase to look up"),
     input = hint,
     input_hint = hint,
-    buttons = {
-      {
-        {
-          text = gettext("Translate"),
-          callback = function()
-            local text = self.input_dialog:getInputText()
-            if text ~= "" then
-              UIManager:close(self.input_dialog)
-              Translator:showTranslation(text, true)
-            end
-          end,
-        },
-        {
-          text = gettext("Search Wikipedia"),
-          is_enter_default = self.is_wiki,
-          callback = function()
-            local text = self.input_dialog:getInputText()
-            if text ~= "" then
-              UIManager:close(self.input_dialog)
-              self.is_wiki = true
-              self:lookupWikipedia(false, text, true)
-            end
-          end,
-        },
-      },
-      {
-        {
-          text = gettext("Cancel"),
-          id = "close",
-          callback = function()
-            UIManager:close(self.input_dialog)
-          end,
-        },
-        {
-          text = gettext("Search dictionary"),
-          is_enter_default = not self.is_wiki,
-          callback = function()
-            local text = self.input_dialog:getInputText()
-            if text ~= "" then
-              UIManager:close(self.input_dialog)
-              self.is_wiki = false
-              UIManager:broadcastEvent(Event:new("LookupWord", text, true))
-            end
-          end,
-        },
-      },
-    },
+    buttons = buttons,
   })
   self:showWidget(self.input_dialog)
 end
