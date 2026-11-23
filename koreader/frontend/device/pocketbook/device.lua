@@ -510,6 +510,7 @@ local PocketBook613 = PocketBook:extend({
   isTouchDevice = util.no,
   hasWifiToggle = util.no,
   hasSeamlessWifiToggle = util.no,
+  hasNetwork = util.no,
   hasFrontlight = util.no,
   hasDPad = util.yes,
   hasFewKeys = util.yes,
