@@ -460,20 +460,32 @@ end
 function FileManagerHistory:doBuildHistory()
   local updated = false
   UIManager:runWith(function()
-    local records = {}
-    util.findFiles(
-      G_named_settings.home_dir():gsub("(.+)/+$", "%1"),
-      function(path, _, attr)
-        local book_path, replaced =
-          path:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-        if replaced > 0 then
-          table.insert(records, {
-            file = book_path,
-            time = attr.modification,
-          })
+    local times_by_file = {}
+    local function scanSidecars(root, prefix_len)
+      util.findFiles(root, function(path, _, attr)
+        local book_path, replaced = path
+          :sub(prefix_len + 1)
+          :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+        if
+          replaced > 0
+          and book_path ~= ""
+          and util.fileExists(book_path)
+          and (not times_by_file[book_path] or attr.modification > times_by_file[book_path])
+        then
+          times_by_file[book_path] = attr.modification
         end
-      end
-    )
+      end)
+    end
+    scanSidecars(G_named_settings.home_dir():gsub("(.+)/+$", "%1"), 0)
+    local docsettings_dir = DataStorage:getDocSettingsDir():gsub("/+$", "")
+    scanSidecars(docsettings_dir, #docsettings_dir)
+    local records = {}
+    for file, mtime in pairs(times_by_file) do
+      table.insert(records, {
+        file = file,
+        time = mtime,
+      })
+    end
     table.sort(records, function(l, r)
       return l.time > r.time
     end)
