@@ -462,10 +462,14 @@ function FileManager:init()
   )
   self:registerModule("languagesupport", LanguageSupport:new({ ui = self }))
   self:registerModule("dictionary", ReaderDictionary:new({ ui = self }))
-  self:registerModule("wikipedia", ReaderWikipedia:new({ ui = self }))
+  if Device:hasNetwork() then
+    self:registerModule("wikipedia", ReaderWikipedia:new({ ui = self }))
+  end
   self:registerModule("devicestatus", ReaderDeviceStatus:new({ ui = self }))
   self:registerModule("devicelistener", DeviceListener:new({ ui = self }))
-  self:registerModule("networklistener", NetworkListener:new({ ui = self }))
+  if Device:hasNetwork() then
+    self:registerModule("networklistener", NetworkListener:new({ ui = self }))
+  end
 
   -- koreader plugins
   for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do

@@ -888,4 +888,24 @@ describe("ReaderMenu integration", function()
       ReaderMenu:new({ ui = {} })
     end)
   end)
+
+  it("omits cloud_storage menu entry when Device:hasNetwork() is false", function()
+    local Device = require("device")
+    local orig_has_network = Device.hasNetwork
+    local readerui
+    finally(function()
+      Device.hasNetwork = orig_has_network
+      if readerui and ReaderUI.instance == readerui then
+        readerui:onExit()
+        readerui:onClose()
+      end
+    end)
+
+    Device.hasNetwork = function()
+      return false
+    end
+    readerui = createReaderUI()
+    readerui.menu:setUpdateItemTable()
+    assert.is_nil(readerui.menu.menu_items.cloud_storage)
+  end)
 end)

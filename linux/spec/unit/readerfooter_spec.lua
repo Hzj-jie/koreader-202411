@@ -1415,4 +1415,75 @@ describe("Readerfooter module", function()
       readerui:onClose()
     end
   )
+
+  it(
+    "omits wifi_status from footer text and menu when Device:hasNetwork() is false",
+    function()
+      local Device = require("device")
+      local gettext = require("gettext")
+      local C_ = gettext.pgettext
+      local T = require("ffi/util").template
+      local orig_has_network = Device.hasNetwork
+      local orig_footer = package.loaded["apps/reader/modules/readerfooter"]
+      local orig_view = package.loaded["apps/reader/modules/readerview"]
+      local orig_readerui = package.loaded["apps/reader/readerui"]
+      local no_net_ui
+      local sample_epub = footer_sample_epub
+
+      finally(function()
+        if no_net_ui and no_net_ui.document then
+          no_net_ui:onExit()
+          no_net_ui:onClose()
+        end
+        purgeDir(DocSettings:open(sample_epub).candidates[1].dir)
+        os.remove(DocSettings:getHistoryPath(sample_epub))
+        Device.hasNetwork = orig_has_network
+        package.loaded["apps/reader/modules/readerfooter"] = orig_footer
+        package.loaded["apps/reader/modules/readerview"] = orig_view
+        package.loaded["apps/reader/readerui"] = orig_readerui
+      end)
+
+      Device.hasNetwork = function()
+        return false
+      end
+      package.loaded["apps/reader/modules/readerfooter"] = nil
+      package.loaded["apps/reader/modules/readerview"] = nil
+      package.loaded["apps/reader/readerui"] = nil
+
+      local FreshReaderUI = require("apps/reader/readerui")
+      local settings = G_reader_settings:read("footer")
+      settings.wifi_status = true
+      settings.item_prefix = "letters"
+      settings.all_at_once = true
+      G_reader_settings:save("footer", settings)
+
+      no_net_ui = FreshReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      local footer = no_net_ui.view.footer
+      footer:onUpdateFooter()
+      assert.is_nil(footer.mode_list.wifi_status)
+      assert.is_nil(footer.footer_text.text:find(C_("FooterLetterPrefix", "W:"), 1, true))
+
+      local fake_menu = { setting = {} }
+      footer:addToMainMenu(fake_menu)
+      local status_items_submenu
+      for _, item in ipairs(fake_menu.status_bar.sub_item_table) do
+        if item.text == gettext("Status bar items") then
+          status_items_submenu = item.sub_item_table
+          break
+        end
+      end
+      assert.is_table(status_items_submenu)
+
+      local wifi_item_title = T(
+        gettext("Wi-Fi status (%1)"),
+        C_("FooterLetterPrefix", "W:")
+      )
+      for _, item in ipairs(status_items_submenu) do
+        assert.are_not.equal(wifi_item_title, item.text)
+      end
+    end
+  )
 end)

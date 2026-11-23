@@ -329,4 +329,21 @@ describe("Common Settings Menu Table Spec", function()
     assert.is_true(called)
     Screenshoter.chooseFolder = orig_choose
   end)
+
+  it("omits network menu when Device:hasNetwork() is false", function()
+    local orig_has_network = Device.hasNetwork
+    local orig_loaded = package.loaded["ui/elements/common_settings_menu_table"]
+    finally(function()
+      Device.hasNetwork = orig_has_network
+      package.loaded["ui/elements/common_settings_menu_table"] = orig_loaded
+    end)
+
+    Device.hasNetwork = function()
+      return false
+    end
+    package.loaded["ui/elements/common_settings_menu_table"] = nil
+    local no_net_settings = require("ui/elements/common_settings_menu_table")
+    assert.is_nil(no_net_settings.network)
+    assert.is_table(no_net_settings.screen)
+  end)
 end)

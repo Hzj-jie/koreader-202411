@@ -172,8 +172,8 @@ local function add_sync_time()
   local ffi = require("ffi")
   local C = ffi.C
   require("ffi/posix_h")
-  -- We need to be root to be able to set the time (CAP_SYS_TIME)
-  if C.getuid() ~= 0 then
+  -- We need network connectivity and root (CAP_SYS_TIME) to set the time via NTP
+  if not Device:hasNetwork() or C.getuid() ~= 0 then
     return
   end
 

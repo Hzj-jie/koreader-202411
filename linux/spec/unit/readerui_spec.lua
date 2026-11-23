@@ -161,4 +161,34 @@ describe("Readerui module", function()
     assert.is_nil(pic_readerui.document)
     pic_readerui:onClose()
   end)
+
+  it(
+    "skips registering wikipedia and networklistener when Device:hasNetwork() is false",
+    function()
+      local Device = require("device")
+      local orig_has_network = Device.hasNetwork
+      local no_net_ui
+      finally(function()
+        Device.hasNetwork = orig_has_network
+        if no_net_ui and ReaderUI.instance == no_net_ui then
+          if no_net_ui.document then
+            no_net_ui:onExit()
+          end
+          no_net_ui:onClose()
+        end
+        DocSettings:open(sample_epub):purge()
+      end)
+
+      Device.hasNetwork = function()
+        return false
+      end
+      no_net_ui = ReaderUI:new({
+        dimen = Screen:getSize(),
+        document = DocumentRegistry:openDocument(sample_epub),
+      })
+      assert.is_nil(no_net_ui.wikipedia)
+      assert.is_nil(no_net_ui.networklistener)
+      assert.is_truthy(no_net_ui.dictionary)
+    end
+  )
 end)

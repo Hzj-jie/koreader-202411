@@ -775,4 +775,60 @@ describe("time_settings_menu_table module", function()
     idle_fn()
     assert.stub(insert_stub).was_not_called()
   end)
+
+  it("skips NTP time sync setup when Device:hasNetwork() is false", function()
+    local ffi = require("ffi")
+    local lfs = require("libs/libkoreader-lfs")
+    local gettext = require("gettext")
+    local BackgroundJobs = require("background_jobs")
+    local original_ffi_C = ffi.C
+    local orig_symlinkattributes = lfs.symlinkattributes
+    local orig_insert = BackgroundJobs.insert
+    local orig_has_network = Device.hasNetwork
+    local orig_loaded = package.loaded["ui/elements/time_settings_menu_table"]
+
+    local mock_C = setmetatable({
+      getuid = function()
+        return 0
+      end,
+    }, {
+      __index = original_ffi_C,
+    })
+    package.loaded["ffi"] = setmetatable({ C = mock_C }, { __index = ffi })
+
+    local inserted_jobs = {}
+    BackgroundJobs.insert = function(job)
+      table.insert(inserted_jobs, job)
+    end
+    local exec_stub = stub(os, "execute", function()
+      return 0
+    end)
+    lfs.symlinkattributes = function(path)
+      if path:match("ntpd$") then
+        return { mode = "link", target = "/bin/busybox" }
+      end
+      return nil
+    end
+
+    finally(function()
+      package.loaded["ffi"] = ffi
+      exec_stub:revert()
+      lfs.symlinkattributes = orig_symlinkattributes
+      BackgroundJobs.insert = orig_insert
+      Device.hasNetwork = orig_has_network
+      package.loaded["ui/elements/time_settings_menu_table"] = orig_loaded
+    end)
+
+    Device.hasNetwork = function()
+      return false
+    end
+    package.loaded["ui/elements/time_settings_menu_table"] = nil
+    local custom_menu = require("ui/elements/time_settings_menu_table")
+
+    assert.stub(exec_stub).was_not_called()
+    assert.are.equal(0, #inserted_jobs)
+    for _, item in ipairs(custom_menu.sub_item_table) do
+      assert.are_not.equal(gettext("Automatically synchronize time"), item.text)
+    end
+  end)
 end)

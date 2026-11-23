@@ -537,8 +537,10 @@ To:
   -- tools tab
   self.menu_items.plugin_management = PluginLoader:genPluginManagerMenu()
 
-  self.menu_items.cloud_storage =
-    require("ui/elements/cloud_storage_menu_table")
+  if Device:hasNetwork() then
+    self.menu_items.cloud_storage =
+      require("ui/elements/cloud_storage_menu_table")
+  end
 
   self.menu_items.file_search = {
     -- @translators Search for files by name.

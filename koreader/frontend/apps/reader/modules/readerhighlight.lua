@@ -119,7 +119,7 @@ function ReaderHighlight:init()
     end,
     -- then information lookup functions, putting on the left those that
     -- depend on an internet connection.
-    ["05_wikipedia"] = function(this)
+    ["05_wikipedia"] = Device:hasNetwork() and function(this)
       return {
         text = gettext("Wikipedia"),
         callback = function()
@@ -131,7 +131,7 @@ function ReaderHighlight:init()
           end)
         end,
       }
-    end,
+    end or nil,
     ["06_dictionary"] = function(this)
       return {
         text = gettext("Dictionary"),
@@ -141,7 +141,7 @@ function ReaderHighlight:init()
         end,
       }
     end,
-    ["07_translate"] = function(this, index)
+    ["07_translate"] = Device:hasNetwork() and function(this, index)
       return {
         text = gettext("Translate"),
         callback = function()
@@ -153,7 +153,7 @@ function ReaderHighlight:init()
           -- button and does not need to select the text again.
         end,
       }
-    end,
+    end or nil,
     -- buttons 08-11 are conditional ones, so the number of buttons can be even or odd
     -- let the Search button be the last, occasionally narrow or wide, less confusing
     ["12_search"] = function(this)
@@ -443,11 +443,13 @@ local long_press_action = {
   { gettext("Highlight"), "highlight" },
   { gettext("Select and highlight"), "select" },
   { gettext("Add note"), "note" },
-  { gettext("Translate"), "translate" },
-  { gettext("Wikipedia"), "wikipedia" },
-  { gettext("Dictionary"), "dictionary" },
-  { gettext("Fulltext search"), "search" },
 }
+if Device:hasNetwork() then
+  table.insert(long_press_action, { gettext("Translate"), "translate" })
+  table.insert(long_press_action, { gettext("Wikipedia"), "wikipedia" })
+end
+table.insert(long_press_action, { gettext("Dictionary"), "dictionary" })
+table.insert(long_press_action, { gettext("Fulltext search"), "search" })
 
 local highlight_dialog_position = {
   { gettext("Top"), "top" },
@@ -1036,13 +1038,15 @@ Except when in two columns mode, where this is limited to showing only the previ
   end
 
   -- main menu Search
-  menu_items.translation_settings = Translator:genSettingsMenu()
-  menu_items.translate_current_page = {
-    text = gettext("Translate current page"),
-    callback = function()
-      self:onTranslateCurrentPage()
-    end,
-  }
+  if Device:hasNetwork() then
+    menu_items.translation_settings = Translator:genSettingsMenu()
+    menu_items.translate_current_page = {
+      text = gettext("Translate current page"),
+      callback = function()
+        self:onTranslateCurrentPage()
+      end,
+    }
+  end
 end
 
 function ReaderHighlight:genPanelZoomMenu()

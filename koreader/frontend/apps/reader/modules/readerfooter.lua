@@ -564,6 +564,9 @@ function ReaderFooter:init()
   if not Device:hasNaturalLight() then
     MODE.frontlight_warmth = nil
   end
+  if not Device:hasNetwork() then
+    MODE.wifi_status = nil
+  end
 
   -- self.mode_index will be an array of MODE names, with an additional element
   -- with key 0 for "off", which feels a bit strange but seems to work...
@@ -1461,7 +1464,9 @@ function ReaderFooter:addToMainMenu(menu_items)
     table.insert(footer_items, getMinibarOption("frontlight_warmth"))
   end
   table.insert(footer_items, getMinibarOption("mem_usage"))
-  table.insert(footer_items, getMinibarOption("wifi_status"))
+  if Device:hasNetwork() then
+    table.insert(footer_items, getMinibarOption("wifi_status"))
+  end
   table.insert(footer_items, getMinibarOption("page_turning_inverted"))
   table.insert(footer_items, getMinibarOption("book_author"))
   table.insert(footer_items, getMinibarOption("book_title"))

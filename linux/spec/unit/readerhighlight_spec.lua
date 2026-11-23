@@ -1885,5 +1885,53 @@ describe("Readerhighlight module", function()
         readerui.annotation.annotations = {}
       end
     )
+
+    it(
+      "omits Wikipedia and Translate actions and menus when Device:hasNetwork() is false",
+      function()
+        local Device = require("device")
+        local gettext = require("gettext")
+        local orig_has_network = Device.hasNetwork
+        local orig_loaded = package.loaded["apps/reader/modules/readerhighlight"]
+        finally(function()
+          Device.hasNetwork = orig_has_network
+          package.loaded["apps/reader/modules/readerhighlight"] = orig_loaded
+        end)
+
+        Device.hasNetwork = function()
+          return false
+        end
+        package.loaded["apps/reader/modules/readerhighlight"] = nil
+        local FreshHighlight = require("apps/reader/modules/readerhighlight")
+        local no_net_hl = FreshHighlight:new({
+          ui = readerui,
+          document = readerui.document,
+        })
+
+        assert.is_nil(no_net_hl._highlight_buttons["05_wikipedia"])
+        assert.is_nil(no_net_hl._highlight_buttons["07_translate"])
+        assert.is_truthy(no_net_hl._highlight_buttons["06_dictionary"])
+
+        local _, action_texts = no_net_hl:getHighlightActions()
+        local has_wiki, has_translate, has_dict = false, false, false
+        for _, text in ipairs(action_texts) do
+          if text == gettext("Wikipedia") then
+            has_wiki = true
+          elseif text == gettext("Translate") then
+            has_translate = true
+          elseif text == gettext("Dictionary") then
+            has_dict = true
+          end
+        end
+        assert.is_false(has_wiki)
+        assert.is_false(has_translate)
+        assert.is_true(has_dict)
+
+        local menu_items = {}
+        no_net_hl:addToMainMenu(menu_items)
+        assert.is_nil(menu_items.translation_settings)
+        assert.is_nil(menu_items.translate_current_page)
+      end
+    )
   end)
 end)

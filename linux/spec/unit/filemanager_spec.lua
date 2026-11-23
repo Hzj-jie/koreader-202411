@@ -1556,5 +1556,31 @@ describe("FileManager module", function()
 
       filemanager:onExit()
     end)
+
+    it(
+      "skips registering wikipedia and networklistener when Device:hasNetwork() is false",
+      function()
+        local Device = require("device")
+        local orig_has_network = Device.hasNetwork
+        local fm
+        finally(function()
+          Device.hasNetwork = orig_has_network
+          if fm and FileManager.instance == fm then
+            fm:onExit()
+          end
+        end)
+
+        Device.hasNetwork = function()
+          return false
+        end
+        fm = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = "spec/unit/data",
+        })
+        assert.is_nil(fm.wikipedia)
+        assert.is_nil(fm.networklistener)
+        assert.is_truthy(fm.dictionary)
+      end
+    )
   end)
 end)

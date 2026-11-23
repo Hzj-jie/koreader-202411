@@ -217,13 +217,15 @@ function ReaderUI:init()
     })
   )
   -- wikipedia
-  self:registerModule(
-    "wikipedia",
-    ReaderWikipedia:new({
-      ui = self,
-      document = self.document,
-    })
-  )
+  if Device:hasNetwork() then
+    self:registerModule(
+      "wikipedia",
+      ReaderWikipedia:new({
+        ui = self,
+        document = self.document,
+      })
+    )
+  end
   -- device status controller
   self:registerModule(
     "devicestatus",
@@ -489,13 +491,15 @@ function ReaderUI:init()
       ui = self,
     })
   )
-  self:registerModule(
-    "networklistener",
-    NetworkListener:new({
-      document = self.document,
-      ui = self,
-    })
-  )
+  if Device:hasNetwork() then
+    self:registerModule(
+      "networklistener",
+      NetworkListener:new({
+        document = self.document,
+        ui = self,
+      })
+    )
+  end
 
   -- koreader plugins
   for _, plugin_module in ipairs(PluginLoader:loadPlugins()) do
