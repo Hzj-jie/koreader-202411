@@ -361,7 +361,6 @@ function UIBenchmark.benchBlitbufferOps(env, max_secs)
   local dst_bb = Blitbuffer.new(pw, ph, fb_type)
   local src_bb = Blitbuffer.new(pw, ph, fb_type)
   local batch = Blitbuffer:getUseCBB() and 200 or 1
-  local label = batch > 1 and ("Blit x" .. batch) or "Blit ops"
 
   src_bb:paintRect(0, 0, pw, ph, Blitbuffer.COLOR_WHITE)
   src_bb:paintRect(
@@ -372,7 +371,11 @@ function UIBenchmark.benchBlitbufferOps(env, max_secs)
     Blitbuffer.COLOR_GRAY_8
   )
 
-  return UIBenchmark.measurePhase("blitbuffer_ops", label, max_secs, function()
+  return UIBenchmark.measurePhase(
+    "blitbuffer_ops",
+    batch > 1 and ("Blit x" .. batch) or "Blit ops",
+    max_secs,
+    function()
     for _ = 1, batch do
       dst_bb:paintRect(0, 0, pw, ph, Blitbuffer.COLOR_WHITE)
       dst_bb:blitFrom(src_bb, 0, 0, 0, 0, pw, ph)

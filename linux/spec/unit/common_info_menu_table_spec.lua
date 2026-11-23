@@ -353,7 +353,7 @@ describe("CommonInfoMenuTable element", function()
       assert.is_nil(menu.lua_benchmark)
     end)
 
-    it("is omitted when ./tools/run_benchmark.sh is absent", function()
+    it("asserts when Device can restart and ./tools/run_benchmark.sh is absent", function()
       Device.canRestart = function()
         return true
       end
@@ -364,8 +364,7 @@ describe("CommonInfoMenuTable element", function()
         return orig_lfs_attributes(path, attr)
       end
 
-      local menu = loadModule()
-      assert.is_nil(menu.lua_benchmark)
+      assert.has_error(loadModule)
     end)
 
     it(

@@ -219,10 +219,8 @@ common_info.about = {
   end,
 }
 
-if
-  Device:canRestart()
-  and lfs.attributes("./tools/run_benchmark.sh", "mode") == "file"
-then
+if Device:canRestart() then
+  assert(lfs.attributes("./tools/run_benchmark.sh", "mode") == "file")
   common_info.lua_benchmark = {
     text = gettext("Lua vs LuaJIT benchmark"),
     callback = function()

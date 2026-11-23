@@ -438,13 +438,13 @@ while [ ${RETURN_VALUE} -ne 0 ]; do
         fi
         RETURN_VALUE=${KO_RC_RESTART}
     elif [ ${RETURN_VALUE} -eq ${KO_RC_BENCHMARK} ]; then
-        ./fbink -q -y -5 -pm "Running Lua vs LuaJIT benchmark . . ." >>crash.log 2>&1 || true
+        ./fbink -q -y -5 -pm "Running Lua vs LuaJIT benchmark . . ." >>crash.log 2>&1
         sh ./tools/run_benchmark.sh >>crash.log 2>&1
         RETURN_VALUE=${KO_RC_RESTART}
     fi
 
     # Did we crash?
-    if [ ${RETURN_VALUE} -ne 0 ] && [ ${RETURN_VALUE} -ne ${KO_RC_RESTART} ] && [ ${RETURN_VALUE} -ne ${KO_RC_USBMS} ] && [ ${RETURN_VALUE} -ne ${KO_RC_HALT} ] && [ ${RETURN_VALUE} -ne ${KO_RC_BENCHMARK} ]; then
+    if [ ${RETURN_VALUE} -ne 0 ] && [ ${RETURN_VALUE} -ne ${KO_RC_RESTART} ] && [ ${RETURN_VALUE} -ne ${KO_RC_USBMS} ] && [ ${RETURN_VALUE} -ne ${KO_RC_HALT} ]; then
         # Increment the crash counter
         CRASH_COUNT=$((CRASH_COUNT + 1))
         CRASH_TS=$(date +'%s')
