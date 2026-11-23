@@ -1168,6 +1168,62 @@ describe("device module", function()
           assert.are.equal(arc.err, err)
           assert.is_nil(io.open(base_tmp_dir .. "/extract/escape.txt", "r"))
         end)
+
+        it("seeks and extracts after Reader:close(true)", function()
+          local arc = require("ffi/archiver").Reader:new()
+          finally(function()
+            arc:close()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir .. "/out")
+
+          local tar_path = base_tmp_dir .. "/reopen_seek.tar"
+          write_ustar_archive(tar_path, {
+            { name = "first.txt", typeflag = "0", data = "first\n" },
+            { name = "second.txt", typeflag = "0", data = "second\n" },
+          })
+          assert.is_true(arc:open(tar_path))
+          for _ in arc:iterate() do end
+
+          arc:close(true)
+          local found = arc:seek("first.txt")
+          assert.is_not_nil(found)
+          assert.are.equal("first.txt", found.path)
+
+          local out_file = base_tmp_dir .. "/out/first.txt"
+          local ok, err = arc:extractToPath("first.txt", out_file)
+          assert.is_true(ok)
+          assert.is_nil(err)
+          local f = assert(io.open(out_file, "r"))
+          assert.are.equal("first", f:read("*l"))
+          f:close()
+        end)
+
+        it("refuses to extract through pre-existing symlinks in destination directory", function()
+          local lfs = require("libs/libkoreader-lfs")
+          local outside_dir = base_tmp_dir .. "/outside_pre"
+          local extract_to = base_tmp_dir .. "/extract_pre"
+          local link_path = extract_to .. "/linked_sub"
+          finally(function()
+            os.remove(link_path)
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(outside_dir)
+          mkdir_p(extract_to)
+          assert(lfs.link(outside_dir, link_path, true))
+
+          local tar_path = base_tmp_dir .. "/preexisting_symlink.tar"
+          write_ustar_archive(tar_path, {
+            { name = "linked_sub/pwned.txt", typeflag = "0", data = "pwned\n" },
+          })
+
+          local ok, err = test_dev:unpackArchive(tar_path, extract_to, false)
+          assert.is_false(ok)
+          assert.is_string(err)
+          assert.is_nil(io.open(outside_dir .. "/pwned.txt", "r"))
+        end)
       end)
 
       it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()
