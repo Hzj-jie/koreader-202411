@@ -443,13 +443,15 @@ local long_press_action = {
   { gettext("Highlight"), "highlight" },
   { gettext("Select and highlight"), "select" },
   { gettext("Add note"), "note" },
+  { gettext("Translate"), "translate" },
+  { gettext("Wikipedia"), "wikipedia" },
+  { gettext("Dictionary"), "dictionary" },
+  { gettext("Fulltext search"), "search" },
 }
-if Device:hasNetwork() then
-  table.insert(long_press_action, { gettext("Translate"), "translate" })
-  table.insert(long_press_action, { gettext("Wikipedia"), "wikipedia" })
+if not Device:hasNetwork() then
+  table.remove(long_press_action, 7)
+  table.remove(long_press_action, 6)
 end
-table.insert(long_press_action, { gettext("Dictionary"), "dictionary" })
-table.insert(long_press_action, { gettext("Fulltext search"), "search" })
 
 local highlight_dialog_position = {
   { gettext("Top"), "top" },
