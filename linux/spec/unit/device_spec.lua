@@ -1224,6 +1224,51 @@ describe("device module", function()
           assert.is_string(err)
           assert.is_nil(io.open(outside_dir .. "/pwned.txt", "r"))
         end)
+
+        it("logs arc.err and appends it to the error message on failure", function()
+          local logger = require("logger")
+          local gettext = require("gettext")
+          local BD = require("ui/bidi")
+          local warn_calls = {}
+          stub(logger, "warn", function(...)
+            table.insert(warn_calls, { ... })
+          end)
+          finally(function()
+            logger.warn:revert()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir .. "/extract")
+
+          local bad_archive = "spec/unit/data/sample.txt"
+          local open_ok, open_err = test_dev:unpackArchive(bad_archive, base_tmp_dir .. "/extract", false)
+          assert.is_false(open_ok)
+          assert.are.equal(1, #warn_calls)
+          assert.is_string(warn_calls[1][3])
+          assert.is_true(#warn_calls[1][3] > 0)
+          assert.are.equal(
+            ffiUtil.template(gettext("Extracting archive failed:\n\n%1"), BD.filepath(bad_archive))
+              .. "\n\n"
+              .. warn_calls[1][3],
+            open_err
+          )
+
+          local tar_path = base_tmp_dir .. "/escape.tar"
+          write_ustar_archive(tar_path, {
+            { name = "sub/../escape.txt", typeflag = "0", data = "bad\n" },
+          })
+          local ext_ok, ext_err = test_dev:unpackArchive(tar_path, base_tmp_dir .. "/extract", false)
+          assert.is_false(ext_ok)
+          assert.are.equal(2, #warn_calls)
+          assert.is_string(warn_calls[2][3])
+          assert.is_true(#warn_calls[2][3] > 0)
+          assert.are.equal(
+            ffiUtil.template(gettext("Extracting archive failed:\n\n%1"), BD.filepath(tar_path))
+              .. "\n\n"
+              .. warn_calls[2][3],
+            ext_err
+          )
+        end)
       end)
 
       it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()

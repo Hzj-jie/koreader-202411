@@ -1107,31 +1107,30 @@ end
 -- @return boolean or (boolean, string): true on success, false and an error message on failure.
 function Device:unpackArchive(archive, extract_to, with_stripped_root)
   require("dbg").dassert(type(archive) == "string")
-  local BD = require("ui/bidi")
-  local Archiver = require("ffi/archiver")
-  local arc = Archiver.Reader:new()
-  if not arc:open(archive) then
-    return false,
-      T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
-  end
-  local ok = true
-  for entry in arc:iterate() do
-    local path = entry.path
-    if with_stripped_root then
-      path = path:gsub("^[^/]+/?", "")
-    end
-    if path ~= "" then
-      ok = arc:extractToPath(entry.path, extract_to .. "/" .. path)
-      if not ok then
-        break
+  local arc = require("ffi/archiver").Reader:new()
+  local ok = arc:open(archive)
+  if ok then
+    for entry in arc:iterate() do
+      local path = entry.path
+      if with_stripped_root then
+        path = path:gsub("^[^/]+/?", "")
+      end
+      if path ~= "" then
+        ok = arc:extractToPath(entry.path, extract_to .. "/" .. path)
+        if not ok then
+          break
+        end
       end
     end
+    ok = ok and not arc.err
   end
-  ok = ok and not arc.err
+  local arc_err = arc.err
   arc:close()
   if not ok then
+    logger.warn("Device:unpackArchive:", archive, arc_err)
     return false,
-      T(gettext("Extracting archive failed:\n\n%1"), BD.filepath(archive))
+      T(gettext("Extracting archive failed:\n\n%1"), require("ui/bidi").filepath(archive))
+        .. (arc_err and "\n\n" .. arc_err or "")
   end
   return true
 end
