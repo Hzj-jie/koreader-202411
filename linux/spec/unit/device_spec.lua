@@ -1269,6 +1269,41 @@ describe("device module", function()
             ext_err
           )
         end)
+
+        it("extracts into existing and new dirs under a symlinked ancestor", function()
+          local lfs = require("libs/libkoreader-lfs")
+          local real_parent = base_tmp_dir .. "/real_parent"
+          local sym_parent = base_tmp_dir .. "/sym_parent"
+          local sym_extract = base_tmp_dir .. "/sym_extract"
+          finally(function()
+            os.remove(sym_parent)
+            os.remove(sym_extract)
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(real_parent .. "/existing")
+          mkdir_p(real_parent .. "/direct_target")
+          assert(lfs.link(real_parent, sym_parent, true))
+          assert(lfs.link(real_parent .. "/direct_target", sym_extract, true))
+
+          local tar_path = base_tmp_dir .. "/valid.tar"
+          write_ustar_archive(tar_path, {
+            { name = "a.txt", typeflag = "0", data = "hello\n" },
+          })
+
+          for _, case in ipairs({
+            { dest = sym_parent .. "/existing", verify = real_parent .. "/existing/a.txt" },
+            { dest = sym_parent .. "/new_sub/nested", verify = real_parent .. "/new_sub/nested/a.txt" },
+            { dest = sym_extract, verify = real_parent .. "/direct_target/a.txt" },
+          }) do
+            local ok, err = test_dev:unpackArchive(tar_path, case.dest, false)
+            assert.is_true(ok)
+            assert.is_nil(err)
+            local f = assert(io.open(case.verify, "r"))
+            assert.are.equal("hello", f:read("*l"))
+            f:close()
+          end
+        end)
       end)
 
       it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()

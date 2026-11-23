@@ -1110,6 +1110,8 @@ function Device:unpackArchive(archive, extract_to, with_stripped_root)
   local arc = require("ffi/archiver").Reader:new()
   local ok = arc:open(archive)
   if ok then
+    util.makePath(extract_to)
+    extract_to = ffiUtil.realpath(extract_to) or extract_to
     for entry in arc:iterate() do
       local path = entry.path
       if with_stripped_root then
