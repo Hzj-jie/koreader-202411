@@ -102,7 +102,9 @@ local function backgroundSingleFeedCallback(job)
 
   local res = job.result
   if not (type(res) == "table" and res.ok) then
-    _manual_sync_has_errors = true
+    if _is_manual_sync then
+      _manual_sync_has_errors = true
+    end
     if type(res) == "table" and res.unsupported_feeds_urls then
       for _, err_entry in ipairs(res.unsupported_feeds_urls) do
         logger.warn("NewsDownloader: feed error:", err_entry[1], err_entry[2])
@@ -128,6 +130,7 @@ triggerNextQueueItem = function()
       else
         Notification:notify(gettext("Downloading news finished."))
       end
+      _manual_sync_has_errors = false
     end
     _current_fork_feed = nil
     return
@@ -393,14 +396,17 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
     end
   end
 
+  if not _is_manual_sync then
+    _is_manual_sync = true
+    _manual_sync_has_errors = false
+  end
+
   if not added_any then
     assert(_current_fork_feed ~= nil)
     Notification:notify(gettext("Sync is already in progress."))
     return
   end
 
-  _is_manual_sync = true
-  _manual_sync_has_errors = false
   Notification:notify(gettext("Synchronizing news feeds…"))
 
   if _current_fork_feed == nil then
