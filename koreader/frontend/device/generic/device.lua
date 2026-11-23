@@ -52,6 +52,7 @@ local Device = {
   hasSeamlessWifiToggle = util.yes, -- Can toggle Wi-Fi without focus loss and extra user interaction (i.e., not Android)
   hasWifiManager = util.no,
   hasWifiRestore = util.no,
+  hasNetwork = util.yes,
   isDefaultFullscreen = util.yes,
   isHapticFeedbackEnabled = util.no,
   isDeprecated = util.no, -- device no longer receive OTA updates
