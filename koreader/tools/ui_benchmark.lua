@@ -209,19 +209,36 @@ end
 
 function UIBenchmark.measurePhase(id, label, max_secs, step_fn, cleanup_fn)
   local time = require("ui/time")
+  local function finish(status, ops, total_ms, note)
+    if cleanup_fn then
+      cleanup_fn()
+    end
+    collectgarbage("collect")
+    return {
+      id = id,
+      label = label,
+      status = status,
+      ops = ops,
+      total_ms = total_ms,
+      ms_per_op = (status == "OK" and ops > 0) and (total_ms / ops) or nil,
+      note = note,
+    }
+  end
+
+  -- One warm-up iteration before starting the timer avoids cold icon/font/JIT skew.
+  local warm_res, warm_note = step_fn(0)
+  if warm_res == "skip" then
+    return finish("SKIPPED", 0, 0, warm_note or "skipped")
+  end
+
   local ops = 0
   local start = time.monotonic()
   local deadline_s = max_secs or UIBenchmark.DEFAULT_MAX_SECS
-  local status = "OK"
-  local note = ""
 
   while true do
     local res, res_note = step_fn(ops + 1)
     if res == "skip" then
-      status = "SKIPPED"
-      note = res_note or "skipped"
-      ops = 0
-      break
+      return finish("SKIPPED", 0, 0, res_note or "skipped")
     end
     ops = ops + 1
     if time.to_s(time.monotonic() - start) >= deadline_s then
@@ -229,21 +246,7 @@ function UIBenchmark.measurePhase(id, label, max_secs, step_fn, cleanup_fn)
     end
   end
 
-  local total_ms = time.to_ms(time.monotonic() - start)
-  if cleanup_fn then
-    cleanup_fn()
-  end
-  collectgarbage("collect")
-
-  return {
-    id = id,
-    label = label,
-    status = status,
-    ops = ops,
-    total_ms = total_ms,
-    ms_per_op = (status == "OK" and ops > 0) and (total_ms / ops) or nil,
-    note = note,
-  }
+  return finish("OK", ops, time.to_ms(time.monotonic() - start), "")
 end
 
 function UIBenchmark.benchMenuLayoutAndPaint(env, max_secs)
@@ -357,6 +360,8 @@ function UIBenchmark.benchBlitbufferOps(env, max_secs)
   local fb_type = Screen.bb:getType()
   local dst_bb = Blitbuffer.new(pw, ph, fb_type)
   local src_bb = Blitbuffer.new(pw, ph, fb_type)
+  local batch = Blitbuffer:getUseCBB() and 200 or 1
+  local label = batch > 1 and ("Blit x" .. batch) or "Blit ops"
 
   src_bb:paintRect(0, 0, pw, ph, Blitbuffer.COLOR_WHITE)
   src_bb:paintRect(
@@ -367,10 +372,12 @@ function UIBenchmark.benchBlitbufferOps(env, max_secs)
     Blitbuffer.COLOR_GRAY_8
   )
 
-  return UIBenchmark.measurePhase("blitbuffer_ops", "Blit ops", max_secs, function()
-    dst_bb:paintRect(0, 0, pw, ph, Blitbuffer.COLOR_WHITE)
-    dst_bb:blitFrom(src_bb, 0, 0, 0, 0, pw, ph)
-    dst_bb:invertRect(0, 0, pw, ph)
+  return UIBenchmark.measurePhase("blitbuffer_ops", label, max_secs, function()
+    for _ = 1, batch do
+      dst_bb:paintRect(0, 0, pw, ph, Blitbuffer.COLOR_WHITE)
+      dst_bb:blitFrom(src_bb, 0, 0, 0, 0, pw, ph)
+      dst_bb:invertRect(0, 0, pw, ph)
+    end
   end, function()
     dst_bb:free()
     src_bb:free()
@@ -378,9 +385,11 @@ function UIBenchmark.benchBlitbufferOps(env, max_secs)
 end
 
 function UIBenchmark.benchSettingsDumpLoad(env, max_secs)
+  local batch = 20
+  local label = "Settings x" .. batch
   local tmp_dir = env.DataStorage:getTmpDir()
   if not tmp_dir then
-    return UIBenchmark.measurePhase("settings_dump_load", "Settings IO", max_secs, function()
+    return UIBenchmark.measurePhase("settings_dump_load", label, max_secs, function()
       return "skip", "no writable tmp dir"
     end)
   end
@@ -406,12 +415,14 @@ function UIBenchmark.benchSettingsDumpLoad(env, max_secs)
   end
 
   local tmp_path = string.format("%s/koreader_ui_benchmark_io_%d_%d.lua", tmp_dir, os.time(), math.floor(os.clock() * 1e6))
-  return UIBenchmark.measurePhase("settings_dump_load", "Settings IO", max_secs, function()
-    local writer = LuaSettings:open(tmp_path)
-    writer:reset(util.tableDeepCopy(sample))
-    writer:flush()
-    local loaded = LuaSettings:load(tmp_path)
-    assert(loaded and loaded.reader_config and loaded.reader_config.render_dpi == 300)
+  return UIBenchmark.measurePhase("settings_dump_load", label, max_secs, function()
+    for _ = 1, batch do
+      local writer = LuaSettings:open(tmp_path)
+      writer:reset(util.tableDeepCopy(sample))
+      writer:flush()
+      local loaded = LuaSettings:load(tmp_path)
+      assert(loaded and loaded.reader_config and loaded.reader_config.render_dpi == 300)
+    end
   end, function()
     os.remove(tmp_path)
     os.remove(tmp_path .. ".old")
@@ -433,9 +444,11 @@ function UIBenchmark.buildSampleHtml()
 end
 
 function UIBenchmark.benchCreDocumentPages(env, max_secs)
+  local batch = env.Blitbuffer:getUseCBB() and 20 or 1
+  local label = batch > 1 and ("CRe x" .. batch) or "CRe pages"
   local tmp_dir = env.DataStorage:getTmpDir()
   if not tmp_dir then
-    return UIBenchmark.measurePhase("credocument_pages", "CRe pages", max_secs, function()
+    return UIBenchmark.measurePhase("credocument_pages", label, max_secs, function()
       return "skip", "no writable tmp dir"
     end)
   end
@@ -457,9 +470,11 @@ function UIBenchmark.benchCreDocumentPages(env, max_secs)
   local pages = math.max(1, doc:getPageCount())
   local op_idx = 0
 
-  return UIBenchmark.measurePhase("credocument_pages", "CRe pages", max_secs, function()
-    op_idx = op_idx + 1
-    doc:drawCurrentViewByPage(offscreen, 0, 0, page_rect, ((op_idx - 1) % pages) + 1)
+  return UIBenchmark.measurePhase("credocument_pages", label, max_secs, function()
+    for _ = 1, batch do
+      op_idx = op_idx + 1
+      doc:drawCurrentViewByPage(offscreen, 0, 0, page_rect, ((op_idx - 1) % pages) + 1)
+    end
   end, function()
     doc:close()
     offscreen:free()
@@ -561,6 +576,7 @@ function UIBenchmark.formatComparisonReport(lj_run, lua_run)
   for _, def in ipairs(UIBenchmark.PHASES) do
     local p_lj = lj_map[def.id]
     local p_lua = lua_map[def.id]
+    local row_label = (p_lj and p_lj.label) or (p_lua and p_lua.label) or def.label
     local lj_ms_str, lj_ops_str = formatVmCell(lj_meta, p_lj)
     local lua_ms_str, lua_ops_str = formatVmCell(lua_meta, p_lua)
     local ratio_str = "-"
@@ -569,13 +585,13 @@ function UIBenchmark.formatComparisonReport(lj_run, lua_run)
     end
     table.insert(
       lines,
-      string.format("%-12s %7s %7s %7s %13s", def.label, lj_ms_str, lua_ms_str, ratio_str, lj_ops_str .. "/" .. lua_ops_str)
+      string.format("%-12s %7s %7s %7s %13s", row_label, lj_ms_str, lua_ms_str, ratio_str, lj_ops_str .. "/" .. lua_ops_str)
     )
     if p_lj and p_lj.status ~= "OK" and p_lj.note ~= "" then
-      table.insert(notes, string.format("  * %s (LJ): %s", def.label, p_lj.note))
+      table.insert(notes, string.format("  * %s (LJ): %s", row_label, p_lj.note))
     end
     if p_lua and p_lua.status ~= "OK" and p_lua.note ~= "" then
-      table.insert(notes, string.format("  * %s (Lua): %s", def.label, p_lua.note))
+      table.insert(notes, string.format("  * %s (Lua): %s", row_label, p_lua.note))
     end
   end
 
@@ -678,7 +694,7 @@ end
 
 if debug.getinfo(3) == nil then
   local start_clock = os.clock()
-  os.exit(UIBenchmark.main(arg or { ... }, start_clock))
+  os.exit(UIBenchmark.main(arg or { ... }, start_clock), true)
 end
 
 return UIBenchmark

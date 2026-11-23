@@ -1,7 +1,7 @@
 describe("CommonInfoMenuTable element", function()
   local CommonInfoMenuTable
   local DataStorage, Device, Event, FfiUtil, Notification, UIManager, Version, dbg, lfs
-  local orig_hasKeyboard, orig_isAndroid
+  local orig_canRestart, orig_hasKeyboard, orig_isAndroid, orig_lfs_attributes
   local orig_getCurrentRevision, orig_getUncachedCurrentRevision, orig_getShortVersion
 
   local function loadModule()
@@ -22,16 +22,20 @@ describe("CommonInfoMenuTable element", function()
     dbg = require("dbg")
     lfs = require("libs/libkoreader-lfs")
 
+    orig_canRestart = Device.canRestart
     orig_hasKeyboard = Device.hasKeyboard
     orig_isAndroid = Device.isAndroid
+    orig_lfs_attributes = lfs.attributes
     orig_getCurrentRevision = Version.getCurrentRevision
     orig_getUncachedCurrentRevision = Version.getUncachedCurrentRevision
     orig_getShortVersion = Version.getShortVersion
   end)
 
   teardown(function()
+    Device.canRestart = orig_canRestart
     Device.hasKeyboard = orig_hasKeyboard
     Device.isAndroid = orig_isAndroid
+    lfs.attributes = orig_lfs_attributes
     Version.getCurrentRevision = orig_getCurrentRevision
     Version.getUncachedCurrentRevision = orig_getUncachedCurrentRevision
     Version.getShortVersion = orig_getShortVersion
@@ -40,12 +44,14 @@ describe("CommonInfoMenuTable element", function()
   before_each(function()
     G_reader_settings:delete("debug_verbose")
     G_reader_settings:delete("debug")
+    Device.canRestart = orig_canRestart
     Device.hasKeyboard = function()
       return false
     end
     Device.isAndroid = function()
       return false
     end
+    lfs.attributes = orig_lfs_attributes
     CommonInfoMenuTable = loadModule()
   end)
 
@@ -327,6 +333,88 @@ describe("CommonInfoMenuTable element", function()
         )
 
         UIManager.show:revert()
+      end
+    )
+  end)
+
+  describe("lua_benchmark option", function()
+    it("is omitted when Device cannot restart", function()
+      Device.canRestart = function()
+        return false
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./tools/run_benchmark.sh" and attr == "mode" then
+          return "file"
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      local menu = loadModule()
+      assert.is_nil(menu.lua_benchmark)
+    end)
+
+    it("is omitted when ./tools/run_benchmark.sh is absent", function()
+      Device.canRestart = function()
+        return true
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./tools/run_benchmark.sh" and attr == "mode" then
+          return nil
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      local menu = loadModule()
+      assert.is_nil(menu.lua_benchmark)
+    end)
+
+    it(
+      "is included when Device can restart and ./tools/run_benchmark.sh exists, and confirms Restart(90)",
+      function()
+        local gettext = require("gettext")
+        Device.canRestart = function()
+          return true
+        end
+        lfs.attributes = function(path, attr)
+          if path == "./tools/run_benchmark.sh" and attr == "mode" then
+            return "file"
+          end
+          return orig_lfs_attributes(path, attr)
+        end
+
+        local show_stub = stub(UIManager, "show")
+        local bcast_stub = stub(UIManager, "broadcastEvent")
+        finally(function()
+          show_stub:revert()
+          bcast_stub:revert()
+        end)
+
+        local menu = loadModule()
+        assert.is_table(menu.lua_benchmark)
+        assert.are.equal(
+          gettext("Lua vs LuaJIT benchmark"),
+          menu.lua_benchmark.text
+        )
+
+        menu.lua_benchmark.callback()
+        assert.stub(show_stub).was_called(1)
+        assert.stub(bcast_stub).was_not_called()
+
+        local box = show_stub.calls[1].vals[2]
+        assert.are.equal(
+          gettext(
+            "KOReader will restart to run the Lua vs LuaJIT benchmark (this can take several minutes on slower devices) and reopen automatically afterward.\n\nStart benchmark now?"
+          ),
+          box.text
+        )
+        assert.are.equal(gettext("Benchmark"), box.ok_text)
+
+        box.ok_callback()
+        assert.stub(bcast_stub).was_called(1)
+        local evt = bcast_stub.calls[1].vals[2]
+        assert.are.equal("onRestart", evt.handler)
+        assert.are.equal(90, evt.args[1])
+        assert.are.equal(1, evt.args.n)
       end
     )
   end)

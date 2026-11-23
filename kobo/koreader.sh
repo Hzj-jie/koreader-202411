@@ -415,6 +415,7 @@ KO_RC_RESTART=85
 KO_RC_USBMS=86
 KO_RC_HALT=88
 KO_RC_SWITCH_LUA=89
+KO_RC_BENCHMARK=90
 # Because we *want* an initial fbdepth pass ;).
 RETURN_VALUE=${KO_RC_RESTART}
 while [ ${RETURN_VALUE} -ne 0 ]; do
@@ -436,10 +437,14 @@ while [ ${RETURN_VALUE} -ne 0 ]; do
             LUA_BIN="lua"
         fi
         RETURN_VALUE=${KO_RC_RESTART}
+    elif [ ${RETURN_VALUE} -eq ${KO_RC_BENCHMARK} ]; then
+        ./fbink -q -y -5 -pm "Running Lua vs LuaJIT benchmark . . ." >>crash.log 2>&1 || true
+        sh ./tools/run_benchmark.sh >>crash.log 2>&1
+        RETURN_VALUE=${KO_RC_RESTART}
     fi
 
     # Did we crash?
-    if [ ${RETURN_VALUE} -ne 0 ] && [ ${RETURN_VALUE} -ne ${KO_RC_RESTART} ] && [ ${RETURN_VALUE} -ne ${KO_RC_USBMS} ] && [ ${RETURN_VALUE} -ne ${KO_RC_HALT} ]; then
+    if [ ${RETURN_VALUE} -ne 0 ] && [ ${RETURN_VALUE} -ne ${KO_RC_RESTART} ] && [ ${RETURN_VALUE} -ne ${KO_RC_USBMS} ] && [ ${RETURN_VALUE} -ne ${KO_RC_HALT} ] && [ ${RETURN_VALUE} -ne ${KO_RC_BENCHMARK} ]; then
         # Increment the crash counter
         CRASH_COUNT=$((CRASH_COUNT + 1))
         CRASH_TS=$(date +'%s')
