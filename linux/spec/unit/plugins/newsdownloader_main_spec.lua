@@ -694,6 +694,8 @@ describe("NewsDownloader main plugin module", function()
       for _, invalid_feeds in ipairs({
         { {} },
         { { [1] = "https://example.com/missing-limit.xml" } },
+        { { [1] = "https://example.com/non-numeric-limit.xml", limit = "abc" } },
+        { { [1] = "https://example.com/empty-limit.xml", limit = "" } },
         { { limit = 5 } },
         {
           { [1] = "https://example.com/missing-limit.xml" },
@@ -809,6 +811,7 @@ describe("NewsDownloader main plugin module", function()
       -- 10. Preflight: mixed invalid and valid entries skips invalid ones and syncs valid feed
       inst:saveConfig({
         { [1] = "https://example.com/no-limit.xml" },
+        { [1] = "https://example.com/non-numeric.xml", limit = "abc" },
         { limit = 4 },
         { [1] = "https://example.com/mixed-valid.xml", limit = "3" },
       })
@@ -969,6 +972,31 @@ describe("NewsDownloader main plugin module", function()
       times["https://example.com/feed2.xml"] = os.time() - 500
       NewsDownloader.onIdle()
       assert.are.equal(2, online_call_count)
+      assert.is_nil(captured_job)
+
+      -- 5. onIdle skips feeds with non-numeric or empty limits
+      inst:saveConfig({
+        { [1] = "https://example.com/bad-limit.xml", limit = "abc" },
+        { [1] = "https://example.com/empty-limit.xml", limit = "" },
+        { [1] = "https://example.com/valid-due.xml", limit = "4" },
+      })
+      fake_now = fake_now + time.s(61)
+      captured_job = nil
+      processed_urls = {}
+      NewsDownloader.onIdle()
+      assert.is_not_nil(captured_job)
+      local valid_due_res = captured_job.action()
+      assert.is_true(valid_due_res.ok)
+      assert.are.same({ "https://example.com/valid-due.xml" }, processed_urls)
+      captured_job.callback({ result = valid_due_res })
+
+      inst:saveConfig({
+        { [1] = "https://example.com/bad-limit.xml", limit = "abc" },
+        { [1] = "https://example.com/empty-limit.xml", limit = "" },
+      })
+      fake_now = fake_now + time.s(61)
+      captured_job = nil
+      NewsDownloader.onIdle()
       assert.is_nil(captured_job)
     end
   )

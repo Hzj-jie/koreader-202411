@@ -326,7 +326,7 @@ function NewsDownloader:syncNewsFeeds()
   end
   local valid_feeds = 0
   for _, feed in ipairs(feed_config) do
-    if feed[1] and feed.limit then
+    if feed[1] and tonumber(feed.limit) then
       valid_feeds = valid_feeds + 1
     end
   end
@@ -363,7 +363,8 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
 
   for _, feed in ipairs(feed_config) do
     local url = feed[1]
-    if url and feed.limit then
+    local limit = tonumber(feed.limit)
+    if url and limit then
       local already_queued = (_current_fork_feed and _current_fork_feed.url == url)
       if not already_queued then
         for _, q_item in ipairs(_feed_queue) do
@@ -377,7 +378,7 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
       if not already_queued then
         table.insert(_feed_queue, {
           url = url,
-          limit = tonumber(feed.limit),
+          limit = limit,
           download_full_article = feed.download_full_article,
           include_images = feed.include_images,
           enable_filter = feed.enable_filter,
@@ -468,7 +469,7 @@ function NewsDownloader.onIdle()
 
   for _, feed in ipairs(feed_config) do
     local url = feed[1]
-    if url and feed.limit then
+    if url and tonumber(feed.limit) then
       local last = times[url]
       local effective_time
       if last == nil or now < last then
