@@ -5,11 +5,9 @@ describe("Kindle device", function()
   local KindlePaperWhite
   local tmp_usid
 
-  setup(function()
-    require("commonrequire")
-    tmp_usid = "/tmp/test_kindle_usid_" .. ffiUtil.getpid()
-    local f = io.open(tmp_usid, "w")
-    f:write("B024123456789012\n")
+  local function loadKindleModel(serial_number)
+    local f = assert(io.open(tmp_usid, "w"))
+    f:write(serial_number .. "\n")
     f:close()
 
     local orig_open = io.open
@@ -20,8 +18,16 @@ describe("Kindle device", function()
       return orig_open(path, mode)
     end
 
-    KindlePaperWhite = require("device/kindle/device")
+    package.loaded["device/kindle/device"] = nil
+    local dev = require("device/kindle/device")
     io.open = orig_open
+    return dev
+  end
+
+  setup(function()
+    require("commonrequire")
+    tmp_usid = "/tmp/test_kindle_usid_" .. ffiUtil.getpid()
+    KindlePaperWhite = loadKindleModel("B024123456789012")
   end)
 
   teardown(function()
@@ -39,14 +45,33 @@ describe("Kindle device", function()
     end)
   end)
 
-  describe("setDateTime on legacy models", function()
-    it("should allow querying feature support on legacy models", function()
-      local legacy_dev = setmetatable(
-        { model = "Kindle2" },
-        { __index = KindlePaperWhite }
-      )
-      -- When hour/min are nil, checks if feature is supported and returns true on legacy models
-      assert.is_true(legacy_dev:setDateTime(2026, 10, 10, nil, nil))
+  describe("hasNetwork and setDateTime across Kindle models", function()
+    it("reports hasNetwork accurately and gates setDateTime on legacy models without network", function()
+      finally(function()
+        package.loaded["device/kindle/device"] = KindlePaperWhite
+      end)
+
+      local cases = {
+        { sn = "B002123456789012", model = "Kindle2", has_network = false },
+        { sn = "B004123456789012", model = "Kindle2", has_network = false },
+        { sn = "B009123456789012", model = "KindleDXG", has_network = false },
+        { sn = "B008123456789012", model = "Kindle3", has_network = true },
+        { sn = "B00E123456789012", model = "Kindle4", has_network = true },
+      }
+      for _, case in ipairs(cases) do
+        local dev = loadKindleModel(case.sn)
+        assert.are.equal(case.model, dev.model)
+        assert.are.equal(case.has_network, dev:hasNetwork())
+        if case.has_network then
+          assert.is_nil(dev:setDateTime(2026, 10, 10, nil, nil))
+        else
+          -- When hour/min are nil, checks if feature is supported and returns true on networkless models
+          assert.is_true(dev:setDateTime(2026, 10, 10, nil, nil))
+        end
+      end
+
+      assert.is_true(KindlePaperWhite:hasNetwork())
+      assert.is_nil(KindlePaperWhite:setDateTime(2026, 10, 10, nil, nil))
     end)
   end)
 
