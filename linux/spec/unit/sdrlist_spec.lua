@@ -257,6 +257,26 @@ describe("SdrList module", function()
   end)
 
   it(
+    "walks all ancestor directories in ignorePath for paths outside home_dir",
+    function()
+      local root = ffiutil.realpath(ffiutil.dirname(home_dir))
+      local nested_hidden_outside = root
+        .. "/external/.Trash/sub/nested_outside.epub"
+      local nested_sdr_outside = root
+        .. "/external/foo.sdr/sub/nested_outside.epub"
+      local visible_outside = root .. "/external/visible/sub/book_outside.epub"
+      local relative_hidden = ".Trash/sub/rel.epub"
+      local root_file = "/root_book.epub"
+
+      assert.is_true(SdrList:ignorePath(nested_hidden_outside))
+      assert.is_true(SdrList:ignorePath(nested_sdr_outside))
+      assert.is_true(SdrList:ignorePath(relative_hidden))
+      assert.is_false(SdrList:ignorePath(visible_outside))
+      assert.is_false(SdrList:ignorePath(root_file))
+    end
+  )
+
+  it(
     "preserves existing cache and notifies on write or corrupt read failures",
     function()
       local b1 = home_dir .. "/keep.epub"
