@@ -23,8 +23,9 @@ local common_info = {}
 if
   not G_defaults:isTrue("DISABLE_OTA_UPDATE")
   and Device:hasNetwork()
-  and lfs.attributes("./ko_update.sh", "mode") == "file"
+  and (Device:isKindle() or Device:isKobo())
 then
+  assert(lfs.attributes("./ko_update.sh", "mode") == "file")
   common_info.ota_update = {
     text = C_("Application update | Menu", "Update"),
     callback = function()

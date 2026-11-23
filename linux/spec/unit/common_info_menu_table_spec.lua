@@ -1,7 +1,7 @@
 describe("CommonInfoMenuTable element", function()
   local CommonInfoMenuTable
   local DataStorage, Device, Event, FfiUtil, Notification, UIManager, Version, dbg, lfs
-  local orig_hasKeyboard, orig_hasNetwork, orig_isAndroid
+  local orig_hasKeyboard, orig_hasNetwork, orig_isAndroid, orig_isKindle, orig_isKobo
   local orig_lfs_attributes
   local orig_getCurrentRevision, orig_getUncachedCurrentRevision, orig_getShortVersion
 
@@ -26,6 +26,8 @@ describe("CommonInfoMenuTable element", function()
     orig_hasKeyboard = Device.hasKeyboard
     orig_hasNetwork = Device.hasNetwork
     orig_isAndroid = Device.isAndroid
+    orig_isKindle = Device.isKindle
+    orig_isKobo = Device.isKobo
     orig_lfs_attributes = lfs.attributes
     orig_getCurrentRevision = Version.getCurrentRevision
     orig_getUncachedCurrentRevision = Version.getUncachedCurrentRevision
@@ -36,6 +38,8 @@ describe("CommonInfoMenuTable element", function()
     Device.hasKeyboard = orig_hasKeyboard
     Device.hasNetwork = orig_hasNetwork
     Device.isAndroid = orig_isAndroid
+    Device.isKindle = orig_isKindle
+    Device.isKobo = orig_isKobo
     lfs.attributes = orig_lfs_attributes
     Version.getCurrentRevision = orig_getCurrentRevision
     Version.getUncachedCurrentRevision = orig_getUncachedCurrentRevision
@@ -52,6 +56,12 @@ describe("CommonInfoMenuTable element", function()
       return false
     end
     Device.isAndroid = function()
+      return false
+    end
+    Device.isKindle = function()
+      return false
+    end
+    Device.isKobo = function()
       return false
     end
     lfs.attributes = orig_lfs_attributes
@@ -341,22 +351,7 @@ describe("CommonInfoMenuTable element", function()
   end)
 
   describe("ota_update option", function()
-    it("is omitted when Device does not have network", function()
-      Device.hasNetwork = function()
-        return false
-      end
-      lfs.attributes = function(path, attr)
-        if path == "./ko_update.sh" and attr == "mode" then
-          return "file"
-        end
-        return orig_lfs_attributes(path, attr)
-      end
-
-      local menu = loadModule()
-      assert.is_nil(menu.ota_update)
-    end)
-
-    it("is omitted when ./ko_update.sh is absent", function()
+    it("is omitted when Device is not Kindle or Kobo", function()
       Device.hasNetwork = function()
         return true
       end
@@ -371,7 +366,62 @@ describe("CommonInfoMenuTable element", function()
       assert.is_nil(menu.ota_update)
     end)
 
+    it("is omitted when Device does not have network", function()
+      Device.isKindle = function()
+        return true
+      end
+      Device.hasNetwork = function()
+        return false
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./ko_update.sh" and attr == "mode" then
+          return "file"
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      local menu = loadModule()
+      assert.is_nil(menu.ota_update)
+    end)
+
+    it("asserts when networked Kindle is missing ./ko_update.sh", function()
+      Device.isKindle = function()
+        return true
+      end
+      Device.hasNetwork = function()
+        return true
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./ko_update.sh" and attr == "mode" then
+          return nil
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      assert.has_error(loadModule)
+    end)
+
+    it("asserts when networked Kobo is missing ./ko_update.sh", function()
+      Device.isKobo = function()
+        return true
+      end
+      Device.hasNetwork = function()
+        return true
+      end
+      lfs.attributes = function(path, attr)
+        if path == "./ko_update.sh" and attr == "mode" then
+          return nil
+        end
+        return orig_lfs_attributes(path, attr)
+      end
+
+      assert.has_error(loadModule)
+    end)
+
     it("is omitted when DISABLE_OTA_UPDATE is true", function()
+      Device.isKindle = function()
+        return true
+      end
       Device.hasNetwork = function()
         return true
       end
@@ -392,9 +442,12 @@ describe("CommonInfoMenuTable element", function()
     end)
 
     it(
-      "is included when Device has network and ./ko_update.sh exists",
+      "is included when Device is networked Kindle or Kobo and ./ko_update.sh exists",
       function()
         local gettext = require("gettext")
+        Device.isKindle = function()
+          return true
+        end
         Device.hasNetwork = function()
           return true
         end
@@ -407,6 +460,9 @@ describe("CommonInfoMenuTable element", function()
 
         local Updater = require("ui/updater")
         local spy_update = stub(Updater, "update")
+        finally(function()
+          Updater.update:revert()
+        end)
 
         local menu = loadModule()
         assert.is_table(menu.ota_update)
@@ -418,7 +474,14 @@ describe("CommonInfoMenuTable element", function()
         menu.ota_update.callback()
         assert.stub(spy_update).was_called(1)
 
-        Updater.update:revert()
+        Device.isKindle = function()
+          return false
+        end
+        Device.isKobo = function()
+          return true
+        end
+        local kobo_menu = loadModule()
+        assert.is_table(kobo_menu.ota_update)
       end
     )
   end)
