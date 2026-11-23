@@ -1,3 +1,8 @@
+local Device = require("device")
+if not Device:hasNetwork() then
+  return { disabled = true }
+end
+
 local BD = require("ui/bidi")
 local DataStorage = require("datastorage")
 --local DownloadBackend = require("plugins/newsdownloader.koplugin/internaldownloadbackend")

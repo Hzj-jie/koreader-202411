@@ -339,5 +339,22 @@ describe("AnnotationSync plugin unit tests", function()
         os.remove(income_path)
       end
     )
+
+    it("returns disabled table when Device:hasNetwork() is false", function()
+      local Device = require("device")
+      local orig_has_network = Device.hasNetwork
+      local orig_loaded = package.loaded["plugins/AnnotationSync.koplugin/main"]
+      finally(function()
+        Device.hasNetwork = orig_has_network
+        package.loaded["plugins/AnnotationSync.koplugin/main"] = orig_loaded
+      end)
+
+      Device.hasNetwork = function()
+        return false
+      end
+      package.loaded["plugins/AnnotationSync.koplugin/main"] = nil
+      local mod = require("plugins/AnnotationSync.koplugin/main")
+      assert.are.same({ disabled = true }, mod)
+    end)
   end)
 end)

@@ -6,6 +6,10 @@ A simple plugin for getting the weather forcast on your KOReader
 --
 
 local DataStorage = require("datastorage")
+local Device = require("device")
+if not Device:hasNetwork() then
+  return { disabled = true }
+end
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local KeyValuePage = require("ui/widget/keyvaluepage")
@@ -14,7 +18,7 @@ local NetworkMgr = require("ui/network/manager")
 local UIManager = require("ui/uimanager")
 local WeatherApi = require("plugins/weather.koplugin/weatherapi")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
-local Screen = require("device").screen
+local Screen = Device.screen
 local Composer = require("plugins/weather.koplugin/composer")
 local ffiutil = require("ffi/util")
 local gettext = require("gettext")

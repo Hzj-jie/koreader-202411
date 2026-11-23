@@ -19,6 +19,10 @@ local util = require("util")
 local T = require("ffi/util").template
 local gettext = require("gettext")
 
+if not Device:hasNetwork() then
+  return { disabled = true }
+end
+
 if G_reader_settings:hasNot("device_id") then
   G_reader_settings:save("device_id", random.uuid())
 end

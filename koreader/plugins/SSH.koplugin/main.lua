@@ -11,7 +11,9 @@ local logger = require("logger")
 local util = require("util")
 local T = require("ffi/util").template
 
-if not Device:isKobo() and not Device:isEmulator() then
+if
+  not Device:hasNetwork() or (not Device:isKobo() and not Device:isEmulator())
+then
   return { disabled = true }
 end
 

@@ -1113,5 +1113,22 @@ describe("Wallabag plugin unit tests", function()
         remove_stub:revert()
       end
     )
+
+    it("returns disabled table when Device:hasNetwork() is false", function()
+      local Device = require("device")
+      local orig_has_network = Device.hasNetwork
+      local orig_loaded = package.loaded["plugins/wallabag.koplugin/main"]
+      finally(function()
+        Device.hasNetwork = orig_has_network
+        package.loaded["plugins/wallabag.koplugin/main"] = orig_loaded
+      end)
+
+      Device.hasNetwork = function()
+        return false
+      end
+      package.loaded["plugins/wallabag.koplugin/main"] = nil
+      local mod = require("plugins/wallabag.koplugin/main")
+      assert.are.same({ disabled = true }, mod)
+    end)
   end)
 end)

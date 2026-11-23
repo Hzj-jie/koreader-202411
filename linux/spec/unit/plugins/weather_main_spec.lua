@@ -286,5 +286,22 @@ describe("Weather main plugin module", function()
 
       assert.are.equal(old_kv, closed_widget)
     end)
+
+    it("returns disabled table when Device:hasNetwork() is false", function()
+      local Device = require("device")
+      local orig_has_network = Device.hasNetwork
+      local orig_loaded = package.loaded["plugins/weather.koplugin/main"]
+      finally(function()
+        Device.hasNetwork = orig_has_network
+        package.loaded["plugins/weather.koplugin/main"] = orig_loaded
+      end)
+
+      Device.hasNetwork = function()
+        return false
+      end
+      package.loaded["plugins/weather.koplugin/main"] = nil
+      local mod = require("plugins/weather.koplugin/main")
+      assert.are.same({ disabled = true }, mod)
+    end)
   end)
 end)

@@ -1,3 +1,8 @@
+local Device = require("device")
+if not Device:hasNetwork() then
+  return { disabled = true }
+end
+
 local Dispatcher = require("dispatcher")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")

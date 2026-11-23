@@ -543,5 +543,24 @@ describe("SSH plugin main module", function()
         )
       end
     )
+
+    it("returns disabled table when Device:hasNetwork() is false", function()
+      local orig_has_network = Device.hasNetwork
+      local orig_loaded = package.loaded["plugins/SSH.koplugin/main"]
+      finally(function()
+        Device.hasNetwork = orig_has_network
+        package.loaded["plugins/SSH.koplugin/main"] = orig_loaded
+      end)
+
+      Device.isKobo = function()
+        return true
+      end
+      Device.hasNetwork = function()
+        return false
+      end
+      package.loaded["plugins/SSH.koplugin/main"] = nil
+      local mod = require("plugins/SSH.koplugin/main")
+      assert.are.same({ disabled = true }, mod)
+    end)
   end)
 end)

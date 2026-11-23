@@ -490,4 +490,41 @@ describe("PluginLoader module", function()
       end
     )
   end)
+
+  describe("network capability gating", function()
+    it(
+      "disables httpinspector when Device:hasNetwork() is false while keeping exporter and statistics enabled",
+      function()
+        local Device = require("device")
+        local orig_has_network = Device.hasNetwork
+        local orig_http = package.loaded["plugins/httpinspector.koplugin/main"]
+        local orig_exporter = package.loaded["plugins/exporter.koplugin/main"]
+        local orig_statistics =
+          package.loaded["plugins/statistics.koplugin/main"]
+        finally(function()
+          Device.hasNetwork = orig_has_network
+          package.loaded["plugins/httpinspector.koplugin/main"] = orig_http
+          package.loaded["plugins/exporter.koplugin/main"] = orig_exporter
+          package.loaded["plugins/statistics.koplugin/main"] = orig_statistics
+        end)
+
+        Device.hasNetwork = function()
+          return false
+        end
+        package.loaded["plugins/httpinspector.koplugin/main"] = nil
+        package.loaded["plugins/exporter.koplugin/main"] = nil
+        package.loaded["plugins/statistics.koplugin/main"] = nil
+
+        local http_mod = require("plugins/httpinspector.koplugin/main")
+        local exporter_mod = require("plugins/exporter.koplugin/main")
+        local stats_mod = require("plugins/statistics.koplugin/main")
+
+        assert.are.same({ disabled = true }, http_mod)
+        assert.is_falsy(exporter_mod.disabled)
+        assert.is_function(exporter_mod.addToMainMenu)
+        assert.is_falsy(stats_mod.disabled)
+        assert.is_function(stats_mod.addToMainMenu)
+      end
+    )
+  end)
 end)

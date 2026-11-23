@@ -299,5 +299,55 @@ describe("Calibre plugin main module", function()
       assert.is_table(saved)
       assert.are.equal(65500, saved.port)
     end)
+
+    it(
+      "hides wireless features and keeps metadata search when Device:hasNetwork() is false",
+      function()
+        local Device = require("device")
+        local gettext = require("gettext")
+        local orig_has_network = Device.hasNetwork
+        local orig_init = CalibreWireless.init
+        local orig_register = Dispatcher.registerAction
+        local wireless_inited = false
+        local registered = {}
+
+        finally(function()
+          Device.hasNetwork = orig_has_network
+          CalibreWireless.init = orig_init
+          Dispatcher.registerAction = orig_register
+        end)
+
+        Device.hasNetwork = function()
+          return false
+        end
+        CalibreWireless.init = function()
+          wireless_inited = true
+        end
+        Dispatcher.registerAction = function(_, name, val)
+          registered[name] = val
+        end
+
+        local plugin = Calibre:new({
+          ui = { menu = { registerToMainMenu = function() end } },
+        })
+        plugin:init()
+
+        assert.is_false(wireless_inited)
+        assert.is_table(registered.calibre_search)
+        assert.is_table(registered.calibre_browse_tags)
+        assert.is_nil(registered.calibre_start_connection)
+        assert.is_nil(registered.calibre_close_connection)
+
+        local menu_items = {}
+        plugin:addToMainMenu(menu_items)
+        assert.is_table(menu_items.calibre)
+        assert.are.equal(1, #menu_items.calibre.sub_item_table)
+        assert.are.equal(
+          gettext("Search settings"),
+          menu_items.calibre.sub_item_table[1].text
+        )
+        assert.is_table(menu_items.find_book_in_calibre_catalog)
+      end
+    )
   end)
 end)

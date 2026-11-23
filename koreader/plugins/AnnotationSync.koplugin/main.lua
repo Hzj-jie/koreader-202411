@@ -1,3 +1,8 @@
+local Device = require("device")
+if not Device:hasNetwork() then
+  return { disabled = true }
+end
+
 local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")

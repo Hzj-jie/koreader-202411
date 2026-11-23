@@ -11,6 +11,7 @@ local BD = require("ui/bidi")
 local CalibreExtensions = require("plugins/calibre.koplugin/extensions")
 local CalibreSearch = require("plugins/calibre.koplugin/search")
 local CalibreWireless = require("plugins/calibre.koplugin/wireless")
+local Device = require("device")
 local Dispatcher = require("dispatcher")
 local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("luasettings")
@@ -104,62 +105,69 @@ function Calibre:onDispatcherRegisterActions()
     general = true,
     separator = true,
   })
-  Dispatcher:registerAction("calibre_start_connection", {
-    category = "none",
-    event = "StartWirelessConnection",
-    title = gettext("Calibre wireless connect"),
-    general = true,
-  })
-  Dispatcher:registerAction("calibre_close_connection", {
-    category = "none",
-    event = "CloseWirelessConnection",
-    title = gettext("Calibre wireless disconnect"),
-    general = true,
-  })
+  if Device:hasNetwork() then
+    Dispatcher:registerAction("calibre_start_connection", {
+      category = "none",
+      event = "StartWirelessConnection",
+      title = gettext("Calibre wireless connect"),
+      general = true,
+    })
+    Dispatcher:registerAction("calibre_close_connection", {
+      category = "none",
+      event = "CloseWirelessConnection",
+      title = gettext("Calibre wireless disconnect"),
+      general = true,
+    })
+  end
 end
 
 function Calibre:init()
-  CalibreWireless:init()
+  if Device:hasNetwork() then
+    CalibreWireless:init()
+  end
   self:onDispatcherRegisterActions()
   self.ui.menu:registerToMainMenu(self)
 end
 
 function Calibre:addToMainMenu(menu_items)
+  local sub_item_table = {
+    {
+      text = gettext("Search settings"),
+      keep_menu_open = true,
+      sub_item_table = self:getSearchMenuTable(),
+    },
+  }
+  if Device:hasNetwork() then
+    table.insert(sub_item_table, 1, {
+      text_func = function()
+        if CalibreWireless.calibre_socket then
+          return gettext("Disconnect")
+        else
+          return gettext("Connect")
+        end
+      end,
+      separator = true,
+      enabled_func = function()
+        return G_reader_settings:nilOrTrue("calibre_wireless")
+      end,
+      callback = function()
+        if not CalibreWireless.calibre_socket then
+          CalibreWireless:connect()
+        else
+          CalibreWireless:disconnect()
+        end
+      end,
+    })
+    table.insert(sub_item_table, {
+      text = gettext("Wireless settings"),
+      keep_menu_open = true,
+      sub_item_table = self:getWirelessMenuTable(),
+    })
+  end
   menu_items.calibre = {
     -- its name is "calibre", but all our top menu items are uppercase.
     text = gettext("Calibre"),
-    sub_item_table = {
-      {
-        text_func = function()
-          if CalibreWireless.calibre_socket then
-            return gettext("Disconnect")
-          else
-            return gettext("Connect")
-          end
-        end,
-        separator = true,
-        enabled_func = function()
-          return G_reader_settings:nilOrTrue("calibre_wireless")
-        end,
-        callback = function()
-          if not CalibreWireless.calibre_socket then
-            CalibreWireless:connect()
-          else
-            CalibreWireless:disconnect()
-          end
-        end,
-      },
-      {
-        text = gettext("Search settings"),
-        keep_menu_open = true,
-        sub_item_table = self:getSearchMenuTable(),
-      },
-      {
-        text = gettext("Wireless settings"),
-        keep_menu_open = true,
-        sub_item_table = self:getWirelessMenuTable(),
-      },
-    },
+    sub_item_table = sub_item_table,
   }
   -- insert the metadata search
   if
