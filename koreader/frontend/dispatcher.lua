@@ -298,21 +298,21 @@ local settingsList = {
     event = "InfoWifiOn",
     title = gettext("Turn on Wi-Fi"),
     device = true,
-    condition = Device:hasWifiToggle(),
+    condition = Device:hasNetwork() and Device:hasWifiToggle(),
   },
   wifi_off = {
     category = "none",
     event = "InfoWifiOff",
     title = gettext("Turn off Wi-Fi"),
     device = true,
-    condition = Device:hasWifiToggle(),
+    condition = Device:hasNetwork() and Device:hasWifiToggle(),
   },
   toggle_wifi = {
     category = "none",
     event = "ToggleWifi",
     title = gettext("Toggle Wi-Fi"),
     device = true,
-    condition = Device:hasWifiToggle(),
+    condition = Device:hasNetwork() and Device:hasWifiToggle(),
   },
   toggle_fullscreen = {
     category = "none",
@@ -326,6 +326,7 @@ local settingsList = {
     event = "ShowNetworkInfo",
     title = gettext("Show network info"),
     device = true,
+    condition = Device:hasNetwork(),
     separator = true,
   },
   ----

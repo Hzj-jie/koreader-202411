@@ -16,7 +16,7 @@ local _last_tx_packets = nil
 
 local NetworkListener = EventListener:extend({})
 
-if not Device:hasWifiToggle() then
+if not Device:hasNetwork() or not Device:hasWifiToggle() then
   return NetworkListener
 end
 

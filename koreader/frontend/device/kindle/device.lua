@@ -656,17 +656,10 @@ function Kindle:init()
 end
 
 function Kindle:setDateTime(year, month, day, hour, min, sec)
-  -- There isn't an official support of "Device:hasNetwork" since KOReader
-  -- always assumes the network is available. But these legacy models have no
-  -- wifi, and their cellular support has been ended a long time ago. So the
-  -- time / date change function should be enabled, otherwise users have no way
-  -- of setting time on these models.
-  if
-    self.model ~= "Kindle"
-    and self.model ~= "Kindle2"
-    and self.model ~= "KindleDXG"
-  then
-    -- Returns false to disable the feature.
+  -- Legacy models without Wi-Fi or active cellular connectivity have no way
+  -- to sync the clock over the network, so keep manual time/date setup enabled.
+  if self:hasNetwork() then
+    -- Returns nil to disable the feature.
     return
   end
 

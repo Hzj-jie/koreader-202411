@@ -233,5 +233,29 @@ describe("NetworkListener module", function()
       UIManager.runWith:revert()
       UIManager.show:revert()
     end)
+
+    it("returns empty listener table when Device:hasNetwork() is false", function()
+      local orig_loaded = package.loaded["ui/network/networklistener"]
+      local orig_has_network = Device.hasNetwork
+      local orig_has_toggle = Device.hasWifiToggle
+      finally(function()
+        Device.hasNetwork = orig_has_network
+        Device.hasWifiToggle = orig_has_toggle
+        package.loaded["ui/network/networklistener"] = orig_loaded
+      end)
+
+      Device.hasNetwork = function()
+        return false
+      end
+      Device.hasWifiToggle = function()
+        return true
+      end
+      package.loaded["ui/network/networklistener"] = nil
+      local disabled_listener = require("ui/network/networklistener")
+      assert.is_nil(disabled_listener.onPendingOnline)
+      assert.is_nil(disabled_listener.onPendingConnected)
+      assert.is_nil(disabled_listener.onToggleWifi)
+      assert.is_nil(disabled_listener.onShowNetworkInfo)
+    end)
   end)
 end)

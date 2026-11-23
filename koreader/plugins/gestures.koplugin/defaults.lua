@@ -1,6 +1,8 @@
 -- we can read Lua syntax here!
 local Device = require("device")
 
+local has_wifi_toggle = Device:hasNetwork() and Device:hasWifiToggle()
+
 return {
   gesture_fm = {
     tap_top_left_corner = nil,
@@ -63,13 +65,13 @@ return {
     multiswipe_south_east_north_south = {},
     multiswipe_east_south_west_north = { full_refresh = true },
     multiswipe_southeast_northeast = {},
-    multiswipe_northwest_southwest_northwest = Device:hasWifiToggle() and {
+    multiswipe_northwest_southwest_northwest = has_wifi_toggle and {
       toggle_wifi = true,
     } or {},
-    multiswipe_southeast_southwest_northwest = Device:hasWifiToggle() and {
+    multiswipe_southeast_southwest_northwest = has_wifi_toggle and {
       wifi_off = true,
     } or {},
-    multiswipe_southeast_northeast_northwest = Device:hasWifiToggle() and {
+    multiswipe_southeast_northeast_northwest = has_wifi_toggle and {
       wifi_on = true,
     } or {},
     two_finger_swipe_east = nil,
@@ -150,13 +152,13 @@ return {
     multiswipe_south_east_north_south = { zoom = "pageheight" },
     multiswipe_east_south_west_north = { full_refresh = true },
     multiswipe_southeast_northeast = { follow_nearest_link = true },
-    multiswipe_northwest_southwest_northwest = Device:hasWifiToggle() and {
+    multiswipe_northwest_southwest_northwest = has_wifi_toggle and {
       toggle_wifi = true,
     } or {},
-    multiswipe_southeast_southwest_northwest = Device:hasWifiToggle() and {
+    multiswipe_southeast_southwest_northwest = has_wifi_toggle and {
       wifi_off = true,
     } or {},
-    multiswipe_southeast_northeast_northwest = Device:hasWifiToggle() and {
+    multiswipe_southeast_northeast_northwest = has_wifi_toggle and {
       wifi_on = true,
     } or {},
     two_finger_swipe_east = { toc = true },
