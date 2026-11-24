@@ -1168,6 +1168,142 @@ describe("device module", function()
           assert.are.equal(arc.err, err)
           assert.is_nil(io.open(base_tmp_dir .. "/extract/escape.txt", "r"))
         end)
+
+        it("seeks and extracts after Reader:close(true)", function()
+          local arc = require("ffi/archiver").Reader:new()
+          finally(function()
+            arc:close()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir .. "/out")
+
+          local tar_path = base_tmp_dir .. "/reopen_seek.tar"
+          write_ustar_archive(tar_path, {
+            { name = "first.txt", typeflag = "0", data = "first\n" },
+            { name = "second.txt", typeflag = "0", data = "second\n" },
+          })
+          assert.is_true(arc:open(tar_path))
+          for _ in arc:iterate() do end
+
+          arc:close(true)
+          local found = arc:seek("first.txt")
+          assert.is_not_nil(found)
+          assert.are.equal("first.txt", found.path)
+
+          local out_file = base_tmp_dir .. "/out/first.txt"
+          local ok, err = arc:extractToPath("first.txt", out_file)
+          assert.is_true(ok)
+          assert.is_nil(err)
+          local f = assert(io.open(out_file, "r"))
+          assert.are.equal("first", f:read("*l"))
+          f:close()
+        end)
+
+        it("refuses to extract through pre-existing symlinks in destination directory", function()
+          local lfs = require("libs/libkoreader-lfs")
+          local outside_dir = base_tmp_dir .. "/outside_pre"
+          local extract_to = base_tmp_dir .. "/extract_pre"
+          local link_path = extract_to .. "/linked_sub"
+          finally(function()
+            os.remove(link_path)
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(outside_dir)
+          mkdir_p(extract_to)
+          assert(lfs.link(outside_dir, link_path, true))
+
+          local tar_path = base_tmp_dir .. "/preexisting_symlink.tar"
+          write_ustar_archive(tar_path, {
+            { name = "linked_sub/pwned.txt", typeflag = "0", data = "pwned\n" },
+          })
+
+          local ok, err = test_dev:unpackArchive(tar_path, extract_to, false)
+          assert.is_false(ok)
+          assert.is_string(err)
+          assert.is_nil(io.open(outside_dir .. "/pwned.txt", "r"))
+        end)
+
+        it("logs arc.err and appends it to the error message on failure", function()
+          local logger = require("logger")
+          local gettext = require("gettext")
+          local BD = require("ui/bidi")
+          local warn_calls = {}
+          stub(logger, "warn", function(...)
+            table.insert(warn_calls, { ... })
+          end)
+          finally(function()
+            logger.warn:revert()
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(base_tmp_dir .. "/extract")
+
+          local bad_archive = "spec/unit/data/sample.txt"
+          local open_ok, open_err = test_dev:unpackArchive(bad_archive, base_tmp_dir .. "/extract", false)
+          assert.is_false(open_ok)
+          assert.are.equal(1, #warn_calls)
+          assert.is_string(warn_calls[1][3])
+          assert.is_true(#warn_calls[1][3] > 0)
+          assert.are.equal(
+            ffiUtil.template(gettext("Extracting archive failed:\n\n%1"), BD.filepath(bad_archive))
+              .. "\n\n"
+              .. warn_calls[1][3],
+            open_err
+          )
+
+          local tar_path = base_tmp_dir .. "/escape.tar"
+          write_ustar_archive(tar_path, {
+            { name = "sub/../escape.txt", typeflag = "0", data = "bad\n" },
+          })
+          local ext_ok, ext_err = test_dev:unpackArchive(tar_path, base_tmp_dir .. "/extract", false)
+          assert.is_false(ext_ok)
+          assert.are.equal(2, #warn_calls)
+          assert.is_string(warn_calls[2][3])
+          assert.is_true(#warn_calls[2][3] > 0)
+          assert.are.equal(
+            ffiUtil.template(gettext("Extracting archive failed:\n\n%1"), BD.filepath(tar_path))
+              .. "\n\n"
+              .. warn_calls[2][3],
+            ext_err
+          )
+        end)
+
+        it("extracts into existing and new dirs under a symlinked ancestor", function()
+          local lfs = require("libs/libkoreader-lfs")
+          local real_parent = base_tmp_dir .. "/real_parent"
+          local sym_parent = base_tmp_dir .. "/sym_parent"
+          local sym_extract = base_tmp_dir .. "/sym_extract"
+          finally(function()
+            os.remove(sym_parent)
+            os.remove(sym_extract)
+            rm_rf(base_tmp_dir)
+          end)
+          rm_rf(base_tmp_dir)
+          mkdir_p(real_parent .. "/existing")
+          mkdir_p(real_parent .. "/direct_target")
+          assert(lfs.link(real_parent, sym_parent, true))
+          assert(lfs.link(real_parent .. "/direct_target", sym_extract, true))
+
+          local tar_path = base_tmp_dir .. "/valid.tar"
+          write_ustar_archive(tar_path, {
+            { name = "a.txt", typeflag = "0", data = "hello\n" },
+          })
+
+          for _, case in ipairs({
+            { dest = sym_parent .. "/existing", verify = real_parent .. "/existing/a.txt" },
+            { dest = sym_parent .. "/new_sub/nested", verify = real_parent .. "/new_sub/nested/a.txt" },
+            { dest = sym_extract, verify = real_parent .. "/direct_target/a.txt" },
+          }) do
+            local ok, err = test_dev:unpackArchive(tar_path, case.dest, false)
+            assert.is_true(ok)
+            assert.is_nil(err)
+            local f = assert(io.open(case.verify, "r"))
+            assert.are.equal("hello", f:read("*l"))
+            f:close()
+          end
+        end)
       end)
 
       it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()

@@ -2,6 +2,7 @@
 @module ffi.archiver
 ]]
 
+local bit = require("bit")
 local ffi = require("ffi")
 local libarchive = ffi.loadlib("archive", "13")
 require("ffi/libarchive_h")
@@ -102,7 +103,7 @@ function Reader:seek(key)
   if entry.index == self.index then
     return entry
   end
-  for __ in self:iterate(entry.index > self.index) do
+  for __ in self:iterate(self.index and entry.index > self.index) do
     if entry.index == self.index then
       return entry
     end
@@ -124,7 +125,10 @@ function Reader:extractToPath(key, dest_path)
     return false, self.err
   end
   local dest = ffi.gc(libarchive.archive_write_disk_new(), libarchive.archive_free)
-  libarchive.archive_write_disk_set_options(dest, libarchive.ARCHIVE_EXTRACT_SECURE_NODOTDOT)
+  libarchive.archive_write_disk_set_options(
+    dest,
+    bit.bor(libarchive.ARCHIVE_EXTRACT_SECURE_NODOTDOT, libarchive.ARCHIVE_EXTRACT_SECURE_SYMLINKS)
+  )
   if dest_path then
     libarchive.archive_entry_set_pathname(self.archive_entry, dest_path)
   end
