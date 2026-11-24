@@ -278,6 +278,9 @@ describe("FileManagerHistory", function()
     mock_datastorage.getDataDir = function()
       return "/tmp/fmh_spec_nonexistent"
     end
+    mock_datastorage.getDocSettingsDir = function()
+      return "/tmp/fmh_spec_nonexistent/docsettings"
+    end
     package.loaded["datastorage"] = mock_datastorage
 
     clear_table(mock_info_message)
@@ -1032,6 +1035,7 @@ describe("FileManagerHistory", function()
     local popen_stub
     local rename_stub
     local home_dir
+    local docsettings_dir
     local temp_dir
     local shown_dialogs
     local fmh
@@ -1050,8 +1054,8 @@ describe("FileManagerHistory", function()
       return c
     end
 
-    local function write_metadata(rel_path, mtime)
-      local path = home_dir .. "/" .. rel_path
+    local function write_metadata(rel_path, mtime, root_dir)
+      local path = (root_dir or home_dir) .. "/" .. rel_path
       write_dummy(path, "")
       assert(lfs.touch(path, mtime, mtime))
     end
@@ -1061,7 +1065,9 @@ describe("FileManagerHistory", function()
       os.remove(temp_dir)
       assert(lfs.mkdir(temp_dir))
       home_dir = temp_dir .. "/books/with 'quote'"
+      docsettings_dir = temp_dir .. "/docsettings"
       util.makePath(home_dir)
+      util.makePath(docsettings_dir)
 
       shown_dialogs = {}
       mock_uimanager.show = spy.new(function(_, widget)
@@ -1071,6 +1077,9 @@ describe("FileManagerHistory", function()
       package.loaded["apps/filemanager/filemanagerhistory"] = nil
       mock_datastorage.getDataDir = function()
         return temp_dir
+      end
+      mock_datastorage.getDocSettingsDir = function()
+        return docsettings_dir
       end
       FileManagerHistory = require("apps/filemanager/filemanagerhistory")
 
@@ -1206,6 +1215,8 @@ describe("FileManagerHistory", function()
         _G.G_named_settings.home_dir = function()
           return home_dir .. "/"
         end
+        write_dummy(home_dir .. "/My Book 1.epub", "1")
+        write_dummy(home_dir .. "/dir/My Book 2.pdf", "2")
         write_metadata("My Book 1.sdr/metadata.epub.lua", 100)
         write_metadata("dir/My Book 2.sdr/metadata.pdf.lua", 300)
         write_metadata("ignored/metadata.epub.lua", 200)
@@ -1242,6 +1253,59 @@ describe("FileManagerHistory", function()
           mock_gettext("History view has been updated."),
           shown_dialogs[1].text
         )
+      end
+    )
+
+    it(
+      "scans docsettings_dir, skips orphaned sidecars, and keeps newest mtime on duplicates",
+      function()
+        local doc_only = home_dir .. "/Doc Only.epub"
+        local dir_only = home_dir .. "/sub/Dir Only.pdf"
+        local dup_dir_newer = home_dir .. "/Dup Dir Newer.epub"
+        local dup_doc_newer = home_dir .. "/Dup Doc Newer.epub"
+
+        write_dummy(doc_only, "doc")
+        write_dummy(dir_only, "dir")
+        write_dummy(dup_dir_newer, "dup1")
+        write_dummy(dup_doc_newer, "dup2")
+
+        write_metadata("Doc Only.sdr/metadata.epub.lua", 100)
+        write_metadata("Orphan Doc.sdr/metadata.epub.lua", 900)
+        write_metadata(
+          "sub/Dir Only.sdr/metadata.pdf.lua",
+          250,
+          docsettings_dir .. home_dir
+        )
+        write_metadata(
+          "Orphan Dir.sdr/metadata.epub.lua",
+          950,
+          docsettings_dir .. home_dir
+        )
+        write_metadata("Dup Dir Newer.sdr/metadata.epub.lua", 150)
+        write_metadata(
+          "Dup Dir Newer.sdr/metadata.epub.lua",
+          450,
+          docsettings_dir .. home_dir
+        )
+        write_metadata("Dup Doc Newer.sdr/metadata.epub.lua", 500)
+        write_metadata(
+          "Dup Doc Newer.sdr/metadata.epub.lua",
+          200,
+          docsettings_dir .. home_dir
+        )
+
+        mock_datastorage.getDocSettingsDir = function()
+          return docsettings_dir .. "/"
+        end
+
+        fmh:doBuildHistory()
+
+        assert.is_same({
+          { file = dup_doc_newer, time = 500 },
+          { file = dup_dir_newer, time = 450 },
+          { file = dir_only, time = 250 },
+          { file = doc_only, time = 100 },
+        }, mock_readhistory.hist)
       end
     )
 
