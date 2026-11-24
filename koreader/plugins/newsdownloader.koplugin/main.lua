@@ -107,7 +107,9 @@ local function backgroundSingleFeedCallback(job)
 
   local res = job.result
   if not (type(res) == "table" and res.ok) then
-    _manual_sync_has_errors = true
+    if _is_manual_sync then
+      _manual_sync_has_errors = true
+    end
     if type(res) == "table" and res.unsupported_feeds_urls then
       for _, err_entry in ipairs(res.unsupported_feeds_urls) do
         logger.warn("NewsDownloader: feed error:", err_entry[1], err_entry[2])
@@ -133,6 +135,7 @@ triggerNextQueueItem = function()
       else
         Notification:notify(gettext("Downloading news finished."))
       end
+      _manual_sync_has_errors = false
     end
     _current_fork_feed = nil
     return
@@ -331,7 +334,7 @@ function NewsDownloader:syncNewsFeeds()
   end
   local valid_feeds = 0
   for _, feed in ipairs(feed_config) do
-    if feed[1] and feed.limit then
+    if feed[1] and tonumber(feed.limit) then
       valid_feeds = valid_feeds + 1
     end
   end
@@ -368,7 +371,8 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
 
   for _, feed in ipairs(feed_config) do
     local url = feed[1]
-    if url and feed.limit then
+    local limit = tonumber(feed.limit)
+    if url and limit then
       local already_queued = (_current_fork_feed and _current_fork_feed.url == url)
       if not already_queued then
         for _, q_item in ipairs(_feed_queue) do
@@ -382,7 +386,7 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
       if not already_queued then
         table.insert(_feed_queue, {
           url = url,
-          limit = tonumber(feed.limit),
+          limit = limit,
           download_full_article = feed.download_full_article,
           include_images = feed.include_images,
           enable_filter = feed.enable_filter,
@@ -397,14 +401,17 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
     end
   end
 
+  if not _is_manual_sync then
+    _is_manual_sync = true
+    _manual_sync_has_errors = false
+  end
+
   if not added_any then
     assert(_current_fork_feed ~= nil)
     Notification:notify(gettext("Sync is already in progress."))
     return
   end
 
-  _is_manual_sync = true
-  _manual_sync_has_errors = false
   Notification:notify(gettext("Synchronizing news feeds…"))
 
   if _current_fork_feed == nil then
@@ -473,7 +480,7 @@ function NewsDownloader.onIdle()
 
   for _, feed in ipairs(feed_config) do
     local url = feed[1]
-    if url and feed.limit then
+    if url and tonumber(feed.limit) then
       local last = times[url]
       local effective_time
       if last == nil or now < last then

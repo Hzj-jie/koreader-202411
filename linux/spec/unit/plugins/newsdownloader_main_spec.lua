@@ -694,6 +694,8 @@ describe("NewsDownloader main plugin module", function()
       for _, invalid_feeds in ipairs({
         { {} },
         { { [1] = "https://example.com/missing-limit.xml" } },
+        { { [1] = "https://example.com/non-numeric-limit.xml", limit = "abc" } },
+        { { [1] = "https://example.com/empty-limit.xml", limit = "" } },
         { { limit = 5 } },
         {
           { [1] = "https://example.com/missing-limit.xml" },
@@ -809,6 +811,7 @@ describe("NewsDownloader main plugin module", function()
       -- 10. Preflight: mixed invalid and valid entries skips invalid ones and syncs valid feed
       inst:saveConfig({
         { [1] = "https://example.com/no-limit.xml" },
+        { [1] = "https://example.com/non-numeric.xml", limit = "abc" },
         { limit = 4 },
         { [1] = "https://example.com/mixed-valid.xml", limit = "3" },
       })
@@ -970,6 +973,31 @@ describe("NewsDownloader main plugin module", function()
       NewsDownloader.onIdle()
       assert.are.equal(2, online_call_count)
       assert.is_nil(captured_job)
+
+      -- 5. onIdle skips feeds with non-numeric or empty limits
+      inst:saveConfig({
+        { [1] = "https://example.com/bad-limit.xml", limit = "abc" },
+        { [1] = "https://example.com/empty-limit.xml", limit = "" },
+        { [1] = "https://example.com/valid-due.xml", limit = "4" },
+      })
+      fake_now = fake_now + time.s(61)
+      captured_job = nil
+      processed_urls = {}
+      NewsDownloader.onIdle()
+      assert.is_not_nil(captured_job)
+      local valid_due_res = captured_job.action()
+      assert.is_true(valid_due_res.ok)
+      assert.are.same({ "https://example.com/valid-due.xml" }, processed_urls)
+      captured_job.callback({ result = valid_due_res })
+
+      inst:saveConfig({
+        { [1] = "https://example.com/bad-limit.xml", limit = "abc" },
+        { [1] = "https://example.com/empty-limit.xml", limit = "" },
+      })
+      fake_now = fake_now + time.s(61)
+      captured_job = nil
+      NewsDownloader.onIdle()
+      assert.is_nil(captured_job)
     end
   )
 
@@ -1014,4 +1042,167 @@ describe("NewsDownloader main plugin module", function()
     local mod = require("plugins/newsdownloader.koplugin/main")
     assert.are.same({ disabled = true }, mod)
   end)
+
+  it(
+    "preserves manual completion and error notifications across idle promotion and re-sync (issue #157)",
+    function()
+      local BackgroundJobs = require("background_jobs")
+      local FFIUtil = require("ffi/util")
+      local NetworkMgr = require("ui/network/manager")
+      local Notification = require("ui/widget/notification")
+      local gettext = require("gettext")
+      local time = require("ui/time")
+
+      local tmp_dir = os.tmpname()
+      os.remove(tmp_dir)
+      require("libs/libkoreader-lfs").mkdir(tmp_dir)
+
+      local notifications = {}
+      local orig_notify = Notification.notify
+      Notification.notify = function(_, text)
+        table.insert(notifications, text)
+      end
+
+      local orig_run_when_online = NetworkMgr.runWhenOnline
+      NetworkMgr.runWhenOnline = function(_, cb)
+        cb()
+      end
+      local orig_online = NetworkMgr.isOnline
+      NetworkMgr.isOnline = function()
+        return true
+      end
+
+      local orig_monotonic = time.monotonic
+      local orig_since = time.since
+      local fake_now = time.s(1000)
+      time.monotonic = function()
+        return fake_now
+      end
+      time.since = function(t)
+        return fake_now - t
+      end
+
+      local active_job
+      local orig_insert = BackgroundJobs.insertKeyed
+      BackgroundJobs.insertKeyed = function(job)
+        active_job = job
+        return true
+      end
+
+      local mock_ui = {
+        menu = { registerToMainMenu = function() end },
+      }
+      local inst = NewsDownloader:new({
+        ui = mock_ui,
+        path = "plugins/newsdownloader.koplugin",
+        download_dir = tmp_dir .. "/",
+        feed_config_path = tmp_dir .. "/feed_config.lua",
+      })
+      inst.initialized = true
+      inst.settings =
+        require("frontend/luasettings"):open(tmp_dir .. "/settings.lua")
+      inst.settings:save(NewsDownloader.config_key_custom_dl_dir, tmp_dir .. "/")
+      inst.settings:save("auto_sync", true)
+      stub(NewsDownloader, "getSettings").returns(inst.settings)
+
+      finally(function()
+        while active_job do
+          local job = active_job
+          active_job = nil
+          job.callback({ result = { ok = true } })
+        end
+        Notification.notify = orig_notify
+        NetworkMgr.runWhenOnline = orig_run_when_online
+        NetworkMgr.isOnline = orig_online
+        time.monotonic = orig_monotonic
+        time.since = orig_since
+        BackgroundJobs.insertKeyed = orig_insert
+        NewsDownloader.getSettings:revert()
+        FFIUtil.purgeDir(tmp_dir)
+      end)
+
+      local function drain_next(result)
+        local job = assert(active_job)
+        active_job = nil
+        job.callback({ result = result })
+      end
+
+      -- Case 1: Idle sync already queued sole feed; manual sync promotes to notify completion.
+      inst:saveConfig({
+        { [1] = "https://example.com/sole.xml", limit = 2 },
+      })
+      NewsDownloader.onIdle()
+      assert.is_not_nil(active_job)
+      assert.are.same({}, notifications)
+
+      inst:syncNewsFeeds()
+      assert.are.same({ gettext("Sync is already in progress.") }, notifications)
+
+      notifications = {}
+      drain_next({ ok = true })
+      assert.is_nil(active_job)
+      assert.are.same({ gettext("Downloading news finished.") }, notifications)
+
+      -- Case 2: Mid-batch manual re-sync must not wipe earlier error state.
+      inst:saveConfig({
+        { [1] = "https://example.com/fail1.xml", limit = 1 },
+        { [1] = "https://example.com/ok2.xml", limit = 1 },
+      })
+      notifications = {}
+      inst:syncNewsFeeds()
+      assert.are.same({ gettext("Synchronizing news feeds…") }, notifications)
+
+      -- First feed fails; ok2 starts running.
+      drain_next({
+        ok = false,
+        unsupported_feeds_urls = { { "https://example.com/fail1.xml", "500" } },
+      })
+      assert.is_not_nil(active_job)
+
+      -- User appends ok3 (replacing fail1 in config) mid-batch and runs manual sync again (added_any == true).
+      inst:saveConfig({
+        { [1] = "https://example.com/ok2.xml", limit = 1 },
+        { [1] = "https://example.com/ok3.xml", limit = 1 },
+      })
+      notifications = {}
+      inst:syncNewsFeeds()
+      assert.are.same({ gettext("Synchronizing news feeds…") }, notifications)
+
+      notifications = {}
+      drain_next({ ok = true }) -- ok2 succeeds
+      drain_next({ ok = true }) -- ok3 succeeds
+      assert.is_nil(active_job)
+      assert.are.same(
+        { gettext("Downloading news finished with errors.") },
+        notifications
+      )
+
+      -- Case 3: Previous idle failure does not taint a later manual sync or emit idle toast.
+      fake_now = fake_now + time.s(61)
+      local times = inst.settings:readTableRef("feed_last_sync_times")
+      times["https://example.com/ok2.xml"] = os.time() - 7200
+      times["https://example.com/ok3.xml"] = os.time()
+      inst.settings:flush()
+      notifications = {}
+      NewsDownloader.onIdle()
+      assert.is_not_nil(active_job)
+      drain_next({
+        ok = false,
+        unsupported_feeds_urls = { { "https://example.com/ok2.xml", "500" } },
+      })
+      assert.is_nil(active_job)
+      assert.are.same({}, notifications)
+
+      inst:saveConfig({
+        { [1] = "https://example.com/ok3.xml", limit = 1 },
+      })
+      notifications = {}
+      inst:syncNewsFeeds()
+      drain_next({ ok = true })
+      assert.are.same({
+        gettext("Synchronizing news feeds…"),
+        gettext("Downloading news finished."),
+      }, notifications)
+    end
+  )
 end)
