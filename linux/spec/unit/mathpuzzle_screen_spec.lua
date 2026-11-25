@@ -1812,4 +1812,170 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.are.equal("可用數字：%s", gettext("Number bank: %s"))
     end)
   end)
+
+  describe("repaint optimization", function()
+    local gettext = require("gettext")
+
+    it(
+      "disables feedback_highlight on answer, keypad, Check, and New buttons",
+      function()
+        local screen = createScreen(nil, "add_sub_100")
+        UIManager:show(screen)
+
+        local is_input_btn = {}
+        for _, btn in ipairs(screen.input_buttons) do
+          assert.is_false(btn.feedback_highlight)
+          is_input_btn[btn] = true
+        end
+
+        local check_text = gettext("Check")
+        local new_text = gettext("New")
+        local action_buttons = {}
+        local function collectActionButtons(widget)
+          if type(widget) ~= "table" then
+            return
+          end
+          if widget.callback and widget.text and not is_input_btn[widget] then
+            if
+              widget.text == check_text
+              or widget.text == new_text
+              or widget.text == "⌫"
+              or widget.text:match("^[0-9]$")
+            then
+              table.insert(action_buttons, widget)
+            end
+          end
+          for _, child in ipairs(widget) do
+            collectActionButtons(child)
+          end
+        end
+        collectActionButtons(screen[1])
+        assert.are.equal(13, #action_buttons)
+        for _, btn in ipairs(action_buttons) do
+          assert.is_false(btn.feedback_highlight)
+        end
+
+        local old_force = UIManager.forceRepaint
+        local old_wait = UIManager.waitForScreenRefresh
+        local force_calls = 0
+        local wait_calls = 0
+        finally(function()
+          UIManager.forceRepaint = old_force
+          UIManager.waitForScreenRefresh = old_wait
+        end)
+        UIManager.forceRepaint = function()
+          force_calls = force_calls + 1
+        end
+        UIManager.waitForScreenRefresh = function()
+          wait_calls = wait_calls + 1
+        end
+
+        local digit_1
+        for _, btn in ipairs(action_buttons) do
+          if btn.text == "1" then
+            digit_1 = btn
+            break
+          end
+        end
+        assert.is_not_nil(digit_1)
+        digit_1[1].dimen = require("ui/geometry"):new({ x = 0, y = 0, w = 50, h = 50 })
+        assert.is_true(digit_1:onTapSelectButton())
+        assert.are.equal(0, force_calls)
+        assert.are.equal(0, wait_calls)
+        assert.are.equal("1", screen.problems[1].user_answer)
+      end
+    )
+
+    it("skips _clearMark repaint when problem has not been checked", function()
+      local screen = createScreen(nil, "add_sub_100")
+      UIManager:show(screen)
+      UIManager._dirty = {}
+
+      screen:inputDigit("5")
+      assert.is_true(UIManager._dirty[screen.input_buttons[1]])
+      assert.is_nil(UIManager._dirty[screen.mark_containers[1]])
+
+      screen:checkAnswers()
+      UIManager._dirty = {}
+      screen:inputDigit("9")
+      assert.is_true(UIManager._dirty[screen.input_buttons[1]])
+      assert.is_true(UIManager._dirty[screen.mark_containers[1]])
+
+      UIManager._dirty = {}
+      screen:inputDigit("1")
+      assert.is_true(UIManager._dirty[screen.input_buttons[1]])
+      assert.is_nil(UIManager._dirty[screen.mark_containers[1]])
+    end)
+
+    it("skips selectField repaints when selecting the already focused field", function()
+      local screen = createScreen(nil, "add_sub_100")
+      UIManager:show(screen)
+      UIManager._dirty = {}
+
+      screen:selectField(1)
+      assert.is_nil(UIManager._dirty[screen.input_buttons[1]])
+
+      screen:selectField(2)
+      assert.is_true(UIManager._dirty[screen.input_buttons[1]])
+      assert.is_true(UIManager._dirty[screen.input_buttons[2]])
+    end)
+
+    it("skips onTimesChange_1M repaint when displayed minute text is unchanged", function()
+      local plugin = createMockPlugin()
+      plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+      local screen = plugin.screen
+      UIManager._dirty = {}
+
+      screen:onTimesChange_1M()
+      assert.is_nil(UIManager._dirty[screen.time_container])
+
+      plugin.session_start_time = os.time() - 60
+      screen:onTimesChange_1M()
+      assert.is_true(UIManager._dirty[screen.time_container])
+      assert.are.equal(
+        string.format(
+          gettext("Time: %s"),
+          gettext.T_N("%1 minute", "%1 minutes", 1)
+        ),
+        screen.time_widget.text
+      )
+
+      UIManager._dirty = {}
+      screen:onTimesChange_1M()
+      assert.is_nil(UIManager._dirty[screen.time_container])
+    end)
+
+    it("coalesces checkAnswers mark repaints through columns_container", function()
+      local Screen = require("device").screen
+      for _, mode_id in ipairs({ "add_sub_100", "math_snake_100" }) do
+        local screen = createScreen(nil, mode_id)
+        UIManager:show(screen)
+        assert.are.same(
+          screen.columns_container[1]:getSize(),
+          screen.columns_container:getSize()
+        )
+        screen[1]:paintTo(Screen.bb, 0, 0)
+        assert.are.same(
+          screen.columns_container[1]:getSize(),
+          screen.columns_container:getSize()
+        )
+        UIManager._dirty = {}
+
+        screen:checkAnswers()
+        assert.is_true(UIManager._dirty[screen.columns_container])
+        for _, mc in ipairs(screen.mark_containers) do
+          assert.is_nil(UIManager._dirty[mc])
+        end
+        local sz = screen.columns_container:getSize()
+        assert.is_true(sz.w * sz.h < Screen:getArea() * 0.5)
+
+        -- Re-checking without edits must not mark columns_container dirty again.
+        UIManager._dirty = {}
+        screen:checkAnswers()
+        assert.is_nil(UIManager._dirty[screen.columns_container])
+
+        UIManager:close(screen)
+      end
+    end)
+  end)
 end)
