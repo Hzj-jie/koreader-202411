@@ -184,10 +184,10 @@ describe("TextWidget", function()
     })
     local w1 = tw:getWidth()
 
-    tw:setText("Original") -- no-op
+    assert.is_false(tw:setText("Original")) -- no-op
     assert.are.equal(w1, tw:getWidth())
 
-    tw:setText("Much Longer Text That Has Larger Width")
+    assert.is_true(tw:setText("Much Longer Text That Has Larger Width"))
     local w2 = tw:getWidth()
     assert.is_true(w2 > w1)
 
@@ -197,6 +197,28 @@ describe("TextWidget", function()
 
     tw:setMaxWidth(30) -- no-op
     assert.are.equal(w3, tw:getWidth())
+  end)
+
+  it("should return whether text changed and only free when changed", function()
+    local tw = TextWidget:new({
+      text = "Original",
+      face = Font:getFace("infofont", 14),
+      use_xtext = false,
+    })
+    local spy_free = spy.on(tw, "free")
+    finally(function()
+      spy_free:revert()
+    end)
+
+    assert.is_false(tw:setText("Original"))
+    assert.spy(spy_free).was_not_called()
+
+    assert.is_true(tw:setText("Updated"))
+    assert.spy(spy_free).was_called(1)
+    assert.are.equal("Updated", tw.text)
+
+    assert.is_false(tw:setText("Updated"))
+    assert.spy(spy_free).was_called(1)
   end)
 
   it("should paint to blitbuffer without xtext", function()
