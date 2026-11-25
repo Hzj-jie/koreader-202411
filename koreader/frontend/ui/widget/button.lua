@@ -49,6 +49,7 @@ local Button = InputContainer:extend({
   enabled = true,
   hidden = false,
   allow_hold_when_disabled = false,
+  feedback_highlight = true,
   margin = 0,
   bordersize = Size.border.button,
   background = Blitbuffer.COLOR_WHITE,
@@ -452,18 +453,20 @@ end
 function Button:onTapSelectButton()
   if self.enabled or self.allow_tap_when_disabled then
     if self.callback then
-      -- Highlight
-      --
-      self:_doFeedbackHighlight()
+      if self.feedback_highlight then
+        -- Highlight
+        --
+        self:_doFeedbackHighlight()
 
-      UIManager:forceRepaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
-      -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
-      UIManager:waitForScreenRefresh() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
-      -- because that would have a chance to noticeably delay it until the unhighlight.
+        UIManager:forceRepaint() -- Ensures whatever the callback wanted to paint will be shown *now*...
+        -- NOTE: This is mainly useful when the callback caused a REAGL update that we do not explicitly fence via MXCFB_WAIT_FOR_UPDATE_COMPLETE already, (i.e., Kobo Mk. 7).
+        UIManager:waitForScreenRefresh() -- ...and that the EPDC will not wait to coalesce it with the *next* update,
+        -- because that would have a chance to noticeably delay it until the unhighlight.
 
-      -- Unhighlight
-      self:_undoFeedbackHighlight()
-      UIManager:forceRepaint()
+        -- Unhighlight
+        self:_undoFeedbackHighlight()
+        UIManager:forceRepaint()
+      end
 
       -- Callback
       -- In case anything needs to be displayed in the callback; make sure it

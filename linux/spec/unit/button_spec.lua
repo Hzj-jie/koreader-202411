@@ -280,6 +280,71 @@ describe("Button widget", function()
   )
 
   it(
+    "should skip feedback highlight repaints when feedback_highlight is false",
+    function()
+      local old_force = UIManager.forceRepaint
+      local old_wait = UIManager.waitForScreenRefresh
+      local force_calls = 0
+      local wait_calls = 0
+      finally(function()
+        UIManager.forceRepaint = old_force
+        UIManager.waitForScreenRefresh = old_wait
+      end)
+      UIManager.forceRepaint = function()
+        force_calls = force_calls + 1
+      end
+      UIManager.waitForScreenRefresh = function()
+        wait_calls = wait_calls + 1
+      end
+
+      local default_clicked = 0
+      local b_default = Button:new({
+        text = "Default",
+        callback = function()
+          default_clicked = default_clicked + 1
+        end,
+      })
+      b_default[1].dimen = Geom:new({ x = 0, y = 0, w = 100, h = 40 })
+      local spy_default_do = spy.on(b_default, "_doFeedbackHighlight")
+      local spy_default_undo = spy.on(b_default, "_undoFeedbackHighlight")
+      assert.is_true(b_default.feedback_highlight)
+      assert.is_true(b_default:onTapSelectButton())
+      assert.are.equal(1, default_clicked)
+      assert.are.equal(2, force_calls)
+      assert.are.equal(1, wait_calls)
+      assert.spy(spy_default_do).was_called(1)
+      assert.spy(spy_default_undo).was_called(1)
+
+      force_calls = 0
+      wait_calls = 0
+      local no_hl_clicked = 0
+      local checked = false
+      local b_no_hl = Button:new({
+        text = "NoHighlight",
+        feedback_highlight = false,
+        checked_func = function()
+          return checked
+        end,
+        callback = function()
+          no_hl_clicked = no_hl_clicked + 1
+          checked = true
+        end,
+      })
+      b_no_hl[1].dimen = Geom:new({ x = 0, y = 0, w = 100, h = 40 })
+      local spy_no_do = spy.on(b_no_hl, "_doFeedbackHighlight")
+      local spy_no_undo = spy.on(b_no_hl, "_undoFeedbackHighlight")
+      local spy_refresh = spy.on(b_no_hl, "refresh")
+      assert.is_true(b_no_hl:onTapSelectButton())
+      assert.are.equal(1, no_hl_clicked)
+      assert.are.equal(0, force_calls)
+      assert.are.equal(0, wait_calls)
+      assert.spy(spy_no_do).was_not_called()
+      assert.spy(spy_no_undo).was_not_called()
+      assert.spy(spy_refresh).was_called(1)
+    end
+  )
+
+  it(
     "should handle onTapSelectButton with tap_input and tap_input_func",
     function()
       local input_received = nil
