@@ -1,5 +1,4 @@
 local BD = require("ui/bidi")
-local BackgroundTaskPlugin = require("ui/plugin/background_task_plugin")
 local ConfirmBox = require("ui/widget/confirmbox")
 local DataStorage = require("datastorage")
 local Device = require("device")
@@ -29,28 +28,17 @@ local NetworkMgr = {
 }
 
 local ConnectivityChecker = {
-  settings_id = 0,
-  -- For BackgroundTaskPlugin
-  enabled = true,
-  -- Check once per second.
-  when = 1,
+  start_time = nil,
 }
 
--- For BackgroundTaskPlugin
-ConnectivityChecker.executable = function()
-  ConnectivityChecker:_executable()
-end
-
-function ConnectivityChecker:_executable()
-  -- It's a little bit wasteful that the empty job will be continuously running
-  -- when settings_id is set to 0.
+function ConnectivityChecker:executable()
   if not self:running() then
     return
   end
   if NetworkMgr:_isWifiConnected() then
     logger.info(
       "Wi-Fi successfully restored (after",
-      os.clock() - self.settings_id / 1000,
+      time.to_s(time.since(self.start_time)),
       "seconds)!"
     )
     -- Avoid causing timeout due to query online state.
@@ -59,7 +47,7 @@ function ConnectivityChecker:_executable()
     end)
   else
     -- Up to 60s.
-    if os.clock() - self.settings_id / 1000 < 60 then
+    if time.since(self.start_time) < time.s(60) then
       return
     end
     -- Last iteration, shutdown connection.
@@ -77,23 +65,31 @@ function ConnectivityChecker:_executable()
 end
 
 function ConnectivityChecker:start(interactive)
-  if self:running() then
+  self.interactive = interactive
+  local start_time = time.monotonic()
+  if self.start_time == start_time then
     return
   end
-
-  self:stop()
-  self.interactive = interactive
-  -- Copied from SwitchPlugin.
-  self.settings_id = math.floor(os.clock() * 1000)
-  BackgroundTaskPlugin._start(self)
+  self.start_time = start_time
+  require("background_jobs").insert({
+    when = 1,
+    repeated = function()
+      return self.start_time == start_time
+    end,
+    executable = function()
+      if self.start_time == start_time then
+        self:executable()
+      end
+    end,
+  })
 end
 
 function ConnectivityChecker:stop()
-  self.settings_id = 0
+  self.start_time = nil
 end
 
 function ConnectivityChecker:running()
-  return self.settings_id > 0
+  return self.start_time ~= nil
 end
 
 local function raiseNetworkEvent(t)
@@ -514,8 +510,8 @@ function NetworkMgr:toggleWifiOn()
       -- connection, it can actually do something instead of showing "Turn on
       -- wifi" then nothing.
       self:_stopAsyncWifiRestoreIfSupported()
-      -- No callback and not interactive
       self:_turnOnWifi()
+      ConnectivityChecker:start(true)
       return true
     end
 

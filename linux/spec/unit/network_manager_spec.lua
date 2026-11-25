@@ -1,6 +1,7 @@
 describe("network_manager module", function()
   local Device
   local UIManager
+  local gettext
   local turn_on_wifi_called
   local turn_off_wifi_called
   local obtain_ip_called
@@ -18,6 +19,7 @@ describe("network_manager module", function()
     require("commonrequire")
     Device = require("device")
     UIManager = require("ui/uimanager")
+    gettext = require("gettext")
     function Device:initNetworkManager(NetworkMgr)
       function NetworkMgr:turnOnWifi(callback)
         turn_on_wifi_called = turn_on_wifi_called + 1
@@ -78,18 +80,18 @@ describe("network_manager module", function()
   end)
 
   describe("ConnectivityChecker", function()
+    local MockTime = require("mock_time")
+    local PluginShare = require("pluginshare")
     local NetworkMgr
     local Checker
     local original_isWifiConnected
     local original_networkConnected
     local original_abortWifiConnection
     local original_show
-    local original_clock
     local abort_called
     local connected_called
     local show_called
     local shown_message
-    local current_time
 
     setup(function()
       -- Load the module
@@ -102,7 +104,7 @@ describe("network_manager module", function()
       original_networkConnected = NetworkMgr._networkConnected
       original_abortWifiConnection = NetworkMgr._abortWifiConnection
       original_show = UIManager.show
-      original_clock = os.clock
+      MockTime:install()
     end)
 
     before_each(function()
@@ -110,7 +112,7 @@ describe("network_manager module", function()
       connected_called = 0
       show_called = 0
       shown_message = nil
-      current_time = 100
+      MockTime:set(100)
 
       -- Mock methods
       NetworkMgr._isWifiConnected = function()
@@ -126,9 +128,6 @@ describe("network_manager module", function()
         show_called = show_called + 1
         shown_message = widget
       end
-      os.clock = function()
-        return current_time
-      end
 
       Checker:stop()
     end)
@@ -143,7 +142,7 @@ describe("network_manager module", function()
       NetworkMgr._networkConnected = original_networkConnected
       NetworkMgr._abortWifiConnection = original_abortWifiConnection
       UIManager.show = original_show
-      os.clock = original_clock
+      MockTime:uninstall()
     end)
 
     it("should not be running initially", function()
@@ -191,7 +190,7 @@ describe("network_manager module", function()
       "should do nothing on execution if not connected and within 60s",
       function()
         Checker:start()
-        current_time = 110 -- 10 seconds elapsed
+        MockTime:increase(10) -- 10 seconds elapsed
 
         Checker:executable()
 
@@ -206,7 +205,7 @@ describe("network_manager module", function()
       "should abort connection on execution if not connected after 60s (non-interactive)",
       function()
         Checker:start(false)
-        current_time = 161 -- 61 seconds elapsed
+        MockTime:increase(61) -- 61 seconds elapsed
 
         Checker:executable()
 
@@ -221,7 +220,7 @@ describe("network_manager module", function()
       "should abort connection and show warning on execution if not connected after 60s (interactive)",
       function()
         Checker:start(true)
-        current_time = 161 -- 61 seconds elapsed
+        MockTime:increase(61) -- 61 seconds elapsed
 
         Checker:executable()
 
@@ -229,6 +228,136 @@ describe("network_manager module", function()
         assert.is.same(abort_called, 1)
         assert.is.same(show_called, 1)
         assert.is_not_nil(shown_message)
+        assert.is_false(Checker:running())
+      end
+    )
+
+    it("aborts via monotonic wall time after 60s", function()
+      Checker:start(false)
+      MockTime:increase(59)
+      Checker:executable()
+      assert.is.same(0, abort_called)
+      assert.is_true(Checker:running())
+
+      MockTime:increase(1)
+      Checker:executable()
+      assert.is.same(1, abort_called)
+      assert.is_false(Checker:running())
+    end)
+
+    it(
+      "invalidates previous background jobs on rapid stop and start",
+      function()
+        local jobs = PluginShare.backgroundJobs
+        local before_count = #jobs
+
+        Checker:start(false)
+        assert.is.same(before_count + 1, #jobs)
+        local first_job = jobs[#jobs]
+        assert.is_true(first_job.repeated())
+
+        -- Restarting within the same timestamp updates interactive without inserting a duplicate job.
+        Checker:start(true)
+        assert.is_true(Checker.interactive)
+        assert.is.same(before_count + 1, #jobs)
+        assert.is_true(first_job.repeated())
+
+        Checker:stop()
+        assert.is_false(first_job.repeated())
+        first_job.executable()
+        assert.is.same(0, abort_called)
+
+        MockTime:increase(0.001)
+        Checker:start(false)
+        assert.is.same(before_count + 2, #jobs)
+        local second_job = jobs[#jobs]
+        assert.is_false(first_job.repeated())
+        assert.is_true(second_job.repeated())
+
+        MockTime:increase(61)
+        first_job.executable()
+        assert.is.same(0, abort_called)
+        assert.is_true(Checker:running())
+        assert.is_true(second_job.repeated())
+
+        second_job.executable()
+        assert.is.same(1, abort_called)
+        assert.is_false(Checker:running())
+        assert.is_false(second_job.repeated())
+      end
+    )
+
+    it(
+      "restarts timeout window and invalidates old job when started while running",
+      function()
+        local jobs = PluginShare.backgroundJobs
+
+        Checker:start(false)
+        local first_job = jobs[#jobs]
+        MockTime:increase(50)
+        Checker:executable()
+        assert.is.same(0, abort_called)
+
+        -- Simulated resume restarts the 60s window instead of inheriting elapsed time.
+        Checker:start(true)
+        local second_job = jobs[#jobs]
+        assert.is_false(first_job.repeated())
+        assert.is_true(second_job.repeated())
+        assert.is_true(Checker.interactive)
+
+        MockTime:increase(20) -- 70s from first start, 20s from restart
+        first_job.executable()
+        Checker:executable()
+        assert.is.same(0, abort_called)
+        assert.is_true(Checker:running())
+
+        MockTime:increase(40) -- 60s from restart
+        Checker:executable()
+        assert.is.same(1, abort_called)
+        assert.is.same(1, show_called)
+        assert.is_false(Checker:running())
+      end
+    )
+
+    it(
+      "restarts timeout window as interactive when toggleWifiOn runs while running",
+      function()
+        local orig_turn_on = NetworkMgr._turnOnWifi
+        local orig_force = UIManager.forceRepaint
+        finally(function()
+          NetworkMgr._turnOnWifi = orig_turn_on
+          UIManager.forceRepaint = orig_force
+        end)
+        NetworkMgr._turnOnWifi = function()
+          return true
+        end
+        UIManager.forceRepaint = function() end
+
+        local jobs = PluginShare.backgroundJobs
+        Checker:start(false)
+        local first_job = jobs[#jobs]
+        MockTime:increase(50)
+
+        NetworkMgr:toggleWifiOn()
+        local second_job = jobs[#jobs]
+        assert.is_false(first_job.repeated())
+        assert.is_true(second_job.repeated())
+        assert.is_true(Checker.interactive)
+
+        show_called = 0
+        MockTime:increase(20) -- 70s from initial restore, 20s since manual retry
+        Checker:executable()
+        assert.is.same(0, abort_called)
+        assert.is_true(Checker:running())
+
+        MockTime:increase(40) -- 60s since manual retry
+        Checker:executable()
+        assert.is.same(1, abort_called)
+        assert.is.same(1, show_called)
+        assert.are.equal(
+          gettext("Error connecting to the network"),
+          shown_message.text
+        )
         assert.is_false(Checker:running())
       end
     )
