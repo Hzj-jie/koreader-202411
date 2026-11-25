@@ -281,4 +281,120 @@ describe("Kindle device", function()
       end
     )
   end)
+
+  describe("NetworkMgr.isConnected", function()
+    local LibLipcs
+
+    before_each(function()
+      LibLipcs = require("liblipcs")
+    end)
+
+    it(
+      "removes Kindle:isWifiConnected and short-circuits NetworkMgr:isConnected when isWifiUp is false",
+      function()
+        assert.is_nil(KindlePaperWhite.isWifiConnected)
+
+        local cm_state_queries = 0
+        local orig_accessor = LibLipcs.accessor
+        local orig_popen = io.popen
+        local mock_dev = setmetatable({
+          isWifiUp = function()
+            return false
+          end,
+        }, { __index = KindlePaperWhite })
+        finally(function()
+          LibLipcs.accessor = orig_accessor
+          io.popen = orig_popen
+        end)
+
+        LibLipcs.accessor = function()
+          cm_state_queries = cm_state_queries + 1
+          return {}
+        end
+        io.popen = function() --luacheck: ignore
+          cm_state_queries = cm_state_queries + 1
+          return nil
+        end
+
+        local net_mgr = {}
+        mock_dev:initNetworkManager(net_mgr)
+
+        assert.is_false(net_mgr:isWifiOn())
+        assert.is_false(net_mgr:isConnected())
+        assert.are.equal(0, cm_state_queries)
+      end
+    )
+
+    it(
+      "checks cmState == CONNECTED via LibLipcs or lipc-get-prop fallback when isWifiUp is true",
+      function()
+        local cm_state = "DISCONNECTED"
+        local is_fake = false
+        local orig_accessor = LibLipcs.accessor
+        local orig_is_fake = LibLipcs.isFake
+        local orig_popen = io.popen
+        local mock_dev = setmetatable({
+          isWifiUp = function()
+            return true
+          end,
+        }, { __index = KindlePaperWhite })
+        finally(function()
+          LibLipcs.accessor = orig_accessor
+          LibLipcs.isFake = orig_is_fake
+          io.popen = orig_popen
+        end)
+
+        local queried_props = {}
+        LibLipcs.isFake = function()
+          return is_fake
+        end
+        LibLipcs.accessor = function()
+          return {
+            get_string_property = function(_, pub, prop)
+              table.insert(queried_props, pub .. ":" .. prop)
+              return cm_state
+            end,
+          }
+        end
+        local popen_cmds = {}
+        io.popen = function(cmd) --luacheck: ignore
+          table.insert(popen_cmds, cmd)
+          if not cm_state then
+            return nil
+          end
+          return {
+            read = function()
+              return cm_state
+            end,
+            close = function() end,
+          }
+        end
+
+        local net_mgr = {}
+        mock_dev:initNetworkManager(net_mgr)
+
+        assert.is_true(net_mgr:isWifiOn())
+        assert.is_false(net_mgr:isConnected())
+        assert.are.same({ "com.lab126.wifid:cmState" }, queried_props)
+
+        cm_state = "CONNECTED"
+        assert.is_true(net_mgr:isConnected())
+
+        is_fake = true
+        cm_state = "READY"
+        assert.is_false(net_mgr:isConnected())
+
+        cm_state = "CONNECTED"
+        assert.is_true(net_mgr:isConnected())
+
+        cm_state = nil
+        assert.is_false(net_mgr:isConnected())
+        assert.are.same({
+          "lipc-get-prop com.lab126.wifid cmState",
+          "lipc-get-prop com.lab126.wifid cmState",
+          "lipc-get-prop com.lab126.wifid cmState",
+        }, popen_cmds)
+      end
+    )
+  end)
 end)
