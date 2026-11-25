@@ -352,11 +352,12 @@ end
 
 function TextWidget:setText(text)
   if text == self.text then
-    return
+    return false
   end
 
   self.text = text
   self:free()
+  return true
 end
 dbg:guard(TextWidget, "setText", function(self, text)
   assert(
