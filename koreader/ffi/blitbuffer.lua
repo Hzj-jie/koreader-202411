@@ -3649,8 +3649,18 @@ BB.TYPE_TO_BPP = {
 
 BB.has_cblitbuffer = false
 -- Load the C blitter, and default to using it if available
-BB.has_cblitbuffer, cblitbuffer = pcall(ffi.loadlib, "blitbuffer")
+local cblitbuffer_lib
+BB.has_cblitbuffer, cblitbuffer_lib = pcall(ffi.loadlib, "blitbuffer")
 if BB.has_cblitbuffer then
+  -- Cache resolved C symbol lookups on a Lua proxy table so hot blitter paths
+  -- hit plain table lookups while anchoring cblitbuffer_lib against GC/dlclose.
+  cblitbuffer = setmetatable({}, {
+    __index = function(t, k)
+      local v = cblitbuffer_lib[k]
+      t[k] = v
+      return v
+    end,
+  })
   -- If we can, assume we'll want to use it
   use_cblitbuffer = true
 else
