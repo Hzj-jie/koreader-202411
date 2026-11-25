@@ -35,7 +35,7 @@ function ConnectivityChecker:executable()
   if not self:running() then
     return
   end
-  if NetworkMgr:_isWifiConnected() then
+  if NetworkMgr:isConnected() then
     logger.info(
       "Wi-Fi successfully restored (after",
       time.to_s(time.since(self.start_time)),
@@ -115,7 +115,7 @@ function NetworkMgr:wrapCallback(complete_callback)
 end
 
 function NetworkMgr:_returnOnlineState()
-  return self:_isWifiConnected() and self:_isOnline()
+  return self:isConnected() and self:_isOnline()
 end
 
 function NetworkMgr:queryOnlineState()
@@ -163,7 +163,7 @@ function NetworkMgr:_asyncCheckWifiState()
     when = 10,
     repeated = 12, -- up to 2 minutes
     executable = function()
-      if self:_isWifiConnected() then
+      if self:isConnected() then
         -- Well, do not stop the repeating, it won't waste a dime.
         return
       end
@@ -183,7 +183,7 @@ end
 
 function NetworkMgr:restoreWifiAndCheckAsync(msg)
   if self:shouldRestoreWifi() then
-    if self:_isWifiConnected() then
+    if self:isConnected() then
       self:_networkConnected()
     else
       -- Attempt to restore wifi in the background if necessary
@@ -309,19 +309,12 @@ function NetworkMgr:_turnOffWifi() end
 function NetworkMgr:isWifiOn()
   return not Device:hasWifiToggle()
 end
--- This function is expected to be overridden by device.
+-- This function is expected to be overridden by device, and must guarantee
+-- that isConnected() implies isWifiOn().
+-- The state of isConnected but !isWifiOn is in general not supported.
 -- It's expected to be a cheap operation; if the implementation is heavy, use a cache.
 function NetworkMgr:isConnected()
   return not Device:hasWifiToggle()
-end
-
--- A shortcut of isWifiOn and isConnected, do not expect to be overridden.
--- The state of isConnected but !isWifiOn is in general not supported.
-function NetworkMgr:_isWifiConnected()
-  if not Device:hasWifiToggle() then
-    return true
-  end
-  return self:isWifiOn() and self:isConnected()
 end
 
 function NetworkMgr:getNetworkInterfaceName() end
@@ -498,7 +491,7 @@ end
 --]]
 
 function NetworkMgr:toggleWifiOn()
-  if self:_isWifiConnected() then
+  if self:isConnected() then
     return
   end
 
@@ -585,7 +578,7 @@ end
 ---    Should only return false on *explicit* failures,
 ---    in which case the backend will already have called _abortWifiConnection
 function NetworkMgr:_beforeWifiAction()
-  if self:_isWifiConnected() then
+  if self:isConnected() then
     UIManager:show(ConfirmBox:new({
       text = gettext(
         "You are connected to Wi-Fi, but have no Internet access."
@@ -658,7 +651,7 @@ function NetworkMgr:isOnline()
   end
 
   -- Updating self.was_online may be delayed as long as 1 minute.
-  return self:_isWifiConnected() and self.was_online
+  return self:isConnected() and self.was_online
 end
 
 function NetworkMgr:setHTTPProxy(proxy)
@@ -721,7 +714,7 @@ end
 -- Returns true if the callback "will be rerun", i.e. has been backlogged.
 function NetworkMgr:willRerunWhenConnected(callback)
   assert(callback ~= nil)
-  if self:_isWifiConnected() then
+  if self:isConnected() then
     callback()
     return false
   end

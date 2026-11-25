@@ -430,7 +430,23 @@ function Kindle:initNetworkManager(NetworkMgr)
     return self:isWifiUp()
   end
   NetworkMgr.isConnected = function()
-    return self:isWifiConnected()
+    if not self:isWifiUp() then
+      -- Checking wifi up may be delayed and causes the consistency issue.
+      return false
+    end
+    local lipc = LibLipcs:accessor()
+    if not LibLipcs:isFake(lipc) then
+      return lipc:get_string_property("com.lab126.wifid", "cmState")
+        == "CONNECTED"
+    end
+
+    local std_out = io.popen("lipc-get-prop com.lab126.wifid cmState", "r")
+    if not std_out then
+      return false
+    end
+    local result = std_out:read("*l")
+    std_out:close()
+    return result == "CONNECTED"
   end
 end
 
@@ -479,29 +495,6 @@ function Kindle:isWifiUp()
   end
 
   return true
-end
-
-function Kindle:isWifiConnected()
-  local function kindleWifiState()
-    local lipc = LibLipcs:accessor()
-    if not LibLipcs:isFake(lipc) then
-      return lipc:get_string_property("com.lab126.wifid", "cmState")
-    end
-
-    local std_out = io.popen("lipc-get-prop com.lab126.wifid cmState", "r")
-    if not std_out then
-      return nil
-    end
-    local result = std_out:read("*l")
-    std_out:close()
-    return result
-  end
-
-  if not self:isWifiUp() then
-    -- Checking wifi up may be delayed and causes the consistency issue.
-    return false
-  end
-  return kindleWifiState() == "CONNECTED"
 end
 
 function Kindle:supportsScreensaver()
