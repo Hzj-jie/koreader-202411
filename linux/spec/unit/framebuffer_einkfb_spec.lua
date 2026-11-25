@@ -153,16 +153,16 @@ describe("ffi/framebuffer_einkfb module", function()
     debug.setupvalue(einkfb_update, einkfb_C_idx, mock_C)
 
     local bb = BB.new(600, 800, BB.TYPE_BB8)
-    local hw_bb = BB.new(600, 800, BB.TYPE_BB4)
+    local hw_buf = ffi.new("uint8_t[?]", 300 * 800)
     local mock_fb = FramebufferEinkfb:extend({
       fd = 10,
       bb = bb,
-      hw_bb = hw_bb,
+      data = hw_buf,
+      _finfo = { line_length = 300 },
     })
 
     mock_fb:refreshFullImp(0, 0, 600, 800)
     assert.are.equal(ffi.C.fx_update_full, captured.which_fx)
-    hw_bb:free()
     bb:free()
   end)
 
@@ -190,11 +190,12 @@ describe("ffi/framebuffer_einkfb module", function()
       debug.setupvalue(einkfb_update, einkfb_C_idx, mock_C)
 
       local bb = BB.new(600, 800, BB.TYPE_BB8)
-      local hw_bb = BB.new(600, 800, BB.TYPE_BB4)
+      local hw_buf = ffi.new("uint8_t[?]", 300 * 800)
       local mock_fb = FramebufferEinkfb:extend({
         fd = 10,
         bb = bb,
-        hw_bb = hw_bb,
+        data = hw_buf,
+        _finfo = { line_length = 300 },
       })
 
       mock_fb:refreshPartialImp(0, 0, 600, 800)
@@ -204,7 +205,6 @@ describe("ffi/framebuffer_einkfb module", function()
       -- represent xres and yres directly, so x2 = x + w (600) and y2 = y + h (800).
       assert.are.equal(600, captured.x2)
       assert.are.equal(800, captured.y2)
-      hw_bb:free()
       bb:free()
     end
   )
@@ -213,8 +213,15 @@ describe("ffi/framebuffer_einkfb module", function()
     "uses non-inverted BB8 shadow and flushes padded BB4 odd rects in day and night mode",
     function()
       -- line_length = 8 > ceil(10/2) = 5 tests hardware stride padding
-      local fb, state = setupFakeFB({ xres = 10, yres = 6, bpp = 4, line_length = 8 })
+      local fb, state = setupFakeFB({
+        xres = 10,
+        yres = 6,
+        bpp = 4,
+        line_length = 8,
+        is_always_portrait = true,
+      })
       assert.are.equal(BB.TYPE_BB8, fb.bb:getType())
+      assert.is_nil(fb.hw_bb)
       assert.are.equal(0, fb.bb:getInverse())
       if BB:getUseCBB() then
         assert.is_true(fb.bb:canUseCbb())
@@ -256,10 +263,23 @@ describe("ffi/framebuffer_einkfb module", function()
       fb:setNightmode(false)
       assert.are.equal(0x00, state.raw_mem[8 * 2 + 0])
 
+      -- Rotated landscape flush on 4bpp: px = ly, py = fb.h - (lx + lw)
+      fb:setRotationMode(fb.DEVICE_ROTATED_CLOCKWISE)
+      assert.are.equal(6, fb:getWidth())
+      assert.are.equal(10, fb:getHeight())
+      fb.bb:setPixel(2, 1, BB.COLOR_BLACK)
+      fb:refreshPartial(2, 1, 2, 2)
+      assert.are.same({ x1 = 1, y1 = 2, x2 = 3, y2 = 4, which_fx = tonumber(ffi.C.fx_update_partial) }, state.updates[2])
+      -- (lx=2, ly=1) -> (px = 1, py = 6 - 2 - 1 = 3): lower nibble at row 3 byte 0 is 0xF
+      assert.are.equal(0x0F, state.raw_mem[8 * 3 + 0])
+
       -- Unflushed edits are synced to HW mmap before close/munmap
+      fb:setRotationMode(fb.DEVICE_ROTATED_UPRIGHT)
       fb.bb:paintRect(0, 0, 2, 1, BB.COLOR_BLACK)
       fb:close()
       assert.are.equal(0xFF, state.raw_mem[0])
+      assert.is_nil(fb.hw_bb)
+      assert.is_nil(fb.bb)
       assert.is_true(state.munmapped)
       assert.is_true(state.closed)
     end
@@ -292,7 +312,23 @@ describe("ffi/framebuffer_einkfb module", function()
       -- (lx=2, ly=1) -> (px = 1, py = 12 - 2 - 1 = 9): day mode inverts 0x22 -> 0xDD
       assert.are.equal(255 - 0x22, state.raw_mem[12 * 9 + 1])
 
+      -- Night mode uses blitFrom without inversion in landscape too
+      fb:setNightmode(true)
+      assert.are.equal(0x22, state.raw_mem[12 * 9 + 1])
+      fb.bb:setPixel(3, 2, BB.Color8(0x44))
+      fb:refreshPartial(3, 2, 1, 1)
+      -- (lx=3, ly=2) -> (px = 2, py = 12 - 3 - 1 = 8)
+      assert.are.equal(0x44, state.raw_mem[12 * 8 + 2])
+
+      fb:clear()
+      assert.are.equal(0xFF, state.raw_mem[12 * 9 + 1])
+      fb:setNightmode(false)
+      assert.are.equal(0x00, state.raw_mem[12 * 9 + 1])
+
+      -- Unflushed edit flushes via close() even while rotated
+      fb.bb:setPixel(3, 2, BB.Color8(0x11))
       fb:close()
+      assert.are.equal(255 - 0x11, state.raw_mem[12 * 8 + 2])
       assert.is_nil(fb.hw_bb)
       assert.is_nil(fb.bb)
       assert.is_true(state.munmapped)
