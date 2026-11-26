@@ -17,6 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -3449,6 +3450,42 @@ void BB_paint_rounded_corner_AA(BlitBuffer * restrict bb, unsigned int off_x, un
             }
             ++y0;
             --y1;
+        }
+    }
+}
+
+void BB_blit_to_4bpp(const BlitBuffer * restrict src,
+        uint8_t * restrict dst, size_t dst_stride,
+        unsigned int x, unsigned int y, unsigned int w, unsigned int h, int invert) {
+    // TODO: Release builds compile with -DNDEBUG (stripping assert), so return
+    // bool (false on null/type/stride/empty/out-of-bounds inputs, dropping the
+    // silent early return and MIN clipping) and assert(...) in Lua to expose
+    // unexpected inputs cleanly.
+    assert(src != NULL && src->data != NULL && dst != NULL);
+    assert(GET_BB_TYPE(src) == TYPE_BB8);
+    assert(dst_stride >= ((size_t) src->w + 1U) / 2U);
+
+    if (x >= src->w || y >= src->h || w == 0 || h == 0) {
+        return;
+    }
+    const unsigned int x_end = x + MIN(w, src->w - x);
+    const unsigned int y_end = y + MIN(h, src->h - y);
+    const uint8_t inv = invert ? 0xFFU : 0x00U;
+
+    for (unsigned int j = y; j < y_end; j++) {
+        const uint8_t * restrict srcp = src->data + (size_t) src->stride * j;
+        uint8_t * restrict dstp = dst + dst_stride * j;
+        unsigned int i = x;
+        if (i & 1U) {
+            dstp[i >> 1U] = (uint8_t) ((dstp[i >> 1U] & 0xF0U) | ((srcp[i] ^ inv) >> 4U));
+            i++;
+        }
+        while (i + 1U < x_end) {
+            dstp[i >> 1U] = (uint8_t) (((srcp[i] ^ inv) & 0xF0U) | ((srcp[i + 1U] ^ inv) >> 4U));
+            i += 2U;
+        }
+        if (i < x_end) {
+            dstp[i >> 1U] = (uint8_t) (((srcp[i] ^ inv) & 0xF0U) | (dstp[i >> 1U] & 0x0FU));
         }
     }
 }

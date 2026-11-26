@@ -120,6 +120,7 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       local time = require("ui/time")
       local fake_fts = 0
       local cleanup_called = 0
+      local seen_steps = {}
       local mono_stub = stub(time, "monotonic", function()
         return fake_fts
       end)
@@ -131,7 +132,13 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
         "test_phase",
         "Test phase",
         0.5,
-        function()
+        function(step)
+          table.insert(seen_steps, step)
+          if step == 0 then
+            -- Warm-up time must not be counted in total_ms or ops.
+            fake_fts = fake_fts + time.ms(1000)
+            return
+          end
           fake_fts = fake_fts + time.ms(200)
         end,
         function()
@@ -139,25 +146,36 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
         end
       )
       assert.are.same("OK", phase.status)
+      assert.are.same({ 0, 1, 2, 3 }, seen_steps)
       assert.are.same(3, phase.ops)
       assert.are.same(600, phase.total_ms)
       assert.are.same(200, phase.ms_per_op)
       assert.are.same(1, cleanup_called)
 
-      -- Must run at least 1 op even if single op already exceeds max_secs
+      -- Must run at least 1 measured op after warm-up even if single op already exceeds max_secs
       fake_fts = 0
-      local single = UIBenchmark.measurePhase("slow_phase", "Slow phase", 0.05, function()
+      seen_steps = {}
+      local single = UIBenchmark.measurePhase("slow_phase", "Slow phase", 0.05, function(step)
+        table.insert(seen_steps, step)
         fake_fts = fake_fts + time.ms(500)
       end)
       assert.are.same("OK", single.status)
+      assert.are.same({ 0, 1 }, seen_steps)
       assert.are.same(1, single.ops)
       assert.are.same(500, single.ms_per_op)
 
-      -- Handles explicit skip return cleanly
+      -- Returning skip during warm-up stops immediately without a second step_fn call
+      local skip_calls = 0
+      local skip_cleanup = 0
       local skipped = UIBenchmark.measurePhase("skip_phase", "Skipped phase", 1.0, function()
+        skip_calls = skip_calls + 1
         return "skip", "no writable tmp dir"
+      end, function()
+        skip_cleanup = skip_cleanup + 1
       end)
       assert.are.same("SKIPPED", skipped.status)
+      assert.are.same(1, skip_calls)
+      assert.are.same(1, skip_cleanup)
       assert.are.same(0, skipped.ops)
       assert.is_nil(skipped.ms_per_op)
       assert.are.same("no writable tmp dir", skipped.note)
@@ -185,9 +203,9 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
           { id = "cold_startup", label = "Cold startup", status = "OK", ops = 1, total_ms = 200, ms_per_op = 200, note = "" },
           { id = "menu_layout_paint", label = "Menu layout", status = "OK", ops = 100, total_ms = 3000, ms_per_op = 30, note = "" },
           { id = "widget_layout_paint", label = "Widgets/text", status = "OK", ops = 80, total_ms = 3200, ms_per_op = 40, note = "" },
-          { id = "blitbuffer_ops", label = "Blit ops", status = "OK", ops = 500, total_ms = 2500, ms_per_op = 5, note = "" },
-          { id = "settings_dump_load", label = "Settings IO", status = "SKIPPED", ops = 0, total_ms = 0, ms_per_op = nil, note = "no writable tmp dir" },
-          { id = "credocument_pages", label = "CRe pages", status = "OK", ops = 10, total_ms = 3000, ms_per_op = 300, note = "" },
+          { id = "blitbuffer_ops", label = "Blit x200", status = "OK", ops = 500, total_ms = 2500, ms_per_op = 5, note = "" },
+          { id = "settings_dump_load", label = "Settings x20", status = "SKIPPED", ops = 0, total_ms = 0, ms_per_op = nil, note = "no writable tmp dir" },
+          { id = "credocument_pages", label = "CRe x20", status = "OK", ops = 10, total_ms = 3000, ms_per_op = 300, note = "" },
         },
       }
       local lua_run = {
@@ -208,9 +226,9 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
           { id = "cold_startup", label = "Cold startup", status = "OK", ops = 1, total_ms = 500, ms_per_op = 500, note = "" },
           { id = "menu_layout_paint", label = "Menu layout", status = "OK", ops = 15, total_ms = 3000, ms_per_op = 200, note = "" },
           { id = "widget_layout_paint", label = "Widgets/text", status = "OK", ops = 12, total_ms = 3000, ms_per_op = 250, note = "" },
-          { id = "blitbuffer_ops", label = "Blit ops", status = "OK", ops = 4, total_ms = 4000, ms_per_op = 1000, note = "" },
-          { id = "settings_dump_load", label = "Settings IO", status = "SKIPPED", ops = 0, total_ms = 0, ms_per_op = nil, note = "no writable tmp dir" },
-          { id = "credocument_pages", label = "CRe pages", status = "OK", ops = 4, total_ms = 3200, ms_per_op = 800, note = "" },
+          { id = "blitbuffer_ops", label = "Blit x200", status = "OK", ops = 4, total_ms = 4000, ms_per_op = 1000, note = "" },
+          { id = "settings_dump_load", label = "Settings x20", status = "SKIPPED", ops = 0, total_ms = 0, ms_per_op = nil, note = "no writable tmp dir" },
+          { id = "credocument_pages", label = "CRe x20", status = "OK", ops = 4, total_ms = 3200, ms_per_op = 800, note = "" },
         },
       }
 
@@ -245,6 +263,9 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       assert.truthy(report:find("LuaJIT:  Lua 5.1 / LuaJIT 2.1.0", 1, true))
       assert.truthy(report:find("Lua:     Lua 5.5\n", 1, true))
       assert.is_nil(report:find("Lua:     Lua 5.5 /", 1, true))
+      assert.truthy(report:find("Blit x200", 1, true))
+      assert.truthy(report:find("Settings x20", 1, true))
+      assert.truthy(report:find("CRe x20", 1, true))
       assert.truthy(report:find("200.0x", 1, true))
       assert.truthy(report:find("2.50x", 1, true))
       assert.truthy(report:find("500/4", 1, true))
@@ -385,23 +406,54 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
 
       local menu_res = UIBenchmark.benchMenuLayoutAndPaint(env, 0.01)
       assert.are.same("OK", menu_res.status)
+      assert.are.same("Menu layout", menu_res.label)
       assert.is_true(menu_res.ops >= 1)
 
       local widget_res = UIBenchmark.benchWidgetLayoutAndPaint(env, 0.01)
       assert.are.same("OK", widget_res.status)
+      assert.are.same("Widgets/text", widget_res.label)
       assert.is_true(widget_res.ops >= 1)
 
+      local use_cbb = Blitbuffer:getUseCBB()
       local bb_res = UIBenchmark.benchBlitbufferOps(env, 0.01)
       assert.are.same("OK", bb_res.status)
+      assert.are.same(use_cbb and "Blit x200" or "Blit ops", bb_res.label)
       assert.is_true(bb_res.ops >= 1)
 
       local settings_res = UIBenchmark.benchSettingsDumpLoad(env, 0.01)
       assert.are.same("OK", settings_res.status)
+      assert.are.same("Settings x20", settings_res.label)
       assert.is_true(settings_res.ops >= 1)
 
       local cre_res = UIBenchmark.benchCreDocumentPages(env, 0.01)
       assert.are.same("OK", cre_res.status)
+      assert.are.same(use_cbb and "CRe x20" or "CRe pages", cre_res.label)
       assert.is_true(cre_res.ops >= 1)
+    end)
+
+    it("reads Blitbuffer:getUseCBB() at phase time for Blit ops and CRe pages batching", function()
+      local cbb_state = true
+      local cbb_stub = stub(Blitbuffer, "getUseCBB", function()
+        return cbb_state
+      end)
+      finally(function()
+        cbb_stub:revert()
+      end)
+
+      local env = {
+        Device = Device,
+        UIManager = UIManager,
+        DataStorage = DataStorage,
+        Blitbuffer = Blitbuffer,
+      }
+      assert.are.same("Blit x200", UIBenchmark.benchBlitbufferOps(env, 0.01).label)
+      assert.are.same("Settings x20", UIBenchmark.benchSettingsDumpLoad(env, 0.01).label)
+      assert.are.same("CRe x20", UIBenchmark.benchCreDocumentPages(env, 0.01).label)
+
+      cbb_state = false
+      assert.are.same("Blit ops", UIBenchmark.benchBlitbufferOps(env, 0.01).label)
+      assert.are.same("Settings x20", UIBenchmark.benchSettingsDumpLoad(env, 0.01).label)
+      assert.are.same("CRe pages", UIBenchmark.benchCreDocumentPages(env, 0.01).label)
     end)
 
     it("skips Settings IO and CRe pages cleanly when DataStorage:getTmpDir() is nil", function()
@@ -420,12 +472,12 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       }
       local settings_res = UIBenchmark.benchSettingsDumpLoad(env, 0.01)
       assert.are.same("SKIPPED", settings_res.status)
-      assert.are.same("Settings IO", settings_res.label)
+      assert.are.same("Settings x20", settings_res.label)
       assert.are.same("no writable tmp dir", settings_res.note)
 
       local cre_res = UIBenchmark.benchCreDocumentPages(env, 0.01)
       assert.are.same("SKIPPED", cre_res.status)
-      assert.are.same("CRe pages", cre_res.label)
+      assert.are.same(Blitbuffer:getUseCBB() and "CRe x20" or "CRe pages", cre_res.label)
       assert.are.same("no writable tmp dir", cre_res.note)
     end)
 
@@ -657,6 +709,7 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       assert.is_nil(raw_runner:find("/mnt/us", 1, true))
       assert.is_nil(raw_runner:find("dirname", 1, true))
       assert.is_nil(raw_runner:find("printf", 1, true))
+      assert.is_nil(raw_runner:find("trap", 1, true))
 
       local sandbox, plat_dir, tmp_dir, calls_log = createStandalonePlatform()
       finally(function()
@@ -792,31 +845,19 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       )
       assert.is_not.same(0, compare_fail_rc)
       assert.is_nil(readFile(calls_log):find(" show ", 1, true))
+      for entry in lfs.dir(tmp_dir) do
+        assert.is_nil(entry:find("koreader-bench-", 1, true))
+      end
 
-      -- SIGTERM aborts immediately, cleans temp files and sandbox data dir via EXIT trap, and does not invoke lua/compare/show
-      writeFile(calls_log, "")
-      writeFile(
-        plat_dir .. "/luajit",
-        string.format(
-          "#!/bin/sh\nprintf 'BIN=luajit ARGS=%%s\\n' \"$*\" >>%q\n"
-            .. "if [ -d \"${XDG_CONFIG_HOME:-}/koreader\" ]; then printf 'DATA_EXISTS=1\\n' >>%q; fi\n"
-            .. "if [ \"$2\" = \"run\" ] && [ -n \"$3\" ]; then printf 'return { meta = { status = \"OK\" } }\\n' >\"$3\"; fi\n"
-            .. "ppid=$(awk '/^PPid:/ { print $2 }' /proc/$$/status)\n"
-            .. "kill -TERM \"$ppid\"\nexit 0\n",
-          calls_log,
-          calls_log
-        )
+      -- Failed settings seed cp cleans temp files and sandbox data dir before exiting non-zero (without trap)
+      local bad_cp_bin = sandbox .. "/bad_cp_bin"
+      assert(lfs.mkdir(bad_cp_bin))
+      writeFile(bad_cp_bin .. "/cp", "#!/bin/sh\nexit 1\n")
+      assert.are.same(0, os.execute(string.format("chmod +x %q", bad_cp_bin .. "/cp")))
+      local cp_fail_rc = os.execute(
+        string.format("PATH=%q:$PATH TMPDIR=%q %q >/dev/null 2>&1", bad_cp_bin, tmp_dir, plat_dir .. "/tools/run_benchmark.sh")
       )
-      assert.are.same(0, os.execute(string.format("chmod +x %q", plat_dir .. "/luajit")))
-      local term_rc = os.execute(
-        string.format("TMPDIR=%q %q >/dev/null 2>&1", tmp_dir, plat_dir .. "/tools/run_benchmark.sh")
-      )
-      assert.is_not.same(0, term_rc)
-      local term_calls = readFile(calls_log)
-      assert.truthy(term_calls:find("DATA_EXISTS=1", 1, true))
-      assert.is_nil(term_calls:find("BIN=lua ", 1, true))
-      assert.is_nil(term_calls:find(" compare ", 1, true))
-      assert.is_nil(term_calls:find(" show ", 1, true))
+      assert.is_not.same(0, cp_fail_rc)
       for entry in lfs.dir(tmp_dir) do
         assert.is_nil(entry:find("koreader-bench-", 1, true))
       end
@@ -965,6 +1006,152 @@ describe("ui_benchmark tool and Kindle KUAL benchmark launcher", function()
       end
       assert.is_not_nil(backup_contents)
       assert.truthy(backup_contents:find("Neither ./luajit nor ./lua is executable!", 1, true))
+    end)
+
+    it("handles exit code 90 in kindle, kobo, and linux launchers without forwarding reader args", function()
+      -- 1. Kindle launcher: reader exits 90 -> EIPS notice + sh ./tools/run_benchmark.sh (no args) -> restarts reader (85) -> exits 0
+      local k_sandbox, k_dir, k_stub_bin, k_calls_log = createSandboxLauncher()
+      finally(function()
+        os.execute(string.format("rm -rf %q", k_sandbox))
+      end)
+      local k_state = k_sandbox .. "/reader_ran"
+      writeFile(
+        k_dir .. "/luajit",
+        string.format(
+          "#!/bin/sh\nif [ \"$1\" = \"reader.lua\" ]; then shift; printf 'KINDLE_READER ARGS=%%s\\n' \"$*\" >>%q; "
+            .. "if [ ! -f %q ]; then : >%q; exit 90; fi; exit 0; fi\nexit 1\n",
+          k_calls_log,
+          k_state,
+          k_state
+        )
+      )
+      writeFile(
+        k_dir .. "/tools/run_benchmark.sh",
+        string.format("#!/bin/sh\nprintf 'KINDLE_BENCH ARGS=%%s\\n' \"$*\" >>%q\nexit 0\n", k_calls_log)
+      )
+      assert.are.same(0, os.execute(string.format("chmod +x %q && chmod -x %q", k_dir .. "/luajit", k_dir .. "/tools/run_benchmark.sh")))
+      local k_rc = os.execute(
+        string.format(
+          "PATH=%q:$PATH sh %q --kual /sandbox/book.epub >/dev/null 2>&1",
+          k_stub_bin,
+          k_sandbox .. "/koreader.sh"
+        )
+      )
+      assert.are.same(0, k_rc)
+      local k_calls = readFile(k_calls_log)
+      assert.are.same(
+        "EIPS: Starting KOReader . . .\n"
+          .. "KINDLE_READER ARGS=/sandbox/book.epub\n"
+          .. "EIPS: Running Lua vs LuaJIT benchmark . . .\n"
+          .. "KINDLE_BENCH ARGS=\n"
+          .. "KINDLE_READER ARGS=/sandbox/book.epub\n",
+        k_calls
+      )
+
+      -- 2. Kobo launcher: defines KO_RC_BENCHMARK=90, runs benchmark, sets RESTART without crash banner
+      local raw_kobo = readFile(workspace_dir .. "/kobo/koreader.sh")
+      local kobo_script = k_sandbox .. "/kobo_koreader.sh"
+      writeFile(kobo_script, raw_kobo)
+      assert.are.same(0, os.execute(string.format("sh -n %q && dash -n %q", kobo_script, kobo_script)))
+      assert.truthy(raw_kobo:find("KO_RC_BENCHMARK=90", 1, true))
+
+      local loop_start = assert(raw_kobo:find("# List of supported special return codes", 1, true))
+      local loop_end = assert(raw_kobo:find("\n# If we requested a reboot/shutdown", loop_start, true))
+      local kobo_loop = raw_kobo:sub(loop_start, loop_end - 1)
+      local kobo_plat = k_sandbox .. "/kobo_plat"
+      assert(lfs.mkdir(kobo_plat))
+      assert(lfs.mkdir(kobo_plat .. "/tools"))
+      local kobo_calls = kobo_plat .. "/calls.log"
+      local kobo_state = kobo_plat .. "/reader_ran"
+      writeFile(
+        kobo_plat .. "/luajit",
+        string.format(
+          "#!/bin/sh\nif [ \"$1\" = \"reader.lua\" ]; then shift; printf 'KOBO_READER ARGS=%%s\\n' \"$*\" >>%q; "
+            .. "if [ ! -f %q ]; then : >%q; exit 90; fi; exit 0; fi\nexit 1\n",
+          kobo_calls,
+          kobo_state,
+          kobo_state
+        )
+      )
+      writeFile(
+        kobo_plat .. "/fbink",
+        string.format("#!/bin/sh\nprintf 'KOBO_FBINK ARGS=%%s\\n' \"$*\" >>%q\nexit 0\n", kobo_calls)
+      )
+      writeFile(
+        kobo_plat .. "/tools/run_benchmark.sh",
+        string.format("#!/bin/sh\nprintf 'KOBO_BENCH ARGS=%%s\\n' \"$*\" >>%q\nexit 0\n", kobo_calls)
+      )
+      writeFile(
+        kobo_plat .. "/test_loop.sh",
+        string.format(
+          "#!/bin/sh\ncd %q || exit 1\nLUA_BIN=luajit\nALWAYS_ABORT=false\nCRASH_COUNT=0\nCRASH_TS=0\nCRASH_PREV_TS=0\n"
+            .. "ko_update_check() { :; }\n"
+            .. "ko_do_fbdepth() { printf 'KOBO_FBDEPTH\\n' >>%q; }\n"
+            .. "ko_do_dns() { :; }\n%s\n",
+          kobo_plat,
+          kobo_calls,
+          kobo_loop
+        )
+      )
+      assert.are.same(
+        0,
+        os.execute(string.format("chmod +x %q %q %q", kobo_plat .. "/luajit", kobo_plat .. "/fbink", kobo_plat .. "/test_loop.sh"))
+      )
+      local kobo_rc = os.execute(string.format("sh %q /mnt/onboard/book.kepub >/dev/null 2>&1", kobo_plat .. "/test_loop.sh"))
+      assert.are.same(0, kobo_rc)
+      local kobo_log = readFile(kobo_calls)
+      assert.are.same(
+        "KOBO_FBDEPTH\n"
+          .. "KOBO_READER ARGS=/mnt/onboard/book.kepub\n"
+          .. "KOBO_FBINK ARGS=-q -y -5 -pm Running Lua vs LuaJIT benchmark . . .\n"
+          .. "KOBO_BENCH ARGS=\n"
+          .. "KOBO_FBDEPTH\n"
+          .. "KOBO_READER ARGS=/mnt/onboard/book.kepub\n",
+        kobo_log
+      )
+
+      -- 3. Linux _run.sh: exit 90 runs sh ./tools/run_benchmark.sh without ARGS and restarts with same LUA
+      local src_linux_run = workspace_dir .. "/linux/_run.sh"
+      assert.are.same(0, os.execute(string.format("bash -n %q", src_linux_run)))
+      local l_plat = k_sandbox .. "/linux_plat"
+      local l_home = k_sandbox .. "/linux_home"
+      assert(lfs.mkdir(l_plat))
+      assert(lfs.mkdir(l_plat .. "/tools"))
+      assert(lfs.mkdir(l_home))
+      assert(lfs.mkdir(l_home .. "/.config"))
+      assert(lfs.mkdir(l_home .. "/.config/koreader"))
+      writeFile(l_plat .. "/_run.sh", readFile(src_linux_run))
+      local l_calls = l_plat .. "/calls.log"
+      local l_state = l_plat .. "/reader_ran"
+      writeFile(
+        l_plat .. "/luajit",
+        string.format(
+          "#!/bin/sh\nif [ \"$1\" = \"./reader.lua\" ]; then shift; printf 'LINUX_READER ARGS=%%s\\n' \"$*\" >>%q; "
+            .. "if [ ! -f %q ]; then : >%q; exit 90; fi; exit 0; fi\nexit 1\n",
+          l_calls,
+          l_state,
+          l_state
+        )
+      )
+      writeFile(
+        l_plat .. "/tools/run_benchmark.sh",
+        string.format("#!/bin/sh\nprintf 'LINUX_BENCH ARGS=%%s\\n' \"$*\" >>%q\nexit 0\n", l_calls)
+      )
+      assert.are.same(0, os.execute(string.format("chmod +x %q %q", l_plat .. "/luajit", l_plat .. "/_run.sh")))
+      os.execute(
+        string.format(
+          "cd %q && HOME=%q LUA=./luajit bash ./_run.sh %q >/dev/null 2>&1",
+          l_plat,
+          l_home,
+          "/tmp/book.epub"
+        )
+      )
+      assert.are.same(
+        "LINUX_READER ARGS=/tmp/book.epub\n"
+          .. "LINUX_BENCH ARGS=\n"
+          .. "LINUX_READER ARGS=\n",
+        readFile(l_calls)
+      )
     end)
   end)
 end)

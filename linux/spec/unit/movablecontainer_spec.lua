@@ -1,5 +1,5 @@
 describe("MovableContainer widget", function()
-  local MovableContainer, Blitbuffer, BD, Device, Geom, Widget, Screen
+  local MovableContainer, Blitbuffer, BD, Device, Geom, Size, Widget, Screen
 
   setup(function()
     require("commonrequire")
@@ -11,6 +11,7 @@ describe("MovableContainer widget", function()
     BD = require("ui/bidi")
     Device = require("device")
     Geom = require("ui/geometry")
+    Size = require("ui/size")
     Widget = require("ui/widget/widget")
     Screen = Device.screen
   end)
@@ -202,6 +203,127 @@ describe("MovableContainer widget", function()
       })
       c_tight_bottom:ensureAnchor(0, 0)
       assert.are.equal(screen_h - screen_h, c_tight_bottom._moved_offset_y)
+
+      -- boxesAnchor helper
+      assert.is_nil(MovableContainer.boxesAnchor(nil))
+      assert.is_nil(MovableContainer.boxesAnchor({}))
+      local pad = Size.padding.small
+      local boxes_anchor, prefers_down = MovableContainer.boxesAnchor({
+        Geom:new({ x = 20, y = 100, w = 80, h = 20 }),
+        Geom:new({ x = 10, y = 125, w = 90, h = 25 }),
+      })
+      assert.is_true(prefers_down)
+      assert.is_nil(boxes_anchor.x)
+      assert.are.equal(100 - pad, boxes_anchor.y)
+      assert.are.equal(50 + 2 * pad, boxes_anchor.h)
+
+      -- x == nil preserves parent centering in both LTR and RTL layouts
+      local c_centered_x = MovableContainer:new({
+        [1] = inner_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 50 }),
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 100, w = 80, h = 20 }),
+          })
+        end,
+      })
+      c_centered_x:ensureAnchor(150, 200)
+      assert.are.equal(0, c_centered_x._moved_offset_x)
+      assert.are.equal(120 + pad - 200, c_centered_x._moved_offset_y)
+
+      local orig_mirrored_x = BD.mirroredUILayout
+      BD.mirroredUILayout = function()
+        return true
+      end
+      c_centered_x:ensureAnchor(150, 200)
+      BD.mirroredUILayout = orig_mirrored_x
+      assert.are.equal(0, c_centered_x._moved_offset_x)
+
+      -- Custom anchor_min_y / anchor_max_y bounds
+      -- Above fits in [0, 45] on screen, but not inside [anchor_min_y=40, ...], so goes below
+      local c_min_y = MovableContainer:new({
+        [1] = inner_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 50 }),
+        anchor_min_y = 40,
+        anchor_max_y = 500,
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 45, w = 80, h = 10 }),
+          })
+        end,
+      })
+      c_min_y:ensureAnchor(150, 200)
+      assert.are.equal(55 + pad - 200, c_min_y._moved_offset_y)
+
+      -- Below would fit before screen_h, but exceeds anchor_max_y=500, so flips above
+      local c_max_y = MovableContainer:new({
+        [1] = inner_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 50 }),
+        anchor_min_y = 40,
+        anchor_max_y = 500,
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 450, w = 80, h = 20 }),
+          })
+        end,
+      })
+      c_max_y:ensureAnchor(150, 200)
+      assert.are.equal(450 - pad - 50 - 200, c_max_y._moved_offset_y)
+
+      -- Neither fits inside [anchor_min_y, anchor_max_y]: picks larger side & clamps to min_y
+      local tall_widget = Widget:new({
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 300 }),
+        getSize = function()
+          return Geom:new({ x = 0, y = 0, w = 100, h = 300 })
+        end,
+      })
+      local c_bounds_above = MovableContainer:new({
+        [1] = tall_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 300 }),
+        anchor_min_y = 40,
+        anchor_max_y = 400,
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 260, w = 80, h = 120 }),
+          })
+        end,
+      })
+      c_bounds_above:ensureAnchor(150, 50)
+      assert.are.equal(40 - 50, c_bounds_above._moved_offset_y)
+
+      local c_bounds_below = MovableContainer:new({
+        [1] = tall_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 300 }),
+        anchor_min_y = 40,
+        anchor_max_y = 400,
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 45, w = 80, h = 120 }),
+          })
+        end,
+      })
+      c_bounds_below:ensureAnchor(150, 50)
+      assert.are.equal(400 - 300 - 50, c_bounds_below._moved_offset_y)
+
+      local oversized_widget = Widget:new({
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 400 }),
+        getSize = function()
+          return Geom:new({ x = 0, y = 0, w = 100, h = 400 })
+        end,
+      })
+      local c_bounds_clamp = MovableContainer:new({
+        [1] = oversized_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 400 }),
+        anchor_min_y = 40,
+        anchor_max_y = 300,
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 45, w = 80, h = 120 }),
+          })
+        end,
+      })
+      c_bounds_clamp:ensureAnchor(150, 50)
+      assert.are.equal(40 - 50, c_bounds_clamp._moved_offset_y)
     end
   )
 
