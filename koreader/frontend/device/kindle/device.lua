@@ -933,7 +933,6 @@ local Kindle2 = Kindle:extend({
   hasNetwork = util.no,
   canHWInvert = util.no,
   canModifyFBInfo = util.no,
-  canUseCBB = util.no, -- 4bpp
   canUseWAL = util.no, -- Kernel too old to support mmap'ed I/O on /mnt/us
   supportsScreensaver = util.yes, -- The first ad-supported device was the K3
 })
@@ -949,7 +948,6 @@ local KindleDXG = Kindle:extend({
   hasNetwork = util.no,
   canHWInvert = util.no,
   canModifyFBInfo = util.no,
-  canUseCBB = util.no, -- 4bpp
   canUseWAL = util.no, -- Kernel too old to support mmap'ed I/O on /mnt/us
   supportsScreensaver = util.yes, -- The first ad-supported device was the K3
 })
@@ -964,7 +962,6 @@ local Kindle3 = Kindle:extend({
   useDPadAsActionKeys = util.yes,
   canHWInvert = util.no,
   canModifyFBInfo = util.no,
-  canUseCBB = util.no, -- 4bpp
   isSpecialOffers = hasSpecialOffers(),
 })
 
@@ -977,8 +974,6 @@ local Kindle4 = Kindle:extend({
   useDPadAsActionKeys = util.yes,
   canHWInvert = util.no,
   canModifyFBInfo = util.no,
-  -- NOTE: It could *technically* use the C BB, as it's running @ 8bpp, but it's expecting an inverted palette...
-  canUseCBB = util.no,
   isSpecialOffers = hasSpecialOffers(),
 })
 
