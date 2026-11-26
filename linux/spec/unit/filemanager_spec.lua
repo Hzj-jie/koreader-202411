@@ -1459,7 +1459,7 @@ describe("FileManager module", function()
     end)
   end)
 
-  describe("FileManager folder copy and SdrList integration", function()
+  describe("FileManager folder operations and SdrList integration", function()
     local SdrList = require("sdrlist")
     local core_util = require("util")
     local base_tmp
@@ -1538,6 +1538,98 @@ describe("FileManager module", function()
         assert.is_false(hasSdrEntry(no_sdr_dst))
       end
     )
+
+    it(
+      "updates SdrList on folder move via cutFile and pasteFileFromClipboard",
+      function()
+        local src_sub = base_tmp .. "/src/sub"
+        local sibling_sub = base_tmp .. "/src/sub2"
+        local dst_parent = base_tmp .. "/dst"
+        core_util.makePath(src_sub)
+        core_util.makePath(sibling_sub)
+        core_util.makePath(dst_parent)
+
+        local moved_src = src_sub .. "/book.pdf"
+        local sibling_book = sibling_sub .. "/keep.pdf"
+        util.copyFile("spec/unit/data/2col.pdf", moved_src)
+        util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+
+        assert.is_true(SdrList:addItem(moved_src))
+        assert.is_true(SdrList:addItem(sibling_book))
+
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        finally(function()
+          filemanager:onExit()
+        end)
+
+        filemanager:cutFile(src_sub)
+        filemanager:pasteFileFromClipboard(dst_parent)
+
+        assert.is_false(hasSdrEntry(moved_src))
+        assert.is_true(hasSdrEntry(dst_parent .. "/sub/book.pdf"))
+        assert.is_true(hasSdrEntry(sibling_book))
+      end
+    )
+
+    it("updates SdrList on folder rename via renameFile", function()
+      local src_sub = base_tmp .. "/sub"
+      local sibling_sub = base_tmp .. "/sub2"
+      core_util.makePath(src_sub)
+      core_util.makePath(sibling_sub)
+
+      local orig_book = src_sub .. "/book.pdf"
+      local sibling_book = sibling_sub .. "/keep.pdf"
+      util.copyFile("spec/unit/data/2col.pdf", orig_book)
+      util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+
+      assert.is_true(SdrList:addItem(orig_book))
+      assert.is_true(SdrList:addItem(sibling_book))
+
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = base_tmp,
+      })
+      finally(function()
+        filemanager:onExit()
+      end)
+
+      filemanager:renameFile(src_sub, "renamed", false)
+
+      assert.is_false(hasSdrEntry(orig_book))
+      assert.is_true(hasSdrEntry(base_tmp .. "/renamed/book.pdf"))
+      assert.is_true(hasSdrEntry(sibling_book))
+    end)
+
+    it("removes folder entries from SdrList on folder delete via deleteFile", function()
+      local src_sub = base_tmp .. "/sub"
+      local sibling_sub = base_tmp .. "/sub2"
+      core_util.makePath(src_sub)
+      core_util.makePath(sibling_sub)
+
+      local deleted_book = src_sub .. "/book.pdf"
+      local sibling_book = sibling_sub .. "/keep.pdf"
+      util.copyFile("spec/unit/data/2col.pdf", deleted_book)
+      util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+
+      assert.is_true(SdrList:addItem(deleted_book))
+      assert.is_true(SdrList:addItem(sibling_book))
+
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = base_tmp,
+      })
+      finally(function()
+        filemanager:onExit()
+      end)
+
+      assert.is_true(filemanager:deleteFile(src_sub, false))
+
+      assert.is_false(hasSdrEntry(deleted_book))
+      assert.is_true(hasSdrEntry(sibling_book))
+    end)
   end)
 
   describe("showFileDialog missing item handling", function()
