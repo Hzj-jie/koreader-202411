@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:51-0800\n"
+"POT-Creation-Date: 2026-11-26 01:26-0800\n"
 "PO-Revision-Date: 2023-04-24 07:37+0000\n"
 "Last-Translator: Einars Sprugis <einars8@gmail.com>\n"
 "Language-Team: Latvian <https://hosted.weblate.org/projects/koreader/"
@@ -2994,16 +2994,6 @@ msgstr "Ekrānšāviņš"
 msgid "Fulltext search"
 msgstr "Pilna teksta meklēšana"
 
-msgid "Top"
-msgstr "Augša"
-
-msgid "Bottom"
-msgstr "Apakša"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "Ekrānsaudzētāja ziņas pozīcija"
-
 #, fuzzy
 msgid "Start content selection"
 msgstr "Doties atpakaļ uz izvēlēto tekstu"
@@ -3120,10 +3110,6 @@ msgstr "Ilgi turēt, lai izvēlētos"
 #, fuzzy
 msgid "Dictionary on single word selection"
 msgstr "Ieslēgt, kad viens vārds tiek izvēlēts"
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "Izcelšanas darbība"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -6528,6 +6514,12 @@ msgstr "Augšējā mala"
 msgid "Top/Bottom Margins"
 msgstr "Augšējā/apakšējā mala"
 
+msgid "Top"
+msgstr "Augša"
+
+msgid "Bottom"
+msgstr "Apakša"
+
 msgid "Bottom Margin"
 msgstr "Apakšējā mala"
 
@@ -8947,6 +8939,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -17539,6 +17544,14 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Rotācija"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "Ekrānsaudzētāja ziņas pozīcija"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Izcelšanas darbība"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:51-0800\n"
+"POT-Creation-Date: 2026-11-26 01:26-0800\n"
 "PO-Revision-Date: 2022-09-27 23:54+0000\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: Croatian <https://hosted.weblate.org/projects/koreader/"
@@ -2824,16 +2824,6 @@ msgstr "Odaberi i istakni"
 msgid "Fulltext search"
 msgstr "Pretraga potpunog teksta"
 
-msgid "Top"
-msgstr "Gore"
-
-msgid "Bottom"
-msgstr "Dolje"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "Geste"
-
 #, fuzzy
 msgid "Start content selection"
 msgstr "Brisanje članka"
@@ -2942,10 +2932,6 @@ msgstr ""
 
 msgid "Dictionary on single word selection"
 msgstr ""
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "Neprozirnost isticanja: %1"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -5955,6 +5941,12 @@ msgstr "Gornja margina"
 msgid "Top/Bottom Margins"
 msgstr "Gornje/donje margine"
 
+msgid "Top"
+msgstr "Gore"
+
+msgid "Bottom"
+msgstr "Dolje"
+
 msgid "Bottom Margin"
 msgstr "Donja margina"
 
@@ -8168,6 +8160,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -16053,6 +16058,14 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Okretanje"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "Geste"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Neprozirnost isticanja: %1"
 
 #~ msgid "Synchronize time"
 #~ msgstr "Sinkroniziraj vrijeme"

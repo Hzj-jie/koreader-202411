@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:51-0800\n"
+"POT-Creation-Date: 2026-11-26 01:26-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: kr <harum@naver.com>\n"
 "Language-Team: Korean <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -2837,15 +2837,6 @@ msgstr "선택과 강조 표시"
 msgid "Fulltext search"
 msgstr "전문 검색"
 
-msgid "Top"
-msgstr "위쪽"
-
-msgid "Bottom"
-msgstr "아래쪽"
-
-msgid "Gesture position"
-msgstr "제스처 위치"
-
 msgid "Start content selection"
 msgstr "콘텐츠 선택 시작"
 
@@ -2940,9 +2931,6 @@ msgstr "텍스트를 길게 누르기"
 
 msgid "Dictionary on single word selection"
 msgstr "한 낱말 선택할 때 사전"
-
-msgid "Highlight dialog position: %1"
-msgstr "강조 표시 대화 상자 위치: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "강조 표시를 위해 아주 길게 누르는 간격: %1초"
@@ -6277,6 +6265,12 @@ msgstr "위쪽 여백"
 msgid "Top/Bottom Margins"
 msgstr "위/아래 여백"
 
+msgid "Top"
+msgstr "위쪽"
+
+msgid "Bottom"
+msgstr "아래쪽"
+
 msgid "Bottom Margin"
 msgstr "아래쪽 여백"
 
@@ -8615,6 +8609,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -17131,6 +17138,12 @@ msgstr "왈라백"
 
 msgid "annotations"
 msgstr "주석"
+
+#~ msgid "Gesture position"
+#~ msgstr "제스처 위치"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "강조 표시 대화 상자 위치: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

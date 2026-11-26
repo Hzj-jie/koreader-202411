@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:51-0800\n"
+"POT-Creation-Date: 2026-11-26 01:26-0800\n"
 "PO-Revision-Date: 2024-01-31 04:14+0000\n"
 "Last-Translator: Radoŝ Porka <animatorzPolski@gmail.com>\n"
 "Language-Team: Esperanto <https://hosted.weblate.org/projects/koreader/"
@@ -2822,15 +2822,6 @@ msgstr "Elekti"
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr ""
-
-msgid "Bottom"
-msgstr ""
-
-msgid "Gesture position"
-msgstr ""
-
 #, fuzzy
 msgid "Start content selection"
 msgstr "Forigo de artikolo"
@@ -2938,9 +2929,6 @@ msgstr "Elekti dosierujon de ekrankopioj"
 #, fuzzy
 msgid "Dictionary on single word selection"
 msgstr "Grando de tiparo por vortaro"
-
-msgid "Highlight dialog position: %1"
-msgstr ""
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr ""
@@ -5898,6 +5886,12 @@ msgstr ""
 msgid "Top/Bottom Margins"
 msgstr ""
 
+msgid "Top"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
 msgid "Bottom Margin"
 msgstr ""
 
@@ -8015,6 +8009,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
