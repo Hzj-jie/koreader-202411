@@ -114,42 +114,45 @@ describe("Terminal Aliases plugin module", function()
     os.remove(tmp_file)
   end)
 
-  it("should show InfoMessage and preserve existing file when save fails", function()
-    local tmp_file = lfs.currentdir()
-      .. "/test_aliases_fail_"
-      .. ffiUtil.getpid()
-      .. ".sh"
-    local f = io.open(tmp_file, "w")
-    f:write("# existing content\n")
-    f:close()
+  it(
+    "should show InfoMessage and preserve existing file when save fails",
+    function()
+      local tmp_file = lfs.currentdir()
+        .. "/test_aliases_fail_"
+        .. ffiUtil.getpid()
+        .. ".sh"
+      local f = io.open(tmp_file, "w")
+      f:write("# existing content\n")
+      f:close()
 
-    local util = require("util")
-    local orig_writeToFile = util.writeToFile
-    util.writeToFile = function()
-      return false, "disk full"
+      local util = require("util")
+      local orig_writeToFile = util.writeToFile
+      util.writeToFile = function()
+        return false, "disk full"
+      end
+
+      local inst = {
+        filename = tmp_file,
+        kv_pairs = {
+          { "Create a new alias", "" },
+          "---",
+          { "ll", "ls -la" },
+        },
+      }
+      setmetatable(inst, { __index = Aliases })
+
+      inst:save()
+      assert.are.equal(1, #shown_widgets)
+
+      local rf = io.open(tmp_file, "r")
+      local content = rf:read("*a")
+      rf:close()
+      assert.are.equal("# existing content\n", content)
+
+      util.writeToFile = orig_writeToFile
+      os.remove(tmp_file)
     end
-
-    local inst = {
-      filename = tmp_file,
-      kv_pairs = {
-        { "Create a new alias", "" },
-        "---",
-        { "ll", "ls -la" },
-      },
-    }
-    setmetatable(inst, { __index = Aliases })
-
-    inst:save()
-    assert.are.equal(1, #shown_widgets)
-
-    local rf = io.open(tmp_file, "r")
-    local content = rf:read("*a")
-    rf:close()
-    assert.are.equal("# existing content\n", content)
-
-    util.writeToFile = orig_writeToFile
-    os.remove(tmp_file)
-  end)
+  )
 
   it(
     "should show KeyValuePage and handle show and updateKeyValues lifecycle",

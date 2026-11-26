@@ -46,7 +46,11 @@ end
 
 local function formatRuntimeSummary(meta)
   local lua_ver = meta.lua_version or "?"
-  if meta.jit_version and meta.jit_version ~= "" and meta.jit_version ~= "none" then
+  if
+    meta.jit_version
+    and meta.jit_version ~= ""
+    and meta.jit_version ~= "none"
+  then
     return lua_ver .. " / " .. meta.jit_version
   end
   return lua_ver
@@ -109,7 +113,12 @@ function UIBenchmark.bbTypeName(bb_type, blitbuffer_mod)
   return names[bb_type] or ("UNKNOWN(" .. tostring(bb_type) .. ")")
 end
 
-function UIBenchmark.initSandboxSettings(DataStorage, LuaDefaults, LuaSettings, util)
+function UIBenchmark.initSandboxSettings(
+  DataStorage,
+  LuaDefaults,
+  LuaSettings,
+  util
+)
   if G_defaults == nil then
     G_defaults = LuaDefaults:open()
   end
@@ -127,11 +136,18 @@ end
 function UIBenchmark.bootstrapEnvironment(start_clock)
   require("setupkoenv")
   local time = require("ui/time")
-  local setup_cpu_ms = start_clock and math.max(0, (os.clock() - start_clock) * 1000) or 0
+  local setup_cpu_ms = start_clock
+      and math.max(0, (os.clock() - start_clock) * 1000)
+    or 0
   local mono_t0 = time.monotonic()
   local DataStorage = require("datastorage")
 
-  UIBenchmark.initSandboxSettings(DataStorage, require("luadefaults"), require("luasettings"), require("util"))
+  UIBenchmark.initSandboxSettings(
+    DataStorage,
+    require("luadefaults"),
+    require("luasettings"),
+    require("util")
+  )
 
   local dbg = require("dbg")
   if G_reader_settings:isTrue("debug") then
@@ -149,14 +165,16 @@ function UIBenchmark.bootstrapEnvironment(start_clock)
     jit.opt.start("loopunroll=45")
   end
 
-  local lang_locale = os.getenv("KO_RTL") and "ar" or G_reader_settings:read("language")
+  local lang_locale = os.getenv("KO_RTL") and "ar"
+    or G_reader_settings:read("language")
   if lang_locale then
     require("gettext").changeLang(lang_locale)
   end
 
   local Blitbuffer = require("ffi/blitbuffer")
   Blitbuffer:setUseCBB(is_cbb_enabled)
-  is_cbb_enabled = Blitbuffer:enableCBB(G_reader_settings:nilOrFalse("dev_no_c_blitter"))
+  is_cbb_enabled =
+    Blitbuffer:enableCBB(G_reader_settings:nilOrFalse("dev_no_c_blitter"))
   G_reader_settings:save("dev_no_c_blitter", not is_cbb_enabled)
 
   local Device = require("device")
@@ -203,7 +221,8 @@ function UIBenchmark.collectDeviceInfo(env)
     bb_bpp = Blitbuffer.TYPE_TO_BPP[bb_type] or 0,
     cbb = Blitbuffer:getUseCBB() and "on" or "off",
     lua_version = _VERSION,
-    jit_version = (_VERSION == "Lua 5.1" and jit.version) and jit.version or "none",
+    jit_version = (_VERSION == "Lua 5.1" and jit.version) and jit.version
+      or "none",
   }
 end
 
@@ -267,16 +286,27 @@ function UIBenchmark.benchMenuLayoutAndPaint(env, max_secs)
     }
   end
 
-  return UIBenchmark.measurePhase("menu_layout_paint", "Menu layout", max_secs, function()
-    local menu = Menu:new({ title = "Benchmark Menu", item_table = items, width = sw, height = sh })
-    menu:onNextPage()
-    menu:paintTo(offscreen, 0, 0)
-    menu:free()
-    UIManager:clearRenderStack()
-  end, function()
-    UIManager:clearRenderStack()
-    offscreen:free()
-  end)
+  return UIBenchmark.measurePhase(
+    "menu_layout_paint",
+    "Menu layout",
+    max_secs,
+    function()
+      local menu = Menu:new({
+        title = "Benchmark Menu",
+        item_table = items,
+        width = sw,
+        height = sh,
+      })
+      menu:onNextPage()
+      menu:paintTo(offscreen, 0, 0)
+      menu:free()
+      UIManager:clearRenderStack()
+    end,
+    function()
+      UIManager:clearRenderStack()
+      offscreen:free()
+    end
+  )
 end
 
 function UIBenchmark.benchWidgetLayoutAndPaint(env, max_secs)
@@ -314,43 +344,53 @@ function UIBenchmark.benchWidgetLayoutAndPaint(env, max_secs)
     .. "button table construction, touch menu tab switching, and screen bitmap compositing."
   local box_width = math.floor(sw * 0.8)
 
-  return UIBenchmark.measurePhase("widget_layout_paint", "Widgets/text", max_secs, function()
-    local tm = TouchMenu:new({ tab_item_table = tab_items, width = sw })
-    tm:switchMenuTab(2)
-    tm:paintTo(offscreen, 0, 0)
+  return UIBenchmark.measurePhase(
+    "widget_layout_paint",
+    "Widgets/text",
+    max_secs,
+    function()
+      local tm = TouchMenu:new({ tab_item_table = tab_items, width = sw })
+      tm:switchMenuTab(2)
+      tm:paintTo(offscreen, 0, 0)
 
-    local tb = TextBoxWidget:new({ face = info_face, text = sample_text, width = box_width })
-    tb:paintTo(offscreen, 0, 0)
+      local tb = TextBoxWidget:new({
+        face = info_face,
+        text = sample_text,
+        width = box_width,
+      })
+      tb:paintTo(offscreen, 0, 0)
 
-    local info = InfoMessage:new({ text = sample_text })
-    info:paintTo(offscreen, 0, 0)
+      local info = InfoMessage:new({ text = sample_text })
+      info:paintTo(offscreen, 0, 0)
 
-    local bt = ButtonTable:new({
-      width = box_width,
-      buttons = {
-        {
-          { text = "Cancel", callback = function() end },
-          { text = "Details", callback = function() end },
-          { text = "OK", callback = function() end },
+      local bt = ButtonTable:new({
+        width = box_width,
+        buttons = {
+          {
+            { text = "Cancel", callback = function() end },
+            { text = "Details", callback = function() end },
+            { text = "OK", callback = function() end },
+          },
+          {
+            { text = "Previous", callback = function() end },
+            { text = "Refresh", callback = function() end },
+            { text = "Next", callback = function() end },
+          },
         },
-        {
-          { text = "Previous", callback = function() end },
-          { text = "Refresh", callback = function() end },
-          { text = "Next", callback = function() end },
-        },
-      },
-    })
-    bt:paintTo(offscreen, 0, 0)
+      })
+      bt:paintTo(offscreen, 0, 0)
 
-    tb:free(true)
-    info:free()
-    bt:free()
-    tm:free()
-    UIManager:clearRenderStack()
-  end, function()
-    UIManager:clearRenderStack()
-    offscreen:free()
-  end)
+      tb:free(true)
+      info:free()
+      bt:free()
+      tm:free()
+      UIManager:clearRenderStack()
+    end,
+    function()
+      UIManager:clearRenderStack()
+      offscreen:free()
+    end
+  )
 end
 
 function UIBenchmark.benchBlitbufferOps(env, max_secs)
@@ -376,15 +416,17 @@ function UIBenchmark.benchBlitbufferOps(env, max_secs)
     batch > 1 and ("Blit x" .. batch) or "Blit ops",
     max_secs,
     function()
-    for _ = 1, batch do
-      dst_bb:paintRect(0, 0, pw, ph, Blitbuffer.COLOR_WHITE)
-      dst_bb:blitFrom(src_bb, 0, 0, 0, 0, pw, ph)
-      dst_bb:invertRect(0, 0, pw, ph)
+      for _ = 1, batch do
+        dst_bb:paintRect(0, 0, pw, ph, Blitbuffer.COLOR_WHITE)
+        dst_bb:blitFrom(src_bb, 0, 0, 0, 0, pw, ph)
+        dst_bb:invertRect(0, 0, pw, ph)
+      end
+    end,
+    function()
+      dst_bb:free()
+      src_bb:free()
     end
-  end, function()
-    dst_bb:free()
-    src_bb:free()
-  end)
+  )
 end
 
 function UIBenchmark.benchSettingsDumpLoad(env, max_secs)
@@ -392,9 +434,14 @@ function UIBenchmark.benchSettingsDumpLoad(env, max_secs)
   local label = "Settings x" .. batch
   local tmp_dir = env.DataStorage:getTmpDir()
   if not tmp_dir then
-    return UIBenchmark.measurePhase("settings_dump_load", label, max_secs, function()
-      return "skip", "no writable tmp dir"
-    end)
+    return UIBenchmark.measurePhase(
+      "settings_dump_load",
+      label,
+      max_secs,
+      function()
+        return "skip", "no writable tmp dir"
+      end
+    )
   end
 
   local LuaSettings = require("luasettings")
@@ -407,7 +454,12 @@ function UIBenchmark.benchSettingsDumpLoad(env, max_secs)
     lastfile = "/mnt/us/documents/benchmark_sample.epub",
     bookmarks = {},
     menu_favorites = { "toc", "bookmarks", "night_mode", "frontlight", "wifi" },
-    reader_config = { justified = true, hyphenation = true, render_dpi = 300, embedded_css = true },
+    reader_config = {
+      justified = true,
+      hyphenation = true,
+      render_dpi = 300,
+      embedded_css = true,
+    },
   }
   for i = 1, 10 do
     sample.bookmarks[i] = {
@@ -417,25 +469,42 @@ function UIBenchmark.benchSettingsDumpLoad(env, max_secs)
     }
   end
 
-  local tmp_path = string.format("%s/koreader_ui_benchmark_io_%d_%d.lua", tmp_dir, os.time(), math.floor(os.clock() * 1e6))
-  return UIBenchmark.measurePhase("settings_dump_load", label, max_secs, function()
-    for _ = 1, batch do
-      local writer = LuaSettings:open(tmp_path)
-      writer:reset(util.tableDeepCopy(sample))
-      writer:flush()
-      local loaded = LuaSettings:load(tmp_path)
-      assert(loaded and loaded.reader_config and loaded.reader_config.render_dpi == 300)
+  local tmp_path = string.format(
+    "%s/koreader_ui_benchmark_io_%d_%d.lua",
+    tmp_dir,
+    os.time(),
+    math.floor(os.clock() * 1e6)
+  )
+  return UIBenchmark.measurePhase(
+    "settings_dump_load",
+    label,
+    max_secs,
+    function()
+      for _ = 1, batch do
+        local writer = LuaSettings:open(tmp_path)
+        writer:reset(util.tableDeepCopy(sample))
+        writer:flush()
+        local loaded = LuaSettings:load(tmp_path)
+        assert(
+          loaded
+            and loaded.reader_config
+            and loaded.reader_config.render_dpi == 300
+        )
+      end
+    end,
+    function()
+      os.remove(tmp_path)
+      os.remove(tmp_path .. ".old")
+      os.remove(tmp_path .. ".temp")
     end
-  end, function()
-    os.remove(tmp_path)
-    os.remove(tmp_path .. ".old")
-    os.remove(tmp_path .. ".temp")
-  end)
+  )
 end
 
 function UIBenchmark.buildSampleHtml()
-  local chunks = { "<!DOCTYPE html><html><head><meta charset=\"utf-8\"></head><body>" }
-  local para = "<p>The quick brown fox jumps over the lazy dog while e-ink displays render crisp typography, hyphenation rules, and pagination metrics.</p>"
+  local chunks =
+    { '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>' }
+  local para =
+    "<p>The quick brown fox jumps over the lazy dog while e-ink displays render crisp typography, hyphenation rules, and pagination metrics.</p>"
   for ch = 1, 10 do
     table.insert(chunks, string.format("<h1>Chapter %d</h1>", ch))
     for _ = 1, 8 do
@@ -451,9 +520,14 @@ function UIBenchmark.benchCreDocumentPages(env, max_secs)
   local label = batch > 1 and ("CRe x" .. batch) or "CRe pages"
   local tmp_dir = env.DataStorage:getTmpDir()
   if not tmp_dir then
-    return UIBenchmark.measurePhase("credocument_pages", label, max_secs, function()
-      return "skip", "no writable tmp dir"
-    end)
+    return UIBenchmark.measurePhase(
+      "credocument_pages",
+      label,
+      max_secs,
+      function()
+        return "skip", "no writable tmp dir"
+      end
+    )
   end
 
   local Screen = env.Device.screen
@@ -461,9 +535,18 @@ function UIBenchmark.benchCreDocumentPages(env, max_secs)
   local pw, ph = UIBenchmark.paintSize(Screen)
   local offscreen = env.Blitbuffer.new(pw, ph, Screen.bb:getType())
   local page_rect = require("ui/geometry"):new({ x = 0, y = 0, w = pw, h = ph })
-  local tmp_html = string.format("%s/koreader_ui_benchmark_book_%d_%d.html", tmp_dir, os.time(), math.floor(os.clock() * 1e6))
-  local ok, write_err = require("util").writeToFile(UIBenchmark.buildSampleHtml(), tmp_html)
-  assert(ok, "failed to write temp HTML benchmark file: " .. tostring(write_err))
+  local tmp_html = string.format(
+    "%s/koreader_ui_benchmark_book_%d_%d.html",
+    tmp_dir,
+    os.time(),
+    math.floor(os.clock() * 1e6)
+  )
+  local ok, write_err =
+    require("util").writeToFile(UIBenchmark.buildSampleHtml(), tmp_html)
+  assert(
+    ok,
+    "failed to write temp HTML benchmark file: " .. tostring(write_err)
+  )
 
   -- Open and render the document once outside the loop so ops measure page turns/drawing.
   local doc = require("document/documentregistry"):openDocument(tmp_html)
@@ -473,16 +556,28 @@ function UIBenchmark.benchCreDocumentPages(env, max_secs)
   local pages = math.max(1, doc:getPageCount())
   local op_idx = 0
 
-  return UIBenchmark.measurePhase("credocument_pages", label, max_secs, function()
-    for _ = 1, batch do
-      op_idx = op_idx + 1
-      doc:drawCurrentViewByPage(offscreen, 0, 0, page_rect, ((op_idx - 1) % pages) + 1)
+  return UIBenchmark.measurePhase(
+    "credocument_pages",
+    label,
+    max_secs,
+    function()
+      for _ = 1, batch do
+        op_idx = op_idx + 1
+        doc:drawCurrentViewByPage(
+          offscreen,
+          0,
+          0,
+          page_rect,
+          ((op_idx - 1) % pages) + 1
+        )
+      end
+    end,
+    function()
+      doc:close()
+      offscreen:free()
+      os.remove(tmp_html)
     end
-  end, function()
-    doc:close()
-    offscreen:free()
-    os.remove(tmp_html)
-  end)
+  )
 end
 
 function UIBenchmark.runAllBenchmarks(env, max_secs)
@@ -562,15 +657,30 @@ function UIBenchmark.formatComparisonReport(lj_run, lua_run)
     "LuaJIT:  " .. describeRuntime(lj_meta),
     "Lua:     " .. describeRuntime(lua_meta),
     "",
-    string.format("%-12s %7s %7s %7s %13s", "Workload", "LJ(ms)", "Lua(ms)", "Ratio", "Ops(LJ/L)"),
+    string.format(
+      "%-12s %7s %7s %7s %13s",
+      "Workload",
+      "LJ(ms)",
+      "Lua(ms)",
+      "Ratio",
+      "Ops(LJ/L)"
+    ),
     sep,
   }
 
   local notes = {}
-  if lj_meta.status ~= "OK" and lj_meta.status_detail and lj_meta.status_detail ~= "" then
+  if
+    lj_meta.status ~= "OK"
+    and lj_meta.status_detail
+    and lj_meta.status_detail ~= ""
+  then
     table.insert(notes, "  * LJ: " .. lj_meta.status_detail)
   end
-  if lua_meta.status ~= "OK" and lua_meta.status_detail and lua_meta.status_detail ~= "" then
+  if
+    lua_meta.status ~= "OK"
+    and lua_meta.status_detail
+    and lua_meta.status_detail ~= ""
+  then
     table.insert(notes, "  * Lua: " .. lua_meta.status_detail)
   end
 
@@ -579,7 +689,9 @@ function UIBenchmark.formatComparisonReport(lj_run, lua_run)
   for _, def in ipairs(UIBenchmark.PHASES) do
     local p_lj = lj_map[def.id]
     local p_lua = lua_map[def.id]
-    local row_label = (p_lj and p_lj.label) or (p_lua and p_lua.label) or def.label
+    local row_label = (p_lj and p_lj.label)
+      or (p_lua and p_lua.label)
+      or def.label
     local lj_ms_str, lj_ops_str = formatVmCell(lj_meta, p_lj)
     local lua_ms_str, lua_ops_str = formatVmCell(lua_meta, p_lua)
     local ratio_str = "-"
@@ -588,13 +700,26 @@ function UIBenchmark.formatComparisonReport(lj_run, lua_run)
     end
     table.insert(
       lines,
-      string.format("%-12s %7s %7s %7s %13s", row_label, lj_ms_str, lua_ms_str, ratio_str, lj_ops_str .. "/" .. lua_ops_str)
+      string.format(
+        "%-12s %7s %7s %7s %13s",
+        row_label,
+        lj_ms_str,
+        lua_ms_str,
+        ratio_str,
+        lj_ops_str .. "/" .. lua_ops_str
+      )
     )
     if p_lj and p_lj.status ~= "OK" and p_lj.note ~= "" then
-      table.insert(notes, string.format("  * %s (LJ): %s", row_label, p_lj.note))
+      table.insert(
+        notes,
+        string.format("  * %s (LJ): %s", row_label, p_lj.note)
+      )
     end
     if p_lua and p_lua.status ~= "OK" and p_lua.note ~= "" then
-      table.insert(notes, string.format("  * %s (Lua): %s", row_label, p_lua.note))
+      table.insert(
+        notes,
+        string.format("  * %s (Lua): %s", row_label, p_lua.note)
+      )
     end
   end
 
@@ -611,7 +736,11 @@ end
 function UIBenchmark.showReportFile(report_path, env)
   local content, err = require("util").readFromFile(report_path, "rb")
   if not content then
-    return false, "failed to read report file " .. tostring(report_path) .. ": " .. tostring(err)
+    return false,
+      "failed to read report file "
+        .. tostring(report_path)
+        .. ": "
+        .. tostring(err)
   end
   local UIManager = env.UIManager
   local viewer = require("ui/widget/textviewer"):new({
@@ -629,7 +758,8 @@ end
 
 local function emitOutput(out_path, text, lua_dofile_ready)
   if out_path then
-    local ok, err = require("util").writeToFile(text, out_path, lua_dofile_ready)
+    local ok, err =
+      require("util").writeToFile(text, out_path, lua_dofile_ready)
     if not ok then
       io.stderr:write("Failed to write ", out_path, ": ", tostring(err), "\n")
       return false
@@ -667,7 +797,10 @@ function UIBenchmark.main(cli_args, start_clock)
     require("setupkoenv")
     local lj_run = loadBenchmarkRun(opts.lj_path)
     local lua_run = loadBenchmarkRun(opts.lua_path)
-    return emitOutput(opts.out, UIBenchmark.formatComparisonReport(lj_run, lua_run)) and 0 or 1
+    return emitOutput(
+      opts.out,
+      UIBenchmark.formatComparisonReport(lj_run, lua_run)
+    ) and 0 or 1
   end
 
   local env = UIBenchmark.bootstrapEnvironment(start_clock)

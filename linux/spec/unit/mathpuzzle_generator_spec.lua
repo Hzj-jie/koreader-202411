@@ -210,7 +210,8 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(ap100.single_column)
 
       -- Test Entry Level (max 30, step up to 3, 8 terms, alternating blanks strictly at {1,3,5,7} or {2,4,6,8})
-      local problems_entry = Generator.generateProblems("arithmetic_progression_30_entry", 20)
+      local problems_entry =
+        Generator.generateProblems("arithmetic_progression_30_entry", 20)
       assert.are.equal(20, #problems_entry)
       local saw_entry_odd_blanks = false
       local saw_entry_even_blanks = false
@@ -253,7 +254,8 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(saw_entry_subtraction)
 
       -- Test Easy Level (alternating blanks strictly at {1,3,5,7} or {2,4,6,8})
-      local problems_easy = Generator.generateProblems("arithmetic_progression_50_easy", 20)
+      local problems_easy =
+        Generator.generateProblems("arithmetic_progression_50_easy", 20)
       assert.are.equal(20, #problems_easy)
       local saw_odd_blanks = false
       local saw_even_blanks = false
@@ -280,7 +282,8 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(saw_even_blanks)
 
       -- Test Level 1 (max 50, step up to 4, random blanks)
-      local problems_50 = Generator.generateProblems("arithmetic_progression_50", 20)
+      local problems_50 =
+        Generator.generateProblems("arithmetic_progression_50", 20)
       assert.are.equal(20, #problems_50)
       for _, prob in ipairs(problems_50) do
         assert.is_true(prob.step >= 1 and prob.step <= 4)
@@ -294,7 +297,8 @@ describe("MathPuzzle Generator module", function()
       end
 
       -- Test Level 2 (max 100, step up to 10, random blanks)
-      local problems_100 = Generator.generateProblems("arithmetic_progression_100", 20)
+      local problems_100 =
+        Generator.generateProblems("arithmetic_progression_100", 20)
       assert.are.equal(20, #problems_100)
 
       local saw_addition = false
@@ -322,7 +326,9 @@ describe("MathPuzzle Generator module", function()
         for _, b_idx in ipairs(prob.blank_indices) do
           assert.is_true(prob.blanks[b_idx])
           assert.are.equal(prob.terms[b_idx], prob.answers[b_idx])
-          assert.is_true(prob.answers[b_idx] >= 0 and prob.answers[b_idx] <= 100)
+          assert.is_true(
+            prob.answers[b_idx] >= 0 and prob.answers[b_idx] <= 100
+          )
         end
 
         assert.is_nil(prob.op)
@@ -347,7 +353,8 @@ describe("MathPuzzle Generator module", function()
       assert.is_true(saw_5_blanks)
 
       -- Verify checkAnswers with correct answers
-      local test_problems = Generator.generateProblems("arithmetic_progression_50", 5)
+      local test_problems =
+        Generator.generateProblems("arithmetic_progression_50", 5)
       for _, p in ipairs(test_problems) do
         for _, b_idx in ipairs(p.blank_indices) do
           p.user_answers[b_idx] = tostring(p.answers[b_idx])

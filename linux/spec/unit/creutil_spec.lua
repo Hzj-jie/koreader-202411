@@ -31,23 +31,26 @@ describe("creutil", function()
       assert.are.equal(12, called_arg)
     end)
 
-    it("falls back to CRE_HEADER_DEFAULT_SIZE when value is omitted or nil", function()
-      local orig_scale = Device.screen.scaleBySize
-      local called_arg = nil
-      Device.screen.scaleBySize = function(self_s, px)
-        called_arg = px
-        return px + 5
+    it(
+      "falls back to CRE_HEADER_DEFAULT_SIZE when value is omitted or nil",
+      function()
+        local orig_scale = Device.screen.scaleBySize
+        local called_arg = nil
+        Device.screen.scaleBySize = function(self_s, px)
+          called_arg = px
+          return px + 5
+        end
+        finally(function()
+          Device.screen.scaleBySize = orig_scale
+        end)
+
+        assert.are.equal(25, CreUtil.font_size(nil))
+        assert.are.equal(20, called_arg)
+
+        assert.are.equal(25, CreUtil.font_size())
+        assert.are.equal(20, called_arg)
       end
-      finally(function()
-        Device.screen.scaleBySize = orig_scale
-      end)
-
-      assert.are.equal(25, CreUtil.font_size(nil))
-      assert.are.equal(20, called_arg)
-
-      assert.are.equal(25, CreUtil.font_size())
-      assert.are.equal(20, called_arg)
-    end)
+    )
 
     it("scales using screen dimensions rather than raw DPI", function()
       -- On a 1072x1448 screen with 300 DPI:
@@ -56,12 +59,19 @@ describe("creutil", function()
       -- Raw DPI formula (20 * 300 / 160) = 37.5
       local orig_screen = Device.screen
       local fake_screen = {
-        getWidth = function() return 1072 end,
-        getHeight = function() return 1448 end,
+        getWidth = function()
+          return 1072
+        end,
+        getHeight = function()
+          return 1448
+        end,
         dpi_override = false,
-        getDPI = function() return 300 end,
+        getDPI = function()
+          return 300
+        end,
         scaleBySize = function(self_s, px)
-          local size_scale = math.min(self_s:getWidth(), self_s:getHeight()) / 600
+          local size_scale = math.min(self_s:getWidth(), self_s:getHeight())
+            / 600
           local dpi_scale = size_scale
           return math.ceil(px * (size_scale + dpi_scale) / 2)
         end,

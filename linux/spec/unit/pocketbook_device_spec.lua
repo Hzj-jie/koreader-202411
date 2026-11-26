@@ -68,19 +68,22 @@ describe("PocketBook device", function()
       assert.is_true(poweroff_called)
     end)
 
-    it("reports hasNetwork = false for PocketBook Basic (613) without Wi-Fi", function()
-      finally(function()
-        ffi.copy(model_c, "PB632")
-        package.loaded["device/pocketbook/device"] = PocketBook
-      end)
+    it(
+      "reports hasNetwork = false for PocketBook Basic (613) without Wi-Fi",
+      function()
+        finally(function()
+          ffi.copy(model_c, "PB632")
+          package.loaded["device/pocketbook/device"] = PocketBook
+        end)
 
-      ffi.copy(model_c, "PB613")
-      package.loaded["device/pocketbook/device"] = nil
-      local pb613 = require("device/pocketbook/device")
-      assert.are.equal("PB613B", pb613.model)
-      assert.is_false(pb613:hasWifiToggle())
-      assert.is_false(pb613:hasNetwork())
-    end)
+        ffi.copy(model_c, "PB613")
+        package.loaded["device/pocketbook/device"] = nil
+        local pb613 = require("device/pocketbook/device")
+        assert.are.equal("PB613B", pb613.model)
+        assert.is_false(pb613:hasWifiToggle())
+        assert.is_false(pb613:hasNetwork())
+      end
+    )
   end)
 
   describe("associateFileExtensions", function()

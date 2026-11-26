@@ -275,7 +275,11 @@ describe("BatteryState plugin tests #nocov", function()
 
     local log_entry = nil
     for _, pair in ipairs(kv_page.kv_pairs) do
-      if type(pair) == "table" and pair[1] and pair[1] == gettext("Tap to open batterystat.log.") then
+      if
+        type(pair) == "table"
+        and pair[1]
+        and pair[1] == gettext("Tap to open batterystat.log.")
+      then
         log_entry = pair
         break
       end

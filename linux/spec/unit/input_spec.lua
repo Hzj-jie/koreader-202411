@@ -547,49 +547,55 @@ Event: time 1510346969.076908, -------------- SYN_REPORT ------------
       C.close(pipefd[1])
     end)
 
-    it("should detect grab conflict on non-evdev fd and schedule quit", function()
-      InputClass.opened_devices["/dev/input/event0"] = pipefd[0]
+    it(
+      "should detect grab conflict on non-evdev fd and schedule quit",
+      function()
+        InputClass.opened_devices["/dev/input/event0"] = pipefd[0]
 
-      local scheduled_fn
-      local scheduled_delay
-      local next_tick_fn
-      local shown_widget
-      local mock_uimgr = {
-        nextTick = function(_self, fn)
-          next_tick_fn = fn
-        end,
-        scheduleIn = function(_self, delay, fn)
-          scheduled_delay = delay
-          scheduled_fn = fn
-        end,
-        show = function(_self, widget)
-          shown_widget = widget
-        end,
-        quit = spy.new(function() end),
-      }
+        local scheduled_fn
+        local scheduled_delay
+        local next_tick_fn
+        local shown_widget
+        local mock_uimgr = {
+          nextTick = function(_self, fn)
+            next_tick_fn = fn
+          end,
+          scheduleIn = function(_self, delay, fn)
+            scheduled_delay = delay
+            scheduled_fn = fn
+          end,
+          show = function(_self, widget)
+            shown_widget = widget
+          end,
+          quit = spy.new(function() end),
+        }
 
-      Input:UIManagerReady(mock_uimgr)
+        Input:UIManagerReady(mock_uimgr)
 
-      assert.is_function(next_tick_fn)
-      next_tick_fn()
+        assert.is_function(next_tick_fn)
+        next_tick_fn()
 
-      assert.is_not_nil(shown_widget)
-      assert.is_equal(
-        gettext(
-          "Failed to grab input device. KOReader will try to terminate conflicting processes and exit in 10 seconds without restarting automatically to avoid a crash loop. Please try starting KOReader again afterward."
-        ),
-        shown_widget.text
-      )
-      assert.is_equal(10, scheduled_delay)
-      assert.is_function(scheduled_fn)
+        assert.is_not_nil(shown_widget)
+        assert.is_equal(
+          gettext(
+            "Failed to grab input device. KOReader will try to terminate conflicting processes and exit in 10 seconds without restarting automatically to avoid a crash loop. Please try starting KOReader again afterward."
+          ),
+          shown_widget.text
+        )
+        assert.is_equal(10, scheduled_delay)
+        assert.is_function(scheduled_fn)
 
-      scheduled_fn()
-      assert.spy(mock_uimgr.quit).was.called(1)
-      assert.spy(mock_uimgr.quit).was.called_with(mock_uimgr)
+        scheduled_fn()
+        assert.spy(mock_uimgr.quit).was.called(1)
+        assert.spy(mock_uimgr.quit).was.called_with(mock_uimgr)
 
-      assert.is_equal(1, #executed_cmds)
-      assert.is_equal("sh -c 'sleep 1; pkill lua; pkill luajit' &", executed_cmds[1])
-    end)
+        assert.is_equal(1, #executed_cmds)
+        assert.is_equal(
+          "sh -c 'sleep 1; pkill lua; pkill luajit' &",
+          executed_cmds[1]
+        )
+      end
+    )
 
     it("should ignore fake_events and not schedule quit", function()
       InputClass.opened_devices["fake_events"] = pipefd[0]

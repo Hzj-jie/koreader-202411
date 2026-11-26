@@ -353,19 +353,22 @@ describe("CommonInfoMenuTable element", function()
       assert.is_nil(menu.lua_benchmark)
     end)
 
-    it("asserts when Device can restart and ./tools/run_benchmark.sh is absent", function()
-      Device.canRestart = function()
-        return true
-      end
-      lfs.attributes = function(path, attr)
-        if path == "./tools/run_benchmark.sh" and attr == "mode" then
-          return nil
+    it(
+      "asserts when Device can restart and ./tools/run_benchmark.sh is absent",
+      function()
+        Device.canRestart = function()
+          return true
         end
-        return orig_lfs_attributes(path, attr)
-      end
+        lfs.attributes = function(path, attr)
+          if path == "./tools/run_benchmark.sh" and attr == "mode" then
+            return nil
+          end
+          return orig_lfs_attributes(path, attr)
+        end
 
-      assert.has_error(loadModule)
-    end)
+        assert.has_error(loadModule)
+      end
+    )
 
     it(
       "is included when Device can restart and ./tools/run_benchmark.sh exists, and confirms Restart(90)",

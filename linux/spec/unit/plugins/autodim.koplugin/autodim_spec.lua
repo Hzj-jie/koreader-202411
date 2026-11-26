@@ -160,7 +160,9 @@ describe("AutoDim widget tests", function()
       local events = {}
       local orig_broadcast = UIManager.broadcastEvent
       UIManager.broadcastEvent = function(self, ev)
-        local name = type(ev) == "table" and (ev.handler and ev.handler:gsub("^on", "") or ev.action) or ev
+        local name = type(ev) == "table"
+            and (ev.handler and ev.handler:gsub("^on", "") or ev.action)
+          or ev
         table.insert(events, name)
         return orig_broadcast(self, ev)
       end

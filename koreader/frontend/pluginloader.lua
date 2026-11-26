@@ -87,62 +87,62 @@ function PluginLoader:loadPlugins()
       logger.warn("Failed to open plugin directory:", lookup_path, err)
     else
       for entry in iter, dir_obj do
-      local plugin_root = lookup_path .. "/" .. entry
-      local plugin_code_name = entry:sub(1, -10)
-      -- valid koreader plugin directory
-      if
-        lfs.attributes(plugin_root, "mode") == "directory"
-        and entry:find(".+%.koplugin$")
-        and not OBSOLETE_PLUGINS[plugin_code_name]
-      then
-        local mainfile = plugin_root .. "/main"
-        local metafile = plugin_root .. "/_meta"
-        if self:pluginsDisabled()[plugin_code_name] == nil then
-          if DEFAULT_DISABLED_PLUGINS[plugin_code_name] then
-            self:pluginsDisabled()[plugin_code_name] = true
-          end
-        end
+        local plugin_root = lookup_path .. "/" .. entry
+        local plugin_code_name = entry:sub(1, -10)
+        -- valid koreader plugin directory
         if
-          lfs.attributes(metafile .. ".lua", "mode") == "file"
-          and lfs.attributes(mainfile .. ".lua", "mode") == "file"
+          lfs.attributes(plugin_root, "mode") == "directory"
+          and entry:find(".+%.koplugin$")
+          and not OBSOLETE_PLUGINS[plugin_code_name]
         then
-          local plugin_module = require(mainfile)
-          assert(plugin_module ~= nil)
-          assert(
-            plugin_module.disabled == nil
-              or type(plugin_module.disabled) == "boolean"
-          )
-          if not plugin_module.disabled then
-            plugin_module.path = plugin_root
-            -- code_name: unique identifier matching the folder name (used for settings storage keys)
-            -- name: internally-used Lua class/module name of the plugin instance
-            plugin_module.code_name = plugin_code_name
-            plugin_module.name = plugin_module.name or plugin_code_name
-
-            local plugin_metamodule = require(metafile)
-            assert(plugin_metamodule)
-            for k, v in pairs(plugin_metamodule) do
-              plugin_module[k] = v
+          local mainfile = plugin_root .. "/main"
+          local metafile = plugin_root .. "/_meta"
+          if self:pluginsDisabled()[plugin_code_name] == nil then
+            if DEFAULT_DISABLED_PLUGINS[plugin_code_name] then
+              self:pluginsDisabled()[plugin_code_name] = true
             end
+          end
+          if
+            lfs.attributes(metafile .. ".lua", "mode") == "file"
+            and lfs.attributes(mainfile .. ".lua", "mode") == "file"
+          then
+            local plugin_module = require(mainfile)
+            assert(plugin_module ~= nil)
+            assert(
+              plugin_module.disabled == nil
+                or type(plugin_module.disabled) == "boolean"
+            )
+            if not plugin_module.disabled then
+              plugin_module.path = plugin_root
+              -- code_name: unique identifier matching the folder name (used for settings storage keys)
+              -- name: internally-used Lua class/module name of the plugin instance
+              plugin_module.code_name = plugin_code_name
+              plugin_module.name = plugin_module.name or plugin_code_name
 
-            if self:pluginsDisabled()[plugin_code_name] then
-              table.insert(self.disabled_plugins, plugin_module)
+              local plugin_metamodule = require(metafile)
+              assert(plugin_metamodule)
+              for k, v in pairs(plugin_metamodule) do
+                plugin_module[k] = v
+              end
+
+              if self:pluginsDisabled()[plugin_code_name] then
+                table.insert(self.disabled_plugins, plugin_module)
+              else
+                table.insert(self.enabled_plugins, plugin_module)
+              end
             else
-              table.insert(self.enabled_plugins, plugin_module)
+              logger.dbg("Plugin", entry, "has been disabled.")
             end
           else
-            logger.dbg("Plugin", entry, "has been disabled.")
+            logger.warn(
+              "Plugin directory",
+              entry,
+              "is missing required files (main.lua or _meta.lua), skipping."
+            )
           end
-        else
-          logger.warn(
-            "Plugin directory",
-            entry,
-            "is missing required files (main.lua or _meta.lua), skipping."
-          )
         end
       end
     end
-  end
   end
 
   table.sort(self.enabled_plugins, function(v1, v2)

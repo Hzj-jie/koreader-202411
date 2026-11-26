@@ -415,7 +415,8 @@ local function generateSingleProblem(mode)
       -- Fisher-Yates shuffle
       for i = #candidate_indices, 2, -1 do
         local j = math.random(1, i)
-        candidate_indices[i], candidate_indices[j] = candidate_indices[j], candidate_indices[i]
+        candidate_indices[i], candidate_indices[j] =
+          candidate_indices[j], candidate_indices[i]
       end
 
       for i = 1, num_blanks do
