@@ -1,5 +1,5 @@
 describe("EpubDownloadBackend module", function()
-  local EpubDownloadBackend, Trapper, socketutil, http, ffiUtil
+  local EpubDownloadBackend, Trapper, socketutil, http, ffiUtil, lfs
   local saved_http_request
   local saved_trapper_subprocess
   local saved_trapper_confirm
@@ -11,6 +11,7 @@ describe("EpubDownloadBackend module", function()
 
     ffiUtil = require("ffi/util")
     http = require("socket.http")
+    lfs = require("libs/libkoreader-lfs")
     socketutil = require("socketutil")
     Trapper = require("ui/trapper")
     EpubDownloadBackend =
@@ -232,7 +233,6 @@ describe("EpubDownloadBackend module", function()
         html,
         "http://example.com/full",
         true,
-        "Downloading...",
         true,
         "article"
       )
@@ -242,7 +242,7 @@ describe("EpubDownloadBackend module", function()
   )
 
   it(
-    "should handle user cancellation cleanup during image download in createEpub",
+    "should continue and create epub when image download fails with HTTP 404 in createEpub",
     function()
       local tmp_epub = os.tmpname() .. "_" .. ffiUtil.getpid() .. ".epub"
       local html =
@@ -252,20 +252,15 @@ describe("EpubDownloadBackend module", function()
         return nil, 404, {}, "404 Not Found"
       end
 
-      -- User cancels download and does not continue
-      Trapper.confirm = function(self_trapper, msg)
-        return false
-      end
-
       local result = EpubDownloadBackend:createEpub(
         tmp_epub,
         html,
         "http://example.com/fail",
         true,
-        "Downloading...",
         false
       )
-      assert.is_false(result)
+      assert.is_true(result)
+      assert.are.equal("file", lfs.attributes(tmp_epub, "mode"))
       os.remove(tmp_epub)
     end
   )
@@ -302,7 +297,6 @@ describe("EpubDownloadBackend module", function()
         html,
         "http://example.com/article",
         false,
-        "Downloading...",
         false
       )
       assert.is_true(ok)

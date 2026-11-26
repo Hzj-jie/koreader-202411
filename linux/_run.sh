@@ -26,6 +26,9 @@ while [ ${RETURN_VALUE} -eq 85 ]; do
             LUA="./lua"
         fi
         RETURN_VALUE=85
+    elif [ ${RETURN_VALUE} -eq 90 ]; then
+        sh ./tools/run_benchmark.sh
+        RETURN_VALUE=85
     fi
     # do not restart with saved arguments
     ARGS=""

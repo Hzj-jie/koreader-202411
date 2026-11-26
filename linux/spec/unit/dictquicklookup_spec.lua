@@ -1,10 +1,13 @@
 describe("DictQuickLookup", function()
   local DictQuickLookup
+  local Blitbuffer
   local UIManager
   local Event
   local Geom
+  local Size
   local util
   local Device
+  local Screen
 
   local orig_setDirty
   local orig_show
@@ -24,11 +27,14 @@ describe("DictQuickLookup", function()
   setup(function()
     require("commonrequire")
     DictQuickLookup = require("ui/widget/dictquicklookup")
+    Blitbuffer = require("ffi/blitbuffer")
     UIManager = require("ui/uimanager")
     Event = require("ui/event")
     Geom = require("ui/geometry")
+    Size = require("ui/size")
     util = require("util")
     Device = require("device")
+    Screen = Device.screen
 
     orig_setDirty = UIManager.setDirty
     orig_show = UIManager.show
@@ -626,17 +632,124 @@ describe("DictQuickLookup", function()
     )
 
     it("should adjust window position based on word_boxes", function()
-      local word_boxes = {
-        Geom:new({ x = 10, y = 200, w = 100, h = 30 }),
-      }
+      local screen_w, screen_h = Screen:getWidth(), Screen:getHeight()
+      local margin_top = Size.margin.default
+      local pad = Size.padding.small
+      local bb = Blitbuffer.new(screen_w, screen_h)
+      finally(function()
+        bb:free()
+      end)
 
-      local lookup = DictQuickLookup:new({
+      -- Centered (no word_boxes): offset stays 0 and still hold toggles alpha
+      local centered = DictQuickLookup:new({
         word = "test",
         results = createDummyResults(),
-        word_boxes = word_boxes,
       })
+      centered:paintTo(bb, 0, 0)
+      local centered_h = centered.dict_frame:getSize().h
+      local avail_h = screen_h - 2 * margin_top
+      assert.are.equal(
+        margin_top + math.floor((avail_h - centered_h) / 2),
+        centered.dict_frame.dimen.y
+      )
+      assert.are.equal(0, centered.movable._moved_offset_y)
+      centered.movable:_moveBy()
+      assert.are.equal(0.6, centered.movable.alpha)
+      assert.are.equal(0, centered.movable._moved_offset_y)
 
-      assert.truthy(lookup.region)
+      -- Large window (is_wiki_fullpage) starts at margin_top with offset 0
+      local footer_h = 50
+      local ui_with_footer = {
+        wikipedia = dummy_ui.wikipedia,
+        view = {
+          footer_visible = true,
+          footer = {
+            getHeight = function()
+              return footer_h
+            end,
+          },
+        },
+      }
+      local large_results = createDummyResults()
+      large_results[1].is_wiki_fullpage = true
+      local large = DictQuickLookup:new({
+        word = "test",
+        results = large_results,
+        is_wiki = true,
+        is_wiki_fullpage = true,
+        word_boxes = { Geom:new({ x = 20, y = 200, w = 80, h = 25 }) },
+        ui = ui_with_footer,
+      })
+      large:paintTo(bb, 0, 0)
+      assert.is_nil(large.movable.anchor)
+      assert.are.equal(
+        math.floor((screen_h - footer_h - large.dict_frame:getSize().h) / 2),
+        large.dict_frame.dimen.y
+      )
+      assert.are.equal(0, large.movable._moved_offset_y)
+
+      -- Word near top: always moves right below word (not centered) and keeps parent x
+      local top_box = Geom:new({ x = 20, y = 40, w = 80, h = 25 })
+      local below = DictQuickLookup:new({
+        word = "test",
+        results = createDummyResults(),
+        word_boxes = { top_box },
+      })
+      below:paintTo(bb, 0, 0)
+      assert.are.equal(
+        math.floor((screen_w - below.dict_frame:getSize().w) / 2),
+        below.dict_frame.dimen.x
+      )
+      assert.are.equal(top_box.y + top_box.h + pad, below.dict_frame.dimen.y)
+
+      -- Word near bottom with visible footer: flips above word (not over footer)
+      local bottom_box =
+        Geom:new({ x = 20, y = screen_h - footer_h - 120, w = 80, h = 25 })
+      local above = DictQuickLookup:new({
+        word = "test",
+        results = createDummyResults(),
+        word_boxes = { bottom_box },
+        ui = ui_with_footer,
+      })
+      above:paintTo(bb, 0, 0)
+      assert.are.equal(
+        bottom_box.y - pad - above.dict_frame:getSize().h,
+        above.dict_frame.dimen.y
+      )
+
+      -- Tall selection fitting neither above nor below: picks side with more room inside bounds
+      local fallback_bottom = DictQuickLookup:new({
+        word = "test",
+        results = createDummyResults(),
+        word_boxes = {
+          Geom:new({
+            x = 20,
+            y = margin_top + 10,
+            w = 80,
+            h = screen_h - margin_top - 140,
+          }),
+        },
+      })
+      fallback_bottom:paintTo(bb, 0, 0)
+      assert.are.equal(
+        screen_h - margin_top - fallback_bottom.dict_frame:getSize().h,
+        fallback_bottom.dict_frame.dimen.y
+      )
+
+      local fallback_top = DictQuickLookup:new({
+        word = "test",
+        results = createDummyResults(),
+        word_boxes = {
+          Geom:new({
+            x = 20,
+            y = 140,
+            w = 80,
+            h = screen_h - margin_top - 150,
+          }),
+        },
+      })
+      fallback_top:paintTo(bb, 0, 0)
+      assert.are.equal(margin_top, fallback_top.dict_frame.dimen.y)
     end)
 
     it("should be modal by default", function()

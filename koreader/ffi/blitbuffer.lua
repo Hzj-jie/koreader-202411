@@ -148,6 +148,10 @@ void BB_color_blit_from_RGB32(BlitBuffer * restrict dest, const BlitBuffer * res
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
 void BB_paint_rounded_corner(BlitBuffer * restrict bb, unsigned int off_x, unsigned int off_y, unsigned int w, unsigned int h,
                         unsigned int bw, unsigned int r, uint8_t c, int anti_alias);
+void BB_blit_to_4bpp(const BlitBuffer * restrict src,
+                     uint8_t * restrict dst, size_t dst_stride,
+                     unsigned int x, unsigned int y,
+                     unsigned int w, unsigned int h, int invert);
 ]])
 
 -- We'll load it later
@@ -3122,6 +3126,32 @@ function BB_mt.__index:darkenRect(x, y, w, h, by)
   else
     self:paintRect(x, y, w, h, color, self.setPixelBlend)
   end
+end
+
+--[[
+Pack a physical dirty rectangle from a `TYPE_BB8` buffer into a raw 4bpp
+destination buffer, applying optional bit inversion.
+
+@param dst destination buffer pointer (`uint8_t *` or `void *`)
+@param dst_stride destination row stride in bytes
+@param x physical X coordinate
+@param y physical Y coordinate
+@param w physical width
+@param h physical height
+@param invert invert pixel bits while packing (default: false)
+--]]
+function BB_mt.__index:blitTo4bpp(dst, dst_stride, x, y, w, h, invert)
+  assert(self:getType() == TYPE_BB8)
+  cblitbuffer.BB_blit_to_4bpp(
+    ffi.cast(P_BlitBuffer_ROData, self),
+    dst,
+    dst_stride,
+    x,
+    y,
+    w,
+    h,
+    invert and 1 or 0
+  )
 end
 
 --[[
