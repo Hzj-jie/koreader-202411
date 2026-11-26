@@ -26,13 +26,20 @@ BENCH_LUA="${BENCH_TMP_DIR}/koreader-bench-lua.$$.lua"
 BENCH_DATA_DIR="${BENCH_TMP_DIR}/koreader-bench-data.$$"
 BENCH_LOG="benchmark.log"
 
-trap 'rm -rf "${BENCH_LUAJIT}" "${BENCH_LUA}" "${BENCH_DATA_DIR}"' EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
-rm -rf "${BENCH_LUAJIT}" "${BENCH_LUA}" "${BENCH_DATA_DIR}"
-mkdir -p "${BENCH_DATA_DIR}/koreader" || exit 1
+cleanup_bench() {
+    rm -rf "${BENCH_LUAJIT}" "${BENCH_LUA}" "${BENCH_DATA_DIR}"
+}
+
+cleanup_bench
+mkdir -p "${BENCH_DATA_DIR}/koreader" || {
+    cleanup_bench
+    exit 1
+}
 if [ -f "./settings.reader.lua" ]; then
-    cp "./settings.reader.lua" "${BENCH_DATA_DIR}/koreader/settings.reader.lua" || exit 1
+    cp "./settings.reader.lua" "${BENCH_DATA_DIR}/koreader/settings.reader.lua" || {
+        cleanup_bench
+        exit 1
+    }
 fi
 KO_MULTIUSER=1
 XDG_CONFIG_HOME="${BENCH_DATA_DIR}"
@@ -95,4 +102,5 @@ if [ "${RETURN_VALUE}" -eq 0 ] && [ "${LUAJIT_RC}" -ne 0 ] && [ "${LUA_RC}" -ne 
     RETURN_VALUE=1
 fi
 
+cleanup_bench
 exit "${RETURN_VALUE}"

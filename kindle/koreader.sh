@@ -311,6 +311,13 @@ else
                 LUA_BIN="lua"
             fi
             RETURN_VALUE=85
+        elif [ "${RETURN_VALUE}" -eq 90 ]; then
+            logmsg "Running Lua vs LuaJIT benchmark . . ."
+            if [ "${FROM_KUAL}" = "yes" ]; then
+                eips_print_bottom_centered "Running Lua vs LuaJIT benchmark . . ." 1
+            fi
+            sh ./tools/run_benchmark.sh >>crash.log 2>&1
+            RETURN_VALUE=85
         fi
     done
 fi
