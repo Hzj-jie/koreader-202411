@@ -730,7 +730,7 @@ describe("FileManagerHistory", function()
     end)
 
     it("handles Retrieve reading history callback", function()
-      fmh.onRetrieveHistory = spy.new(function() end)
+      fmh.retrieveHistory = spy.new(function() end)
 
       fmh:showHistDialog()
       local hist_dialog = shown_dialogs[1]
@@ -741,7 +741,7 @@ describe("FileManagerHistory", function()
       assert
         .spy(mock_uimanager.close)
         .was_called_with(mock_uimanager, match.is_ref(hist_dialog))
-      assert.spy(fmh.onRetrieveHistory).was_called(1)
+      assert.spy(fmh.retrieveHistory).was_called(1)
     end)
 
     it("handles Clear history of deleted files callback", function()
@@ -1027,7 +1027,7 @@ describe("FileManagerHistory", function()
     end)
   end)
 
-  describe("onRetrieveHistory / buildHistory / restoreHistory", function()
+  describe("retrieveHistory / buildHistory / restoreHistory", function()
     local ffiutil = require("ffi/util")
     local lfs = require("libs/libkoreader-lfs")
     local util = require("util")
@@ -1091,6 +1091,9 @@ describe("FileManagerHistory", function()
       }
 
       fmh = FileManagerHistory:new({ ui = { menu = mock_menu } })
+      fmh.hist_menu = mock_menu
+      fmh.filter = "all"
+      fmh.updateItemTable = spy.new(function() end)
     end)
 
     after_each(function()
@@ -1110,7 +1113,7 @@ describe("FileManagerHistory", function()
       fmh.buildHistory = spy.new(function() end)
       fmh.restoreHistory = spy.new(function() end)
 
-      fmh:onRetrieveHistory()
+      fmh:retrieveHistory()
 
       assert.spy(mock_multi_confirm_box.new).was_called(1)
       local box = shown_dialogs[1]
@@ -1180,8 +1183,9 @@ describe("FileManagerHistory", function()
       assert.spy(popen_stub).was_not_called()
       assert.is_equal("old_history", read_dummy(temp_dir .. "/history.lua"))
       assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
-      assert.is_equal(0, mock_readhistory.last_read_time)
-      assert.spy(mock_readhistory.reload).was_called(1)
+      assert
+        .spy(mock_readhistory.reload)
+        .was_called_with(match.is_ref(mock_readhistory), true)
       assert.spy(mock_readhistory.ensureLastFile).was_called(1)
       assert.is_equal(0, #shown_dialogs)
     end)
@@ -1201,8 +1205,9 @@ describe("FileManagerHistory", function()
         assert.spy(popen_stub).was_not_called()
         assert.is_nil(lfs.attributes(temp_dir .. "/history.lua", "mode"))
         assert.are.equal(prev_hist, mock_readhistory.hist)
-        assert.is_equal(0, mock_readhistory.last_read_time)
-        assert.spy(mock_readhistory.reload).was_called(1)
+        assert
+          .spy(mock_readhistory.reload)
+          .was_called_with(match.is_ref(mock_readhistory), true)
         assert.spy(mock_readhistory.ensureLastFile).was_called(1)
         assert.is_equal(0, #shown_dialogs)
       end
@@ -1244,8 +1249,9 @@ describe("FileManagerHistory", function()
           { file = home_dir .. "/My Book 1.epub", time = 100 },
         }, mock_readhistory.hist)
         assert.spy(mock_readhistory.flush).was_called(1)
-        assert.is_equal(0, mock_readhistory.last_read_time)
-        assert.spy(mock_readhistory.reload).was_called(1)
+        assert
+          .spy(mock_readhistory.reload)
+          .was_called_with(match.is_ref(mock_readhistory), true)
         assert.spy(mock_readhistory.ensureLastFile).was_called(1)
         assert.spy(fmh.fetchStatuses).was_called_with(match.is_ref(fmh), false)
         assert.spy(fmh.updateItemTable).was_called(1)
@@ -1309,6 +1315,64 @@ describe("FileManagerHistory", function()
       end
     )
 
+    it(
+      "deduplicates canonical book paths when home_dir is a symlink with both doc and dir sidecars",
+      function()
+        local real_home = temp_dir .. "/real_books"
+        local link_home = temp_dir .. "/link_books"
+        util.makePath(real_home)
+        assert(lfs.link(real_home, link_home, true))
+
+        local canonical_book = ffiutil.realpath(real_home) .. "/Symlink Book.epub"
+        write_dummy(canonical_book, "book")
+        write_metadata("Symlink Book.sdr/metadata.epub.lua", 150, real_home)
+        write_metadata(
+          "Symlink Book.sdr/metadata.epub.lua",
+          400,
+          docsettings_dir .. ffiutil.realpath(real_home)
+        )
+
+        _G.G_named_settings.home_dir = function()
+          return link_home
+        end
+
+        fmh:doBuildHistory()
+
+        assert.is_same({
+          { file = canonical_book, time = 400 },
+        }, mock_readhistory.hist)
+      end
+    )
+
+    it(
+      "skips sidecars whose book path fails ffiutil.realpath",
+      function()
+        local valid_book = home_dir .. "/Valid Book.epub"
+        local unresolvable_book = home_dir .. "/Unresolvable Book.epub"
+        write_dummy(valid_book, "valid")
+        write_dummy(unresolvable_book, "unresolvable")
+        write_metadata("Valid Book.sdr/metadata.epub.lua", 200)
+        write_metadata("Unresolvable Book.sdr/metadata.epub.lua", 500)
+
+        local orig_realpath = ffiutil.realpath
+        local realpath_stub = stub(ffiutil, "realpath", function(path)
+          if path == unresolvable_book then
+            return nil
+          end
+          return orig_realpath(path)
+        end)
+        finally(function()
+          realpath_stub:revert()
+        end)
+
+        fmh:doBuildHistory()
+
+        assert.is_same({
+          { file = orig_realpath(valid_book), time = 200 },
+        }, mock_readhistory.hist)
+      end
+    )
+
     it("restores backup history and refreshes open hist_menu", function()
       fmh:restoreHistory()
       assert.is_equal(mock_gettext("No history backup found."), shown_dialogs[1].text)
@@ -1332,8 +1396,9 @@ describe("FileManagerHistory", function()
       fmh:restoreHistory()
       assert.is_equal("saved_history", read_dummy(temp_dir .. "/history.lua"))
       assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
-      assert.is_equal(0, mock_readhistory.last_read_time)
-      assert.spy(mock_readhistory.reload).was_called(1)
+      assert
+        .spy(mock_readhistory.reload)
+        .was_called_with(match.is_ref(mock_readhistory), true)
       assert.spy(mock_readhistory.ensureLastFile).was_called(1)
       assert.is_false(fmh.statuses_fetched)
       assert.spy(fmh.updateItemTable).was_called(1)
@@ -1341,6 +1406,14 @@ describe("FileManagerHistory", function()
         mock_gettext("Last history view has been restored."),
         shown_dialogs[1].text
       )
+    end)
+
+    it("asserts hist_menu is open in refreshAfterHistoryUpdate", function()
+      fmh.hist_menu = nil
+      assert.has.errors(function()
+        fmh:refreshAfterHistoryUpdate()
+      end)
+      assert.spy(fmh.updateItemTable).was_not_called()
     end)
   end)
 end)

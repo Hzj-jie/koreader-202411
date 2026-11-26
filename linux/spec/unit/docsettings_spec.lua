@@ -2574,9 +2574,17 @@ describe("docsettings module", function()
         local f = assert(io.open(book, "w"))
         f:write("book content")
         f:close()
+        local tmp_book = tmp_dir .. "/ephemeral_tmp_test_book.epub"
+        local orig_getTmpDir = DataStorage.getTmpDir
+        local rw_stub
         finally(function()
+          if rw_stub then
+            rw_stub:revert()
+          end
+          DataStorage.getTmpDir = orig_getTmpDir
           ffiutil.purgeDir(tmp_dir)
           SdrList:removeItem(book)
+          SdrList:removeItem(tmp_book)
         end)
 
         local d = docsettings:open(book)
@@ -2586,13 +2594,11 @@ describe("docsettings module", function()
         d:close()
 
         -- Ephemeral tmp flush must not register into SdrList
-        local tmp_book = tmp_dir .. "/ephemeral_tmp_test_book.epub"
-        local orig_getTmpDir = DataStorage.getTmpDir
         local orig_isDirRW = util.isDirRW
         DataStorage.getTmpDir = function()
           return tmp_dir .. "/ro_tmp"
         end
-        local rw_stub = stub(util, "isDirRW", function(dir, create)
+        rw_stub = stub(util, "isDirRW", function(dir, create)
           if dir:find("/ro_tmp/", 1, true) then
             return orig_isDirRW(dir, create)
           end
@@ -2603,6 +2609,7 @@ describe("docsettings module", function()
         d_ro:flush()
         d_ro:close()
         rw_stub:revert()
+        rw_stub = nil
         DataStorage.getTmpDir = orig_getTmpDir
         assert.is_false(hasSdrEntry(tmp_book))
 
@@ -2656,6 +2663,88 @@ describe("docsettings module", function()
         -- Delete removes target
         docsettings.updateLocation(moved_book)
         assert.is_false(hasSdrEntry(moved_book))
+      end
+    )
+
+    it(
+      "updates SdrList on cold-cache move and delete for hash-located sidecars under hash and doc preferences",
+      function()
+        local tmp_dir = ffiutil.realpath(".") .. "/tmp_cold_hash_sdr_test"
+        util.makePath(tmp_dir)
+        local orig_hash = tmp_dir .. "/hash_pref_orig.epub"
+        local moved_hash = tmp_dir .. "/hash_pref_moved.epub"
+        local orig_mixed = tmp_dir .. "/doc_pref_orig.epub"
+        local moved_mixed = tmp_dir .. "/doc_pref_moved.epub"
+        local del_hash = tmp_dir .. "/hash_pref_del.epub"
+        local del_hash_dir
+        local f1 = assert(io.open(orig_hash, "w"))
+        f1:write("cold hash preferred payload")
+        f1:close()
+        local f2 = assert(io.open(orig_mixed, "w"))
+        f2:write("cold mixed doc preferred payload")
+        f2:close()
+        local f3 = assert(io.open(del_hash, "w"))
+        f3:write("cold hash delete payload")
+        f3:close()
+        finally(function()
+          package.loaded["docsettings"] = docsettings
+          docsettings.updateLocation(orig_hash)
+          docsettings.updateLocation(moved_hash)
+          docsettings.updateLocation(orig_mixed)
+          docsettings.updateLocation(moved_mixed)
+          docsettings.updateLocation(del_hash)
+          if del_hash_dir then
+            ffiutil.purgeDir(del_hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+          ffiutil.purgeDir(tmp_dir)
+          SdrList:removeItem(orig_hash)
+          SdrList:removeItem(moved_hash)
+          SdrList:removeItem(orig_mixed)
+          SdrList:removeItem(moved_mixed)
+          SdrList:removeItem(del_hash)
+        end)
+
+        -- Case 1: document_metadata_folder == "hash"
+        G_reader_settings:save("document_metadata_folder", "hash")
+        local d1 = docsettings:open(orig_hash)
+        d1:save("summary", { status = "reading" })
+        d1:flush()
+        d1:close()
+        assert.is_true(hasSdrEntry(orig_hash))
+
+        assert(os.rename(orig_hash, moved_hash))
+        package.loaded["docsettings"] = nil
+        require("docsettings").updateLocation(orig_hash, moved_hash, false)
+        assert.is_false(hasSdrEntry(orig_hash))
+        assert.is_true(hasSdrEntry(moved_hash))
+
+        -- Case 2: document_metadata_folder == "doc" with existing hash-located sidecar
+        local d2 = docsettings:open(orig_mixed)
+        d2:save("summary", { status = "abandoned" })
+        d2:flush()
+        d2:close()
+        assert.is_true(hasSdrEntry(orig_mixed))
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        assert(os.rename(orig_mixed, moved_mixed))
+        package.loaded["docsettings"] = nil
+        require("docsettings").updateLocation(orig_mixed, moved_mixed, false)
+        assert.is_false(hasSdrEntry(orig_mixed))
+        assert.is_true(hasSdrEntry(moved_mixed))
+
+        -- Case 3: cold-cache delete after file is already removed from disk
+        G_reader_settings:save("document_metadata_folder", "hash")
+        local d3 = docsettings:open(del_hash)
+        d3:save("summary", { status = "complete" })
+        del_hash_dir = d3:flush()
+        d3:close()
+        assert.is_true(hasSdrEntry(del_hash))
+
+        assert(os.remove(del_hash))
+        package.loaded["docsettings"] = nil
+        require("docsettings").updateLocation(del_hash)
+        assert.is_false(hasSdrEntry(del_hash))
       end
     )
   end)

@@ -1459,7 +1459,7 @@ describe("FileManager module", function()
     end)
   end)
 
-  describe("FileManager folder copy and SdrList integration", function()
+  describe("FileManager folder operations and SdrList integration", function()
     local SdrList = require("sdrlist")
     local core_util = require("util")
     local base_tmp
@@ -1473,6 +1473,16 @@ describe("FileManager module", function()
         end
       end
       return false
+    end
+
+    local function createSidecar(book)
+      local sdr_dir = docsettings:open(book).candidates[1].dir
+      core_util.makePath(sdr_dir)
+      local f = assert(
+        io.open(sdr_dir .. "/" .. docsettings.getSidecarFilename(book), "w")
+      )
+      f:write("{}")
+      f:close()
     end
 
     before_each(function()
@@ -1505,17 +1515,7 @@ describe("FileManager module", function()
         local no_sdr_src = src_sub .. "/plain.pdf"
         util.copyFile("spec/unit/data/2col.pdf", tracked_src)
         util.copyFile("spec/unit/data/2col.pdf", no_sdr_src)
-
-        local sdr_dir = docsettings:open(tracked_src).candidates[1].dir
-        core_util.makePath(sdr_dir)
-        local f = assert(
-          io.open(
-            sdr_dir .. "/" .. docsettings.getSidecarFilename(tracked_src),
-            "w"
-          )
-        )
-        f:write("{}")
-        f:close()
+        createSidecar(tracked_src)
 
         assert.is_true(SdrList:addItem(tracked_src))
         assert.is_true(SdrList:addItem(no_sdr_src))
@@ -1536,6 +1536,140 @@ describe("FileManager module", function()
         assert.is_true(hasSdrEntry(tracked_src))
         assert.is_true(hasSdrEntry(tracked_dst))
         assert.is_false(hasSdrEntry(no_sdr_dst))
+      end
+    )
+
+    it(
+      "updates SdrList on folder move via cutFile and pasteFileFromClipboard",
+      function()
+        local src_sub = base_tmp .. "/src/sub"
+        local sibling_sub = base_tmp .. "/src/sub2"
+        local dst_parent = base_tmp .. "/dst"
+        core_util.makePath(src_sub)
+        core_util.makePath(sibling_sub)
+        core_util.makePath(dst_parent)
+
+        local moved_src = src_sub .. "/book.pdf"
+        local no_sdr_src = src_sub .. "/plain.pdf"
+        local sibling_book = sibling_sub .. "/keep.pdf"
+        util.copyFile("spec/unit/data/2col.pdf", moved_src)
+        util.copyFile("spec/unit/data/2col.pdf", no_sdr_src)
+        util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+        createSidecar(moved_src)
+
+        assert.is_true(SdrList:addItem(moved_src))
+        assert.is_true(SdrList:addItem(no_sdr_src))
+        assert.is_true(SdrList:addItem(sibling_book))
+
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        finally(function()
+          filemanager:onExit()
+        end)
+
+        filemanager:cutFile(src_sub)
+        filemanager:pasteFileFromClipboard(dst_parent)
+
+        assert.is_false(hasSdrEntry(moved_src))
+        assert.is_true(hasSdrEntry(dst_parent .. "/sub/book.pdf"))
+        assert.is_false(hasSdrEntry(no_sdr_src))
+        assert.is_false(hasSdrEntry(dst_parent .. "/sub/plain.pdf"))
+        assert.is_true(hasSdrEntry(sibling_book))
+      end
+    )
+
+    it("updates SdrList on folder rename via renameFile", function()
+      local src_sub = base_tmp .. "/sub"
+      local sibling_sub = base_tmp .. "/sub2"
+      core_util.makePath(src_sub)
+      core_util.makePath(sibling_sub)
+
+      local orig_book = src_sub .. "/book.pdf"
+      local no_sdr_book = src_sub .. "/plain.pdf"
+      local sibling_book = sibling_sub .. "/keep.pdf"
+      util.copyFile("spec/unit/data/2col.pdf", orig_book)
+      util.copyFile("spec/unit/data/2col.pdf", no_sdr_book)
+      util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+      createSidecar(orig_book)
+
+      assert.is_true(SdrList:addItem(orig_book))
+      assert.is_true(SdrList:addItem(no_sdr_book))
+      assert.is_true(SdrList:addItem(sibling_book))
+
+      local filemanager = FileManager:new({
+        dimen = Screen:getSize(),
+        root_path = base_tmp,
+      })
+      finally(function()
+        filemanager:onExit()
+      end)
+
+      filemanager:renameFile(src_sub, "renamed", false)
+
+      assert.is_false(hasSdrEntry(orig_book))
+      assert.is_true(hasSdrEntry(base_tmp .. "/renamed/book.pdf"))
+      assert.is_false(hasSdrEntry(no_sdr_book))
+      assert.is_false(hasSdrEntry(base_tmp .. "/renamed/plain.pdf"))
+      assert.is_true(hasSdrEntry(sibling_book))
+    end)
+
+    it(
+      "removes folder entries from SdrList with a single index write on folder delete via deleteFile",
+      function()
+        local ReadHistory = require("readhistory")
+        local src_sub = base_tmp .. "/sub"
+        local sibling_sub = base_tmp .. "/sub2"
+        core_util.makePath(src_sub)
+        core_util.makePath(sibling_sub)
+
+        local deleted_books = {
+          src_sub .. "/book1.pdf",
+          src_sub .. "/book2.pdf",
+          src_sub .. "/book3.pdf",
+        }
+        local sibling_book = sibling_sub .. "/keep.pdf"
+        util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+        assert.is_true(SdrList:addItem(sibling_book))
+
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        local write_spy
+        finally(function()
+          if write_spy then
+            write_spy:revert()
+          end
+          for _, book in ipairs(deleted_books) do
+            ReadHistory:removeItemByPath(util.realpath(book) or book)
+          end
+          filemanager:onExit()
+        end)
+
+        for _, book in ipairs(deleted_books) do
+          util.copyFile("spec/unit/data/2col.pdf", book)
+          createSidecar(book)
+          assert.is_true(SdrList:addItem(book))
+          ReadHistory:addItem(book)
+          assert.is_not_nil(ReadHistory:getIndexByFile(util.realpath(book)))
+        end
+
+        write_spy = spy.on(core_util, "writeToFile")
+        assert.is_true(filemanager:deleteFile(src_sub, false))
+
+        local sdr_list_writes = 0
+        for _, call in ipairs(write_spy.calls) do
+          if tostring(call.vals[2]):match("sdr_list%.lua$") then
+            sdr_list_writes = sdr_list_writes + 1
+          end
+        end
+        assert.are.equal(1, sdr_list_writes)
+        for _, book in ipairs(deleted_books) do
+          assert.is_false(hasSdrEntry(book))
+        end
+        assert.is_true(hasSdrEntry(sibling_book))
       end
     )
   end)

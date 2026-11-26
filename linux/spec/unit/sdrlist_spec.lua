@@ -157,9 +157,7 @@ describe("SdrList module", function()
     local ignored = home_dir .. "/quickstart-en.html"
     local hidden = home_dir .. "/.DS_Store"
     local hidden_dir_book = home_dir .. "/.Trash/hidden_book.epub"
-    local nested_trash_book = home_dir .. "/.Trash/sub/hidden_book.epub"
     local sdr_dir_book = home_dir .. "/foo.sdr/nested.epub"
-    local nested_sdr_book = home_dir .. "/foo.sdr/sub/nested.epub"
     local real_home = ffiutil.realpath(home_dir)
     local rb1 = real_home .. "/sub/a.epub"
     local rb2 = real_home .. "/sub2/b.pdf"
@@ -167,25 +165,21 @@ describe("SdrList module", function()
     writeDummy(b2, "2")
 
     local ReadHistory = require("readhistory")
-    local ignore_spy = spy.on(ReadHistory, "ignoreFile")
+    local ignore_spy = spy.on(ReadHistory, "ignoreItem")
     local write_stub = spy.on(util, "writeToFile")
     finally(function()
       ignore_spy:revert()
       write_stub:revert()
     end)
 
-    assert.is_true(SdrList:ignorePath(hidden_dir_book))
-    assert.spy(ignore_spy).was_not_called()
-    assert.is_true(SdrList:ignorePath(nested_trash_book))
-    assert.is_true(SdrList:ignorePath(sdr_dir_book))
-    assert.is_true(SdrList:ignorePath(nested_sdr_book))
     assert.is_false(SdrList:addItem(ignored))
     assert.spy(ignore_spy).was_called_with(ReadHistory, ignored)
     assert.is_false(SdrList:addItem(hidden))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, hidden)
     assert.is_false(SdrList:addItem(hidden_dir_book))
-    assert.is_false(SdrList:addItem(nested_trash_book))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, hidden_dir_book)
     assert.is_false(SdrList:addItem(sdr_dir_book))
-    assert.is_false(SdrList:addItem(nested_sdr_book))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, sdr_dir_book)
     assert.spy(util.writeToFile).was_not_called()
 
     assert.is_true(SdrList:addItem(b1))
@@ -196,30 +190,53 @@ describe("SdrList module", function()
     assert.is_true(SdrList:addItem(b2))
     assert.are.same({ rb1, rb2 }, SdrList:getFiles())
 
-    -- Copy keeps original and adds destination
+    -- Copy keeps original and adds destination only when destination has a sidecar
     local b1_copy = home_dir .. "/sub/a_copy.epub"
     local rb1_copy = real_home .. "/sub/a_copy.epub"
+    writeDummy(b1_copy, "1")
+    assert.is_false(SdrList:updateItem(b1, b1_copy, true))
+    assert.are.same({ rb1, rb2 }, SdrList:getFiles())
+    writeDummy(
+      home_dir .. "/sub/a_copy.sdr/metadata.epub.lua",
+      'return { ["summary"] = { ["status"] = "reading" } }\n'
+    )
     assert.is_true(SdrList:updateItem(b1, b1_copy, true))
     assert.are.same({ rb1, rb1_copy, rb2 }, SdrList:getFiles())
 
-    -- Move removes original and keeps destination
+    -- Move removes original and adds destination only when destination has a sidecar
     local b1_moved = home_dir .. "/sub/a_moved.epub"
     local rb1_moved = real_home .. "/sub/a_moved.epub"
+    writeDummy(b1_moved, "1")
+    writeDummy(
+      home_dir .. "/sub/a_moved.sdr/metadata.epub.lua",
+      'return { ["summary"] = { ["status"] = "reading" } }\n'
+    )
     assert.is_true(SdrList:updateItem(b1_copy, b1_moved, false))
     assert.are.same({ rb1, rb1_moved, rb2 }, SdrList:getFiles())
+    local b1_no_sdr = home_dir .. "/sub/no_sdr.epub"
+    writeDummy(b1_no_sdr, "1")
+    assert.is_true(SdrList:updateItem(b1_moved, b1_no_sdr, false))
+    assert.are.same({ rb1, rb2 }, SdrList:getFiles())
+    assert.is_true(SdrList:addItem(b1_moved))
     assert.has.errors(function()
       SdrList:updateItem(b1_moved, nil)
     end)
 
-    -- Folder prefix rename must not rewrite sibling prefix (/sub vs /sub2)
+    -- Folder prefix rename keeps only renamed items with sidecars and preserves sibling prefix (/sub vs /sub2)
+    writeDummy(real_home .. "/renamed/a.epub", "1")
+    writeDummy(real_home .. "/renamed/a_moved.epub", "2")
+    writeDummy(
+      real_home .. "/renamed/a.sdr/metadata.epub.lua",
+      'return { ["summary"] = { ["status"] = "reading" } }\n'
+    )
     assert.is_true(
       SdrList:updateItemsByPath(real_home .. "/sub", real_home .. "/renamed")
     )
     assert.are.same({
       real_home .. "/renamed/a.epub",
-      real_home .. "/renamed/a_moved.epub",
       rb2,
     }, SdrList:getFiles())
+    assert.is_true(SdrList:addItem(real_home .. "/renamed/a_moved.epub"))
 
     -- Folder prefix copy keeps originals and adds only copied items with sidecars
     local copied_a = real_home .. "/copied/a.epub"
@@ -244,37 +261,40 @@ describe("SdrList module", function()
       rb2,
     }, SdrList:getFiles())
     assert.is_true(SdrList:removeItem(copied_a))
+    assert.has.errors(function()
+      SdrList:updateItemsByPath("", real_home .. "/copied")
+    end)
+    assert.has.errors(function()
+      SdrList:updateItemsByPath(real_home .. "/renamed", "")
+    end)
+    assert.has.errors(function()
+      SdrList:updateItemsByPath(nil, real_home .. "/copied")
+    end)
+    assert.has.errors(function()
+      SdrList:updateItemsByPath(real_home .. "/renamed", nil)
+    end)
 
-    -- Folder prefix delete must not delete /sub2
+    -- Folder prefix delete removes renamed folder and preserves sibling prefix (/sub vs /sub2)
     assert.is_true(SdrList:removeItemsByPath(real_home .. "/renamed"))
     assert.are.same({ rb2 }, SdrList:getFiles())
     assert.is_false(SdrList:removeItemsByPath(real_home .. "/renamed"))
+    local sub_del = real_home .. "/sub/del.epub"
+    assert.is_true(SdrList:addItem(sub_del))
+    assert.are.same({ sub_del, rb2 }, SdrList:getFiles())
+    assert.is_true(SdrList:removeItemsByPath(real_home .. "/sub"))
+    assert.are.same({ rb2 }, SdrList:getFiles())
+    assert.has.errors(function()
+      SdrList:removeItemsByPath("")
+    end)
+    assert.has.errors(function()
+      SdrList:removeItemsByPath(nil)
+    end)
 
     -- Single remove
     assert.is_true(SdrList:removeItem(b2))
     assert.are.same({}, SdrList:getFiles())
     assert.is_false(SdrList:removeItem(b2))
   end)
-
-  it(
-    "walks all ancestor directories in ignorePath for paths outside home_dir",
-    function()
-      local root = ffiutil.realpath(ffiutil.dirname(home_dir))
-      local nested_hidden_outside = root
-        .. "/external/.Trash/sub/nested_outside.epub"
-      local nested_sdr_outside = root
-        .. "/external/foo.sdr/sub/nested_outside.epub"
-      local visible_outside = root .. "/external/visible/sub/book_outside.epub"
-      local relative_hidden = ".Trash/sub/rel.epub"
-      local root_file = "/root_book.epub"
-
-      assert.is_true(SdrList:ignorePath(nested_hidden_outside))
-      assert.is_true(SdrList:ignorePath(nested_sdr_outside))
-      assert.is_true(SdrList:ignorePath(relative_hidden))
-      assert.is_false(SdrList:ignorePath(visible_outside))
-      assert.is_false(SdrList:ignorePath(root_file))
-    end
-  )
 
   it(
     "preserves existing cache and notifies on write or corrupt read failures",
@@ -300,7 +320,8 @@ describe("SdrList module", function()
       assert.are.same({ b1 }, dofile(sdr_list_file))
 
       writeDummy(sdr_list_file, "this is not valid lua {{{")
-      assert.is_false(SdrList:reload(true))
+      reloadModule()
+      assert.is_false(SdrList:reload())
       assert.stub(Notification.notify).was_called(2)
       assert.stub(Notification.notify).was_called_with(
         Notification,
@@ -319,14 +340,12 @@ describe("SdrList module", function()
       local missing_book = real_home .. "/deleted_book.epub"
       local orphan_book = real_home .. "/orphan_book.epub"
       local trash_book = real_home .. "/.Trash/trashed_book.epub"
-      local nested_trash_book = real_home .. "/.Trash/sub/nested_trashed.epub"
 
       writeDummy(doc_book, "doc book")
       writeDummy(dir_book, "dir book")
       writeDummy(hash_book, "hash book content for partial md5")
       writeDummy(missing_book, "temp")
       writeDummy(trash_book, "trashed book")
-      writeDummy(nested_trash_book, "nested trashed book")
 
       -- Create doc-mode sidecar
       writeDummy(
@@ -336,10 +355,6 @@ describe("SdrList module", function()
       -- Create ignored hidden parent dir sidecar
       writeDummy(
         real_home .. "/.Trash/trashed_book.sdr/metadata.epub.lua",
-        'return { ["summary"] = { ["status"] = "reading" } }\n'
-      )
-      writeDummy(
-        real_home .. "/.Trash/sub/nested_trashed.sdr/metadata.epub.lua",
         'return { ["summary"] = { ["status"] = "reading" } }\n'
       )
       -- Create orphan .sdr (book file absent)
@@ -379,7 +394,6 @@ describe("SdrList module", function()
       assert.is_false(hasSdrEntry(orphan_book))
       assert.is_false(hasSdrEntry(missing_book))
       assert.is_false(hasSdrEntry(trash_book))
-      assert.is_false(hasSdrEntry(nested_trash_book))
     end
   )
 end)

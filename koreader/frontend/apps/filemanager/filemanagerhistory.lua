@@ -13,16 +13,16 @@ local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local ffiutil = require("ffi/util")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
-local joinPath = require("ffi/util").joinPath
 local util = require("util")
 local C_ = gettext.pgettext
-local T = require("ffi/util").template
+local T = ffiutil.template
 
-local history_file = joinPath(DataStorage:getDataDir(), "history.lua")
+local history_file = ffiutil.joinPath(DataStorage:getDataDir(), "history.lua")
 local history_backup_file =
-  joinPath(DataStorage:getDataDir(), "history.lua.backup")
+  ffiutil.joinPath(DataStorage:getDataDir(), "history.lua.backup")
 
 local FileManagerHistory = WidgetContainer:extend({
   hist_menu_title = gettext("History"),
@@ -414,7 +414,7 @@ function FileManagerHistory:showHistDialog()
       text = gettext("Retrieve reading history"),
       callback = function()
         UIManager:close(hist_dialog)
-        self:onRetrieveHistory()
+        self:retrieveHistory()
       end,
     },
   })
@@ -447,14 +447,13 @@ function FileManagerHistory:showHistDialog()
 end
 
 function FileManagerHistory:refreshAfterHistoryUpdate()
-  if self.hist_menu then
-    if self.filter ~= "all" or self.is_frozen then
-      self:fetchStatuses(false)
-    else
-      self.statuses_fetched = false
-    end
-    self:updateItemTable()
+  assert(self.hist_menu ~= nil)
+  if self.filter ~= "all" or self.is_frozen then
+    self:fetchStatuses(false)
+  else
+    self.statuses_fetched = false
   end
+  self:updateItemTable()
 end
 
 function FileManagerHistory:doBuildHistory()
@@ -466,13 +465,15 @@ function FileManagerHistory:doBuildHistory()
         local book_path, replaced = path
           :sub(prefix_len + 1)
           :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-        if
-          replaced > 0
-          and book_path ~= ""
-          and util.fileExists(book_path)
-          and (not times_by_file[book_path] or attr.modification > times_by_file[book_path])
-        then
-          times_by_file[book_path] = attr.modification
+        if replaced > 0 and book_path ~= "" then
+          book_path = ffiutil.realpath(book_path)
+          if
+            book_path
+            and util.fileExists(book_path)
+            and (not times_by_file[book_path] or attr.modification > times_by_file[book_path])
+          then
+            times_by_file[book_path] = attr.modification
+          end
         end
       end)
     end
@@ -513,13 +514,11 @@ function FileManagerHistory:doBuildHistory()
           )
         end
       end
-      ReadHistory.last_read_time = 0
-      ReadHistory:reload()
+      ReadHistory:reload(true)
       ReadHistory:ensureLastFile()
       return
     end
-    ReadHistory.last_read_time = 0
-    ReadHistory:reload()
+    ReadHistory:reload(true)
     ReadHistory:ensureLastFile()
     self:refreshAfterHistoryUpdate()
     updated = true
@@ -555,8 +554,7 @@ function FileManagerHistory:restoreHistory()
       return
     end
     local ReadHistory = require("readhistory")
-    ReadHistory.last_read_time = 0
-    ReadHistory:reload()
+    ReadHistory:reload(true)
     ReadHistory:ensureLastFile()
     self:refreshAfterHistoryUpdate()
     self:showWidget(InfoMessage:new({
@@ -569,7 +567,7 @@ function FileManagerHistory:restoreHistory()
   end
 end
 
-function FileManagerHistory:onRetrieveHistory()
+function FileManagerHistory:retrieveHistory()
   self:showWidget(MultiConfirmBox:new({
     text = gettext(
       "Reading history will be retrieved from metadata files of books."

@@ -488,7 +488,7 @@ describe("ReadHistory module", function()
   )
 
   it(
-    "handles ignoreFile, updateLastBookTime, and updateDateTimeString",
+    "handles ignoreItem, updateLastBookTime, and updateDateTimeString",
     function()
       rm(file("history.lua"))
       local h = reload()
@@ -496,9 +496,15 @@ describe("ReadHistory module", function()
       h:addItem(test_file("ignore_me.epub"), now)
       assert.are.equal(1, #h.hist)
 
-      assert.is_true(h:ignoreFile("crash.log"))
-      assert.is_true(h:ignoreFile("quickstart-guide.html"))
-      assert.is_false(h:ignoreFile("regular_book.epub"))
+      assert.is_true(h:ignoreItem(nil))
+      assert.is_true(h:ignoreItem("crash.log"))
+      assert.is_true(h:ignoreItem("quickstart-guide.html"))
+      assert.is_true(h:ignoreItem("/books/.DS_Store"))
+      assert.is_true(h:ignoreItem("/books/.Trash/regular_book.epub"))
+      assert.is_true(h:ignoreItem("/books/foo.sdr/regular_book.epub"))
+      assert.is_false(h:ignoreItem("regular_book.epub"))
+      assert.is_true(h:ignoreItem(test_file("missing_legacy.epub"), now))
+      assert.is_false(h:ignoreItem(test_file("ignore_me.epub"), now))
 
       h:updateLastBookTime(true)
       h:updateDateTimeString()

@@ -1247,9 +1247,9 @@ function FileManager:deleteFile(file, is_file)
   else
     local ok = ffiUtil.purgeDir(file)
     if ok then
+      require("sdrlist"):removeItemsByPath(file)
       ReadHistory:folderDeleted(file) -- will delete sdr
       ReadCollection:removeItemsByPath(file)
-      require("sdrlist"):removeItemsByPath(file)
       return true
     end
   end
