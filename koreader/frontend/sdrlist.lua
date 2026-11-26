@@ -34,18 +34,12 @@ local function scanMetadataFiles(root, extractor, out_files, sdr_list)
 end
 
 function SdrList:ignorePath(file)
-  local FileChooser = require("ui/widget/filechooser")
   local dir = ffiutil.dirname(normalizePath(file))
   local home = normalizePath(G_named_settings.home_dir()):gsub("/+$", "")
-  local stop_at_home = home ~= ""
-    and (dir == home or util.stringStartsWith(dir, home .. "/"))
-  while
-    dir ~= ""
-    and dir ~= "."
-    and dir ~= "/"
-    and not (stop_at_home and dir == home)
-  do
-    if not FileChooser:show_dir(ffiutil.basename(dir)) then
+  while dir ~= "" and dir ~= "." and dir ~= "/" and dir ~= home do
+    if
+      not require("ui/widget/filechooser"):show_dir(ffiutil.basename(dir))
+    then
       return true
     end
     local parent = ffiutil.dirname(dir)
@@ -77,7 +71,6 @@ function SdrList:_flush()
 end
 
 function SdrList:_seedFromReadHistory()
-  local DocSettings = require("docsettings")
   self.files = {}
   for _, v in ipairs(require("readhistory").hist) do
     local file = v.file and normalizePath(v.file)
@@ -85,7 +78,7 @@ function SdrList:_seedFromReadHistory()
       file
       and file ~= ""
       and not self:ignorePath(file)
-      and DocSettings:hasSidecarFile(file)
+      and require("docsettings"):hasSidecarFile(file)
     then
       self.files[file] = true
     end
@@ -94,7 +87,7 @@ function SdrList:_seedFromReadHistory()
   return self:_flush()
 end
 
-function SdrList:reload(force_read)
+function SdrList:reload()
   local attr = lfs.attributes(sdr_list_file)
   if not attr then
     if not self.seeded then
@@ -102,7 +95,7 @@ function SdrList:reload(force_read)
     end
     return false
   end
-  if not force_read and attr.modification <= self.last_read_time then
+  if attr.modification <= self.last_read_time then
     return false
   end
   local ok, stored = pcall(dofile, sdr_list_file)
@@ -189,13 +182,20 @@ function SdrList:updateItem(old_file, new_file, copy)
 end
 
 function SdrList:updateItemsByPath(old_path, new_path, copy)
+  assert(
+    type(old_path) == "string" and old_path ~= "",
+    "SdrList: old_path must not be nil or empty"
+  )
+  assert(
+    type(new_path) == "string" and new_path ~= "",
+    "SdrList: new_path must not be nil or empty"
+  )
   self:reload()
   local old_prefix = normalizePath(old_path):gsub("/+$", "") .. "/"
   local new_prefix = normalizePath(new_path):gsub("/+$", "") .. "/"
   local prefix_len = #old_prefix
   local to_remove = {}
   local to_add = {}
-  local DocSettings = copy and require("docsettings")
   for file in pairs(self.files) do
     if file:sub(1, prefix_len) == old_prefix then
       if not copy then
@@ -205,7 +205,7 @@ function SdrList:updateItemsByPath(old_path, new_path, copy)
       if
         not self.files[updated]
         and not self:ignorePath(updated)
-        and (not copy or DocSettings:hasSidecarFile(updated))
+        and (not copy or require("docsettings"):hasSidecarFile(updated))
       then
         table.insert(to_add, updated)
       end
@@ -224,6 +224,10 @@ function SdrList:updateItemsByPath(old_path, new_path, copy)
 end
 
 function SdrList:removeItemsByPath(path)
+  assert(
+    type(path) == "string" and path ~= "",
+    "SdrList: path must not be nil or empty"
+  )
   self:reload()
   local prefix = normalizePath(path):gsub("/+$", "") .. "/"
   local prefix_len = #prefix
@@ -244,7 +248,6 @@ end
 
 function SdrList:rebuildFromDisk()
   self:reload()
-  local DocSettings = require("docsettings")
   local new_files = {}
   scanMetadataFiles(
     G_named_settings.home_dir():gsub("(.+)/+$", "%1"),
@@ -266,7 +269,7 @@ function SdrList:rebuildFromDisk()
       not new_files[file]
       and not self:ignorePath(file)
       and util.fileExists(file)
-      and DocSettings:hasSidecarFile(file)
+      and require("docsettings"):hasSidecarFile(file)
     then
       new_files[file] = true
     end

@@ -244,11 +244,29 @@ describe("SdrList module", function()
       rb2,
     }, SdrList:getFiles())
     assert.is_true(SdrList:removeItem(copied_a))
+    assert.has.errors(function()
+      SdrList:updateItemsByPath("", real_home .. "/copied")
+    end)
+    assert.has.errors(function()
+      SdrList:updateItemsByPath(real_home .. "/renamed", "")
+    end)
+    assert.has.errors(function()
+      SdrList:updateItemsByPath(nil, real_home .. "/copied")
+    end)
+    assert.has.errors(function()
+      SdrList:updateItemsByPath(real_home .. "/renamed", nil)
+    end)
 
     -- Folder prefix delete must not delete /sub2
     assert.is_true(SdrList:removeItemsByPath(real_home .. "/renamed"))
     assert.are.same({ rb2 }, SdrList:getFiles())
     assert.is_false(SdrList:removeItemsByPath(real_home .. "/renamed"))
+    assert.has.errors(function()
+      SdrList:removeItemsByPath("")
+    end)
+    assert.has.errors(function()
+      SdrList:removeItemsByPath(nil)
+    end)
 
     -- Single remove
     assert.is_true(SdrList:removeItem(b2))
@@ -300,7 +318,8 @@ describe("SdrList module", function()
       assert.are.same({ b1 }, dofile(sdr_list_file))
 
       writeDummy(sdr_list_file, "this is not valid lua {{{")
-      assert.is_false(SdrList:reload(true))
+      reloadModule()
+      assert.is_false(SdrList:reload())
       assert.stub(Notification.notify).was_called(2)
       assert.stub(Notification.notify).was_called_with(
         Notification,
