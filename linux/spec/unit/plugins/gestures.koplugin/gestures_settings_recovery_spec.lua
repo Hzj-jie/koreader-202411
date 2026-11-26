@@ -211,7 +211,9 @@ describe("Gestures settings recovery", function()
     { name = "non-table gestures.lua", content = "return true\n" },
   }) do
     it(
-      "recovers defaults lazily without aliasing on " .. case.name .. " in FM and reader modes",
+      "recovers defaults lazily without aliasing on "
+        .. case.name
+        .. " in FM and reader modes",
       function()
         for _, with_document in ipairs({ false, true }) do
           writeGesturesFile(case.content)
@@ -254,36 +256,35 @@ describe("Gestures settings recovery", function()
       assert.is_table(confirm_box)
       confirm_box.ok_callback()
 
-      assert.is_nil(gestures.custom_multiswipes.multiswipe_north_east_south_west)
+      assert.is_nil(
+        gestures.custom_multiswipes.multiswipe_north_east_south_west
+      )
       assert.is_nil(gestures.gestures.multiswipe_north_east_south_west)
       assert.is_nil(gestures.settings_data.data.gesture_reader)
       assert.is_true(gestures.updated)
     end
   )
 
-  it(
-    "updates profiles safely when inactive mode section is nil",
-    function()
-      writeGesturesFile(
-        "return { gesture_fm = { tap_top_left_corner = { profile_exec_old = true, settings = { order = { 'profile_exec_old' } } } }, custom_multiswipes = {} }\n"
-      )
+  it("updates profiles safely when inactive mode section is nil", function()
+    writeGesturesFile(
+      "return { gesture_fm = { tap_top_left_corner = { profile_exec_old = true, settings = { order = { 'profile_exec_old' } } } }, custom_multiswipes = {} }\n"
+    )
 
-      local gestures = openGestures(false)
-      assert.is_false(gestures.updated)
+    local gestures = openGestures(false)
+    assert.is_false(gestures.updated)
 
-      gestures:updateProfiles("profile_exec_old", "profile_exec_new")
-      assert.is_nil(gestures.gestures.tap_top_left_corner.profile_exec_old)
-      assert.is_true(gestures.gestures.tap_top_left_corner.profile_exec_new)
-      assert.are.equal(
-        "profile_exec_new",
-        gestures.gestures.tap_top_left_corner.settings.order[1]
-      )
-      assert.is_true(gestures.updated)
-      assert.is_nil(gestures.settings_data.data.gesture_reader)
+    gestures:updateProfiles("profile_exec_old", "profile_exec_new")
+    assert.is_nil(gestures.gestures.tap_top_left_corner.profile_exec_old)
+    assert.is_true(gestures.gestures.tap_top_left_corner.profile_exec_new)
+    assert.are.equal(
+      "profile_exec_new",
+      gestures.gestures.tap_top_left_corner.settings.order[1]
+    )
+    assert.is_true(gestures.updated)
+    assert.is_nil(gestures.settings_data.data.gesture_reader)
 
-      gestures:updateProfiles("profile_exec_new", nil)
-      assert.is_nil(gestures.gestures.tap_top_left_corner)
-      assert.is_nil(gestures.settings_data.data.gesture_reader)
-    end
-  )
+    gestures:updateProfiles("profile_exec_new", nil)
+    assert.is_nil(gestures.gestures.tap_top_left_corner)
+    assert.is_nil(gestures.settings_data.data.gesture_reader)
+  end)
 end)

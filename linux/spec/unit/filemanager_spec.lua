@@ -1348,115 +1348,125 @@ describe("FileManager module", function()
       end
     end)
 
-    it("should reject moveFile, copyFile, and copyRecursive without modifying filesystem", function()
-      local src_file = base_tmp .. "/source.txt"
-      local dst_file = base_tmp .. "/dest.txt"
-      local h = io.open(src_file, "w")
-      h:write("hello")
-      h:close()
+    it(
+      "should reject moveFile, copyFile, and copyRecursive without modifying filesystem",
+      function()
+        local src_file = base_tmp .. "/source.txt"
+        local dst_file = base_tmp .. "/dest.txt"
+        local h = io.open(src_file, "w")
+        h:write("hello")
+        h:close()
 
-      local src_dir = base_tmp .. "/src_dir"
-      local dst_dir = base_tmp .. "/dst_dir"
-      require("util").makePath(src_dir)
-      local h_dir = io.open(src_dir .. "/sub.txt", "w")
-      h_dir:write("sub")
-      h_dir:close()
+        local src_dir = base_tmp .. "/src_dir"
+        local dst_dir = base_tmp .. "/dst_dir"
+        require("util").makePath(src_dir)
+        local h_dir = io.open(src_dir .. "/sub.txt", "w")
+        h_dir:write("sub")
+        h_dir:close()
 
-      local core_util = require("util")
-      local old_isMonkeyTest = core_util.isMonkeyTest
-      core_util.isMonkeyTest = function()
-        return true
+        local core_util = require("util")
+        local old_isMonkeyTest = core_util.isMonkeyTest
+        core_util.isMonkeyTest = function()
+          return true
+        end
+
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        finally(function()
+          core_util.isMonkeyTest = old_isMonkeyTest
+          filemanager:onExit()
+        end)
+
+        assert.is_false(filemanager:moveFile(src_file, dst_file))
+        assert.is_not_nil(lfs.attributes(src_file))
+        assert.is_nil(lfs.attributes(dst_file))
+
+        assert.is_false(filemanager:copyFile(src_file, dst_file))
+        assert.is_nil(lfs.attributes(dst_file))
+
+        assert.is_false(filemanager:copyRecursive(src_dir, dst_dir))
+        assert.is_nil(lfs.attributes(dst_dir))
       end
+    )
 
-      local filemanager = FileManager:new({
-        dimen = Screen:getSize(),
-        root_path = base_tmp,
-      })
-      finally(function()
-        core_util.isMonkeyTest = old_isMonkeyTest
-        filemanager:onExit()
-      end)
+    it(
+      "should handle cut and pasteFileFromClipboard safely in monkey test mode",
+      function()
+        local src_dir = base_tmp .. "/src"
+        local dst_dir = base_tmp .. "/dst"
+        require("util").makePath(src_dir)
+        require("util").makePath(dst_dir)
 
-      assert.is_false(filemanager:moveFile(src_file, dst_file))
-      assert.is_not_nil(lfs.attributes(src_file))
-      assert.is_nil(lfs.attributes(dst_file))
+        local book_src = src_dir .. "/book.pdf"
+        util.copyFile("spec/unit/data/2col.pdf", book_src)
+        local book_sdr = docsettings:open(book_src).candidates[1].dir
+        require("util").makePath(book_sdr)
+        local sdr_file = book_sdr
+          .. "/"
+          .. docsettings.getSidecarFilename(book_src)
+        local sf = io.open(sdr_file, "w")
+        sf:write("{}")
+        sf:close()
 
-      assert.is_false(filemanager:copyFile(src_file, dst_file))
-      assert.is_nil(lfs.attributes(dst_file))
+        local book_dst = dst_dir .. "/book.pdf"
+        local book_dst_sdr = docsettings:open(book_dst).candidates[1].dir
 
-      assert.is_false(filemanager:copyRecursive(src_dir, dst_dir))
-      assert.is_nil(lfs.attributes(dst_dir))
-    end)
+        ReadCollection:addItem(book_src, "favorites")
+        ReadHistory:addItem(book_src)
+        assert.is_true(ReadCollection:isFileInCollection(book_src, "favorites"))
+        assert.is_not_nil(ReadHistory:getIndexByFile(book_src))
 
-    it("should handle cut and pasteFileFromClipboard safely in monkey test mode", function()
-      local src_dir = base_tmp .. "/src"
-      local dst_dir = base_tmp .. "/dst"
-      require("util").makePath(src_dir)
-      require("util").makePath(dst_dir)
+        local core_util = require("util")
+        local old_isMonkeyTest = core_util.isMonkeyTest
+        core_util.isMonkeyTest = function()
+          return true
+        end
 
-      local book_src = src_dir .. "/book.pdf"
-      util.copyFile("spec/unit/data/2col.pdf", book_src)
-      local book_sdr = docsettings:open(book_src).candidates[1].dir
-      require("util").makePath(book_sdr)
-      local sdr_file = book_sdr .. "/" .. docsettings.getSidecarFilename(book_src)
-      local sf = io.open(sdr_file, "w")
-      sf:write("{}")
-      sf:close()
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        local shown_widget
+        local old_show = UIManager.show
+        UIManager.show = function(self, w)
+          shown_widget = w
+        end
 
-      local book_dst = dst_dir .. "/book.pdf"
-      local book_dst_sdr = docsettings:open(book_dst).candidates[1].dir
+        finally(function()
+          core_util.isMonkeyTest = old_isMonkeyTest
+          UIManager.show = old_show
+          filemanager:onExit()
+          ReadCollection:removeItem(book_src, "favorites", true)
+          ReadHistory:removeItemByPath(book_src)
+        end)
 
-      ReadCollection:addItem(book_src, "favorites")
-      ReadHistory:addItem(book_src)
-      assert.is_true(ReadCollection:isFileInCollection(book_src, "favorites"))
-      assert.is_not_nil(ReadHistory:getIndexByFile(book_src))
+        filemanager:cutFile(book_src)
+        filemanager:pasteFileFromClipboard(dst_dir)
 
-      local core_util = require("util")
-      local old_isMonkeyTest = core_util.isMonkeyTest
-      core_util.isMonkeyTest = function()
-        return true
+        assert.is_not_nil(lfs.attributes(book_src))
+        assert.is_not_nil(lfs.attributes(book_sdr))
+        assert.is_nil(lfs.attributes(book_dst))
+        assert.is_nil(lfs.attributes(book_dst_sdr))
+
+        assert.is_true(ReadCollection:isFileInCollection(book_src, "favorites"))
+        assert.is_false(
+          ReadCollection:isFileInCollection(book_dst, "favorites")
+        )
+        assert.is_not_nil(ReadHistory:getIndexByFile(book_src))
+        assert.is_nil(ReadHistory:getIndexByFile(book_dst))
+
+        local orig_name = util.basename(book_src)
+        local expected_msg = T(
+          gettext("Failed to move:\n%1\nto:\n%2"),
+          BD.filepath(orig_name),
+          BD.dirpath(dst_dir)
+        )
+        assert.is_not_nil(shown_widget)
+        assert.are.equal(expected_msg, shown_widget.text)
       end
-
-      local filemanager = FileManager:new({
-        dimen = Screen:getSize(),
-        root_path = base_tmp,
-      })
-      local shown_widget
-      local old_show = UIManager.show
-      UIManager.show = function(self, w)
-        shown_widget = w
-      end
-
-      finally(function()
-        core_util.isMonkeyTest = old_isMonkeyTest
-        UIManager.show = old_show
-        filemanager:onExit()
-        ReadCollection:removeItem(book_src, "favorites", true)
-        ReadHistory:removeItemByPath(book_src)
-      end)
-
-      filemanager:cutFile(book_src)
-      filemanager:pasteFileFromClipboard(dst_dir)
-
-      assert.is_not_nil(lfs.attributes(book_src))
-      assert.is_not_nil(lfs.attributes(book_sdr))
-      assert.is_nil(lfs.attributes(book_dst))
-      assert.is_nil(lfs.attributes(book_dst_sdr))
-
-      assert.is_true(ReadCollection:isFileInCollection(book_src, "favorites"))
-      assert.is_false(ReadCollection:isFileInCollection(book_dst, "favorites"))
-      assert.is_not_nil(ReadHistory:getIndexByFile(book_src))
-      assert.is_nil(ReadHistory:getIndexByFile(book_dst))
-
-      local orig_name = util.basename(book_src)
-      local expected_msg = T(
-        gettext("Failed to move:\n%1\nto:\n%2"),
-        BD.filepath(orig_name),
-        BD.dirpath(dst_dir)
-      )
-      assert.is_not_nil(shown_widget)
-      assert.are.equal(expected_msg, shown_widget.text)
-    end)
+    )
   end)
 
   describe("FileManager folder operations and SdrList integration", function()
@@ -1701,31 +1711,34 @@ describe("FileManager module", function()
       rm_rf(test_root)
     end)
 
-    it("refreshes and climbs to existing ancestor on deleted parent folder", function()
-      local x = test_root .. "/parent_climb"
-      local a = x .. "/a"
-      local b = a .. "/b"
-      lfs.mkdir(x)
-      lfs.mkdir(a)
-      lfs.mkdir(b)
-      local real_a = util.realpath(a)
+    it(
+      "refreshes and climbs to existing ancestor on deleted parent folder",
+      function()
+        local x = test_root .. "/parent_climb"
+        local a = x .. "/a"
+        local b = a .. "/b"
+        lfs.mkdir(x)
+        lfs.mkdir(a)
+        lfs.mkdir(b)
+        local real_a = util.realpath(a)
 
-      local filemanager = FileManager:new({
-        dimen = Screen:getSize(),
-        root_path = b,
-      })
-      local fc = filemanager.file_chooser
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = b,
+        })
+        local fc = filemanager.file_chooser
 
-      -- Remove b on disk
-      lfs.rmdir(b)
+        -- Remove b on disk
+        lfs.rmdir(b)
 
-      local ret = fc:showFileDialog({ path = b .. "/..", is_go_up = true })
-      assert.is_true(ret)
-      assert.is_nil(fc.file_dialog)
-      assert.are.equal(real_a, fc.path)
+        local ret = fc:showFileDialog({ path = b .. "/..", is_go_up = true })
+        assert.is_true(ret)
+        assert.is_nil(fc.file_dialog)
+        assert.are.equal(real_a, fc.path)
 
-      filemanager:onExit()
-    end)
+        filemanager:onExit()
+      end
+    )
 
     it("refreshes path and skips dialog when item is missing", function()
       local x = test_root .. "/missing_item"

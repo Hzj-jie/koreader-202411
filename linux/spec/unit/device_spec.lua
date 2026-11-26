@@ -1306,38 +1306,41 @@ describe("device module", function()
         end)
       end)
 
-      it("shows dismissable InfoMessage on install Later and quits 85 on Install", function()
-        local UIManager = require("ui/uimanager")
-        local shown = {}
-        stub(UIManager, "show", function(_, widget)
-          table.insert(shown, widget)
-        end)
-        stub(UIManager, "quit")
-        stub(UIManager, "broadcastEvent", function(_, event)
-          if event.handler == "onExitKOReader" and event.args[1] then
-            event.args[1]()
-          end
-        end)
-        finally(function()
-          UIManager.show:revert()
-          UIManager.quit:revert()
-          UIManager.broadcastEvent:revert()
-        end)
+      it(
+        "shows dismissable InfoMessage on install Later and quits 85 on Install",
+        function()
+          local UIManager = require("ui/uimanager")
+          local shown = {}
+          stub(UIManager, "show", function(_, widget)
+            table.insert(shown, widget)
+          end)
+          stub(UIManager, "quit")
+          stub(UIManager, "broadcastEvent", function(_, event)
+            if event.handler == "onExitKOReader" and event.args[1] then
+              event.args[1]()
+            end
+          end)
+          finally(function()
+            UIManager.show:revert()
+            UIManager.quit:revert()
+            UIManager.broadcastEvent:revert()
+          end)
 
-        test_dev:install()
-        local confirm = shown[1]
-        assert.is_table(confirm)
+          test_dev:install()
+          local confirm = shown[1]
+          assert.is_table(confirm)
 
-        confirm.cancel_callback()
-        local later_info = shown[2]
-        assert.is_table(later_info)
-        assert.is_true(later_info.dismissable)
-        assert.is_not_nil(later_info.key_events.AnyKeyPressed)
+          confirm.cancel_callback()
+          local later_info = shown[2]
+          assert.is_table(later_info)
+          assert.is_true(later_info.dismissable)
+          assert.is_not_nil(later_info.key_events.AnyKeyPressed)
 
-        confirm.ok_callback()
-        assert.spy(test_dev.saveSettings).was_called()
-        assert.stub(UIManager.quit).was_called_with(UIManager, 85)
-      end)
+          confirm.ok_callback()
+          assert.spy(test_dev.saveSettings).was_called()
+          assert.stub(UIManager.quit).was_called_with(UIManager, 85)
+        end
+      )
 
       it("executes exit teardown cleanly", function()
         test_dev.orig_hw_nightmode = false
@@ -1387,13 +1390,20 @@ describe("device module", function()
         local get_upvalue = function(fn, target_name)
           for i = 1, 50 do
             local name, val = debug.getupvalue(fn, i)
-            if not name then break end
-            if name == target_name then return val end
+            if not name then
+              break
+            end
+            if name == target_name then
+              return val
+            end
           end
         end
         local inet_cksum = get_upvalue(test_dev.ping4, "inet_cksum")
         assert.is_function(inet_cksum)
-        local bytes = ffi.new("uint8_t[8]", { 0x00, 0x01, 0xf2, 0x03, 0xf4, 0xf5, 0xf6, 0xf7 })
+        local bytes = ffi.new(
+          "uint8_t[8]",
+          { 0x00, 0x01, 0xf2, 0x03, 0xf4, 0xf5, 0xf6, 0xf7 }
+        )
         local cksum = inet_cksum(ffi.cast("const void *", bytes), 8)
         assert.are.equal(0x0d22, tonumber(cksum))
 

@@ -46,33 +46,36 @@ describe("Kindle device", function()
   end)
 
   describe("hasNetwork and setDateTime across Kindle models", function()
-    it("reports hasNetwork accurately and gates setDateTime on legacy models without network", function()
-      finally(function()
-        package.loaded["device/kindle/device"] = KindlePaperWhite
-      end)
+    it(
+      "reports hasNetwork accurately and gates setDateTime on legacy models without network",
+      function()
+        finally(function()
+          package.loaded["device/kindle/device"] = KindlePaperWhite
+        end)
 
-      local cases = {
-        { sn = "B002123456789012", model = "Kindle2", has_network = false },
-        { sn = "B004123456789012", model = "Kindle2", has_network = false },
-        { sn = "B009123456789012", model = "KindleDXG", has_network = false },
-        { sn = "B008123456789012", model = "Kindle3", has_network = true },
-        { sn = "B00E123456789012", model = "Kindle4", has_network = true },
-      }
-      for _, case in ipairs(cases) do
-        local dev = loadKindleModel(case.sn)
-        assert.are.equal(case.model, dev.model)
-        assert.are.equal(case.has_network, dev:hasNetwork())
-        if case.has_network then
-          assert.is_nil(dev:setDateTime(2026, 10, 10, nil, nil))
-        else
-          -- When hour/min are nil, checks if feature is supported and returns true on networkless models
-          assert.is_true(dev:setDateTime(2026, 10, 10, nil, nil))
+        local cases = {
+          { sn = "B002123456789012", model = "Kindle2", has_network = false },
+          { sn = "B004123456789012", model = "Kindle2", has_network = false },
+          { sn = "B009123456789012", model = "KindleDXG", has_network = false },
+          { sn = "B008123456789012", model = "Kindle3", has_network = true },
+          { sn = "B00E123456789012", model = "Kindle4", has_network = true },
+        }
+        for _, case in ipairs(cases) do
+          local dev = loadKindleModel(case.sn)
+          assert.are.equal(case.model, dev.model)
+          assert.are.equal(case.has_network, dev:hasNetwork())
+          if case.has_network then
+            assert.is_nil(dev:setDateTime(2026, 10, 10, nil, nil))
+          else
+            -- When hour/min are nil, checks if feature is supported and returns true on networkless models
+            assert.is_true(dev:setDateTime(2026, 10, 10, nil, nil))
+          end
         end
-      end
 
-      assert.is_true(KindlePaperWhite:hasNetwork())
-      assert.is_nil(KindlePaperWhite:setDateTime(2026, 10, 10, nil, nil))
-    end)
+        assert.is_true(KindlePaperWhite:hasNetwork())
+        assert.is_nil(KindlePaperWhite:setDateTime(2026, 10, 10, nil, nil))
+      end
+    )
   end)
 
   describe("Screen refresh geometry", function()
