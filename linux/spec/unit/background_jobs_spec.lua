@@ -183,21 +183,18 @@ describe("background_jobs", function()
       end)
     end)
 
-    it(
-      "should raise error if key cannot be determined",
-      function()
-        assert.has_error(function()
-          background_jobs.insertKeyed({
-            executable = 12345, -- not a function or "fork"
-          })
-        end)
-        assert.has_error(function()
-          background_jobs.insertKeyed({
-            executable = "echo 1",
-          })
-        end)
-      end
-    )
+    it("should raise error if key cannot be determined", function()
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          executable = 12345, -- not a function or "fork"
+        })
+      end)
+      assert.has_error(function()
+        background_jobs.insertKeyed({
+          executable = "echo 1",
+        })
+      end)
+    end)
 
     it(
       "should insert job, set when to asap, and track key when job is inserted",
@@ -310,8 +307,12 @@ describe("background_jobs", function()
           action = action,
         }))
         local util = require("util")
-        assert.is_true(background_jobs.hasKey(util.functionFingerprint(exec_fn)))
-        assert.is_false(background_jobs.hasKey(util.functionFingerprint(action)))
+        assert.is_true(
+          background_jobs.hasKey(util.functionFingerprint(exec_fn))
+        )
+        assert.is_false(
+          background_jobs.hasKey(util.functionFingerprint(action))
+        )
       end
     )
 
@@ -410,18 +411,21 @@ describe("background_jobs", function()
       assert.is_false(background_jobs.hasKey(key_beta))
     end)
 
-    it("should assert if active key is cleared before callback or invoked twice", function()
-      assert.is_true(background_jobs.insertKeyed({
-        executable = function() end,
-      }))
-      local job =
-        mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
-      assert.is_function(job.callback)
-      job.callback({ result = 0 })
-
-      assert.has_error(function()
+    it(
+      "should assert if active key is cleared before callback or invoked twice",
+      function()
+        assert.is_true(background_jobs.insertKeyed({
+          executable = function() end,
+        }))
+        local job =
+          mock_pluginshare.backgroundJobs[#mock_pluginshare.backgroundJobs]
+        assert.is_function(job.callback)
         job.callback({ result = 0 })
-      end)
-    end)
+
+        assert.has_error(function()
+          job.callback({ result = 0 })
+        end)
+      end
+    )
   end)
 end)

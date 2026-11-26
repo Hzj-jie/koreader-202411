@@ -241,33 +241,36 @@ describe("named_settings", function()
       assert.are.same(15, named_settings.full_refresh_count())
     end)
 
-    it("should handle avoid_flashing_ui and flip correctly based on device", function()
-      -- Generic / Kindle device
-      assert.is_true(named_settings.default.avoid_flashing_ui())
-      assert.is_true(named_settings.avoid_flashing_ui())
+    it(
+      "should handle avoid_flashing_ui and flip correctly based on device",
+      function()
+        -- Generic / Kindle device
+        assert.is_true(named_settings.default.avoid_flashing_ui())
+        assert.is_true(named_settings.avoid_flashing_ui())
 
-      named_settings.flip.avoid_flashing_ui()
-      assert.is_false(named_settings.avoid_flashing_ui())
-      assert.is_false(G_reader_settings:read("avoid_flashing_ui"))
+        named_settings.flip.avoid_flashing_ui()
+        assert.is_false(named_settings.avoid_flashing_ui())
+        assert.is_false(G_reader_settings:read("avoid_flashing_ui"))
 
-      named_settings.flip.avoid_flashing_ui()
-      assert.is_true(named_settings.avoid_flashing_ui())
-      assert.is_nil(G_reader_settings:read("avoid_flashing_ui"))
+        named_settings.flip.avoid_flashing_ui()
+        assert.is_true(named_settings.avoid_flashing_ui())
+        assert.is_nil(G_reader_settings:read("avoid_flashing_ui"))
 
-      -- Kobo device
-      mock_is_kobo = true
-      assert.is_false(named_settings.default.avoid_flashing_ui())
-      assert.is_false(named_settings.avoid_flashing_ui())
+        -- Kobo device
+        mock_is_kobo = true
+        assert.is_false(named_settings.default.avoid_flashing_ui())
+        assert.is_false(named_settings.avoid_flashing_ui())
 
-      named_settings.flip.avoid_flashing_ui()
-      assert.is_true(named_settings.avoid_flashing_ui())
-      assert.is_true(G_reader_settings:read("avoid_flashing_ui"))
+        named_settings.flip.avoid_flashing_ui()
+        assert.is_true(named_settings.avoid_flashing_ui())
+        assert.is_true(G_reader_settings:read("avoid_flashing_ui"))
 
-      named_settings.flip.avoid_flashing_ui()
-      assert.is_false(named_settings.avoid_flashing_ui())
-      assert.is_nil(G_reader_settings:read("avoid_flashing_ui"))
-      mock_is_kobo = false
-    end)
+        named_settings.flip.avoid_flashing_ui()
+        assert.is_false(named_settings.avoid_flashing_ui())
+        assert.is_nil(G_reader_settings:read("avoid_flashing_ui"))
+        mock_is_kobo = false
+      end
+    )
 
     it("should return correct fast_screen_refresh status", function()
       mock_has_eink = false

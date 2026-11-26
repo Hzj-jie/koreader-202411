@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:16-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2024-10-16 17:13+0000\n"
 "Last-Translator: Horus68 <horus68@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Portuguese (Portugal) <https://hosted.weblate.org/projects/"
@@ -2939,15 +2939,6 @@ msgstr "Selecionar e destacar"
 msgid "Fulltext search"
 msgstr "Pesquisa de texto completo"
 
-msgid "Top"
-msgstr "Superior"
-
-msgid "Bottom"
-msgstr "Inferior"
-
-msgid "Gesture position"
-msgstr "Posição do gesto"
-
 msgid "Start content selection"
 msgstr "Iniciar seleção de conteúdo"
 
@@ -3054,9 +3045,6 @@ msgstr "Toque longo no texto"
 
 msgid "Dictionary on single word selection"
 msgstr "Dicionário na seleção de palavra única"
-
-msgid "Highlight dialog position: %1"
-msgstr "Posição do diálogo de realces: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Intervalo de toque longo para destacar: %1 s"
@@ -6366,6 +6354,12 @@ msgstr "Margem superior"
 msgid "Top/Bottom Margins"
 msgstr "Margens superior/inferior"
 
+msgid "Top"
+msgstr "Superior"
+
+msgid "Bottom"
+msgstr "Inferior"
+
 msgid "Bottom Margin"
 msgstr "Margem inferior"
 
@@ -8780,6 +8774,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -17457,6 +17464,12 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "anotações"
+
+#~ msgid "Gesture position"
+#~ msgstr "Posição do gesto"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Posição do diálogo de realces: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

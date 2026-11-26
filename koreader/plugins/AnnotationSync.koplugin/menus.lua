@@ -170,18 +170,18 @@ function M.show_differing_settings_menu(
       local l_val = plugin.manager:getLocalSettingValue(key, caches)
       if not util.tableEquals(l_val, r_val) then
         -- Format values for display
-      local function format_val(val)
-        if val == nil then
-          return "nil"
+        local function format_val(val)
+          if val == nil then
+            return "nil"
+          end
+          if type(val) == "boolean" then
+            return val and "true" or "false"
+          end
+          if type(val) == "table" then
+            return "{...}"
+          end
+          return tostring(val)
         end
-        if type(val) == "boolean" then
-          return val and "true" or "false"
-        end
-        if type(val) == "table" then
-          return "{...}"
-        end
-        return tostring(val)
-      end
         table.insert(differing, {
           key = key,
           local_val_str = format_val(l_val),

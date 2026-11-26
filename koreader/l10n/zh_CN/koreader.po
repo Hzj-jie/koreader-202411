@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:16-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2024-11-13 14:06+0000\n"
 "Last-Translator: cyanjiang <cyanjiang@163.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
@@ -2868,15 +2868,6 @@ msgstr "选择并标注"
 msgid "Fulltext search"
 msgstr "全文搜索"
 
-msgid "Top"
-msgstr "顶部"
-
-msgid "Bottom"
-msgstr "底部"
-
-msgid "Gesture position"
-msgstr "手势位置"
-
 msgid "Start content selection"
 msgstr "开始内容选择"
 
@@ -2970,9 +2961,6 @@ msgstr "长按文本"
 
 msgid "Dictionary on single word selection"
 msgstr "选中单个单词时的词典"
-
-msgid "Highlight dialog position: %1"
-msgstr "标注对话框位置：%1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "高亮时间非常久的长按间隔：%1 秒"
@@ -6266,6 +6254,12 @@ msgstr "顶部边距"
 msgid "Top/Bottom Margins"
 msgstr "顶部/底部边距"
 
+msgid "Top"
+msgstr "顶部"
+
+msgid "Bottom"
+msgstr "底部"
+
 msgid "Bottom Margin"
 msgstr "底部边距"
 
@@ -8541,6 +8535,23 @@ msgstr ""
 
 msgid "Binary versions"
 msgstr "二进制文件版本"
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr "Lua 与 LuaJIT 基准测试"
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+"KOReader 将重启以运行 Lua 与 LuaJIT 基准测试（在较慢的设备上可能需要几分"
+"钟），完成后会自动重新打开。\n"
+"\n"
+"现在开始基准测试吗？"
+
+msgid "Benchmark"
+msgstr "基准测试"
 
 msgid "Start %1 reader app"
 msgstr "启动 %1 阅读软件"
@@ -16960,6 +16971,12 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "注释"
+
+#~ msgid "Gesture position"
+#~ msgstr "手势位置"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "标注对话框位置：%1"
 
 #~ msgid "Failed to scan metadata files for reading history."
 #~ msgstr "扫描阅读历史的元数据文件失败。"

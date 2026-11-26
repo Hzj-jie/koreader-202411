@@ -137,7 +137,8 @@ describe("systemstat", function()
       })
       widget:onShowSysStatistics()
 
-      local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+      local key_value_page =
+        spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
       assert.is_not_nil(key_value_page)
 
       local runtime_idx, model_idx
@@ -150,9 +151,19 @@ describe("systemstat", function()
         end
       end
 
-      assert.is_not_nil(runtime_idx, "Runtime entry not found in system statistics")
-      assert.is_not_nil(model_idx, "Device model entry not found in system statistics")
-      assert.are.equal(model_idx - 1, runtime_idx, "Runtime should appear immediately before Device model")
+      assert.is_not_nil(
+        runtime_idx,
+        "Runtime entry not found in system statistics"
+      )
+      assert.is_not_nil(
+        model_idx,
+        "Device model entry not found in system statistics"
+      )
+      assert.are.equal(
+        model_idx - 1,
+        runtime_idx,
+        "Runtime should appear immediately before Device model"
+      )
     end
   end)
 
@@ -204,7 +215,8 @@ describe("systemstat", function()
     })
     widget:onShowSysStatistics()
 
-    local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+    local key_value_page =
+      spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
     local bg_entry = nil
     for _, pair in ipairs(key_value_page.kv_pairs) do
       if pair[1] == "  " .. gettext("Worker processes") then
@@ -249,7 +261,8 @@ describe("systemstat", function()
     })
     widget:onShowSysStatistics()
 
-    local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+    local key_value_page =
+      spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
     local bg_entry = nil
     for _, pair in ipairs(key_value_page.kv_pairs) do
       if pair[1] == "  " .. gettext("Worker processes") then
@@ -263,7 +276,8 @@ describe("systemstat", function()
 
     -- Tap the worker processes entry
     bg_entry.callback()
-    local proc_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+    local proc_page =
+      spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
     assert.is_not_nil(proc_page)
     assert.are.equal(gettext("Worker processes"), proc_page.title)
     assert.are.equal(2, #proc_page.kv_pairs)
@@ -298,135 +312,166 @@ describe("systemstat", function()
     ffiUtil.subprocesses = {}
   end)
 
-  it("collects system info without popen and normalizes process processor usage", function()
-    local Device = require("device")
-    local gettext = require("gettext")
-    local lfs = require("libs/libkoreader-lfs")
-    local time = require("ui/time")
+  it(
+    "collects system info without popen and normalizes process processor usage",
+    function()
+      local Device = require("device")
+      local gettext = require("gettext")
+      local lfs = require("libs/libkoreader-lfs")
+      local time = require("ui/time")
 
-    local orig_io_open = io.open
-    local orig_io_popen = io.popen
-    local orig_lfs_dir = lfs.dir
-    local orig_boottime = time.boottime_or_realtime_coarse
-    local orig_monotonic = time.monotonic
-    local orig_can_suspend = Device.canSuspend
-    local orig_total_suspend = Device.total_suspend_time
+      local orig_io_open = io.open
+      local orig_io_popen = io.popen
+      local orig_lfs_dir = lfs.dir
+      local orig_boottime = time.boottime_or_realtime_coarse
+      local orig_monotonic = time.monotonic
+      local orig_can_suspend = Device.canSuspend
+      local orig_total_suspend = Device.total_suspend_time
 
-    finally(function()
-      io.open = orig_io_open
-      io.popen = orig_io_popen
-      lfs.dir = orig_lfs_dir
-      time.boottime_or_realtime_coarse = orig_boottime
-      time.monotonic = orig_monotonic
-      Device.canSuspend = orig_can_suspend
-      Device.total_suspend_time = orig_total_suspend
-    end)
+      finally(function()
+        io.open = orig_io_open
+        io.popen = orig_io_popen
+        lfs.dir = orig_lfs_dir
+        time.boottime_or_realtime_coarse = orig_boottime
+        time.monotonic = orig_monotonic
+        Device.canSuspend = orig_can_suspend
+        Device.total_suspend_time = orig_total_suspend
+      end)
 
-    local mock_files = {
-      ["/proc/stat"] = table.concat({
-        "cpu  1000 100 300 5000 200 50 350 0 0 0",
-        "cpu0 500 50 150 2500 100 25 175 0 0 0",
-        "cpu1 500 50 150 2500 100 25 175 0 0 0",
-        "intr 12345",
-      }, "\n"),
-      ["/proc/meminfo"] = table.concat({
-        "MemTotal:        524288 kB",
-        "MemFree:         131072 kB",
-        "MemAvailable:    262144 kB",
-      }, "\n"),
-      ["/proc/loadavg"] = "0.25 0.50 0.75 1/120 1234",
-      ["/proc/uptime"] = "1000.00 800.00",
-      ["/proc/self/stat"] = "4242 (luajit) R 1 4242 4242 0 -1 4194304 100 0 0 0 200 100 30 20 20 0 4 0 12345 10485760 2560",
-    }
+      local mock_files = {
+        ["/proc/stat"] = table.concat({
+          "cpu  1000 100 300 5000 200 50 350 0 0 0",
+          "cpu0 500 50 150 2500 100 25 175 0 0 0",
+          "cpu1 500 50 150 2500 100 25 175 0 0 0",
+          "intr 12345",
+        }, "\n"),
+        ["/proc/meminfo"] = table.concat({
+          "MemTotal:        524288 kB",
+          "MemFree:         131072 kB",
+          "MemAvailable:    262144 kB",
+        }, "\n"),
+        ["/proc/loadavg"] = "0.25 0.50 0.75 1/120 1234",
+        ["/proc/uptime"] = "1000.00 800.00",
+        ["/proc/self/stat"] = "4242 (luajit) R 1 4242 4242 0 -1 4194304 100 0 0 0 200 100 30 20 20 0 4 0 12345 10485760 2560",
+      }
 
-    local function make_mock_file(content)
-      local f = io.tmpfile()
-      f:write(content)
-      f:seek("set")
-      return f
-    end
-
-    io.open = function(path, mode)
-      if mock_files[path] then
-        return make_mock_file(mock_files[path])
+      local function make_mock_file(content)
+        local f = io.tmpfile()
+        f:write(content)
+        f:seek("set")
+        return f
       end
-      return orig_io_open(path, mode)
-    end
 
-    io.popen = function(cmd)
-      if cmd:match("^df %-h") then
-        return make_mock_file("")
+      io.open = function(path, mode)
+        if mock_files[path] then
+          return make_mock_file(mock_files[path])
+        end
+        return orig_io_open(path, mode)
       end
-      error("Unexpected io.popen call: " .. tostring(cmd))
-    end
 
-    lfs.dir = function(path)
-      if path == "/proc" then
-        local entries = { ".", "..", "self", "1", "2", "100", "4242", "net", "sys" }
-        local idx = 0
-        return function()
-          idx = idx + 1
-          return entries[idx]
-        end, nil
+      io.popen = function(cmd)
+        if cmd:match("^df %-h") then
+          return make_mock_file("")
+        end
+        error("Unexpected io.popen call: " .. tostring(cmd))
       end
-      return orig_lfs_dir(path)
-    end
 
-    time.boottime_or_realtime_coarse = function()
-      return time.s(1000)
-    end
-    local fresh_widget_cls = dofile("plugins/systemstat.koplugin/main.lua")
+      lfs.dir = function(path)
+        if path == "/proc" then
+          local entries =
+            { ".", "..", "self", "1", "2", "100", "4242", "net", "sys" }
+          local idx = 0
+          return function()
+            idx = idx + 1
+            return entries[idx]
+          end,
+            nil
+        end
+        return orig_lfs_dir(path)
+      end
 
-    -- 500s KOReader uptime, 250s suspend -> 250s KOReader awake
-    -- 400s OS monotonic awake -> koreader_awake / monotonic = 0.625
-    -- Process ticks: 200 + 100 + 30 + 20 = 350; cpu.total = 7000
-    -- Normalized usage: 350 / (7000 * 0.625) * 100 = 8.00%
-    time.boottime_or_realtime_coarse = function()
-      return time.s(1500)
-    end
-    time.monotonic = function()
-      return time.s(400)
-    end
-    Device.canSuspend = function()
-      return true
-    end
-    Device.total_suspend_time = time.s(250)
+      time.boottime_or_realtime_coarse = function()
+        return time.s(1000)
+      end
+      local fresh_widget_cls = dofile("plugins/systemstat.koplugin/main.lua")
 
-    fresh_widget_cls
-      :new({
-        ui = {
-          menu = {
-            registerToMainMenu = spy.new(function() end),
+      -- 500s KOReader uptime, 250s suspend -> 250s KOReader awake
+      -- 400s OS monotonic awake -> koreader_awake / monotonic = 0.625
+      -- Process ticks: 200 + 100 + 30 + 20 = 350; cpu.total = 7000
+      -- Normalized usage: 350 / (7000 * 0.625) * 100 = 8.00%
+      time.boottime_or_realtime_coarse = function()
+        return time.s(1500)
+      end
+      time.monotonic = function()
+        return time.s(400)
+      end
+      Device.canSuspend = function()
+        return true
+      end
+      Device.total_suspend_time = time.s(250)
+
+      fresh_widget_cls
+        :new({
+          ui = {
+            menu = {
+              registerToMainMenu = spy.new(function() end),
+            },
           },
-        },
-      })
-      :onShowSysStatistics()
+        })
+        :onShowSysStatistics()
 
-    local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
-    assert.is_not_nil(key_value_page)
+      local key_value_page =
+        spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+      assert.is_not_nil(key_value_page)
 
-    local section = ""
-    local values = {}
-    for _, pair in ipairs(key_value_page.kv_pairs) do
-      if pair[2] == "" then
-        section = pair[1]
-      else
-        values[section .. "::" .. pair[1]] = pair[2]
+      local section = ""
+      local values = {}
+      for _, pair in ipairs(key_value_page.kv_pairs) do
+        if pair[2] == "" then
+          section = pair[1]
+        else
+          values[section .. "::" .. pair[1]] = pair[2]
+        end
       end
-    end
 
-    local sys_info = gettext("System information")
-    assert.are.equal(4, values[sys_info .. "::" .. gettext("  Number of processes")])
-    assert.are.equal(2, values[sys_info .. "::" .. "  " .. gettext("Number of processors")])
-    assert.are.equal("25.00%", values[sys_info .. "::" .. "  " .. gettext("1-min system workload")])
-    assert.are.equal("50.00%", values[sys_info .. "::" .. "  " .. gettext("5-min system workload")])
-    assert.are.equal("75.00%", values[sys_info .. "::" .. "  " .. gettext("15-min system workload")])
-    assert.is_nil(values[sys_info .. "::" .. gettext("  Processor usage %")])
-    assert.is_nil(values[sys_info .. "::" .. "  " .. gettext("5 minutes usage %")])
-    assert.is_nil(values[sys_info .. "::" .. "  " .. gettext("15 minutes usage %")])
-    assert.are.equal(350, values[gettext("Process") .. "::" .. "  " .. gettext("Total ticks")])
-    assert.are.equal("8.00", values[gettext("Process") .. "::" .. gettext("  Processor usage %")])
-  end)
+      local sys_info = gettext("System information")
+      assert.are.equal(
+        4,
+        values[sys_info .. "::" .. gettext("  Number of processes")]
+      )
+      assert.are.equal(
+        2,
+        values[sys_info .. "::" .. "  " .. gettext("Number of processors")]
+      )
+      assert.are.equal(
+        "25.00%",
+        values[sys_info .. "::" .. "  " .. gettext("1-min system workload")]
+      )
+      assert.are.equal(
+        "50.00%",
+        values[sys_info .. "::" .. "  " .. gettext("5-min system workload")]
+      )
+      assert.are.equal(
+        "75.00%",
+        values[sys_info .. "::" .. "  " .. gettext("15-min system workload")]
+      )
+      assert.is_nil(values[sys_info .. "::" .. gettext("  Processor usage %")])
+      assert.is_nil(
+        values[sys_info .. "::" .. "  " .. gettext("5 minutes usage %")]
+      )
+      assert.is_nil(
+        values[sys_info .. "::" .. "  " .. gettext("15 minutes usage %")]
+      )
+      assert.are.equal(
+        350,
+        values[gettext("Process") .. "::" .. "  " .. gettext("Total ticks")]
+      )
+      assert.are.equal(
+        "8.00",
+        values[gettext("Process") .. "::" .. gettext("  Processor usage %")]
+      )
+    end
+  )
 
   it(
     "keeps koreader_awake positive across realtime jumps during suspend",
@@ -509,7 +554,8 @@ describe("systemstat", function()
           return function()
             idx = idx + 1
             return entries[idx]
-          end, nil
+          end,
+            nil
         end
         return orig_lfs_dir(path)
       end
@@ -574,7 +620,8 @@ describe("systemstat", function()
         })
         :onShowSysStatistics()
 
-      local key_value_page = spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
+      local key_value_page =
+        spy_uimanager_show.calls[#spy_uimanager_show.calls].refs[2]
       local proc_usage
       for _, pair in ipairs(key_value_page.kv_pairs) do
         if pair[1] == gettext("  Processor usage %") then
@@ -593,15 +640,36 @@ describe("systemstat", function()
     end)
 
     gettext.changeLang("zh_CN")
-    assert.are.equal("1分钟系统工作负载", gettext("1-min system workload"))
-    assert.are.equal("5分钟系统工作负载", gettext("5-min system workload"))
-    assert.are.equal("15分钟系统工作负载", gettext("15-min system workload"))
+    assert.are.equal(
+      "1分钟系统工作负载",
+      gettext("1-min system workload")
+    )
+    assert.are.equal(
+      "5分钟系统工作负载",
+      gettext("5-min system workload")
+    )
+    assert.are.equal(
+      "15分钟系统工作负载",
+      gettext("15-min system workload")
+    )
     assert.are.equal("  处理器使用率 %", gettext("  Processor usage %"))
 
     gettext.changeLang("zh_TW")
-    assert.are.equal("1分鐘系統工作負載", gettext("1-min system workload"))
-    assert.are.equal("5分鐘系統工作負載", gettext("5-min system workload"))
-    assert.are.equal("15分鐘系統工作負載", gettext("15-min system workload"))
-    assert.are.equal("  處理器用量百分比", gettext("  Processor usage %"))
+    assert.are.equal(
+      "1分鐘系統工作負載",
+      gettext("1-min system workload")
+    )
+    assert.are.equal(
+      "5分鐘系統工作負載",
+      gettext("5-min system workload")
+    )
+    assert.are.equal(
+      "15分鐘系統工作負載",
+      gettext("15-min system workload")
+    )
+    assert.are.equal(
+      "  處理器用量百分比",
+      gettext("  Processor usage %")
+    )
   end)
 end)

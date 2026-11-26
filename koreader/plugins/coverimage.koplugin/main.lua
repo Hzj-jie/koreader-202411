@@ -352,25 +352,25 @@ function CoverImage:getCacheFiles(cache_path, cache_prefix)
   local iter, dir_obj = lfs.dir(self.cover_image_cache_path)
   if iter then
     for entry in iter, dir_obj do
-    if entry ~= "." and entry ~= ".." then
-      local file = cache_path .. entry
-      if
-        entry:sub(1, self.cover_image_cache_prefix:len()) == cache_prefix
-        and lfs.attributes(file, "mode") == "file"
-      then
-        local blocksize = lfs.attributes(file).blksize or 4096
-        local size = math.floor(
-          (lfs.attributes(file).size + blocksize - 1) / blocksize
-        ) * blocksize
-        table.insert(files, {
-          name = file,
-          size = size,
-          mod = lfs.attributes(file).modification,
-        })
-        cache_size = cache_size + size
+      if entry ~= "." and entry ~= ".." then
+        local file = cache_path .. entry
+        if
+          entry:sub(1, self.cover_image_cache_prefix:len()) == cache_prefix
+          and lfs.attributes(file, "mode") == "file"
+        then
+          local blocksize = lfs.attributes(file).blksize or 4096
+          local size = math.floor(
+            (lfs.attributes(file).size + blocksize - 1) / blocksize
+          ) * blocksize
+          table.insert(files, {
+            name = file,
+            size = size,
+            mod = lfs.attributes(file).modification,
+          })
+          cache_size = cache_size + size
+        end
       end
     end
-  end
   end
   logger.dbg(
     "CoverImage: start - cache size: "

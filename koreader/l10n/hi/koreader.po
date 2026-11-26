@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:16-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2022-06-11 19:41+0000\n"
 "Last-Translator: অনিকেত চট্টোপাধ্যায় <aniket.chatterjee@gmail.com>\n"
 "Language-Team: Hindi <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -2712,15 +2712,6 @@ msgstr ""
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr ""
-
-msgid "Bottom"
-msgstr ""
-
-msgid "Gesture position"
-msgstr ""
-
 msgid "Start content selection"
 msgstr ""
 
@@ -2812,9 +2803,6 @@ msgid "Long-press on text"
 msgstr ""
 
 msgid "Dictionary on single word selection"
-msgstr ""
-
-msgid "Highlight dialog position: %1"
 msgstr ""
 
 msgid "Highlight very-long-press interval: %1 s"
@@ -5695,6 +5683,12 @@ msgstr ""
 msgid "Top/Bottom Margins"
 msgstr ""
 
+msgid "Top"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
 msgid "Bottom Margin"
 msgstr ""
 
@@ -7759,6 +7753,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"

@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:16-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2024-11-15 01:28+0000\n"
 "Last-Translator: Enrico Segre <enricoalbertoernestosegre@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/koreader/"
@@ -2948,15 +2948,6 @@ msgstr "Seleziona ed evidenzia"
 msgid "Fulltext search"
 msgstr "Ricerca testo"
 
-msgid "Top"
-msgstr "In alto"
-
-msgid "Bottom"
-msgstr "In basso"
-
-msgid "Gesture position"
-msgstr "Posizione del gesto"
-
 msgid "Start content selection"
 msgstr "Inizia la selezione del contenuto"
 
@@ -3061,9 +3052,6 @@ msgstr "Pressione a lungo sul testo"
 
 msgid "Dictionary on single word selection"
 msgstr "Dizionario sulla selezione di una sola parola"
-
-msgid "Highlight dialog position: %1"
-msgstr "Posizione del dialogo d'evidenziazione: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Intervallo per evidenziare con pressione molto prolungata: %1 s"
@@ -6556,6 +6544,12 @@ msgstr "Margine superiore"
 msgid "Top/Bottom Margins"
 msgstr "Margine superiore e inferiore"
 
+msgid "Top"
+msgstr "In alto"
+
+msgid "Bottom"
+msgstr "In basso"
+
 msgid "Bottom Margin"
 msgstr "Margine inferiore"
 
@@ -9009,6 +9003,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -17743,6 +17750,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "annotazioni"
+
+#~ msgid "Gesture position"
+#~ msgstr "Posizione del gesto"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Posizione del dialogo d'evidenziazione: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

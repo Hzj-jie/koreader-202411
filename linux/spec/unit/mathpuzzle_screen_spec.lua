@@ -62,204 +62,226 @@ describe("MathPuzzle Screen and Plugin", function()
     UIManager:close(screen)
   end)
 
-  it("should initialize MathPuzzleScreen for arithmetic_progression_100 in single column with inline answer blocks", function()
-    local screen = createScreen(nil, "arithmetic_progression_100")
-    UIManager:show(screen)
+  it(
+    "should initialize MathPuzzleScreen for arithmetic_progression_100 in single column with inline answer blocks",
+    function()
+      local screen = createScreen(nil, "arithmetic_progression_100")
+      UIManager:show(screen)
 
-    assert.is_table(screen.problems)
-    assert.are.equal(5, #screen.problems)
-    assert.is_true(screen.mode.single_column)
-    assert.is_true(#screen.input_buttons >= 20 and #screen.input_buttons <= 25)
+      assert.is_table(screen.problems)
+      assert.are.equal(5, #screen.problems)
+      assert.is_true(screen.mode.single_column)
+      assert.is_true(
+        #screen.input_buttons >= 20 and #screen.input_buttons <= 25
+      )
 
-    for _, prob in ipairs(screen.problems) do
-      assert.are.equal(8, #prob.terms)
-      assert.is_true(prob.inline_blanks)
-      assert.is_true(#prob.blank_indices >= 4 and #prob.blank_indices <= 5)
-    end
-
-    -- Fill all inline answer buttons with correct answers
-    for _, btn in ipairs(screen.input_buttons) do
-      local prob = screen.problems[btn.prob_id]
-      btn:setText(tostring(prob.answers[btn.blank_idx]))
-    end
-    screen:checkAnswers()
-
-    for _, prob in ipairs(screen.problems) do
-      assert.is_true(prob.is_correct)
-    end
-
-    -- Modifying an answer clears mark
-    local first_btn = screen.input_buttons[1]
-    first_btn:setText("999")
-    assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
-
-    UIManager:close(screen)
-  end)
-
-  it("should initialize MathPuzzleScreen for arithmetic_progression_30_entry with strictly alternating blanks", function()
-    local screen = createScreen(nil, "arithmetic_progression_30_entry")
-    UIManager:show(screen)
-
-    assert.is_table(screen.problems)
-    assert.are.equal(5, #screen.problems)
-    assert.is_true(screen.mode.single_column)
-    assert.are.equal(30, screen.mode.max)
-    assert.are.equal(3, screen.mode.max_step)
-    assert.is_true(screen.mode.alternating_blanks)
-    assert.are.equal(20, #screen.input_buttons)
-
-    for _, prob in ipairs(screen.problems) do
-      assert.are.equal(8, #prob.terms)
-      assert.is_true(prob.inline_blanks)
-      assert.is_true(prob.step >= 1 and prob.step <= 3)
-      assert.are.equal(4, #prob.blank_indices)
-      local str = table.concat(prob.blank_indices, ",")
-      assert.is_true(str == "1,3,5,7" or str == "2,4,6,8")
-      for _, term in ipairs(prob.terms) do
-        assert.is_true(term >= 0 and term <= 30)
+      for _, prob in ipairs(screen.problems) do
+        assert.are.equal(8, #prob.terms)
+        assert.is_true(prob.inline_blanks)
+        assert.is_true(#prob.blank_indices >= 4 and #prob.blank_indices <= 5)
       end
-    end
 
-    for _, btn in ipairs(screen.input_buttons) do
-      local prob = screen.problems[btn.prob_id]
-      btn:setText(tostring(prob.answers[btn.blank_idx]))
-    end
-    screen:checkAnswers()
-
-    for _, prob in ipairs(screen.problems) do
-      assert.is_true(prob.is_correct)
-    end
-
-    UIManager:close(screen)
-  end)
-
-  it("should initialize MathPuzzleScreen for arithmetic_progression_50_easy with strictly alternating blanks", function()
-    local screen = createScreen(nil, "arithmetic_progression_50_easy")
-    UIManager:show(screen)
-
-    assert.is_table(screen.problems)
-    assert.are.equal(5, #screen.problems)
-    assert.is_true(screen.mode.single_column)
-    assert.are.equal(50, screen.mode.max)
-    assert.are.equal(4, screen.mode.max_step)
-    assert.is_true(screen.mode.alternating_blanks)
-    assert.are.equal(20, #screen.input_buttons)
-
-    for _, prob in ipairs(screen.problems) do
-      assert.are.equal(8, #prob.terms)
-      assert.is_true(prob.inline_blanks)
-      assert.is_true(prob.step >= 1 and prob.step <= 4)
-      assert.are.equal(4, #prob.blank_indices)
-      local str = table.concat(prob.blank_indices, ",")
-      assert.is_true(str == "1,3,5,7" or str == "2,4,6,8")
-      for _, term in ipairs(prob.terms) do
-        assert.is_true(term >= 0 and term <= 50)
+      -- Fill all inline answer buttons with correct answers
+      for _, btn in ipairs(screen.input_buttons) do
+        local prob = screen.problems[btn.prob_id]
+        btn:setText(tostring(prob.answers[btn.blank_idx]))
       end
-    end
+      screen:checkAnswers()
 
-    for _, btn in ipairs(screen.input_buttons) do
-      local prob = screen.problems[btn.prob_id]
-      btn:setText(tostring(prob.answers[btn.blank_idx]))
-    end
-    screen:checkAnswers()
-
-    for _, prob in ipairs(screen.problems) do
-      assert.is_true(prob.is_correct)
-    end
-
-    UIManager:close(screen)
-  end)
-
-  it("should initialize MathPuzzleScreen for arithmetic_progression_50 in single column with inline answer blocks", function()
-    local screen = createScreen(nil, "arithmetic_progression_50")
-    UIManager:show(screen)
-
-    assert.is_table(screen.problems)
-    assert.are.equal(5, #screen.problems)
-    assert.is_true(screen.mode.single_column)
-    assert.are.equal(50, screen.mode.max)
-    assert.are.equal(4, screen.mode.max_step)
-    assert.is_true(#screen.input_buttons >= 20 and #screen.input_buttons <= 25)
-
-    for _, prob in ipairs(screen.problems) do
-      assert.are.equal(8, #prob.terms)
-      assert.is_true(prob.inline_blanks)
-      assert.is_true(prob.step >= 1 and prob.step <= 4)
-      for _, term in ipairs(prob.terms) do
-        assert.is_true(term >= 0 and term <= 50)
+      for _, prob in ipairs(screen.problems) do
+        assert.is_true(prob.is_correct)
       end
+
+      -- Modifying an answer clears mark
+      local first_btn = screen.input_buttons[1]
+      first_btn:setText("999")
+      assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
+
+      UIManager:close(screen)
     end
+  )
 
-    UIManager:close(screen)
-  end)
+  it(
+    "should initialize MathPuzzleScreen for arithmetic_progression_30_entry with strictly alternating blanks",
+    function()
+      local screen = createScreen(nil, "arithmetic_progression_30_entry")
+      UIManager:show(screen)
 
-  it("should initialize MathPuzzleScreen for missing_100 with inline blank button", function()
-    local screen = createScreen(nil, "missing_100")
-    UIManager:show(screen)
+      assert.is_table(screen.problems)
+      assert.are.equal(5, #screen.problems)
+      assert.is_true(screen.mode.single_column)
+      assert.are.equal(30, screen.mode.max)
+      assert.are.equal(3, screen.mode.max_step)
+      assert.is_true(screen.mode.alternating_blanks)
+      assert.are.equal(20, #screen.input_buttons)
 
-    assert.is_table(screen.problems)
-    assert.are.equal(10, #screen.problems)
-    assert.are.equal(10, #screen.input_buttons)
+      for _, prob in ipairs(screen.problems) do
+        assert.are.equal(8, #prob.terms)
+        assert.is_true(prob.inline_blanks)
+        assert.is_true(prob.step >= 1 and prob.step <= 3)
+        assert.are.equal(4, #prob.blank_indices)
+        local str = table.concat(prob.blank_indices, ",")
+        assert.is_true(str == "1,3,5,7" or str == "2,4,6,8")
+        for _, term in ipairs(prob.terms) do
+          assert.is_true(term >= 0 and term <= 30)
+        end
+      end
 
-    for i, prob in ipairs(screen.problems) do
-      assert.is_true(prob.text:find("___") ~= nil)
-      local btn = screen.input_buttons[i]
-      assert.are.equal(i, btn.prob_id)
-      assert.is_true(btn.width > 0)
-      assert.is_true(btn.height > 0)
+      for _, btn in ipairs(screen.input_buttons) do
+        local prob = screen.problems[btn.prob_id]
+        btn:setText(tostring(prob.answers[btn.blank_idx]))
+      end
+      screen:checkAnswers()
+
+      for _, prob in ipairs(screen.problems) do
+        assert.is_true(prob.is_correct)
+      end
+
+      UIManager:close(screen)
     end
+  )
 
-    -- Fill all answer buttons with correct answers
-    for i, btn in ipairs(screen.input_buttons) do
-      local prob = screen.problems[i]
-      btn:setText(tostring(prob.answer))
+  it(
+    "should initialize MathPuzzleScreen for arithmetic_progression_50_easy with strictly alternating blanks",
+    function()
+      local screen = createScreen(nil, "arithmetic_progression_50_easy")
+      UIManager:show(screen)
+
+      assert.is_table(screen.problems)
+      assert.are.equal(5, #screen.problems)
+      assert.is_true(screen.mode.single_column)
+      assert.are.equal(50, screen.mode.max)
+      assert.are.equal(4, screen.mode.max_step)
+      assert.is_true(screen.mode.alternating_blanks)
+      assert.are.equal(20, #screen.input_buttons)
+
+      for _, prob in ipairs(screen.problems) do
+        assert.are.equal(8, #prob.terms)
+        assert.is_true(prob.inline_blanks)
+        assert.is_true(prob.step >= 1 and prob.step <= 4)
+        assert.are.equal(4, #prob.blank_indices)
+        local str = table.concat(prob.blank_indices, ",")
+        assert.is_true(str == "1,3,5,7" or str == "2,4,6,8")
+        for _, term in ipairs(prob.terms) do
+          assert.is_true(term >= 0 and term <= 50)
+        end
+      end
+
+      for _, btn in ipairs(screen.input_buttons) do
+        local prob = screen.problems[btn.prob_id]
+        btn:setText(tostring(prob.answers[btn.blank_idx]))
+      end
+      screen:checkAnswers()
+
+      for _, prob in ipairs(screen.problems) do
+        assert.is_true(prob.is_correct)
+      end
+
+      UIManager:close(screen)
     end
-    screen:checkAnswers()
+  )
 
-    for _, prob in ipairs(screen.problems) do
-      assert.is_true(prob.is_correct)
+  it(
+    "should initialize MathPuzzleScreen for arithmetic_progression_50 in single column with inline answer blocks",
+    function()
+      local screen = createScreen(nil, "arithmetic_progression_50")
+      UIManager:show(screen)
+
+      assert.is_table(screen.problems)
+      assert.are.equal(5, #screen.problems)
+      assert.is_true(screen.mode.single_column)
+      assert.are.equal(50, screen.mode.max)
+      assert.are.equal(4, screen.mode.max_step)
+      assert.is_true(
+        #screen.input_buttons >= 20 and #screen.input_buttons <= 25
+      )
+
+      for _, prob in ipairs(screen.problems) do
+        assert.are.equal(8, #prob.terms)
+        assert.is_true(prob.inline_blanks)
+        assert.is_true(prob.step >= 1 and prob.step <= 4)
+        for _, term in ipairs(prob.terms) do
+          assert.is_true(term >= 0 and term <= 50)
+        end
+      end
+
+      UIManager:close(screen)
     end
+  )
 
-    -- Modifying an answer clears mark
-    local first_btn = screen.input_buttons[1]
-    first_btn:setText("999")
-    assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
+  it(
+    "should initialize MathPuzzleScreen for missing_100 with inline blank button",
+    function()
+      local screen = createScreen(nil, "missing_100")
+      UIManager:show(screen)
 
-    UIManager:close(screen)
-  end)
+      assert.is_table(screen.problems)
+      assert.are.equal(10, #screen.problems)
+      assert.are.equal(10, #screen.input_buttons)
 
-  it("should initialize MathPuzzleScreen for missing_100_add_sub with inline blank button", function()
-    local screen = createScreen(nil, "missing_100_add_sub")
-    UIManager:show(screen)
+      for i, prob in ipairs(screen.problems) do
+        assert.is_true(prob.text:find("___") ~= nil)
+        local btn = screen.input_buttons[i]
+        assert.are.equal(i, btn.prob_id)
+        assert.is_true(btn.width > 0)
+        assert.is_true(btn.height > 0)
+      end
 
-    assert.is_table(screen.problems)
-    assert.are.equal(10, #screen.problems)
-    assert.are.equal(10, #screen.input_buttons)
+      -- Fill all answer buttons with correct answers
+      for i, btn in ipairs(screen.input_buttons) do
+        local prob = screen.problems[i]
+        btn:setText(tostring(prob.answer))
+      end
+      screen:checkAnswers()
 
-    for i, prob in ipairs(screen.problems) do
-      assert.is_true(prob.text:find("___") ~= nil)
-      assert.is_true(prob.op == "+" or prob.op == "-")
-      assert.is_nil(prob.text:find("×"))
-      assert.is_nil(prob.text:find("÷"))
-      local btn = screen.input_buttons[i]
-      assert.are.equal(i, btn.prob_id)
-      assert.is_true(btn.width > 0)
-      assert.is_true(btn.height > 0)
+      for _, prob in ipairs(screen.problems) do
+        assert.is_true(prob.is_correct)
+      end
+
+      -- Modifying an answer clears mark
+      local first_btn = screen.input_buttons[1]
+      first_btn:setText("999")
+      assert.is_nil(screen.problems[first_btn.prob_id].is_correct)
+
+      UIManager:close(screen)
     end
+  )
 
-    -- Fill all answer buttons with correct answers
-    for i, btn in ipairs(screen.input_buttons) do
-      local prob = screen.problems[i]
-      btn:setText(tostring(prob.answer))
+  it(
+    "should initialize MathPuzzleScreen for missing_100_add_sub with inline blank button",
+    function()
+      local screen = createScreen(nil, "missing_100_add_sub")
+      UIManager:show(screen)
+
+      assert.is_table(screen.problems)
+      assert.are.equal(10, #screen.problems)
+      assert.are.equal(10, #screen.input_buttons)
+
+      for i, prob in ipairs(screen.problems) do
+        assert.is_true(prob.text:find("___") ~= nil)
+        assert.is_true(prob.op == "+" or prob.op == "-")
+        assert.is_nil(prob.text:find("×"))
+        assert.is_nil(prob.text:find("÷"))
+        local btn = screen.input_buttons[i]
+        assert.are.equal(i, btn.prob_id)
+        assert.is_true(btn.width > 0)
+        assert.is_true(btn.height > 0)
+      end
+
+      -- Fill all answer buttons with correct answers
+      for i, btn in ipairs(screen.input_buttons) do
+        local prob = screen.problems[i]
+        btn:setText(tostring(prob.answer))
+      end
+      screen:checkAnswers()
+
+      for _, prob in ipairs(screen.problems) do
+        assert.is_true(prob.is_correct)
+      end
+
+      UIManager:close(screen)
     end
-    screen:checkAnswers()
-
-    for _, prob in ipairs(screen.problems) do
-      assert.is_true(prob.is_correct)
-    end
-
-    UIManager:close(screen)
-  end)
+  )
 
   it("should verify correct answers and update question marks", function()
     local screen = createScreen(nil, "add_sub_100")
@@ -1429,10 +1451,17 @@ describe("MathPuzzle Screen and Plugin", function()
         end
         visited[widget] = true
         if widget.frame and widget.dimen then
-          if widget.text == require("gettext")("Check") and not is_input_btn[widget] then
+          if
+            widget.text == require("gettext")("Check")
+            and not is_input_btn[widget]
+          then
             check_btn = widget
           end
-        elseif not widget.frame and type(widget.text) == "string" and widget.dimen then
+        elseif
+          not widget.frame
+          and type(widget.text) == "string"
+          and widget.dimen
+        then
           table.insert(text_widgets, widget)
         end
         for _, child in ipairs(widget) do
@@ -1608,13 +1637,20 @@ describe("MathPuzzle Screen and Plugin", function()
         assert.is_not_nil(bank_widget)
 
         local title_bottom = screen.title_bar.dimen.y + screen.title_bar.dimen.h
-        local cell_boxes, grid_syms, row_cy, col_cx =
-          collectEquatoGeometry(screen, probs, text_widgets, bank_widget, check_btn)
+        local cell_boxes, grid_syms, row_cy, col_cx = collectEquatoGeometry(
+          screen,
+          probs,
+          text_widgets,
+          bank_widget,
+          check_btn
+        )
         for r = 1, 3 do
           for c = 1, 3 do
             local d = cell_boxes[r][c]
             assert.is_true(d.x >= 0 and d.x + d.w <= Screen:getWidth())
-            assert.is_true(d.y >= title_bottom and d.y + d.h < check_btn.dimen.y)
+            assert.is_true(
+              d.y >= title_bottom and d.y + d.h < check_btn.dimen.y
+            )
           end
         end
         assert.is_true(row_cy[1] < row_cy[2])
@@ -1625,8 +1661,12 @@ describe("MathPuzzle Screen and Plugin", function()
         -- Bank sits above grid and inside screen bounds
         assert.is_true(bank_widget.dimen.y >= title_bottom)
         assert.is_true(bank_widget.dimen.x >= 0)
-        assert.is_true(bank_widget.dimen.x + bank_widget.dimen.w <= Screen:getWidth())
-        assert.is_true(bank_widget.dimen.y + bank_widget.dimen.h <= cell_boxes[1][1].y)
+        assert.is_true(
+          bank_widget.dimen.x + bank_widget.dimen.w <= Screen:getWidth()
+        )
+        assert.is_true(
+          bank_widget.dimen.y + bank_widget.dimen.h <= cell_boxes[1][1].y
+        )
 
         assertEquatoSymbols(grid_syms, row_cy, col_cx, probs)
 
@@ -1639,8 +1679,12 @@ describe("MathPuzzle Screen and Plugin", function()
         for i = 1, 5 do
           local btn = screen.input_buttons[i]
           local mc = screen.mark_containers[i]
-          assert.is_true(mc.dimen.x >= 0 and mc.dimen.x + mc.dimen.w <= Screen:getWidth())
-          assert.is_true(mc.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h)
+          assert.is_true(
+            mc.dimen.x >= 0 and mc.dimen.x + mc.dimen.w <= Screen:getWidth()
+          )
+          assert.is_true(
+            mc.dimen.y >= bank_widget.dimen.y + bank_widget.dimen.h
+          )
           assert.are.equal(btn.dimen.x, mc.dimen.x)
           assert.are.equal(btn.dimen.y, mc.dimen.y + mc.dimen.h)
           assert.is_true(mc:getSize().h >= min_mark_h)
@@ -1716,8 +1760,13 @@ describe("MathPuzzle Screen and Plugin", function()
         end
         assert.is_not_nil(bank_widget)
 
-        local _, grid_syms, row_cy, col_cx =
-          collectEquatoGeometry(screen, screen.problems, text_widgets, bank_widget, check_btn)
+        local _, grid_syms, row_cy, col_cx = collectEquatoGeometry(
+          screen,
+          screen.problems,
+          text_widgets,
+          bank_widget,
+          check_btn
+        )
         assert.is_true(row_cy[1] < row_cy[2])
         assert.is_true(row_cy[2] < row_cy[3])
         assert.is_true(col_cx[1] < col_cx[2])
@@ -1783,34 +1832,41 @@ describe("MathPuzzle Screen and Plugin", function()
       end
     )
 
-    it("verifies localized strings for Math Equato in zh_CN and zh_TW", function()
-      local gettext = require("gettext")
-      finally(function()
-        gettext.changeLang("C")
-      end)
+    it(
+      "verifies localized strings for Math Equato in zh_CN and zh_TW",
+      function()
+        local gettext = require("gettext")
+        finally(function()
+          gettext.changeLang("C")
+        end)
 
-      gettext.changeLang("zh_CN")
-      assert.are.equal(
-        "100以内算式方阵（加减法）",
-        gettext("Math Equato (+, -) within 100")
-      )
-      assert.are.equal(
-        "每个数只用一次，使横向和纵向的等式都成立",
-        gettext("Use each number once to make every row and column equation true")
-      )
-      assert.are.equal("可用数字：%s", gettext("Number bank: %s"))
+        gettext.changeLang("zh_CN")
+        assert.are.equal(
+          "100以内算式方阵（加减法）",
+          gettext("Math Equato (+, -) within 100")
+        )
+        assert.are.equal(
+          "每个数只用一次，使横向和纵向的等式都成立",
+          gettext(
+            "Use each number once to make every row and column equation true"
+          )
+        )
+        assert.are.equal("可用数字：%s", gettext("Number bank: %s"))
 
-      gettext.changeLang("zh_TW")
-      assert.are.equal(
-        "100以內算式方陣（加減法）",
-        gettext("Math Equato (+, -) within 100")
-      )
-      assert.are.equal(
-        "每個數只用一次，使橫向和縱向的等式都成立",
-        gettext("Use each number once to make every row and column equation true")
-      )
-      assert.are.equal("可用數字：%s", gettext("Number bank: %s"))
-    end)
+        gettext.changeLang("zh_TW")
+        assert.are.equal(
+          "100以內算式方陣（加減法）",
+          gettext("Math Equato (+, -) within 100")
+        )
+        assert.are.equal(
+          "每個數只用一次，使橫向和縱向的等式都成立",
+          gettext(
+            "Use each number once to make every row and column equation true"
+          )
+        )
+        assert.are.equal("可用數字：%s", gettext("Number bank: %s"))
+      end
+    )
   end)
 
   describe("repaint optimization", function()
@@ -1878,7 +1934,8 @@ describe("MathPuzzle Screen and Plugin", function()
           end
         end
         assert.is_not_nil(digit_1)
-        digit_1[1].dimen = require("ui/geometry"):new({ x = 0, y = 0, w = 50, h = 50 })
+        digit_1[1].dimen =
+          require("ui/geometry"):new({ x = 0, y = 0, w = 50, h = 50 })
         assert.is_true(digit_1:onTapSelectButton())
         assert.are.equal(0, force_calls)
         assert.are.equal(0, wait_calls)
@@ -1907,75 +1964,84 @@ describe("MathPuzzle Screen and Plugin", function()
       assert.is_nil(UIManager._dirty[screen.mark_containers[1]])
     end)
 
-    it("skips selectField repaints when selecting the already focused field", function()
-      local screen = createScreen(nil, "add_sub_100")
-      UIManager:show(screen)
-      UIManager._dirty = {}
-
-      screen:selectField(1)
-      assert.is_nil(UIManager._dirty[screen.input_buttons[1]])
-
-      screen:selectField(2)
-      assert.is_true(UIManager._dirty[screen.input_buttons[1]])
-      assert.is_true(UIManager._dirty[screen.input_buttons[2]])
-    end)
-
-    it("skips onTimesChange_1M repaint when displayed minute text is unchanged", function()
-      local plugin = createMockPlugin()
-      plugin:showPuzzle(Generator.getModeById("add_sub_100"))
-      local screen = plugin.screen
-      UIManager._dirty = {}
-
-      screen:onTimesChange_1M()
-      assert.is_nil(UIManager._dirty[screen.time_container])
-
-      plugin.session_start_time = os.time() - 60
-      screen:onTimesChange_1M()
-      assert.is_true(UIManager._dirty[screen.time_container])
-      assert.are.equal(
-        string.format(
-          gettext("Time: %s"),
-          gettext.T_N("%1 minute", "%1 minutes", 1)
-        ),
-        screen.time_widget.text
-      )
-
-      UIManager._dirty = {}
-      screen:onTimesChange_1M()
-      assert.is_nil(UIManager._dirty[screen.time_container])
-    end)
-
-    it("coalesces checkAnswers mark repaints through columns_container", function()
-      local Screen = require("device").screen
-      for _, mode_id in ipairs({ "add_sub_100", "math_snake_100" }) do
-        local screen = createScreen(nil, mode_id)
+    it(
+      "skips selectField repaints when selecting the already focused field",
+      function()
+        local screen = createScreen(nil, "add_sub_100")
         UIManager:show(screen)
-        assert.are.same(
-          screen.columns_container[1]:getSize(),
-          screen.columns_container:getSize()
-        )
-        screen[1]:paintTo(Screen.bb, 0, 0)
-        assert.are.same(
-          screen.columns_container[1]:getSize(),
-          screen.columns_container:getSize()
-        )
         UIManager._dirty = {}
 
-        screen:checkAnswers()
-        assert.is_true(UIManager._dirty[screen.columns_container])
-        for _, mc in ipairs(screen.mark_containers) do
-          assert.is_nil(UIManager._dirty[mc])
-        end
-        local sz = screen.columns_container:getSize()
-        assert.is_true(sz.w * sz.h < Screen:getArea() * 0.5)
+        screen:selectField(1)
+        assert.is_nil(UIManager._dirty[screen.input_buttons[1]])
 
-        -- Re-checking without edits must not mark columns_container dirty again.
-        UIManager._dirty = {}
-        screen:checkAnswers()
-        assert.is_nil(UIManager._dirty[screen.columns_container])
-
-        UIManager:close(screen)
+        screen:selectField(2)
+        assert.is_true(UIManager._dirty[screen.input_buttons[1]])
+        assert.is_true(UIManager._dirty[screen.input_buttons[2]])
       end
-    end)
+    )
+
+    it(
+      "skips onTimesChange_1M repaint when displayed minute text is unchanged",
+      function()
+        local plugin = createMockPlugin()
+        plugin:showPuzzle(Generator.getModeById("add_sub_100"))
+        local screen = plugin.screen
+        UIManager._dirty = {}
+
+        screen:onTimesChange_1M()
+        assert.is_nil(UIManager._dirty[screen.time_container])
+
+        plugin.session_start_time = os.time() - 60
+        screen:onTimesChange_1M()
+        assert.is_true(UIManager._dirty[screen.time_container])
+        assert.are.equal(
+          string.format(
+            gettext("Time: %s"),
+            gettext.T_N("%1 minute", "%1 minutes", 1)
+          ),
+          screen.time_widget.text
+        )
+
+        UIManager._dirty = {}
+        screen:onTimesChange_1M()
+        assert.is_nil(UIManager._dirty[screen.time_container])
+      end
+    )
+
+    it(
+      "coalesces checkAnswers mark repaints through columns_container",
+      function()
+        local Screen = require("device").screen
+        for _, mode_id in ipairs({ "add_sub_100", "math_snake_100" }) do
+          local screen = createScreen(nil, mode_id)
+          UIManager:show(screen)
+          assert.are.same(
+            screen.columns_container[1]:getSize(),
+            screen.columns_container:getSize()
+          )
+          screen[1]:paintTo(Screen.bb, 0, 0)
+          assert.are.same(
+            screen.columns_container[1]:getSize(),
+            screen.columns_container:getSize()
+          )
+          UIManager._dirty = {}
+
+          screen:checkAnswers()
+          assert.is_true(UIManager._dirty[screen.columns_container])
+          for _, mc in ipairs(screen.mark_containers) do
+            assert.is_nil(UIManager._dirty[mc])
+          end
+          local sz = screen.columns_container:getSize()
+          assert.is_true(sz.w * sz.h < Screen:getArea() * 0.5)
+
+          -- Re-checking without edits must not mark columns_container dirty again.
+          UIManager._dirty = {}
+          screen:checkAnswers()
+          assert.is_nil(UIManager._dirty[screen.columns_container])
+
+          UIManager:close(screen)
+        end
+      end
+    )
   end)
 end)

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:16-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2024-11-13 19:39+0000\n"
 "Last-Translator: eevan78 <ivan.pesic@gmail.com>\n"
 "Language-Team: Serbian <https://hosted.weblate.org/projects/koreader/"
@@ -2941,15 +2941,6 @@ msgstr "Изабери и истакни"
 msgid "Fulltext search"
 msgstr "Претраживање комплетног текста"
 
-msgid "Top"
-msgstr "Горња"
-
-msgid "Bottom"
-msgstr "Доња"
-
-msgid "Gesture position"
-msgstr "Позиција гестикулације"
-
 msgid "Start content selection"
 msgstr "Почни избор садржаја"
 
@@ -3053,9 +3044,6 @@ msgstr "Дуги притисак на текст"
 
 msgid "Dictionary on single word selection"
 msgstr "Речник приликом избора једне речи"
-
-msgid "Highlight dialog position: %1"
-msgstr "Позиција дијалога истицања: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Истакни након интервала веома дугачаког притиска: %1 с"
@@ -6483,6 +6471,12 @@ msgstr "Горња маргина"
 msgid "Top/Bottom Margins"
 msgstr "Горње/Доње маргине"
 
+msgid "Top"
+msgstr "Горња"
+
+msgid "Bottom"
+msgstr "Доња"
+
 msgid "Bottom Margin"
 msgstr "Доња маргина"
 
@@ -8895,6 +8889,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -17598,6 +17605,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "коментари"
+
+#~ msgid "Gesture position"
+#~ msgstr "Позиција гестикулације"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Позиција дијалога истицања: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "
