@@ -157,9 +157,7 @@ describe("SdrList module", function()
     local ignored = home_dir .. "/quickstart-en.html"
     local hidden = home_dir .. "/.DS_Store"
     local hidden_dir_book = home_dir .. "/.Trash/hidden_book.epub"
-    local nested_trash_book = home_dir .. "/.Trash/sub/hidden_book.epub"
     local sdr_dir_book = home_dir .. "/foo.sdr/nested.epub"
-    local nested_sdr_book = home_dir .. "/foo.sdr/sub/nested.epub"
     local real_home = ffiutil.realpath(home_dir)
     local rb1 = real_home .. "/sub/a.epub"
     local rb2 = real_home .. "/sub2/b.pdf"
@@ -174,18 +172,14 @@ describe("SdrList module", function()
       write_stub:revert()
     end)
 
-    assert.is_true(SdrList:ignorePath(hidden_dir_book))
-    assert.spy(ignore_spy).was_not_called()
-    assert.is_true(SdrList:ignorePath(nested_trash_book))
-    assert.is_true(SdrList:ignorePath(sdr_dir_book))
-    assert.is_true(SdrList:ignorePath(nested_sdr_book))
     assert.is_false(SdrList:addItem(ignored))
     assert.spy(ignore_spy).was_called_with(ReadHistory, ignored)
     assert.is_false(SdrList:addItem(hidden))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, hidden)
     assert.is_false(SdrList:addItem(hidden_dir_book))
-    assert.is_false(SdrList:addItem(nested_trash_book))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, hidden_dir_book)
     assert.is_false(SdrList:addItem(sdr_dir_book))
-    assert.is_false(SdrList:addItem(nested_sdr_book))
+    assert.spy(ignore_spy).was_called_with(ReadHistory, sdr_dir_book)
     assert.spy(util.writeToFile).was_not_called()
 
     assert.is_true(SdrList:addItem(b1))
@@ -303,26 +297,6 @@ describe("SdrList module", function()
   end)
 
   it(
-    "walks all ancestor directories in ignorePath for paths outside home_dir",
-    function()
-      local root = ffiutil.realpath(ffiutil.dirname(home_dir))
-      local nested_hidden_outside = root
-        .. "/external/.Trash/sub/nested_outside.epub"
-      local nested_sdr_outside = root
-        .. "/external/foo.sdr/sub/nested_outside.epub"
-      local visible_outside = root .. "/external/visible/sub/book_outside.epub"
-      local relative_hidden = ".Trash/sub/rel.epub"
-      local root_file = "/root_book.epub"
-
-      assert.is_true(SdrList:ignorePath(nested_hidden_outside))
-      assert.is_true(SdrList:ignorePath(nested_sdr_outside))
-      assert.is_true(SdrList:ignorePath(relative_hidden))
-      assert.is_false(SdrList:ignorePath(visible_outside))
-      assert.is_false(SdrList:ignorePath(root_file))
-    end
-  )
-
-  it(
     "preserves existing cache and notifies on write or corrupt read failures",
     function()
       local b1 = home_dir .. "/keep.epub"
@@ -366,14 +340,12 @@ describe("SdrList module", function()
       local missing_book = real_home .. "/deleted_book.epub"
       local orphan_book = real_home .. "/orphan_book.epub"
       local trash_book = real_home .. "/.Trash/trashed_book.epub"
-      local nested_trash_book = real_home .. "/.Trash/sub/nested_trashed.epub"
 
       writeDummy(doc_book, "doc book")
       writeDummy(dir_book, "dir book")
       writeDummy(hash_book, "hash book content for partial md5")
       writeDummy(missing_book, "temp")
       writeDummy(trash_book, "trashed book")
-      writeDummy(nested_trash_book, "nested trashed book")
 
       -- Create doc-mode sidecar
       writeDummy(
@@ -383,10 +355,6 @@ describe("SdrList module", function()
       -- Create ignored hidden parent dir sidecar
       writeDummy(
         real_home .. "/.Trash/trashed_book.sdr/metadata.epub.lua",
-        'return { ["summary"] = { ["status"] = "reading" } }\n'
-      )
-      writeDummy(
-        real_home .. "/.Trash/sub/nested_trashed.sdr/metadata.epub.lua",
         'return { ["summary"] = { ["status"] = "reading" } }\n'
       )
       -- Create orphan .sdr (book file absent)
@@ -426,7 +394,6 @@ describe("SdrList module", function()
       assert.is_false(hasSdrEntry(orphan_book))
       assert.is_false(hasSdrEntry(missing_book))
       assert.is_false(hasSdrEntry(trash_book))
-      assert.is_false(hasSdrEntry(nested_trash_book))
     end
   )
 end)

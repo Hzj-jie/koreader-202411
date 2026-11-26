@@ -18,37 +18,16 @@ local function normalizePath(file)
   return ffiutil.realpath(file) or file
 end
 
-local function scanMetadataFiles(root, extractor, out_files, sdr_list)
+local function scanMetadataFiles(root, extractor, out_files)
   util.findFiles(root, function(path)
     local doc_path, replaced = extractor(path)
-    if
-      replaced > 0
-      and doc_path ~= ""
-      and not sdr_list:ignorePath(doc_path)
-    then
-      if util.fileExists(doc_path) then
-        out_files[normalizePath(doc_path)] = true
+    if replaced > 0 and doc_path ~= "" and util.fileExists(doc_path) then
+      doc_path = normalizePath(doc_path)
+      if not require("readhistory"):ignoreItem(doc_path) then
+        out_files[doc_path] = true
       end
     end
   end)
-end
-
-function SdrList:ignorePath(file)
-  local dir = ffiutil.dirname(normalizePath(file))
-  local home = normalizePath(G_named_settings.home_dir()):gsub("/+$", "")
-  while dir ~= "" and dir ~= "." and dir ~= "/" and dir ~= home do
-    if
-      not require("ui/widget/filechooser"):show_dir(ffiutil.basename(dir))
-    then
-      return true
-    end
-    local parent = ffiutil.dirname(dir)
-    if parent == dir then
-      break
-    end
-    dir = parent
-  end
-  return require("readhistory"):ignoreItem(file)
 end
 
 function SdrList:_flush()
@@ -71,13 +50,14 @@ function SdrList:_flush()
 end
 
 function SdrList:_seedFromReadHistory()
+  local ReadHistory = require("readhistory")
   self.files = {}
-  for _, v in ipairs(require("readhistory").hist) do
+  for _, v in ipairs(ReadHistory.hist) do
     local file = v.file and normalizePath(v.file)
     if
       file
       and file ~= ""
-      and not self:ignorePath(file)
+      and not ReadHistory:ignoreItem(file)
       and require("docsettings"):hasSidecarFile(file)
     then
       self.files[file] = true
@@ -133,7 +113,7 @@ function SdrList:addItem(file)
   )
   self:reload()
   file = normalizePath(file)
-  if self.files[file] or self:ignorePath(file) then
+  if self.files[file] or require("readhistory"):ignoreItem(file) then
     return false
   end
   self.files[file] = true
@@ -173,7 +153,7 @@ function SdrList:updateItem(old_file, new_file, copy)
   end
   if
     not self.files[new_file]
-    and not self:ignorePath(new_file)
+    and not require("readhistory"):ignoreItem(new_file)
     and require("docsettings"):hasSidecarFile(new_file)
   then
     self.files[new_file] = true
@@ -208,7 +188,7 @@ function SdrList:updateItemsByPath(old_path, new_path, copy)
       local updated = normalizePath(new_prefix .. file:sub(prefix_len + 1))
       if
         not self.files[updated]
-        and not self:ignorePath(updated)
+        and not require("readhistory"):ignoreItem(updated)
         and require("docsettings"):hasSidecarFile(updated)
       then
         table.insert(to_add, updated)
@@ -258,20 +238,19 @@ function SdrList:rebuildFromDisk()
     function(path)
       return path:gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
     end,
-    new_files,
-    self
+    new_files
   )
   local docsettings_dir = DataStorage:getDocSettingsDir():gsub("/+$", "")
   scanMetadataFiles(docsettings_dir, function(path)
     return path
       :sub(#docsettings_dir + 1)
       :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-  end, new_files, self)
+  end, new_files)
   -- Preserve valid hash-located entries that cannot be reversed from disk hashes.
   for file in pairs(self.files) do
     if
       not new_files[file]
-      and not self:ignorePath(file)
+      and not require("readhistory"):ignoreItem(file)
       and util.fileExists(file)
       and require("docsettings"):hasSidecarFile(file)
     then
