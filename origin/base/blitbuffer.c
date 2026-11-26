@@ -3457,6 +3457,10 @@ void BB_paint_rounded_corner_AA(BlitBuffer * restrict bb, unsigned int off_x, un
 void BB_blit_to_4bpp(const BlitBuffer * restrict src,
         uint8_t * restrict dst, size_t dst_stride,
         unsigned int x, unsigned int y, unsigned int w, unsigned int h, int invert) {
+    // TODO: Release builds compile with -DNDEBUG (stripping assert), so return
+    // bool (false on null/type/stride/empty/out-of-bounds inputs, dropping the
+    // silent early return and MIN clipping) and assert(...) in Lua to expose
+    // unexpected inputs cleanly.
     assert(src != NULL && src->data != NULL && dst != NULL);
     assert(GET_BB_TYPE(src) == TYPE_BB8);
     assert(dst_stride >= ((size_t) src->w + 1U) / 2U);
