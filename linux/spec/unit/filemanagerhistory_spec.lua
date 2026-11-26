@@ -1407,5 +1407,13 @@ describe("FileManagerHistory", function()
         shown_dialogs[1].text
       )
     end)
+
+    it("asserts hist_menu is open in refreshAfterHistoryUpdate", function()
+      fmh.hist_menu = nil
+      assert.has.errors(function()
+        fmh:refreshAfterHistoryUpdate()
+      end)
+      assert.spy(fmh.updateItemTable).was_not_called()
+    end)
   end)
 end)

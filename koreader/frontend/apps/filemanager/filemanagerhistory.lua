@@ -447,6 +447,7 @@ function FileManagerHistory:showHistDialog()
 end
 
 function FileManagerHistory:refreshAfterHistoryUpdate()
+  assert(self.hist_menu ~= nil)
   if self.filter ~= "all" or self.is_frozen then
     self:fetchStatuses(false)
   else
