@@ -559,6 +559,12 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
   local custom_cover_file = DocSettings:findCustomCoverFile(doc_path)
   local custom_metadata_file = DocSettings:findCustomMetadataFile(doc_path)
   if not (has_sidecar_file or custom_cover_file or custom_metadata_file) then
+    if new_doc_path then
+      local new_cand = DocSettings:_findSidecarFile(new_doc_path)
+      if new_cand and new_cand.location == "hash" then
+        require("sdrlist"):updateItem(doc_path, new_doc_path, copy)
+      end
+    end
     return
   end
 
