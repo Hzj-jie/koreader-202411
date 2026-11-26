@@ -37,7 +37,6 @@ local NewsDownloader = WidgetContainer:extend({
   initialized = false,
   feed_config_file = "feed_config.lua",
   feed_config_path = nil,
-  news_config_file = "news_settings.lua",
   settings = nil,
   download_dir_name = "news",
   download_dir = nil,
@@ -75,8 +74,7 @@ local function getPerFeedSyncTimes()
 end
 
 local function saveFeedSyncTime(url, timestamp)
-  local times = getPerFeedSyncTimes()
-  times[url] = timestamp
+  getPerFeedSyncTimes()[url] = timestamp
   NewsDownloader.getSettings():flush()
 end
 
@@ -373,13 +371,11 @@ function NewsDownloader:_syncNewsFeeds(feed_config)
     local url = feed[1]
     local limit = tonumber(feed.limit)
     if url and limit then
-      local already_queued = (_current_fork_feed and _current_fork_feed.url == url)
-      if not already_queued then
-        for _, q_item in ipairs(_feed_queue) do
-          if q_item.url == url then
-            already_queued = true
-            break
-          end
+      local already_queued = false
+      for _, q_item in ipairs(_feed_queue) do
+        if q_item.url == url then
+          already_queued = true
+          break
         end
       end
 
@@ -444,7 +440,7 @@ function NewsDownloader:processSingleFeedInBackground(item)
   }
 end
 
-function NewsDownloader.onIdle()
+function NewsDownloader.syncWhenIdle()
   local settings = NewsDownloader.getSettings()
   if not settings:isTrue("auto_sync") then
     return
@@ -1237,7 +1233,7 @@ BackgroundJobs.insert({
   when = "idle",
   repeated = true,
   executable = function()
-    NewsDownloader.onIdle()
+    NewsDownloader.syncWhenIdle()
   end,
 })
 

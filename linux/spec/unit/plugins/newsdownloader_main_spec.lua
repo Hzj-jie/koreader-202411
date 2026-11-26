@@ -605,11 +605,10 @@ describe("NewsDownloader main plugin module", function()
       stub(NewsDownloader, "getSettings").returns(inst.settings)
 
       local captured_job
-      local insert_result = true
       local orig_insert = BackgroundJobs.insertKeyed
       BackgroundJobs.insertKeyed = function(job)
         captured_job = job
-        return insert_result
+        return true
       end
 
       local orig_process = NewsDownloader.processFeedSource
@@ -745,8 +744,7 @@ describe("NewsDownloader main plugin module", function()
         notifications[1]
       )
 
-      -- 4. Deduplication: when job is already in progress, insertKeyed returns false
-      insert_result = false
+      -- 4. Deduplication: when all feeds are already queued, report sync in progress
       notifications = {}
       inst:syncNewsFeeds()
       assert.are.equal(1, #notifications)
@@ -754,7 +752,6 @@ describe("NewsDownloader main plugin module", function()
         gettext("Sync is already in progress."),
         notifications[1]
       )
-      insert_result = true
 
       -- 5. Test background action execution with mock feed processing
       local bg_result = captured_job.action()
@@ -921,14 +918,14 @@ describe("NewsDownloader main plugin module", function()
       -- 1. Does nothing when auto_sync is false/nil
       inst.settings:delete("auto_sync")
       fake_now = fake_now + time.s(61)
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.is_nil(captured_job)
 
       -- 2. Does nothing when network is offline
       inst.settings:save("auto_sync", true)
       is_online = false
       fake_now = fake_now + time.s(61)
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.is_nil(captured_job)
 
       -- 3. Enqueues oldest due feed when online
@@ -941,7 +938,7 @@ describe("NewsDownloader main plugin module", function()
       times["https://example.com/feed2.xml"] = now - 1800 -- 30 mins ago (not due)
       inst.settings:flush()
 
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.are.equal(1, online_call_count)
       assert.is_not_nil(captured_job)
       assert.are.equal("fork", captured_job.executable)
@@ -949,7 +946,7 @@ describe("NewsDownloader main plugin module", function()
       -- Verify throttle suppresses duplicate runs within 60s
       local saved_job = captured_job
       captured_job = nil
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.are.equal(1, online_call_count)
       assert.is_nil(captured_job)
       captured_job = saved_job
@@ -965,16 +962,16 @@ describe("NewsDownloader main plugin module", function()
       captured_job.callback({ result = bg_res })
       assert.is_true(times["https://example.com/feed1.xml"] >= now)
 
-      -- 4. When all feeds are recent (<3600s), onIdle enqueues nothing, but checks online after 60s
+      -- 4. When all feeds are recent (<3600s), syncWhenIdle enqueues nothing, but checks online after 60s
       fake_now = fake_now + time.s(61)
       captured_job = nil
       times["https://example.com/feed1.xml"] = os.time() - 500
       times["https://example.com/feed2.xml"] = os.time() - 500
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.are.equal(2, online_call_count)
       assert.is_nil(captured_job)
 
-      -- 5. onIdle skips feeds with non-numeric or empty limits
+      -- 5. syncWhenIdle skips feeds with non-numeric or empty limits
       inst:saveConfig({
         { [1] = "https://example.com/bad-limit.xml", limit = "abc" },
         { [1] = "https://example.com/empty-limit.xml", limit = "" },
@@ -983,7 +980,7 @@ describe("NewsDownloader main plugin module", function()
       fake_now = fake_now + time.s(61)
       captured_job = nil
       processed_urls = {}
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.is_not_nil(captured_job)
       local valid_due_res = captured_job.action()
       assert.is_true(valid_due_res.ok)
@@ -996,7 +993,7 @@ describe("NewsDownloader main plugin module", function()
       })
       fake_now = fake_now + time.s(61)
       captured_job = nil
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.is_nil(captured_job)
     end
   )
@@ -1006,12 +1003,12 @@ describe("NewsDownloader main plugin module", function()
     function()
       local PluginShare = require("pluginshare")
       local call_count = 0
-      local orig_onIdle = NewsDownloader.onIdle
-      NewsDownloader.onIdle = function()
+      local orig_syncWhenIdle = NewsDownloader.syncWhenIdle
+      NewsDownloader.syncWhenIdle = function()
         call_count = call_count + 1
       end
       finally(function()
-        NewsDownloader.onIdle = orig_onIdle
+        NewsDownloader.syncWhenIdle = orig_syncWhenIdle
       end)
 
       local found_count = 0
@@ -1131,7 +1128,7 @@ describe("NewsDownloader main plugin module", function()
       inst:saveConfig({
         { [1] = "https://example.com/sole.xml", limit = 2 },
       })
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.is_not_nil(active_job)
       assert.are.same({}, notifications)
 
@@ -1184,7 +1181,7 @@ describe("NewsDownloader main plugin module", function()
       times["https://example.com/ok3.xml"] = os.time()
       inst.settings:flush()
       notifications = {}
-      NewsDownloader.onIdle()
+      NewsDownloader.syncWhenIdle()
       assert.is_not_nil(active_job)
       drain_next({
         ok = false,
