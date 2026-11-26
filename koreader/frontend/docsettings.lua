@@ -580,9 +580,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
               new_sidecar_dir .. "/" .. filename
             ) ~= nil
           then
-            showNotification(
-              gettext("Failed to save custom cover to disk.")
-            )
+            showNotification(gettext("Failed to save custom cover to disk."))
             custom_cover_file = false
           end
         end
@@ -593,9 +591,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
               new_sidecar_dir .. "/" .. custom_metadata_filename
             ) ~= nil
           then
-            showNotification(
-              gettext("Failed to save custom metadata to disk.")
-            )
+            showNotification(gettext("Failed to save custom metadata to disk."))
             custom_metadata_file = false
           end
         end

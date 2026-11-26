@@ -70,18 +70,21 @@ describe("AutoSuspend main plugin module", function()
     end
   )
 
-  it("should schedule suspend tasks and handle lifecycle events safely", function()
-    local mock_ui = {
-      menu = {
-        registerToMainMenu = function() end,
-      },
-    }
+  it(
+    "should schedule suspend tasks and handle lifecycle events safely",
+    function()
+      local mock_ui = {
+        menu = {
+          registerToMainMenu = function() end,
+        },
+      }
 
-    local inst = AutoSuspend:new({ ui = mock_ui })
-    inst:_schedule()
-    inst:_unschedule()
-    inst:onSuspend()
-    inst:onResume()
-    inst:onClose()
-  end)
+      local inst = AutoSuspend:new({ ui = mock_ui })
+      inst:_schedule()
+      inst:_unschedule()
+      inst:onSuspend()
+      inst:onResume()
+      inst:onClose()
+    end
+  )
 end)

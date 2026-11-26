@@ -1286,8 +1286,7 @@ describe("Background Sync Behavior", function()
       sync_manager:addToChangedDocumentsFile(readerui.document.file)
       sync_manager:dispatchNextSync()
 
-      local jobs =
-        require("pluginshare").backgroundJobs
+      local jobs = require("pluginshare").backgroundJobs
       local job1 = jobs[#jobs]
 
       -- Malformed results should not throw errors

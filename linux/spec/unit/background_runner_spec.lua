@@ -1196,26 +1196,29 @@ describe("BackgroundRunner widget tests", function()
     end
   )
 
-  it("asserts when ffiUtil.runInSubProcess fails in CommandRunner:start", function()
-    local CommandRunner =
-      require("plugins/backgroundrunner.koplugin/commandrunner")
-    local ffiUtil = require("ffi/util")
-    local old_runInSubProcess = ffiUtil.runInSubProcess
-    ffiUtil.runInSubProcess = function()
-      return false, "fork failed"
+  it(
+    "asserts when ffiUtil.runInSubProcess fails in CommandRunner:start",
+    function()
+      local CommandRunner =
+        require("plugins/backgroundrunner.koplugin/commandrunner")
+      local ffiUtil = require("ffi/util")
+      local old_runInSubProcess = ffiUtil.runInSubProcess
+      ffiUtil.runInSubProcess = function()
+        return false, "fork failed"
+      end
+
+      CommandRunner.running_jobs = {}
+      assert.has_error(function()
+        CommandRunner:start({
+          executable = "fork",
+          action = function() end,
+        })
+      end)
+      assert.are.equal(0, #CommandRunner.running_jobs)
+
+      ffiUtil.runInSubProcess = old_runInSubProcess
     end
-
-    CommandRunner.running_jobs = {}
-    assert.has_error(function()
-      CommandRunner:start({
-        executable = "fork",
-        action = function() end,
-      })
-    end)
-    assert.are.equal(0, #CommandRunner.running_jobs)
-
-    ffiUtil.runInSubProcess = old_runInSubProcess
-  end)
+  )
 
   it("asserts when job is unsupported in CommandRunner:start", function()
     local CommandRunner =
@@ -1250,7 +1253,9 @@ describe("BackgroundRunner widget tests", function()
       local broadcasted_events = {}
       local orig_broadcast = UIManager.broadcastEvent
       UIManager.broadcastEvent = function(self, ev)
-        local name = type(ev) == "table" and (ev.handler and ev.handler:gsub("^on", "") or ev.action) or ev
+        local name = type(ev) == "table"
+            and (ev.handler and ev.handler:gsub("^on", "") or ev.action)
+          or ev
         table.insert(broadcasted_events, name)
         return orig_broadcast(self, ev)
       end
@@ -1365,50 +1370,47 @@ describe("BackgroundRunner widget tests", function()
     end
   )
 
-  it(
-    "continues schedule when queue is empty and idling",
-    function()
-      local BackgroundRunner = getBackgroundRunner()
-      local UIManager = require("ui/uimanager")
-      local time = require("ui/time")
+  it("continues schedule when queue is empty and idling", function()
+    local BackgroundRunner = getBackgroundRunner()
+    local UIManager = require("ui/uimanager")
+    local time = require("ui/time")
 
-      local orig_idle = UIManager.timeSinceLastUserAction
-      local orig_device_idling = UIManager.DeviceIdling
-      local orig_val = G_reader_settings:read("autodim_starttime_minutes")
+    local orig_idle = UIManager.timeSinceLastUserAction
+    local orig_device_idling = UIManager.DeviceIdling
+    local orig_val = G_reader_settings:read("autodim_starttime_minutes")
 
-      local idle_seconds = 0
-      UIManager.timeSinceLastUserAction = function()
-        return time.s(idle_seconds)
-      end
-
-      G_reader_settings:save("autodim_starttime_minutes", 5)
-
-      finally(function()
-        UIManager.timeSinceLastUserAction = orig_idle
-        UIManager.DeviceIdling = orig_device_idling
-        if orig_val ~= nil then
-          G_reader_settings:save("autodim_starttime_minutes", orig_val)
-        else
-          G_reader_settings:delete("autodim_starttime_minutes")
-        end
-        PluginShare.backgroundJobs = {}
-      end)
-
-      PluginShare.backgroundJobs = {}
-      UIManager.DeviceIdling = false
-
-      -- When not idle and empty queue, schedule() schedules
-      BackgroundRunner:schedule()
-      assert.is_true(BackgroundRunner.scheduled)
-
-      -- Execute tick: becomes idle
-      idle_seconds = 301
-      BackgroundRunner:_execute()
-      assert.is_true(UIManager.DeviceIdling)
-      -- Schedule remains true even when empty queue and idling
-      assert.is_true(BackgroundRunner.scheduled)
+    local idle_seconds = 0
+    UIManager.timeSinceLastUserAction = function()
+      return time.s(idle_seconds)
     end
-  )
+
+    G_reader_settings:save("autodim_starttime_minutes", 5)
+
+    finally(function()
+      UIManager.timeSinceLastUserAction = orig_idle
+      UIManager.DeviceIdling = orig_device_idling
+      if orig_val ~= nil then
+        G_reader_settings:save("autodim_starttime_minutes", orig_val)
+      else
+        G_reader_settings:delete("autodim_starttime_minutes")
+      end
+      PluginShare.backgroundJobs = {}
+    end)
+
+    PluginShare.backgroundJobs = {}
+    UIManager.DeviceIdling = false
+
+    -- When not idle and empty queue, schedule() schedules
+    BackgroundRunner:schedule()
+    assert.is_true(BackgroundRunner.scheduled)
+
+    -- Execute tick: becomes idle
+    idle_seconds = 301
+    BackgroundRunner:_execute()
+    assert.is_true(UIManager.DeviceIdling)
+    -- Schedule remains true even when empty queue and idling
+    assert.is_true(BackgroundRunner.scheduled)
+  end)
 
   it("schedules queued jobs on module load without init() or notify", function()
     stopBackgroundRunner()

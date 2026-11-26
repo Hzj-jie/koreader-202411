@@ -629,7 +629,9 @@ function FileChooser:changeToPath(path, focused_path)
   end
   if util.isMonkeyTest() then
     local cwd = ffiUtil.realpath(lfs.currentdir())
-    if real_path ~= cwd and not util.stringStartsWith(real_path, cwd .. "/") then
+    if
+      real_path ~= cwd and not util.stringStartsWith(real_path, cwd .. "/")
+    then
       logger.warn(
         "FileChooser:changeToPath outside working directory is ignored in monkey test mode: path="
           .. tostring(real_path)

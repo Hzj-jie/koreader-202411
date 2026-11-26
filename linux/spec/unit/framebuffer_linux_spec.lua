@@ -13,14 +13,19 @@ describe("ffi/framebuffer_linux module", function()
     FramebufferLinux = require("ffi/framebuffer_linux")
     for i = 1, 20 do
       local name, val = debug.getupvalue(FramebufferLinux.reinit, i)
-      if not name then break end
+      if not name then
+        break
+      end
       if name == "C" then
         upval_idx_C = i
         orig_C = val
         break
       end
     end
-    assert(upval_idx_C ~= nil, "could not find upvalue C in FramebufferLinux.reinit")
+    assert(
+      upval_idx_C ~= nil,
+      "could not find upvalue C in FramebufferLinux.reinit"
+    )
     dummy_buf = ffi.new("uint8_t[?]", 2097152)
   end)
 

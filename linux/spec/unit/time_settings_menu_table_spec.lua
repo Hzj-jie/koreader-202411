@@ -146,100 +146,103 @@ describe("time_settings_menu_table module", function()
     package.loaded["ui/elements/time_settings_menu_table"] = nil
   end)
 
-  it("handles capability detection and registration in add_sync_time", function()
-    local ffi = require("ffi")
-    local lfs = require("libs/libkoreader-lfs")
-    local BackgroundJobs = require("background_jobs")
-    local original_ffi_C = ffi.C
-    local orig_symlinkattributes = lfs.symlinkattributes
-    local mock_uid = 1000
+  it(
+    "handles capability detection and registration in add_sync_time",
+    function()
+      local ffi = require("ffi")
+      local lfs = require("libs/libkoreader-lfs")
+      local BackgroundJobs = require("background_jobs")
+      local original_ffi_C = ffi.C
+      local orig_symlinkattributes = lfs.symlinkattributes
+      local mock_uid = 1000
 
-    local mock_C = setmetatable({
-      getuid = function()
-        return mock_uid
-      end,
-    }, {
-      __index = original_ffi_C,
-    })
+      local mock_C = setmetatable({
+        getuid = function()
+          return mock_uid
+        end,
+      }, {
+        __index = original_ffi_C,
+      })
 
-    local mock_ffi = setmetatable({
-      C = mock_C,
-    }, {
-      __index = ffi,
-    })
+      local mock_ffi = setmetatable({
+        C = mock_C,
+      }, {
+        __index = ffi,
+      })
 
-    package.loaded["ffi"] = mock_ffi
+      package.loaded["ffi"] = mock_ffi
 
-    local inserted_jobs = {}
-    local orig_insert = BackgroundJobs.insert
-    BackgroundJobs.insert = function(job)
-      table.insert(inserted_jobs, job)
-    end
-
-    local exec_stub = stub(os, "execute", function(cmd)
-      if cmd == "command -v ntpd >/dev/null" then
-        return 0
+      local inserted_jobs = {}
+      local orig_insert = BackgroundJobs.insert
+      BackgroundJobs.insert = function(job)
+        table.insert(inserted_jobs, job)
       end
-      return 1
-    end)
 
-    finally(function()
-      package.loaded["ffi"] = ffi
-      exec_stub:revert()
-      lfs.symlinkattributes = orig_symlinkattributes
-      BackgroundJobs.insert = orig_insert
+      local exec_stub = stub(os, "execute", function(cmd)
+        if cmd == "command -v ntpd >/dev/null" then
+          return 0
+        end
+        return 1
+      end)
+
+      finally(function()
+        package.loaded["ffi"] = ffi
+        exec_stub:revert()
+        lfs.symlinkattributes = orig_symlinkattributes
+        BackgroundJobs.insert = orig_insert
+        package.loaded["ui/elements/time_settings_menu_table"] = nil
+      end)
+
+      -- Case 1: non-root user (uid ~= 0) -> no sync items, no idle job
+      mock_uid = 1000
+      inserted_jobs = {}
       package.loaded["ui/elements/time_settings_menu_table"] = nil
-    end)
+      local custom_menu = require("ui/elements/time_settings_menu_table")
+      assert.are.equal(0, #inserted_jobs)
 
-    -- Case 1: non-root user (uid ~= 0) -> no sync items, no idle job
-    mock_uid = 1000
-    inserted_jobs = {}
-    package.loaded["ui/elements/time_settings_menu_table"] = nil
-    local custom_menu = require("ui/elements/time_settings_menu_table")
-    assert.are.equal(0, #inserted_jobs)
-
-    -- Case 2: root user with busybox ntpd -> registers idle job and exposes syncNTPOnly
-    mock_uid = 0
-    lfs.symlinkattributes = function(path)
-      if path:match("ntpd$") then
-        return { mode = "link", target = "/bin/busybox" }
+      -- Case 2: root user with busybox ntpd -> registers idle job and exposes syncNTPOnly
+      mock_uid = 0
+      lfs.symlinkattributes = function(path)
+        if path:match("ntpd$") then
+          return { mode = "link", target = "/bin/busybox" }
+        end
+        return nil
       end
-      return nil
-    end
 
-    inserted_jobs = {}
-    package.loaded["ui/elements/time_settings_menu_table"] = nil
-    custom_menu = require("ui/elements/time_settings_menu_table")
-    assert.are.equal(1, #inserted_jobs)
-    assert.are.equal("idle", inserted_jobs[1].when)
-    assert.is_true(inserted_jobs[1].repeated)
+      inserted_jobs = {}
+      package.loaded["ui/elements/time_settings_menu_table"] = nil
+      custom_menu = require("ui/elements/time_settings_menu_table")
+      assert.are.equal(1, #inserted_jobs)
+      assert.are.equal("idle", inserted_jobs[1].when)
+      assert.is_true(inserted_jobs[1].repeated)
 
-    -- Case 3: root user with ntpdate (no busybox ntpd) -> registers idle job
-    lfs.symlinkattributes = function()
-      return nil
-    end
-    exec_stub.invokes(function(cmd)
-      if cmd == "command -v ntpdate >/dev/null" then
-        return 0
+      -- Case 3: root user with ntpdate (no busybox ntpd) -> registers idle job
+      lfs.symlinkattributes = function()
+        return nil
       end
-      return 1
-    end)
+      exec_stub.invokes(function(cmd)
+        if cmd == "command -v ntpdate >/dev/null" then
+          return 0
+        end
+        return 1
+      end)
 
-    inserted_jobs = {}
-    package.loaded["ui/elements/time_settings_menu_table"] = nil
-    custom_menu = require("ui/elements/time_settings_menu_table")
-    assert.are.equal(1, #inserted_jobs)
+      inserted_jobs = {}
+      package.loaded["ui/elements/time_settings_menu_table"] = nil
+      custom_menu = require("ui/elements/time_settings_menu_table")
+      assert.are.equal(1, #inserted_jobs)
 
-    -- Case 4: root user but neither ntpd nor ntpdate available -> returns early
-    exec_stub.invokes(function()
-      return 1
-    end)
+      -- Case 4: root user but neither ntpd nor ntpdate available -> returns early
+      exec_stub.invokes(function()
+        return 1
+      end)
 
-    inserted_jobs = {}
-    package.loaded["ui/elements/time_settings_menu_table"] = nil
-    custom_menu = require("ui/elements/time_settings_menu_table")
-    assert.are.equal(0, #inserted_jobs)
-  end)
+      inserted_jobs = {}
+      package.loaded["ui/elements/time_settings_menu_table"] = nil
+      custom_menu = require("ui/elements/time_settings_menu_table")
+      assert.are.equal(0, #inserted_jobs)
+    end
+  )
 
   it("handles syncNTPOnly command execution on failure and success", function()
     local ffi = require("ffi")
@@ -416,9 +419,13 @@ describe("time_settings_menu_table module", function()
       return 0
     end)
 
-    local run_when_online_stub = stub(NetworkMgr, "runWhenOnline", function(self, cb)
-      cb()
-    end)
+    local run_when_online_stub = stub(
+      NetworkMgr,
+      "runWhenOnline",
+      function(self, cb)
+        cb()
+      end
+    )
 
     local run_with_called = false
     local orig_runWith = UIManager.runWith
@@ -638,9 +645,13 @@ describe("time_settings_menu_table module", function()
       return 0
     end)
 
-    local run_when_online_stub = stub(NetworkMgr, "runWhenOnline", function(self, cb)
-      cb()
-    end)
+    local run_when_online_stub = stub(
+      NetworkMgr,
+      "runWhenOnline",
+      function(self, cb)
+        cb()
+      end
+    )
     stub(NetworkMgr, "isOnline").returns(true)
 
     local orig_runWith = UIManager.runWith
@@ -766,8 +777,11 @@ describe("time_settings_menu_table module", function()
     )
     assert.is_true(
       action_txt == gettext("Time synchronized.")
-        or action_txt
-          :find(gettext("New time is %1."):gsub("%%1.*$", ""), 1, true)
+        or action_txt:find(
+            gettext("New time is %1."):gsub("%%1.*$", ""),
+            1,
+            true
+          )
           ~= nil
     )
     captured_job.callback({ result = action_txt, timeout = false })

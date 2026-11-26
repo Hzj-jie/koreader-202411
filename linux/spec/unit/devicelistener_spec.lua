@@ -251,19 +251,16 @@ describe("devicelistener", function()
       end
     )
 
-    it(
-      "flips saved setting both ways when called without arguments",
-      function()
-        local listener = DeviceListener:new({ ui = {} })
-        listener:onToggleNightMode()
-        assert.is_true(mock_reader_settings:read("night_mode"))
-        assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, true)
+    it("flips saved setting both ways when called without arguments", function()
+      local listener = DeviceListener:new({ ui = {} })
+      listener:onToggleNightMode()
+      assert.is_true(mock_reader_settings:read("night_mode"))
+      assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, true)
 
-        listener:onToggleNightMode()
-        assert.is_false(mock_reader_settings:read("night_mode"))
-        assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, false)
-      end
-    )
+      listener:onToggleNightMode()
+      assert.is_false(mock_reader_settings:read("night_mode"))
+      assert.spy(mock_screen.setNightmode).was.called_with(mock_screen, false)
+    end)
 
     it(
       "does not toggle again if requested night_mode matches current state",

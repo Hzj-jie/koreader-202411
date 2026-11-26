@@ -6,5 +6,7 @@ return {
     "This plugin allows dimming the frontlight after a period of inactivity."
   )
     .. "\n"
-    .. gettext("KOReader enters idle mode after the configured period of inactivity."),
+    .. gettext(
+      "KOReader enters idle mode after the configured period of inactivity."
+    ),
 }

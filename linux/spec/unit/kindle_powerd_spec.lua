@@ -374,35 +374,29 @@ describe("KindlePowerD", function()
       end
     )
 
-    it(
-      "does not touch frontlight or mem when hall_enable is 1",
-      function()
-        write_file(hall_enable_file, "1")
-        write_file(hall_trig_file, "1")
-        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
-        sys_ops = {}
+    it("does not touch frontlight or mem when hall_enable is 1", function()
+      write_file(hall_enable_file, "1")
+      write_file(hall_trig_file, "1")
+      mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+      sys_ops = {}
 
-        mock_powerd:wakeupFromSuspend()
+      mock_powerd:wakeupFromSuspend()
 
-        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.same({}, sys_ops)
-      end
-    )
+      assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+      assert.are.same({}, sys_ops)
+    end)
 
-    it(
-      "does not touch frontlight or mem when hall_trig_wkup is 0",
-      function()
-        write_file(hall_enable_file, "0")
-        write_file(hall_trig_file, "0")
-        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
-        sys_ops = {}
+    it("does not touch frontlight or mem when hall_trig_wkup is 0", function()
+      write_file(hall_enable_file, "0")
+      write_file(hall_trig_file, "0")
+      mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+      sys_ops = {}
 
-        mock_powerd:wakeupFromSuspend()
+      mock_powerd:wakeupFromSuspend()
 
-        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.same({}, sys_ops)
-      end
-    )
+      assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+      assert.are.same({}, sys_ops)
+    end)
 
     it(
       "does not touch frontlight or mem when state is active or suspended",
@@ -427,19 +421,16 @@ describe("KindlePowerD", function()
       end
     )
 
-    it(
-      "does not crash or suspend when hall_file is nil",
-      function()
-        mock_powerd.hall_file = nil
-        mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
-        sys_ops = {}
+    it("does not crash or suspend when hall_file is nil", function()
+      mock_powerd.hall_file = nil
+      mock_lipc.props["com.lab126.powerd:state"] = "screenSaver"
+      sys_ops = {}
 
-        mock_powerd:wakeupFromSuspend()
+      mock_powerd:wakeupFromSuspend()
 
-        assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
-        assert.are.same({}, sys_ops)
-      end
-    )
+      assert.are.equal(10, mock_lipc.props["com.lab126.powerd:flIntensity"])
+      assert.are.same({}, sys_ops)
+    end)
 
     it(
       "reads 0 and does not suspend when hall_trig_wkup file is missing",

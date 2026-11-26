@@ -51,8 +51,12 @@ describe("SlidePuzzle main plugin module", function()
       end)
       plugin:saveCurrentState(game)
       assert.is_table(plugin.states["4"])
-      assert.spy(save_spy).was_not_called_with(plugin.settings, "states", match._)
-      assert.spy(save_spy).was_not_called_with(plugin.settings, "stats", match._)
+      assert
+        .spy(save_spy)
+        .was_not_called_with(plugin.settings, "states", match._)
+      assert
+        .spy(save_spy)
+        .was_not_called_with(plugin.settings, "stats", match._)
       local persisted = require("luasettings"):open(plugin.settings_file)
       assert.is_table(persisted:readTable("states")["4"])
 

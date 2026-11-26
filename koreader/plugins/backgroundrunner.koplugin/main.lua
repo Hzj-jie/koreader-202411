@@ -258,7 +258,9 @@ function BackgroundRunner:_execute()
       end
       should_execute = (time.since(job.insert_time) >= time.s(job.when))
     elseif type(job.when) == "string" then
-      assert(job.when == "asap" or job.when == "best-effort" or job.when == "idle")
+      assert(
+        job.when == "asap" or job.when == "best-effort" or job.when == "idle"
+      )
       if job.when == "asap" then
         should_execute = true
       elseif job.when == "best-effort" then

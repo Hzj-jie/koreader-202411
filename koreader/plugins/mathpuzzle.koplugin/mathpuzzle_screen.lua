@@ -268,7 +268,8 @@ function MathPuzzleScreen:_buildUI()
   local row_padding = is_single_column and Screen:scaleBySize(16)
     or Screen:scaleBySize(22)
 
-  local left_col = VerticalGroup:new({ align = is_single_column and "center" or "left" })
+  local left_col =
+    VerticalGroup:new({ align = is_single_column and "center" or "left" })
   local right_col = VerticalGroup:new({ align = "left" })
 
   local font_face = Font:getFace("cfont")
@@ -381,7 +382,10 @@ function MathPuzzleScreen:_buildUI()
         end
       end
 
-      table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(8) }))
+      table.insert(
+        row_group,
+        HorizontalSpan:new({ width = Screen:scaleBySize(8) })
+      )
       table.insert(row_group, mark_container)
 
       return row_group
@@ -391,11 +395,17 @@ function MathPuzzleScreen:_buildUI()
 
       prefix = prefix:match("^(.-)%s*$")
       if prefix ~= "" then
-        table.insert(row_group, TextWidget:new({
-          text = prefix,
-          face = font_face,
-        }))
-        table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(4) }))
+        table.insert(
+          row_group,
+          TextWidget:new({
+            text = prefix,
+            face = font_face,
+          })
+        )
+        table.insert(
+          row_group,
+          HorizontalSpan:new({ width = Screen:scaleBySize(4) })
+        )
       end
 
       table.insert(
@@ -412,14 +422,23 @@ function MathPuzzleScreen:_buildUI()
 
       suffix = suffix:match("^%s*(.-)$")
       if suffix ~= "" then
-        table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(4) }))
-        table.insert(row_group, TextWidget:new({
-          text = suffix,
-          face = font_face,
-        }))
+        table.insert(
+          row_group,
+          HorizontalSpan:new({ width = Screen:scaleBySize(4) })
+        )
+        table.insert(
+          row_group,
+          TextWidget:new({
+            text = suffix,
+            face = font_face,
+          })
+        )
       end
 
-      table.insert(row_group, HorizontalSpan:new({ width = Screen:scaleBySize(8) }))
+      table.insert(
+        row_group,
+        HorizontalSpan:new({ width = Screen:scaleBySize(8) })
+      )
       table.insert(row_group, mark_container)
 
       return row_group
@@ -581,8 +600,7 @@ function MathPuzzleScreen:_buildUI()
     local given_face = Font:getFace("cfont", 20)
     local mark_h = TextWidget:new({ text = " ✓", face = small_face })
       :getSize().h
-    local v_op_h = TextWidget:new({ text = "=", face = op_face })
-      :getSize().h
+    local v_op_h = TextWidget:new({ text = "=", face = op_face }):getSize().h
 
     local bank = {}
     local blank_at = { {}, {}, {} }
@@ -590,14 +608,7 @@ function MathPuzzleScreen:_buildUI()
     for i, prob in ipairs(self.problems) do
       table.insert(bank, prob.answer)
       blank_at[prob.row][prob.col] = i
-      blank_buttons[i] = createAnswerButton(
-        i,
-        prob,
-        node_w,
-        node_h,
-        pad,
-        pad
-      )
+      blank_buttons[i] = createAnswerButton(i, prob, node_w, node_h, pad, pad)
     end
     table.sort(bank)
     local box_h = blank_buttons[1]:getSize().h
