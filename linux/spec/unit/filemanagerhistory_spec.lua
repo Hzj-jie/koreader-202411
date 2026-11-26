@@ -730,7 +730,7 @@ describe("FileManagerHistory", function()
     end)
 
     it("handles Retrieve reading history callback", function()
-      fmh.onRetrieveHistory = spy.new(function() end)
+      fmh.retrieveHistory = spy.new(function() end)
 
       fmh:showHistDialog()
       local hist_dialog = shown_dialogs[1]
@@ -741,7 +741,7 @@ describe("FileManagerHistory", function()
       assert
         .spy(mock_uimanager.close)
         .was_called_with(mock_uimanager, match.is_ref(hist_dialog))
-      assert.spy(fmh.onRetrieveHistory).was_called(1)
+      assert.spy(fmh.retrieveHistory).was_called(1)
     end)
 
     it("handles Clear history of deleted files callback", function()
@@ -1027,7 +1027,7 @@ describe("FileManagerHistory", function()
     end)
   end)
 
-  describe("onRetrieveHistory / buildHistory / restoreHistory", function()
+  describe("retrieveHistory / buildHistory / restoreHistory", function()
     local ffiutil = require("ffi/util")
     local lfs = require("libs/libkoreader-lfs")
     local util = require("util")
@@ -1091,6 +1091,9 @@ describe("FileManagerHistory", function()
       }
 
       fmh = FileManagerHistory:new({ ui = { menu = mock_menu } })
+      fmh.hist_menu = mock_menu
+      fmh.filter = "all"
+      fmh.updateItemTable = spy.new(function() end)
     end)
 
     after_each(function()
@@ -1110,7 +1113,7 @@ describe("FileManagerHistory", function()
       fmh.buildHistory = spy.new(function() end)
       fmh.restoreHistory = spy.new(function() end)
 
-      fmh:onRetrieveHistory()
+      fmh:retrieveHistory()
 
       assert.spy(mock_multi_confirm_box.new).was_called(1)
       local box = shown_dialogs[1]
@@ -1180,8 +1183,9 @@ describe("FileManagerHistory", function()
       assert.spy(popen_stub).was_not_called()
       assert.is_equal("old_history", read_dummy(temp_dir .. "/history.lua"))
       assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
-      assert.is_equal(0, mock_readhistory.last_read_time)
-      assert.spy(mock_readhistory.reload).was_called(1)
+      assert
+        .spy(mock_readhistory.reload)
+        .was_called_with(match.is_ref(mock_readhistory), true)
       assert.spy(mock_readhistory.ensureLastFile).was_called(1)
       assert.is_equal(0, #shown_dialogs)
     end)
@@ -1201,8 +1205,9 @@ describe("FileManagerHistory", function()
         assert.spy(popen_stub).was_not_called()
         assert.is_nil(lfs.attributes(temp_dir .. "/history.lua", "mode"))
         assert.are.equal(prev_hist, mock_readhistory.hist)
-        assert.is_equal(0, mock_readhistory.last_read_time)
-        assert.spy(mock_readhistory.reload).was_called(1)
+        assert
+          .spy(mock_readhistory.reload)
+          .was_called_with(match.is_ref(mock_readhistory), true)
         assert.spy(mock_readhistory.ensureLastFile).was_called(1)
         assert.is_equal(0, #shown_dialogs)
       end
@@ -1244,8 +1249,9 @@ describe("FileManagerHistory", function()
           { file = home_dir .. "/My Book 1.epub", time = 100 },
         }, mock_readhistory.hist)
         assert.spy(mock_readhistory.flush).was_called(1)
-        assert.is_equal(0, mock_readhistory.last_read_time)
-        assert.spy(mock_readhistory.reload).was_called(1)
+        assert
+          .spy(mock_readhistory.reload)
+          .was_called_with(match.is_ref(mock_readhistory), true)
         assert.spy(mock_readhistory.ensureLastFile).was_called(1)
         assert.spy(fmh.fetchStatuses).was_called_with(match.is_ref(fmh), false)
         assert.spy(fmh.updateItemTable).was_called(1)
@@ -1361,8 +1367,9 @@ describe("FileManagerHistory", function()
       fmh:restoreHistory()
       assert.is_equal("saved_history", read_dummy(temp_dir .. "/history.lua"))
       assert.is_nil(lfs.attributes(temp_dir .. "/history.lua.backup", "mode"))
-      assert.is_equal(0, mock_readhistory.last_read_time)
-      assert.spy(mock_readhistory.reload).was_called(1)
+      assert
+        .spy(mock_readhistory.reload)
+        .was_called_with(match.is_ref(mock_readhistory), true)
       assert.spy(mock_readhistory.ensureLastFile).was_called(1)
       assert.is_false(fmh.statuses_fetched)
       assert.spy(fmh.updateItemTable).was_called(1)
