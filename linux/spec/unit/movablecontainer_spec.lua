@@ -328,6 +328,51 @@ describe("MovableContainer widget", function()
   )
 
   it(
+    "should clamp ensureAnchor top against anchor_max_y while keeping top at anchor_min_y on overflow",
+    function()
+      local inner_widget = Widget:new({
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 50 }),
+        getSize = function()
+          return Geom:new({ x = 0, y = 0, w = 100, h = 50 })
+        end,
+      })
+      local c_below_max = MovableContainer:new({
+        [1] = inner_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 50 }),
+        anchor_min_y = 40,
+        anchor_max_y = 500,
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 530, w = 80, h = 20 }),
+          })
+        end,
+      })
+      c_below_max:ensureAnchor(150, 200)
+      assert.are.equal(500 - 50 - 200, c_below_max._moved_offset_y)
+
+      local oversized_widget = Widget:new({
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 400 }),
+        getSize = function()
+          return Geom:new({ x = 0, y = 0, w = 100, h = 400 })
+        end,
+      })
+      local c_oversized = MovableContainer:new({
+        [1] = oversized_widget,
+        dimen = Geom:new({ x = 0, y = 0, w = 100, h = 400 }),
+        anchor_min_y = 40,
+        anchor_max_y = 300,
+        anchor = function()
+          return MovableContainer.boxesAnchor({
+            Geom:new({ x = 10, y = 530, w = 80, h = 20 }),
+          })
+        end,
+      })
+      c_oversized:ensureAnchor(150, 50)
+      assert.are.equal(40 - 50, c_oversized._moved_offset_y)
+    end
+  )
+
+  it(
     "should paint to target blitbuffer with and without alpha and handle compose_bb cache lifecycle",
     function()
       local painted_target = nil

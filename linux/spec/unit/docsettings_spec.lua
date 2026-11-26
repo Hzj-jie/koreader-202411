@@ -2546,4 +2546,397 @@ describe("docsettings module", function()
       end
     )
   end)
+
+  describe("updateLocation in-place move and custom files", function()
+    local temp_root, orig_pref
+
+    before_each(function()
+      temp_root = makeTempDir()
+      orig_pref = G_reader_settings:read("document_metadata_folder")
+    end)
+
+    after_each(function()
+      if orig_pref ~= nil then
+        G_reader_settings:save("document_metadata_folder", orig_pref)
+      else
+        G_reader_settings:delete("document_metadata_folder")
+      end
+      ffiutil.purgeDir(temp_root)
+      ffiutil.purgeDir(docsettings_dir .. temp_root)
+    end)
+
+    local function createBook(name)
+      local path = temp_root .. "/" .. name
+      local f = assert(io.open(path, "wb"))
+      f:write("book content " .. name)
+      f:close()
+      return path
+    end
+
+    local function createTempCover(name, content)
+      local path = temp_root .. "/" .. name
+      local f = assert(io.open(path, "wb"))
+      f:write(content)
+      f:close()
+      return path
+    end
+
+    it(
+      "preserves sidecar data on same-path updateLocation between doc and dir",
+      function()
+        local book = createBook("move_both_ways.epub")
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_dir = getSidecarDir(book)
+        local doc_file = getSidecarFile(book)
+        local ds = docsettings:open(book)
+        ds:save("last_page", 42)
+        ds:flush()
+        ds:close()
+        assert.is_true(util.fileExists(doc_file))
+
+        -- Move from doc -> dir
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local dir_dir = getSidecarDir(book)
+        local dir_file = getSidecarFile(book)
+        docsettings.updateLocation(book, book)
+
+        assert.is_true(util.fileExists(dir_file))
+        assert.is_false(util.fileExists(doc_file))
+        assert.is_nil(lfs.attributes(doc_dir, "mode"))
+        assert.are.equal(42, docsettings:open(book):read("last_page"))
+
+        -- Move back from dir -> doc
+        G_reader_settings:save("document_metadata_folder", "doc")
+        docsettings.updateLocation(book, book)
+
+        assert.is_true(util.fileExists(doc_file))
+        assert.is_false(util.fileExists(dir_file))
+        assert.is_nil(lfs.attributes(dir_dir, "mode"))
+        assert.are.equal(42, docsettings:open(book):read("last_page"))
+      end
+    )
+
+    it(
+      "moves sidecar, custom cover, and custom metadata together on same-path updateLocation",
+      function()
+        local book = createBook("move_with_custom.epub")
+        local src_cover = createTempCover("src_cover.png", "png-cover-bytes")
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_dir = getSidecarDir(book)
+        local doc_file = getSidecarFile(book)
+        local ds = docsettings:open(book)
+        ds:save("last_page", 77)
+        ds:flush()
+        ds:close()
+        assert.is_true(docsettings:flushCustomCover(book, src_cover))
+        local custom_meta = docsettings.openSettingsFile()
+        custom_meta:save("doc_props", { title = "Custom Title" })
+        assert.is_true(custom_meta:flushCustomMetadata(book))
+
+        -- Move doc -> dir
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local dir_dir = getSidecarDir(book)
+        local dir_file = getSidecarFile(book)
+        docsettings.updateLocation(book, book)
+
+        assert.is_true(util.fileExists(dir_file))
+        assert.is_false(util.fileExists(doc_file))
+        assert.is_nil(lfs.attributes(doc_dir, "mode"))
+        assert.are.equal(77, docsettings:open(book):read("last_page"))
+        local dir_cover = docsettings:findCustomCoverFile(book)
+        local dir_meta = docsettings:findCustomMetadataFile(book)
+        assert.is_true(util.stringStartsWith(dir_cover, dir_dir .. "/"))
+        assert.is_true(util.stringStartsWith(dir_meta, dir_dir .. "/"))
+        assert.are.equal("png-cover-bytes", util.readFromFile(dir_cover))
+        assert.are.equal(
+          "Custom Title",
+          docsettings.openSettingsFile(dir_meta):read("doc_props").title
+        )
+
+        -- Move dir -> doc
+        G_reader_settings:save("document_metadata_folder", "doc")
+        docsettings.updateLocation(book, book)
+
+        assert.is_true(util.fileExists(doc_file))
+        assert.is_false(util.fileExists(dir_file))
+        assert.is_nil(lfs.attributes(dir_dir, "mode"))
+        assert.are.equal(77, docsettings:open(book):read("last_page"))
+        local back_cover = docsettings:findCustomCoverFile(book)
+        local back_meta = docsettings:findCustomMetadataFile(book)
+        assert.is_true(util.stringStartsWith(back_cover, doc_dir .. "/"))
+        assert.is_true(util.stringStartsWith(back_meta, doc_dir .. "/"))
+        assert.are.equal("png-cover-bytes", util.readFromFile(back_cover))
+        assert.are.equal(
+          "Custom Title",
+          docsettings.openSettingsFile(back_meta):read("doc_props").title
+        )
+      end
+    )
+
+    it(
+      "removes old sidecar, custom cover, and custom metadata on rename",
+      function()
+        local orig_book = createBook("rename_orig.epub")
+        local new_book = createBook("rename_dest.epub")
+        local src_cover = createTempCover("rename_cover.png", "rename-cover")
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local orig_dir = getSidecarDir(orig_book)
+        local new_dir = getSidecarDir(new_book)
+        local ds = docsettings:open(orig_book)
+        ds:save("last_page", 19)
+        ds:flush()
+        ds:close()
+        assert.is_true(docsettings:flushCustomCover(orig_book, src_cover))
+        local custom_meta = docsettings.openSettingsFile()
+        custom_meta:save("doc_props", { title = "Renamed Book" })
+        assert.is_true(custom_meta:flushCustomMetadata(orig_book))
+
+        docsettings.updateLocation(orig_book, new_book, false)
+
+        assert.is_nil(lfs.attributes(orig_dir, "mode"))
+        assert.is_nil(docsettings:findCustomCoverFile(orig_book))
+        assert.is_nil(docsettings:findCustomMetadataFile(orig_book))
+        assert.are.equal(19, docsettings:open(new_book):read("last_page"))
+        local new_cover = docsettings:findCustomCoverFile(new_book)
+        local new_meta = docsettings:findCustomMetadataFile(new_book)
+        assert.is_true(util.stringStartsWith(new_cover, new_dir .. "/"))
+        assert.is_true(util.stringStartsWith(new_meta, new_dir .. "/"))
+        assert.are.equal("rename-cover", util.readFromFile(new_cover))
+        assert.are.equal(
+          "Renamed Book",
+          docsettings.openSettingsFile(new_meta):read("doc_props").title
+        )
+      end
+    )
+
+    it(
+      "preserves custom cover and custom metadata already in the destination folder",
+      function()
+        local book = createBook("custom_already_in_dest.epub")
+        local src_cover = createTempCover("dest_cover.png", "already-there")
+
+        -- Place custom cover and custom metadata in dir first (no sidecar yet)
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local dir_dir = getSidecarDir(book)
+        local dir_file = getSidecarFile(book)
+        assert.is_true(docsettings:flushCustomCover(book, src_cover))
+        local custom_meta = docsettings.openSettingsFile()
+        custom_meta:save("doc_props", { title = "Dest Meta" })
+        assert.is_true(custom_meta:flushCustomMetadata(book))
+
+        -- Create sidecar in doc without moving custom files from dir
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_dir = getSidecarDir(book)
+        local doc_file = getSidecarFile(book)
+        local ds = docsettings:open(book)
+        ds:save("last_page", 55)
+        ds:flush(nil, true)
+        ds:close()
+        assert.is_true(util.fileExists(doc_file))
+
+        -- Move sidecar into dir where custom cover and custom metadata already live
+        G_reader_settings:save("document_metadata_folder", "dir")
+        docsettings.updateLocation(book, book)
+
+        assert.is_true(util.fileExists(dir_file))
+        assert.is_false(util.fileExists(doc_file))
+        assert.is_nil(lfs.attributes(doc_dir, "mode"))
+        assert.are.equal(55, docsettings:open(book):read("last_page"))
+        local kept_cover = docsettings:findCustomCoverFile(book)
+        local kept_meta = docsettings:findCustomMetadataFile(book)
+        assert.is_true(util.stringStartsWith(kept_cover, dir_dir .. "/"))
+        assert.is_true(util.stringStartsWith(kept_meta, dir_dir .. "/"))
+        assert.are.equal("already-there", util.readFromFile(kept_cover))
+        assert.are.equal(
+          "Dest Meta",
+          docsettings.openSettingsFile(kept_meta):read("doc_props").title
+        )
+      end
+    )
+
+    it(
+      "preserves original sidecar and custom files on rename when flush writeToFile fails",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_writeToFile = util.writeToFile
+        local orig_show = UIManager.show
+        finally(function()
+          util.writeToFile = orig_writeToFile
+          UIManager.show = orig_show
+        end)
+
+        local orig_book = createBook("flush_fail_rename_orig.epub")
+        local new_book = createBook("flush_fail_rename_dest.epub")
+        local src_cover =
+          createTempCover("flush_fail_rename_cover.png", "orig-cover")
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local orig_file = getSidecarFile(orig_book)
+        local new_dir = getSidecarDir(new_book)
+        local ds = docsettings:open(orig_book)
+        ds:save("last_page", 31)
+        ds:flush()
+        ds:close()
+        assert.is_true(docsettings:flushCustomCover(orig_book, src_cover))
+        local custom_meta = docsettings.openSettingsFile()
+        custom_meta:save("doc_props", { title = "Keep Original" })
+        assert.is_true(custom_meta:flushCustomMetadata(orig_book))
+        local orig_cover = docsettings:findCustomCoverFile(orig_book)
+        local orig_meta = docsettings:findCustomMetadataFile(orig_book)
+
+        local shown_texts = {}
+        UIManager.show = function(_, widget)
+          if widget and widget.text then
+            table.insert(shown_texts, widget.text)
+          end
+        end
+        util.writeToFile = function()
+          return false
+        end
+
+        docsettings.updateLocation(orig_book, new_book, false)
+
+        util.writeToFile = orig_writeToFile
+        UIManager.show = orig_show
+
+        assert.is_true(util.fileExists(orig_file))
+        assert.are.equal(31, docsettings:open(orig_book):read("last_page"))
+        assert.is_true(util.fileExists(orig_cover))
+        assert.are.equal("orig-cover", util.readFromFile(orig_cover))
+        assert.is_true(util.fileExists(orig_meta))
+        assert.is_false(util.isDirContainingFiles(new_dir))
+        assert.is_false(docsettings:hasSidecarFile(new_book))
+        assert.is_nil(docsettings:findCustomCoverFile(new_book))
+        assert.is_nil(docsettings:findCustomMetadataFile(new_book))
+        local found_msg = false
+        for _, text in ipairs(shown_texts) do
+          if
+            text
+            == gettext(
+              "Failed to save book settings to the new location. Original settings have been preserved."
+            )
+          then
+            found_msg = true
+            break
+          end
+        end
+        assert.is_true(found_msg)
+      end
+    )
+
+    it(
+      "preserves original sidecar and custom files on in-place move when flush writeToFile fails",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_writeToFile = util.writeToFile
+        local orig_show = UIManager.show
+        finally(function()
+          util.writeToFile = orig_writeToFile
+          UIManager.show = orig_show
+        end)
+
+        local book = createBook("flush_fail_inplace.epub")
+        local src_cover =
+          createTempCover("flush_fail_inplace_cover.png", "inplace-cover")
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_file = getSidecarFile(book)
+        local ds = docsettings:open(book)
+        ds:save("last_page", 88)
+        ds:flush()
+        ds:close()
+        assert.is_true(docsettings:flushCustomCover(book, src_cover))
+        local custom_meta = docsettings.openSettingsFile()
+        custom_meta:save("doc_props", { title = "Inplace Keep" })
+        assert.is_true(custom_meta:flushCustomMetadata(book))
+        local orig_cover = docsettings:findCustomCoverFile(book)
+        local orig_meta = docsettings:findCustomMetadataFile(book)
+
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local dir_dir = getSidecarDir(book)
+        local dir_file = getSidecarFile(book)
+
+        local shown_texts = {}
+        UIManager.show = function(_, widget)
+          if widget and widget.text then
+            table.insert(shown_texts, widget.text)
+          end
+        end
+        util.writeToFile = function()
+          return false
+        end
+
+        docsettings.updateLocation(book, book)
+
+        util.writeToFile = orig_writeToFile
+        UIManager.show = orig_show
+
+        assert.is_true(util.fileExists(doc_file))
+        assert.are.equal(88, docsettings:open(book):read("last_page"))
+        assert.is_true(util.fileExists(orig_cover))
+        assert.are.equal("inplace-cover", util.readFromFile(orig_cover))
+        assert.is_true(util.fileExists(orig_meta))
+        assert.is_false(util.fileExists(dir_file))
+        assert.is_false(util.isDirContainingFiles(dir_dir))
+        local found_msg = false
+        for _, text in ipairs(shown_texts) do
+          if
+            text
+            == gettext(
+              "Failed to save book settings to the new location. Original settings have been preserved."
+            )
+          then
+            found_msg = true
+            break
+          end
+        end
+        assert.is_true(found_msg)
+      end
+    )
+
+    it(
+      "keeps data in current location when preferred writeToFile fails and flush falls back",
+      function()
+        local orig_writeToFile = util.writeToFile
+        finally(function()
+          util.writeToFile = orig_writeToFile
+        end)
+
+        local book = createBook("flush_partial_fallback.epub")
+        local src_cover =
+          createTempCover("flush_partial_cover.png", "partial-cover")
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_file = getSidecarFile(book)
+        local ds = docsettings:open(book)
+        ds:save("last_page", 64)
+        ds:flush()
+        ds:close()
+        assert.is_true(docsettings:flushCustomCover(book, src_cover))
+        local orig_cover = docsettings:findCustomCoverFile(book)
+
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local dir_file = getSidecarFile(book)
+
+        util.writeToFile = function(content, filepath, ...)
+          if filepath == dir_file then
+            return false
+          end
+          return orig_writeToFile(content, filepath, ...)
+        end
+
+        docsettings.updateLocation(book, book)
+        util.writeToFile = orig_writeToFile
+
+        assert.is_true(util.fileExists(doc_file))
+        assert.is_false(util.fileExists(dir_file))
+        assert.are.equal(64, docsettings:open(book):read("last_page"))
+        assert.is_true(util.fileExists(orig_cover))
+        assert.are.equal("partial-cover", util.readFromFile(orig_cover))
+      end
+    )
+  end)
 end)
