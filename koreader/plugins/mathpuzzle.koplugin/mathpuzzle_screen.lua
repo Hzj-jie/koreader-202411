@@ -81,11 +81,15 @@ function MathPuzzleScreen:getTimeText()
 end
 
 function MathPuzzleScreen:onTimesChange_1M()
-  self.time_widget:setText(self:getTimeText())
-  self.time_container:scheduleRepaint()
+  if self.time_widget:setText(self:getTimeText()) then
+    self.time_container:scheduleRepaint()
+  end
 end
 
 function MathPuzzleScreen:selectField(idx)
+  if idx == self.focused_idx then
+    return
+  end
   local prev_idx = self.focused_idx
   self.focused_idx = idx
 
@@ -112,6 +116,10 @@ end
 
 function MathPuzzleScreen:_clearMark(idx)
   local prob = self.problems[idx]
+  if not prob.checked then
+    assert(prob.is_correct == nil)
+    return
+  end
   prob.checked = false
   prob.is_correct = nil
   self.mark_widgets[idx]:setText("")
@@ -288,6 +296,7 @@ function MathPuzzleScreen:_buildUI()
       padding_v = pad_v,
       padding_h = pad_h,
       margin = 0,
+      feedback_highlight = false,
       callback = function()
         self:selectField(btn_idx)
       end,
@@ -735,6 +744,7 @@ function MathPuzzleScreen:_buildUI()
       text_font_bold = true,
       margin = 0,
       padding = 0,
+      feedback_highlight = false,
       callback = callback,
     })
   end
@@ -789,6 +799,14 @@ function MathPuzzleScreen:_buildUI()
     end
   end
 
+  self.columns_container = FrameContainer:new({
+    background = Blitbuffer.COLOR_WHITE,
+    bordersize = 0,
+    padding = 0,
+    margin = 0,
+    columns_group,
+  })
+
   self[1] = FrameContainer:new({
     background = Blitbuffer.COLOR_WHITE,
     bordersize = 0,
@@ -802,7 +820,7 @@ function MathPuzzleScreen:_buildUI()
       VerticalSpan:new({ height = Screen:scaleBySize(4) }),
       self.time_container,
       VerticalSpan:new({ height = Screen:scaleBySize(16) }),
-      columns_group,
+      self.columns_container,
       VerticalSpan:new({ height = Screen:scaleBySize(24) }),
       keypad_group,
       VerticalSpan:new({ height = Screen:scaleBySize(16) }),
@@ -813,9 +831,14 @@ end
 function MathPuzzleScreen:checkAnswers()
   local result = Generator.checkAnswers(self.problems)
 
+  local any_mark_changed = false
   for i, prob in ipairs(self.problems) do
-    self.mark_widgets[i]:setText(prob.is_correct and " ✓" or " ✗")
-    self.mark_containers[i]:scheduleRepaint()
+    if self.mark_widgets[i]:setText(prob.is_correct and " ✓" or " ✗") then
+      any_mark_changed = true
+    end
+  end
+  if any_mark_changed then
+    self.columns_container:scheduleRepaint()
   end
 
   self.plugin.session_correct = self.plugin.session_correct
