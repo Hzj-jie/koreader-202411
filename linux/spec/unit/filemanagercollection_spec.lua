@@ -553,7 +553,10 @@ describe("filemanagercollection", function()
         menu.onLeftButtonTap_icon or "appbar.menu"
       ) -- is normal mode icon
 
-      assert.are.equal("Collections (5)", menu.title)
+      assert.are.equal(
+        require("ffi/util").template(mock_gettext("Collections (%1)"), 5),
+        menu.title
+      )
       assert.are.equal(5, #menu.item_table)
       assert.are.equal("Favorites", menu.item_table[1].text)
       assert.are.equal("favorites", menu.item_table[1].name)
@@ -1235,14 +1238,16 @@ describe("filemanagercollection", function()
           "/books/open_live.epub",
         }
         mock_doc_settings.getStatus = spy.new(function(file)
-          if file == "/books/reading.epub" then
+          if
+            file == "/books/reading.epub"
+            or file == "/books/missing.epub"
+            or file == "/books/open_live.epub"
+          then
             return "reading"
           elseif file == "/books/hold.epub" then
             return "abandoned"
           elseif file == "/books/finished.epub" then
             return "complete"
-          elseif file == "/books/open_live.epub" then
-            return "reading"
           end
           return "new"
         end)
