@@ -468,6 +468,9 @@ describe("docsettings module", function()
     local new_file = tmp_dir .. "/test_custom_doc_moved.epub"
     docsettings.updateLocation(file, new_file, true) -- copy
     assert.is_true(docsettings:hasSidecarFile(new_file))
+    assert.is_true(docsettings:hasSidecarFile(file))
+    assert.is_truthy(docsettings:findCustomCoverFile(file))
+    assert.is_truthy(docsettings:findCustomMetadataFile(file))
 
     -- cleanup
     docsettings.updateLocation(new_file, nil) -- delete
@@ -507,6 +510,8 @@ describe("docsettings module", function()
       assert.is_false(docsettings:hasSidecarFile(new_file))
       assert.is_truthy(docsettings:findCustomCoverFile(new_file))
       assert.is_truthy(docsettings:findCustomMetadataFile(new_file))
+      assert.is_truthy(docsettings:findCustomCoverFile(file))
+      assert.is_truthy(docsettings:findCustomMetadataFile(file))
 
       docsettings.updateLocation(new_file, nil) -- delete
       docsettings.updateLocation(file, nil) -- delete
@@ -2734,11 +2739,22 @@ describe("docsettings module", function()
         local ds = docsettings:open(book)
         ds:save("last_page", 55)
         ds:flush(nil, true)
-        ds:close()
         assert.is_true(util.fileExists(doc_file))
 
         -- Move sidecar into dir where custom cover and custom metadata already live
         G_reader_settings:save("document_metadata_folder", "dir")
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomCoverFile(book),
+            dir_dir .. "/"
+          )
+        )
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomMetadataFile(book),
+            dir_dir .. "/"
+          )
+        )
         docsettings.updateLocation(book, book)
 
         assert.is_true(util.fileExists(dir_file))
