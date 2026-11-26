@@ -58,19 +58,11 @@ typedef struct ColorRGB32 {
     uint8_t alpha;
 } ColorRGB32;
 
-typedef struct BlitBuffer {
+typedef struct BlitBuffer4 {
     unsigned int w;
     unsigned int pixel_stride;  // nb of pixels from the start of a line to the start of next line
     unsigned int h;
     size_t stride;              // nb of bytes from the start of a line to the start of next line
-    uint8_t * restrict data;
-    uint8_t config;
-} BlitBuffer;
-typedef struct BlitBuffer4 {
-    unsigned int w;
-    unsigned int pixel_stride;
-    unsigned int h;
-    size_t stride;
     uint8_t *data;
     uint8_t config;
 } BlitBuffer4;
@@ -117,38 +109,41 @@ typedef struct BlitBufferRGB32 {
     uint8_t config;
 } BlitBufferRGB32;
 
-void BB_fill(BlitBuffer * restrict bb, uint8_t v);
-void BB_fill_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, uint8_t v);
-void BB_fill_rect_RGB32(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_blend_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const Color8A * restrict color);
-void BB_blend_RGB32_over_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_blend_RGB_multiply_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB24 * restrict color);
-void BB_blend_RGB32_multiply_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_invert_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
-void BB_hatch_rect(BlitBuffer * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int stripe_width, const Color8 * restrict color, uint8_t alpha);
-void BB_blit_to(const BlitBuffer * restrict source, BlitBuffer * restrict dest, unsigned int dest_x, unsigned int dest_y,
+// Deliberately use void * instead of BlitBuffer * so callers can pass any
+// BlitBufferXX struct directly without ffi.cast, which allocates a temporary
+// pointer cdata on every call and is slow.
+void BB_fill(void * restrict bb, uint8_t v);
+void BB_fill_rect(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, uint8_t v);
+void BB_fill_rect_RGB32(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
+void BB_blend_rect(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const Color8A * restrict color);
+void BB_blend_RGB32_over_rect(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
+void BB_blend_RGB_multiply_rect(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB24 * restrict color);
+void BB_blend_RGB32_multiply_rect(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
+void BB_invert_rect(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
+void BB_hatch_rect(void * restrict bb, unsigned int x, unsigned int y, unsigned int w, unsigned int h, unsigned int stripe_width, const Color8 * restrict color, uint8_t alpha);
+void BB_blit_to(const void * restrict source, void * restrict dest, unsigned int dest_x, unsigned int dest_y,
                 unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_dither_blit_to(const BlitBuffer * restrict source, BlitBuffer * restrict dest, unsigned int dest_x, unsigned int dest_y,
+void BB_dither_blit_to(const void * restrict source, void * restrict dest, unsigned int dest_x, unsigned int dest_y,
                 unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_add_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_add_blit_from(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                       unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, uint8_t alpha);
-void BB_alpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_alpha_blit_from(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_dither_alpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_dither_alpha_blit_from(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_pmulalpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_pmulalpha_blit_from(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_dither_pmulalpha_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_dither_pmulalpha_blit_from(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_invert_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_invert_blit_from(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                          unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h);
-void BB_color_blit_from(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_color_blit_from(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const Color8A * restrict color);
-void BB_color_blit_from_RGB32(BlitBuffer * restrict dest, const BlitBuffer * restrict source, unsigned int dest_x, unsigned int dest_y,
+void BB_color_blit_from_RGB32(void * restrict dest, const void * restrict source, unsigned int dest_x, unsigned int dest_y,
                         unsigned int offs_x, unsigned int offs_y, unsigned int w, unsigned int h, const ColorRGB32 * restrict color);
-void BB_paint_rounded_corner(BlitBuffer * restrict bb, unsigned int off_x, unsigned int off_y, unsigned int w, unsigned int h,
+void BB_paint_rounded_corner(void * restrict bb, unsigned int off_x, unsigned int off_y, unsigned int w, unsigned int h,
                         unsigned int bw, unsigned int r, uint8_t c, int anti_alias);
-void BB_blit_to_4bpp(const BlitBuffer * restrict src,
+void BB_blit_to_4bpp(const void * restrict src,
                      uint8_t * restrict dst, size_t dst_stride,
                      unsigned int x, unsigned int y,
                      unsigned int w, unsigned int h, int invert);
@@ -175,10 +170,6 @@ local P_Color8A = ffi.typeof("Color8A*") -- luacheck: ignore 211
 local P_ColorRGB16 = ffi.typeof("ColorRGB16*") -- luacheck: ignore 211
 local P_ColorRGB24 = ffi.typeof("ColorRGB24*") -- luacheck: ignore 211
 local P_ColorRGB32 = ffi.typeof("ColorRGB32*") -- luacheck: ignore 211
-
--- blitbuffer struct types (pointers)
-local P_BlitBuffer = ffi.typeof("BlitBuffer*")
-local P_BlitBuffer_ROData = ffi.typeof("const BlitBuffer*")
 
 -- metatables for color types:
 local Color4L_mt = { __index = {} }
@@ -1676,8 +1667,8 @@ function BB_mt.__index:blitFrom(
   end
   if self:canUseCbbTogether(source) and setter == self.setPixel then
     cblitbuffer.BB_blit_to(
-      ffi.cast(P_BlitBuffer_ROData, source),
-      ffi.cast(P_BlitBuffer, self),
+      source,
+      self,
       dest_x,
       dest_y,
       offs_x,
@@ -1733,8 +1724,8 @@ function BB_mt.__index:addblitFrom(
       return
     end
     cblitbuffer.BB_add_blit_from(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -1789,8 +1780,8 @@ function BB_mt.__index:alphablitFrom(
       return
     end
     cblitbuffer.BB_alpha_blit_from(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -1841,8 +1832,8 @@ function BB_mt.__index:ditheralphablitFrom(
       return
     end
     cblitbuffer.BB_dither_alpha_blit_from(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -1893,8 +1884,8 @@ function BB_mt.__index:pmulalphablitFrom(
       return
     end
     cblitbuffer.BB_pmulalpha_blit_from(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -1945,8 +1936,8 @@ function BB_mt.__index:ditherpmulalphablitFrom(
       return
     end
     cblitbuffer.BB_dither_pmulalpha_blit_from(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -1998,8 +1989,8 @@ function BB_mt.__index:ditherblitFrom(
       return
     end
     cblitbuffer.BB_dither_blit_to(
-      ffi.cast(P_BlitBuffer_ROData, source),
-      ffi.cast(P_BlitBuffer, self),
+      source,
+      self,
       dest_x,
       dest_y,
       offs_x,
@@ -2051,8 +2042,8 @@ function BB_mt.__index:invertblitFrom(
       return
     end
     cblitbuffer.BB_invert_blit_from(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -2107,8 +2098,8 @@ function BB_mt.__index:colorblitFrom(
       return
     end
     cblitbuffer.BB_color_blit_from(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -2167,8 +2158,8 @@ function BB_mt.__index:colorblitFromRGB32(
       return
     end
     cblitbuffer.BB_color_blit_from_RGB32(
-      ffi.cast(P_BlitBuffer, self),
-      ffi.cast(P_BlitBuffer_ROData, source),
+      self,
+      source,
       dest_x,
       dest_y,
       offs_x,
@@ -2268,7 +2259,7 @@ fill the whole blitbuffer with a given (grayscale) value
 --]]
 function BB_mt.__index:fill(value)
   if self:canUseCbb() then
-    cblitbuffer.BB_fill(ffi.cast(P_BlitBuffer, self), value:getColor8().a)
+    cblitbuffer.BB_fill(self, value:getColor8().a)
   else
     -- While we could use a plain ffi.fill, there are a few BB types where we do not want to stomp on the alpha byte...
     local bbtype = self:getType()
@@ -2336,7 +2327,7 @@ function BB_mt.__index:invertRect(x, y, w, h)
     return
   end
   if self:canUseCbb() then
-    cblitbuffer.BB_invert_rect(ffi.cast(P_BlitBuffer, self), x, y, w, h)
+    cblitbuffer.BB_invert_rect(self, x, y, w, h)
   else
     -- Handle rotation...
     x, y, w, h = self:getPhysicalRect(x, y, w, h)
@@ -2456,7 +2447,7 @@ function BB_mt.__index:paintRect(x, y, w, h, value, setter)
   end
   if self:canUseCbb() and setter == self.setPixel then
     cblitbuffer.BB_fill_rect(
-      ffi.cast(P_BlitBuffer, self),
+      self,
       x,
       y,
       w,
@@ -2608,7 +2599,7 @@ function BB_mt.__index:paintRectRGB32(x, y, w, h, color, setter)
   local c = color and color:getColorRGB32()
     or ColorRGB32(0x80, 0x80, 0x80, 0xFF)
   if self:canUseCbb() and setter == self.setPixel then
-    cblitbuffer.BB_fill_rect_RGB32(ffi.cast(P_BlitBuffer, self), x, y, w, h, c)
+    cblitbuffer.BB_fill_rect_RGB32(self, x, y, w, h, c)
   else
     -- We can only do fast filling when there's no complex processing involved (i.e., simple setPixel only)
     local bbtype = self:getType()
@@ -2832,7 +2823,7 @@ function BB_mt.__index:paintRoundedCorner(
 
   if self:canUseCbb() then
     cblitbuffer.BB_paint_rounded_corner(
-      ffi.cast(P_BlitBuffer, self),
+      self,
       off_x,
       off_y,
       w,
@@ -3015,7 +3006,7 @@ function BB_mt.__index:hatchRect(x, y, w, h, sw, c, a)
   sw = ceil(sw)
   if self:canUseCbb() then
     cblitbuffer.BB_hatch_rect(
-      ffi.cast(P_BlitBuffer, self),
+      self,
       x,
       y,
       w,
@@ -3099,7 +3090,7 @@ function BB_mt.__index:lightenRect(x, y, w, h, by)
     if w <= 0 or h <= 0 then
       return
     end
-    cblitbuffer.BB_blend_rect(ffi.cast(P_BlitBuffer, self), x, y, w, h, color)
+    cblitbuffer.BB_blend_rect(self, x, y, w, h, color)
   else
     self:paintRect(x, y, w, h, color, self.setPixelBlend)
   end
@@ -3122,7 +3113,7 @@ function BB_mt.__index:darkenRect(x, y, w, h, by)
     if w <= 0 or h <= 0 then
       return
     end
-    cblitbuffer.BB_blend_rect(ffi.cast(P_BlitBuffer, self), x, y, w, h, color)
+    cblitbuffer.BB_blend_rect(self, x, y, w, h, color)
   else
     self:paintRect(x, y, w, h, color, self.setPixelBlend)
   end
@@ -3143,7 +3134,7 @@ destination buffer, applying optional bit inversion.
 function BB_mt.__index:blitTo4bpp(dst, dst_stride, x, y, w, h, invert)
   assert(self:getType() == TYPE_BB8)
   cblitbuffer.BB_blit_to_4bpp(
-    ffi.cast(P_BlitBuffer_ROData, self),
+    self,
     dst,
     dst_stride,
     x,
@@ -3174,7 +3165,7 @@ function BB_mt.__index:multiplyRectRGB(x, y, w, h, color)
       return
     end
     cblitbuffer.BB_blend_RGB_multiply_rect(
-      ffi.cast(P_BlitBuffer, self),
+      self,
       x,
       y,
       w,
@@ -3206,7 +3197,7 @@ function BB_mt.__index:blendRectRGB32(x, y, w, h, color)
       return
     end
     cblitbuffer.BB_blend_RGB32_over_rect(
-      ffi.cast(P_BlitBuffer, self),
+      self,
       x,
       y,
       w,
@@ -3679,8 +3670,18 @@ BB.TYPE_TO_BPP = {
 
 BB.has_cblitbuffer = false
 -- Load the C blitter, and default to using it if available
-BB.has_cblitbuffer, cblitbuffer = pcall(ffi.loadlib, "blitbuffer")
+local cblitbuffer_lib
+BB.has_cblitbuffer, cblitbuffer_lib = pcall(ffi.loadlib, "blitbuffer")
 if BB.has_cblitbuffer then
+  -- Cache resolved C symbol lookups on a Lua proxy table so hot blitter paths
+  -- hit plain table lookups while anchoring cblitbuffer_lib against GC/dlclose.
+  cblitbuffer = setmetatable({}, {
+    __index = function(t, k)
+      local v = cblitbuffer_lib[k]
+      t[k] = v
+      return v
+    end,
+  })
   -- If we can, assume we'll want to use it
   use_cblitbuffer = true
 else
