@@ -1615,33 +1615,63 @@ describe("FileManager module", function()
       assert.is_true(hasSdrEntry(sibling_book))
     end)
 
-    it("removes folder entries from SdrList on folder delete via deleteFile", function()
-      local src_sub = base_tmp .. "/sub"
-      local sibling_sub = base_tmp .. "/sub2"
-      core_util.makePath(src_sub)
-      core_util.makePath(sibling_sub)
+    it(
+      "removes folder entries from SdrList with a single index write on folder delete via deleteFile",
+      function()
+        local ReadHistory = require("readhistory")
+        local src_sub = base_tmp .. "/sub"
+        local sibling_sub = base_tmp .. "/sub2"
+        core_util.makePath(src_sub)
+        core_util.makePath(sibling_sub)
 
-      local deleted_book = src_sub .. "/book.pdf"
-      local sibling_book = sibling_sub .. "/keep.pdf"
-      util.copyFile("spec/unit/data/2col.pdf", deleted_book)
-      util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+        local deleted_books = {
+          src_sub .. "/book1.pdf",
+          src_sub .. "/book2.pdf",
+          src_sub .. "/book3.pdf",
+        }
+        local sibling_book = sibling_sub .. "/keep.pdf"
+        util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+        assert.is_true(SdrList:addItem(sibling_book))
 
-      assert.is_true(SdrList:addItem(deleted_book))
-      assert.is_true(SdrList:addItem(sibling_book))
+        local filemanager = FileManager:new({
+          dimen = Screen:getSize(),
+          root_path = base_tmp,
+        })
+        local write_spy
+        finally(function()
+          if write_spy then
+            write_spy:revert()
+          end
+          for _, book in ipairs(deleted_books) do
+            ReadHistory:removeItemByPath(util.realpath(book) or book)
+          end
+          filemanager:onExit()
+        end)
 
-      local filemanager = FileManager:new({
-        dimen = Screen:getSize(),
-        root_path = base_tmp,
-      })
-      finally(function()
-        filemanager:onExit()
-      end)
+        for _, book in ipairs(deleted_books) do
+          util.copyFile("spec/unit/data/2col.pdf", book)
+          createSidecar(book)
+          assert.is_true(SdrList:addItem(book))
+          ReadHistory:addItem(book)
+          assert.is_not_nil(ReadHistory:getIndexByFile(util.realpath(book)))
+        end
 
-      assert.is_true(filemanager:deleteFile(src_sub, false))
+        write_spy = spy.on(core_util, "writeToFile")
+        assert.is_true(filemanager:deleteFile(src_sub, false))
 
-      assert.is_false(hasSdrEntry(deleted_book))
-      assert.is_true(hasSdrEntry(sibling_book))
-    end)
+        local sdr_list_writes = 0
+        for _, call in ipairs(write_spy.calls) do
+          if tostring(call.vals[2]):match("sdr_list%.lua$") then
+            sdr_list_writes = sdr_list_writes + 1
+          end
+        end
+        assert.are.equal(1, sdr_list_writes)
+        for _, book in ipairs(deleted_books) do
+          assert.is_false(hasSdrEntry(book))
+        end
+        assert.is_true(hasSdrEntry(sibling_book))
+      end
+    )
   end)
 
   describe("showFileDialog missing item handling", function()
