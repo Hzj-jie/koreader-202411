@@ -561,6 +561,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
   if has_sidecar_file or custom_cover_file or custom_metadata_file then
     local doc_settings = DocSettings:open(doc_path)
     local do_purge
+    local new_sidecar_file
 
     if new_doc_path then -- copy/rename/move
       if G_named_settings.document_metadata_folder() ~= "hash" then -- keep hash location unchanged
@@ -569,8 +570,12 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
           local new_doc_settings = DocSettings:open(new_doc_path)
           doc_settings.data.doc_path = new_doc_path
           new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
-        end
-        if not new_sidecar_dir then
+          if new_sidecar_dir then
+            new_sidecar_file = new_sidecar_dir
+              .. "/"
+              .. new_doc_settings.sidecar_filename
+          end
+        else
           for _, cand in ipairs(getCandidates(new_doc_path)) do
             if cand.dir and util.isDirRW(cand.dir, true) then
               new_sidecar_dir = cand.dir
@@ -581,11 +586,11 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
         if new_sidecar_dir then
           if custom_cover_file then
             local _, filename = util.splitFilePathName(custom_cover_file)
-            if
-              ffiutil.copyFile(
-                custom_cover_file,
-                new_sidecar_dir .. "/" .. filename
-              ) ~= nil
+            local new_cover_file = new_sidecar_dir .. "/" .. filename
+            if custom_cover_file == new_cover_file then
+              custom_cover_file = false
+            elseif
+              ffiutil.copyFile(custom_cover_file, new_cover_file) ~= nil
             then
               showNotification(
                 gettext("Failed to save custom cover to disk.")
@@ -594,11 +599,13 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
             end
           end
           if custom_metadata_file then
-            if
-              ffiutil.copyFile(
-                custom_metadata_file,
-                new_sidecar_dir .. "/" .. custom_metadata_filename
-              ) ~= nil
+            local new_metadata_file = new_sidecar_dir
+              .. "/"
+              .. custom_metadata_filename
+            if custom_metadata_file == new_metadata_file then
+              custom_metadata_file = false
+            elseif
+              ffiutil.copyFile(custom_metadata_file, new_metadata_file) ~= nil
             then
               showNotification(
                 gettext("Failed to save custom metadata to disk.")
@@ -626,9 +633,11 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
     end
 
     if do_purge then
-      doc_settings.custom_cover_file = custom_cover_file -- cache
-      doc_settings.custom_metadata_file = custom_metadata_file -- cache
-      doc_settings:purge()
+      doc_settings:purge(new_sidecar_file, {
+        doc_settings = true,
+        custom_cover_file = custom_cover_file,
+        custom_metadata_file = custom_metadata_file,
+      })
     end
   end
 
