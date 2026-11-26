@@ -48,7 +48,7 @@ function SdrList:ignorePath(file)
     end
     dir = parent
   end
-  return require("readhistory"):ignoreFile(file)
+  return require("readhistory"):ignoreItem(file)
 end
 
 function SdrList:_flush()

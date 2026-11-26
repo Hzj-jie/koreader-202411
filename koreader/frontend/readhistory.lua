@@ -346,11 +346,19 @@ function ReadHistory:removeItem(item, idx, no_flush)
   end
 end
 
-function ReadHistory:ignoreFile(file)
+function ReadHistory:ignoreItem(file, ts)
+  -- Expect file to be a realpath(file)
+  if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
+    return true -- bad legacy item
+  end
+  -- Note, the logic won't impact the existing items, but only the ones newly
+  -- added.
+  local FileChooser = require("ui/widget/filechooser")
+  if not FileChooser:show_dir(ffiutil.basename(ffiutil.dirname(file))) then
+    return true
+  end
   local filename = ffiutil.basename(file)
-  if
-    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
-  then
+  if not FileChooser:show_file(filename) then
     return true
   end
   local exclude_files = { -- const
@@ -368,25 +376,11 @@ function ReadHistory:ignoreFile(file)
   return false
 end
 
-function ReadHistory:_ignoreItem(file, ts)
-  -- Expect file to be a realpath(file)
-  if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
-    return true -- bad legacy item
-  end
-  -- Note, the logic won't impact the existing items, but only the ones newly
-  -- added.
-  local path = ffiutil.dirname(file)
-  if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
-    return true
-  end
-  return self:ignoreFile(file)
-end
-
 --- Adds new item (last opened document) to the top of the history list.
 -- If item time (ts) is passed, add item to the history list at this time position.
 function ReadHistory:addItem(file, ts, no_flush)
   file = realpath(file)
-  if self:_ignoreItem(file, ts) then
+  if self:ignoreItem(file, ts) then
     return
   end
   local index = self:getIndexByFile(file)

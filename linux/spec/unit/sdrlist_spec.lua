@@ -167,7 +167,7 @@ describe("SdrList module", function()
     writeDummy(b2, "2")
 
     local ReadHistory = require("readhistory")
-    local ignore_spy = spy.on(ReadHistory, "ignoreFile")
+    local ignore_spy = spy.on(ReadHistory, "ignoreItem")
     local write_stub = spy.on(util, "writeToFile")
     finally(function()
       ignore_spy:revert()
