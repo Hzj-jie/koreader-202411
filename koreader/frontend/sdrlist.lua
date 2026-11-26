@@ -171,7 +171,11 @@ function SdrList:updateItem(old_file, new_file, copy)
     self.files[old_file] = nil
     changed = true
   end
-  if not self.files[new_file] and not self:ignorePath(new_file) then
+  if
+    not self.files[new_file]
+    and not self:ignorePath(new_file)
+    and require("docsettings"):hasSidecarFile(new_file)
+  then
     self.files[new_file] = true
     changed = true
   end
@@ -205,7 +209,7 @@ function SdrList:updateItemsByPath(old_path, new_path, copy)
       if
         not self.files[updated]
         and not self:ignorePath(updated)
-        and (not copy or require("docsettings"):hasSidecarFile(updated))
+        and require("docsettings"):hasSidecarFile(updated)
       then
         table.insert(to_add, updated)
       end

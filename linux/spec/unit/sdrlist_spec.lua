@@ -196,30 +196,53 @@ describe("SdrList module", function()
     assert.is_true(SdrList:addItem(b2))
     assert.are.same({ rb1, rb2 }, SdrList:getFiles())
 
-    -- Copy keeps original and adds destination
+    -- Copy keeps original and adds destination only when destination has a sidecar
     local b1_copy = home_dir .. "/sub/a_copy.epub"
     local rb1_copy = real_home .. "/sub/a_copy.epub"
+    writeDummy(b1_copy, "1")
+    assert.is_false(SdrList:updateItem(b1, b1_copy, true))
+    assert.are.same({ rb1, rb2 }, SdrList:getFiles())
+    writeDummy(
+      home_dir .. "/sub/a_copy.sdr/metadata.epub.lua",
+      'return { ["summary"] = { ["status"] = "reading" } }\n'
+    )
     assert.is_true(SdrList:updateItem(b1, b1_copy, true))
     assert.are.same({ rb1, rb1_copy, rb2 }, SdrList:getFiles())
 
-    -- Move removes original and keeps destination
+    -- Move removes original and adds destination only when destination has a sidecar
     local b1_moved = home_dir .. "/sub/a_moved.epub"
     local rb1_moved = real_home .. "/sub/a_moved.epub"
+    writeDummy(b1_moved, "1")
+    writeDummy(
+      home_dir .. "/sub/a_moved.sdr/metadata.epub.lua",
+      'return { ["summary"] = { ["status"] = "reading" } }\n'
+    )
     assert.is_true(SdrList:updateItem(b1_copy, b1_moved, false))
     assert.are.same({ rb1, rb1_moved, rb2 }, SdrList:getFiles())
+    local b1_no_sdr = home_dir .. "/sub/no_sdr.epub"
+    writeDummy(b1_no_sdr, "1")
+    assert.is_true(SdrList:updateItem(b1_moved, b1_no_sdr, false))
+    assert.are.same({ rb1, rb2 }, SdrList:getFiles())
+    assert.is_true(SdrList:addItem(b1_moved))
     assert.has.errors(function()
       SdrList:updateItem(b1_moved, nil)
     end)
 
-    -- Folder prefix rename must not rewrite sibling prefix (/sub vs /sub2)
+    -- Folder prefix rename keeps only renamed items with sidecars and preserves sibling prefix (/sub vs /sub2)
+    writeDummy(real_home .. "/renamed/a.epub", "1")
+    writeDummy(real_home .. "/renamed/a_moved.epub", "2")
+    writeDummy(
+      real_home .. "/renamed/a.sdr/metadata.epub.lua",
+      'return { ["summary"] = { ["status"] = "reading" } }\n'
+    )
     assert.is_true(
       SdrList:updateItemsByPath(real_home .. "/sub", real_home .. "/renamed")
     )
     assert.are.same({
       real_home .. "/renamed/a.epub",
-      real_home .. "/renamed/a_moved.epub",
       rb2,
     }, SdrList:getFiles())
+    assert.is_true(SdrList:addItem(real_home .. "/renamed/a_moved.epub"))
 
     -- Folder prefix copy keeps originals and adds only copied items with sidecars
     local copied_a = real_home .. "/copied/a.epub"

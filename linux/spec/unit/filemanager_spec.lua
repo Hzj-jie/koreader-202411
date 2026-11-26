@@ -1475,6 +1475,16 @@ describe("FileManager module", function()
       return false
     end
 
+    local function createSidecar(book)
+      local sdr_dir = docsettings:open(book).candidates[1].dir
+      core_util.makePath(sdr_dir)
+      local f = assert(
+        io.open(sdr_dir .. "/" .. docsettings.getSidecarFilename(book), "w")
+      )
+      f:write("{}")
+      f:close()
+    end
+
     before_each(function()
       local pid = tostring(ffi.C.getpid())
       base_tmp = util.realpath("spec/unit/data") .. "/tmp_fm_sdr_" .. pid
@@ -1505,17 +1515,7 @@ describe("FileManager module", function()
         local no_sdr_src = src_sub .. "/plain.pdf"
         util.copyFile("spec/unit/data/2col.pdf", tracked_src)
         util.copyFile("spec/unit/data/2col.pdf", no_sdr_src)
-
-        local sdr_dir = docsettings:open(tracked_src).candidates[1].dir
-        core_util.makePath(sdr_dir)
-        local f = assert(
-          io.open(
-            sdr_dir .. "/" .. docsettings.getSidecarFilename(tracked_src),
-            "w"
-          )
-        )
-        f:write("{}")
-        f:close()
+        createSidecar(tracked_src)
 
         assert.is_true(SdrList:addItem(tracked_src))
         assert.is_true(SdrList:addItem(no_sdr_src))
@@ -1550,11 +1550,15 @@ describe("FileManager module", function()
         core_util.makePath(dst_parent)
 
         local moved_src = src_sub .. "/book.pdf"
+        local no_sdr_src = src_sub .. "/plain.pdf"
         local sibling_book = sibling_sub .. "/keep.pdf"
         util.copyFile("spec/unit/data/2col.pdf", moved_src)
+        util.copyFile("spec/unit/data/2col.pdf", no_sdr_src)
         util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+        createSidecar(moved_src)
 
         assert.is_true(SdrList:addItem(moved_src))
+        assert.is_true(SdrList:addItem(no_sdr_src))
         assert.is_true(SdrList:addItem(sibling_book))
 
         local filemanager = FileManager:new({
@@ -1570,6 +1574,8 @@ describe("FileManager module", function()
 
         assert.is_false(hasSdrEntry(moved_src))
         assert.is_true(hasSdrEntry(dst_parent .. "/sub/book.pdf"))
+        assert.is_false(hasSdrEntry(no_sdr_src))
+        assert.is_false(hasSdrEntry(dst_parent .. "/sub/plain.pdf"))
         assert.is_true(hasSdrEntry(sibling_book))
       end
     )
@@ -1581,11 +1587,15 @@ describe("FileManager module", function()
       core_util.makePath(sibling_sub)
 
       local orig_book = src_sub .. "/book.pdf"
+      local no_sdr_book = src_sub .. "/plain.pdf"
       local sibling_book = sibling_sub .. "/keep.pdf"
       util.copyFile("spec/unit/data/2col.pdf", orig_book)
+      util.copyFile("spec/unit/data/2col.pdf", no_sdr_book)
       util.copyFile("spec/unit/data/2col.pdf", sibling_book)
+      createSidecar(orig_book)
 
       assert.is_true(SdrList:addItem(orig_book))
+      assert.is_true(SdrList:addItem(no_sdr_book))
       assert.is_true(SdrList:addItem(sibling_book))
 
       local filemanager = FileManager:new({
@@ -1600,6 +1610,8 @@ describe("FileManager module", function()
 
       assert.is_false(hasSdrEntry(orig_book))
       assert.is_true(hasSdrEntry(base_tmp .. "/renamed/book.pdf"))
+      assert.is_false(hasSdrEntry(no_sdr_book))
+      assert.is_false(hasSdrEntry(base_tmp .. "/renamed/plain.pdf"))
       assert.is_true(hasSdrEntry(sibling_book))
     end)
 

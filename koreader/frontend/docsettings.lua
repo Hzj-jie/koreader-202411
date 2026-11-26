@@ -558,88 +558,84 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
   local has_sidecar_file = DocSettings:hasSidecarFile(doc_path)
   local custom_cover_file = DocSettings:findCustomCoverFile(doc_path)
   local custom_metadata_file = DocSettings:findCustomMetadataFile(doc_path)
-  if not (has_sidecar_file or custom_cover_file or custom_metadata_file) then
-    if new_doc_path then
-      local new_cand = DocSettings:_findSidecarFile(new_doc_path)
-      if new_cand and new_cand.location == "hash" then
-        require("sdrlist"):updateItem(doc_path, new_doc_path, copy)
-      end
-    end
-    return
-  end
+  if has_sidecar_file or custom_cover_file or custom_metadata_file then
+    local doc_settings = DocSettings:open(doc_path)
+    local do_purge
 
-  local doc_settings = DocSettings:open(doc_path)
-  local do_purge
-
-  if new_doc_path then -- copy/rename/move
-    if G_named_settings.document_metadata_folder() ~= "hash" then -- keep hash location unchanged
-      local new_sidecar_dir
-      if has_sidecar_file then
-        local new_doc_settings = DocSettings:open(new_doc_path)
-        doc_settings.data.doc_path = new_doc_path
-        new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
-      end
-      if not new_sidecar_dir then
-        for _, cand in ipairs(getCandidates(new_doc_path)) do
-          if cand.dir and util.isDirRW(cand.dir, true) then
-            new_sidecar_dir = cand.dir
-            break
+    if new_doc_path then -- copy/rename/move
+      if G_named_settings.document_metadata_folder() ~= "hash" then -- keep hash location unchanged
+        local new_sidecar_dir
+        if has_sidecar_file then
+          local new_doc_settings = DocSettings:open(new_doc_path)
+          doc_settings.data.doc_path = new_doc_path
+          new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
+        end
+        if not new_sidecar_dir then
+          for _, cand in ipairs(getCandidates(new_doc_path)) do
+            if cand.dir and util.isDirRW(cand.dir, true) then
+              new_sidecar_dir = cand.dir
+              break
+            end
           end
         end
-      end
-      if new_sidecar_dir then
-        if custom_cover_file then
-          local _, filename = util.splitFilePathName(custom_cover_file)
-          if
-            ffiutil.copyFile(
-              custom_cover_file,
-              new_sidecar_dir .. "/" .. filename
-            ) ~= nil
-          then
-            showNotification(
-              gettext("Failed to save custom cover to disk.")
+        if new_sidecar_dir then
+          if custom_cover_file then
+            local _, filename = util.splitFilePathName(custom_cover_file)
+            if
+              ffiutil.copyFile(
+                custom_cover_file,
+                new_sidecar_dir .. "/" .. filename
+              ) ~= nil
+            then
+              showNotification(
+                gettext("Failed to save custom cover to disk.")
+              )
+              custom_cover_file = false
+            end
+          end
+          if custom_metadata_file then
+            if
+              ffiutil.copyFile(
+                custom_metadata_file,
+                new_sidecar_dir .. "/" .. custom_metadata_filename
+              ) ~= nil
+            then
+              showNotification(
+                gettext("Failed to save custom metadata to disk.")
+              )
+              custom_metadata_file = false
+            end
+          end
+          do_purge = not copy
+        else
+          showInfoMessage(
+            gettext(
+              "Failed to save book settings to the new location. Original settings have been preserved."
             )
-            custom_cover_file = false
-          end
-        end
-        if custom_metadata_file then
-          if
-            ffiutil.copyFile(
-              custom_metadata_file,
-              new_sidecar_dir .. "/" .. custom_metadata_filename
-            ) ~= nil
-          then
-            showNotification(
-              gettext("Failed to save custom metadata to disk.")
-            )
-            custom_metadata_file = false
-          end
-        end
-        do_purge = not copy
-      else
-        showInfoMessage(
-          gettext(
-            "Failed to save book settings to the new location. Original settings have been preserved."
           )
-        )
+        end
       end
-    elseif has_sidecar_file then
-      require("sdrlist"):updateItem(doc_path, new_doc_path, copy)
-    end
-  else -- delete
-    if has_sidecar_file then
-      local cache_file_path = doc_settings:read("cache_file_path")
-      if cache_file_path then
-        os.remove(cache_file_path)
+    else -- delete
+      if has_sidecar_file then
+        local cache_file_path = doc_settings:read("cache_file_path")
+        if cache_file_path then
+          os.remove(cache_file_path)
+        end
       end
+      do_purge = true
     end
-    do_purge = true
+
+    if do_purge then
+      doc_settings.custom_cover_file = custom_cover_file -- cache
+      doc_settings.custom_metadata_file = custom_metadata_file -- cache
+      doc_settings:purge()
+    end
   end
 
-  if do_purge then
-    doc_settings.custom_cover_file = custom_cover_file -- cache
-    doc_settings.custom_metadata_file = custom_metadata_file -- cache
-    doc_settings:purge()
+  if new_doc_path then
+    require("sdrlist"):updateItem(doc_path, new_doc_path, copy)
+  else
+    require("sdrlist"):removeItem(doc_path)
   end
 end
 
