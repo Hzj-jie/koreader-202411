@@ -576,8 +576,8 @@ end
 
 function ReaderView:drawTempHighlight(bb, x, y)
   for page, boxes in pairs(self.highlight.temp) do
-    for i = 1, #boxes do
-      local rect = self:pageToScreenTransform(page, boxes[i])
+    for _, box in ipairs(boxes) do
+      local rect = self:pageToScreenTransform(page, box)
       if rect then
         self:drawHighlightRect(bb, x, y, rect, self.highlight.temp_drawer)
       end

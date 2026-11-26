@@ -58,6 +58,7 @@ local function mergeWith(b)
       "----------------------------",
       "report_bug",
       "----------------------------",
+      "lua_benchmark",
       "system_statistics", -- if enabled (Plugin)
       "about",
     },
