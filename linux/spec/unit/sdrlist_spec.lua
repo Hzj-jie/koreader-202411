@@ -257,10 +257,15 @@ describe("SdrList module", function()
       SdrList:updateItemsByPath(real_home .. "/renamed", nil)
     end)
 
-    -- Folder prefix delete must not delete /sub2
+    -- Folder prefix delete removes renamed folder and preserves sibling prefix (/sub vs /sub2)
     assert.is_true(SdrList:removeItemsByPath(real_home .. "/renamed"))
     assert.are.same({ rb2 }, SdrList:getFiles())
     assert.is_false(SdrList:removeItemsByPath(real_home .. "/renamed"))
+    local sub_del = real_home .. "/sub/del.epub"
+    assert.is_true(SdrList:addItem(sub_del))
+    assert.are.same({ sub_del, rb2 }, SdrList:getFiles())
+    assert.is_true(SdrList:removeItemsByPath(real_home .. "/sub"))
+    assert.are.same({ rb2 }, SdrList:getFiles())
     assert.has.errors(function()
       SdrList:removeItemsByPath("")
     end)
