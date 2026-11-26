@@ -1344,6 +1344,35 @@ describe("FileManagerHistory", function()
       end
     )
 
+    it(
+      "skips sidecars whose book path fails ffiutil.realpath",
+      function()
+        local valid_book = home_dir .. "/Valid Book.epub"
+        local unresolvable_book = home_dir .. "/Unresolvable Book.epub"
+        write_dummy(valid_book, "valid")
+        write_dummy(unresolvable_book, "unresolvable")
+        write_metadata("Valid Book.sdr/metadata.epub.lua", 200)
+        write_metadata("Unresolvable Book.sdr/metadata.epub.lua", 500)
+
+        local orig_realpath = ffiutil.realpath
+        local realpath_stub = stub(ffiutil, "realpath", function(path)
+          if path == unresolvable_book then
+            return nil
+          end
+          return orig_realpath(path)
+        end)
+        finally(function()
+          realpath_stub:revert()
+        end)
+
+        fmh:doBuildHistory()
+
+        assert.is_same({
+          { file = orig_realpath(valid_book), time = 200 },
+        }, mock_readhistory.hist)
+      end
+    )
+
     it("restores backup history and refreshes open hist_menu", function()
       fmh:restoreHistory()
       assert.is_equal(mock_gettext("No history backup found."), shown_dialogs[1].text)

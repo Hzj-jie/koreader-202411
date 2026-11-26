@@ -464,11 +464,12 @@ function FileManagerHistory:doBuildHistory()
         local book_path, replaced = path
           :sub(prefix_len + 1)
           :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-        if replaced > 0 and book_path ~= "" and util.fileExists(book_path) then
-          book_path = ffiutil.realpath(book_path) or book_path
+        if replaced > 0 and book_path ~= "" then
+          book_path = ffiutil.realpath(book_path)
           if
-            not times_by_file[book_path]
-            or attr.modification > times_by_file[book_path]
+            book_path
+            and util.fileExists(book_path)
+            and (not times_by_file[book_path] or attr.modification > times_by_file[book_path])
           then
             times_by_file[book_path] = attr.modification
           end
