@@ -1309,6 +1309,35 @@ describe("FileManagerHistory", function()
       end
     )
 
+    it(
+      "deduplicates canonical book paths when home_dir is a symlink with both doc and dir sidecars",
+      function()
+        local real_home = temp_dir .. "/real_books"
+        local link_home = temp_dir .. "/link_books"
+        util.makePath(real_home)
+        assert(lfs.link(real_home, link_home, true))
+
+        local canonical_book = ffiutil.realpath(real_home) .. "/Symlink Book.epub"
+        write_dummy(canonical_book, "book")
+        write_metadata("Symlink Book.sdr/metadata.epub.lua", 150, real_home)
+        write_metadata(
+          "Symlink Book.sdr/metadata.epub.lua",
+          400,
+          docsettings_dir .. ffiutil.realpath(real_home)
+        )
+
+        _G.G_named_settings.home_dir = function()
+          return link_home
+        end
+
+        fmh:doBuildHistory()
+
+        assert.is_same({
+          { file = canonical_book, time = 400 },
+        }, mock_readhistory.hist)
+      end
+    )
+
     it("restores backup history and refreshes open hist_menu", function()
       fmh:restoreHistory()
       assert.is_equal(mock_gettext("No history backup found."), shown_dialogs[1].text)

@@ -13,16 +13,16 @@ local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local ffiutil = require("ffi/util")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
-local joinPath = require("ffi/util").joinPath
 local util = require("util")
 local C_ = gettext.pgettext
-local T = require("ffi/util").template
+local T = ffiutil.template
 
-local history_file = joinPath(DataStorage:getDataDir(), "history.lua")
+local history_file = ffiutil.joinPath(DataStorage:getDataDir(), "history.lua")
 local history_backup_file =
-  joinPath(DataStorage:getDataDir(), "history.lua.backup")
+  ffiutil.joinPath(DataStorage:getDataDir(), "history.lua.backup")
 
 local FileManagerHistory = WidgetContainer:extend({
   hist_menu_title = gettext("History"),
@@ -466,13 +466,14 @@ function FileManagerHistory:doBuildHistory()
         local book_path, replaced = path
           :sub(prefix_len + 1)
           :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
-        if
-          replaced > 0
-          and book_path ~= ""
-          and util.fileExists(book_path)
-          and (not times_by_file[book_path] or attr.modification > times_by_file[book_path])
-        then
-          times_by_file[book_path] = attr.modification
+        if replaced > 0 and book_path ~= "" and util.fileExists(book_path) then
+          book_path = ffiutil.realpath(book_path) or book_path
+          if
+            not times_by_file[book_path]
+            or attr.modification > times_by_file[book_path]
+          then
+            times_by_file[book_path] = attr.modification
+          end
         end
       end)
     end
