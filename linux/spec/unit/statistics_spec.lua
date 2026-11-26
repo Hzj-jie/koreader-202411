@@ -603,8 +603,13 @@ describe("Statistics plugin", function()
         NetworkMgr.runWhenOnline = orig_runWhenOnline
         BackgroundJobs.insertKeyed = orig_insertKeyed
         os.remove(db_location)
-        os.remove(DataStorage:getSettingsDir() .. "/statistics_sync/statistics.sqlite3")
-        os.remove(DataStorage:getSettingsDir() .. "/statistics_sync/statistics.sqlite3.sync")
+        os.remove(
+          DataStorage:getSettingsDir() .. "/statistics_sync/statistics.sqlite3"
+        )
+        os.remove(
+          DataStorage:getSettingsDir()
+            .. "/statistics_sync/statistics.sqlite3.sync"
+        )
       end)
 
       NetworkMgr.runWhenOnline = function(_self_net, cb)
@@ -966,74 +971,71 @@ describe("Statistics plugin", function()
       end
     )
 
-    it(
-      "fails and avoids updating sync base if merge-back fails",
-      function()
-        local stats = ReaderStatistics:new(helper_create_stats_opts())
-        stats.is_doc_not_frozen = true
-        stats.curr_page = 1
-        stats.id_curr_book = 1
-        stats.data = { pages = 100 }
-        stats.settings.is_enabled = true
-        stats.settings.sync_server = {
-          type = "webdav",
-          address = "http://example.com",
-          url = "/stats",
-        }
+    it("fails and avoids updating sync base if merge-back fails", function()
+      local stats = ReaderStatistics:new(helper_create_stats_opts())
+      stats.is_doc_not_frozen = true
+      stats.curr_page = 1
+      stats.id_curr_book = 1
+      stats.data = { pages = 100 }
+      stats.settings.is_enabled = true
+      stats.settings.sync_server = {
+        type = "webdav",
+        address = "http://example.com",
+        url = "/stats",
+      }
 
-        local orig_insertKeyed = BackgroundJobs.insertKeyed
-        local orig_show = UIManager.show
-        local captured_job = nil
-        local shown_messages = {}
-        local shown_notifications = {}
+      local orig_insertKeyed = BackgroundJobs.insertKeyed
+      local orig_show = UIManager.show
+      local captured_job = nil
+      local shown_messages = {}
+      local shown_notifications = {}
 
-        finally(function()
-          BackgroundJobs.insertKeyed = orig_insertKeyed
-          UIManager.show = orig_show
-          if captured_job and captured_job.callback then
-            pcall(captured_job.callback, { result = false })
-          end
-          os.remove(db_location)
-          os.remove(db_location .. ".sync")
-          os.remove(work_db_path)
-          os.remove(work_db_path .. ".sync")
-        end)
-
-        BackgroundJobs.insertKeyed = function(job)
-          captured_job = job
-          return true
+      finally(function()
+        BackgroundJobs.insertKeyed = orig_insertKeyed
+        UIManager.show = orig_show
+        if captured_job and captured_job.callback then
+          pcall(captured_job.callback, { result = false })
         end
-        UIManager.show = function(_self_ui, widget)
-          if widget and widget.toast then
-            table.insert(shown_notifications, widget.text)
-          elseif widget and widget.text then
-            table.insert(shown_messages, widget.text)
-          end
-        end
-
-        stats:_syncBookStats(false)
-        assert.is_not_nil(captured_job)
-
-        -- Prepare work_db_path .. ".sync"
-        require("ffi/util").copyFile(work_db_path, work_db_path .. ".sync")
-
-        -- Delete db_location so merge-back ReaderStatistics.onSync fails
         os.remove(db_location)
+        os.remove(db_location .. ".sync")
+        os.remove(work_db_path)
+        os.remove(work_db_path .. ".sync")
+      end)
 
-        -- Trigger callback with job.result == true
-        captured_job.callback({ result = true })
-
-        -- db_location .. ".sync" must NOT exist because merge-back failed
-        assert.is_nil(lfs.attributes(db_location .. ".sync", "mode"))
-
-        -- Error notification should be shown
-        assert.are.equal(
-          require("gettext")("Failed to sync book statistics."),
-          shown_notifications[#shown_notifications]
-        )
-        assert.are.equal(0, #shown_messages)
+      BackgroundJobs.insertKeyed = function(job)
+        captured_job = job
+        return true
       end
-    )
+      UIManager.show = function(_self_ui, widget)
+        if widget and widget.toast then
+          table.insert(shown_notifications, widget.text)
+        elseif widget and widget.text then
+          table.insert(shown_messages, widget.text)
+        end
+      end
+
+      stats:_syncBookStats(false)
+      assert.is_not_nil(captured_job)
+
+      -- Prepare work_db_path .. ".sync"
+      require("ffi/util").copyFile(work_db_path, work_db_path .. ".sync")
+
+      -- Delete db_location so merge-back ReaderStatistics.onSync fails
+      os.remove(db_location)
+
+      -- Trigger callback with job.result == true
+      captured_job.callback({ result = true })
+
+      -- db_location .. ".sync" must NOT exist because merge-back failed
+      assert.is_nil(lfs.attributes(db_location .. ".sync", "mode"))
+
+      -- Error notification should be shown
+      assert.are.equal(
+        require("gettext")("Failed to sync book statistics."),
+        shown_notifications[#shown_notifications]
+      )
+      assert.are.equal(0, #shown_messages)
+    end)
 
     it(
       "handles non-boolean CommandRunner error sentinels safely without crashing",
@@ -1335,65 +1337,68 @@ describe("Statistics plugin", function()
       assert.is_false(sync_called)
     end)
 
-    it("triggers silent auto sync when all conditions are met and avoids duplicate runs in same idle period", function()
-      local stats = ReaderStatistics:new(helper_create_stats_opts())
-      local sync_silent_arg = nil
-      stats._syncBookStats = function(_self_inst, is_silent)
-        sync_silent_arg = is_silent
+    it(
+      "triggers silent auto sync when all conditions are met and avoids duplicate runs in same idle period",
+      function()
+        local stats = ReaderStatistics:new(helper_create_stats_opts())
+        local sync_silent_arg = nil
+        stats._syncBookStats = function(_self_inst, is_silent)
+          sync_silent_arg = is_silent
+        end
+
+        stats.settings.is_enabled = true
+        stats.settings.sync_server = { type = "dropbox" }
+        stats.settings.auto_sync = true
+
+        local UIManager = require("ui/uimanager")
+        local NetworkMgr = require("ui/network/manager")
+        local SyncService = require("frontend/apps/cloudstorage/syncservice")
+        local time = require("ui/time")
+
+        local orig_timeSince = UIManager.timeSinceLastUserAction
+        local orig_lastAction = UIManager.lastUserActionTime
+        local orig_isOnline = NetworkMgr.isOnline
+        local orig_getLastSync = SyncService.getLastSyncTime
+
+        finally(function()
+          UIManager.timeSinceLastUserAction = orig_timeSince
+          UIManager.lastUserActionTime = orig_lastAction
+          NetworkMgr.isOnline = orig_isOnline
+          SyncService.getLastSyncTime = orig_getLastSync
+        end)
+
+        UIManager.timeSinceLastUserAction = function()
+          return time.s(350)
+        end
+        UIManager.lastUserActionTime = function()
+          return 12345
+        end
+        NetworkMgr.isOnline = function()
+          return true
+        end
+        SyncService.getLastSyncTime = function()
+          return os.time() - 3601
+        end
+
+        stats:onTimesChange_1M()
+        assert.are.equal(true, sync_silent_arg)
+        assert.are.equal(12345, stats.last_auto_sync_action_time)
+
+        -- Second trigger in the same idle period should be blocked by last_auto_sync_action_time
+        sync_silent_arg = nil
+        stats:onTimesChange_1M()
+        assert.is_nil(sync_silent_arg)
+
+        -- If last_sync is recent (< 1 hour), should also block
+        UIManager.lastUserActionTime = function()
+          return 12346 -- new action
+        end
+        SyncService.getLastSyncTime = function()
+          return os.time() - 100 -- recently synced
+        end
+        stats:onTimesChange_1M()
+        assert.is_nil(sync_silent_arg)
       end
-
-      stats.settings.is_enabled = true
-      stats.settings.sync_server = { type = "dropbox" }
-      stats.settings.auto_sync = true
-
-      local UIManager = require("ui/uimanager")
-      local NetworkMgr = require("ui/network/manager")
-      local SyncService = require("frontend/apps/cloudstorage/syncservice")
-      local time = require("ui/time")
-
-      local orig_timeSince = UIManager.timeSinceLastUserAction
-      local orig_lastAction = UIManager.lastUserActionTime
-      local orig_isOnline = NetworkMgr.isOnline
-      local orig_getLastSync = SyncService.getLastSyncTime
-
-      finally(function()
-        UIManager.timeSinceLastUserAction = orig_timeSince
-        UIManager.lastUserActionTime = orig_lastAction
-        NetworkMgr.isOnline = orig_isOnline
-        SyncService.getLastSyncTime = orig_getLastSync
-      end)
-
-      UIManager.timeSinceLastUserAction = function()
-        return time.s(350)
-      end
-      UIManager.lastUserActionTime = function()
-        return 12345
-      end
-      NetworkMgr.isOnline = function()
-        return true
-      end
-      SyncService.getLastSyncTime = function()
-        return os.time() - 3601
-      end
-
-      stats:onTimesChange_1M()
-      assert.are.equal(true, sync_silent_arg)
-      assert.are.equal(12345, stats.last_auto_sync_action_time)
-
-      -- Second trigger in the same idle period should be blocked by last_auto_sync_action_time
-      sync_silent_arg = nil
-      stats:onTimesChange_1M()
-      assert.is_nil(sync_silent_arg)
-
-      -- If last_sync is recent (< 1 hour), should also block
-      UIManager.lastUserActionTime = function()
-        return 12346 -- new action
-      end
-      SyncService.getLastSyncTime = function()
-        return os.time() - 100 -- recently synced
-      end
-      stats:onTimesChange_1M()
-      assert.is_nil(sync_silent_arg)
-    end)
+    )
   end)
 end)

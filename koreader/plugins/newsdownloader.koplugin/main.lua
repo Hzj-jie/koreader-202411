@@ -95,7 +95,9 @@ end
 
 local function backgroundSingleFeedCallback(job)
   local finished_item = table.remove(_feed_queue, 1)
-  assert(finished_item and finished_item == _current_fork_feed and finished_item.url)
+  assert(
+    finished_item and finished_item == _current_fork_feed and finished_item.url
+  )
   saveFeedSyncTime(finished_item.url, os.time())
 
   local res = job.result
@@ -320,7 +322,8 @@ function NewsDownloader:syncNewsFeeds()
     UIManager:show(InfoMessage:new({
       text = T(
         gettext("Invalid configuration file. Detailed error message:\n%1"),
-        ok and ("expected table, got " .. type(feed_config)) or tostring(feed_config)
+        ok and ("expected table, got " .. type(feed_config))
+          or tostring(feed_config)
       ),
     }))
     return
@@ -800,12 +803,7 @@ function NewsDownloader:createFromDescription(
       footer
     )
     local link = getFeedLink(feed.link)
-    DownloadBackend:createEpub(
-      news_file_path,
-      html,
-      link,
-      include_images
-    )
+    DownloadBackend:createEpub(news_file_path, html, link, include_images)
   end
 end
 

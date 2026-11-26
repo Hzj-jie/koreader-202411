@@ -26,39 +26,45 @@ describe("Calibre wireless disconnect", function()
     remove_zmq_stub:revert()
   end)
 
-  it("disconnects active wireless connection from closeWirelessConnection", function()
-    local plugin = Calibre:new({
-      ui = {
-        menu = {
-          registerToMainMenu = function() end,
+  it(
+    "disconnects active wireless connection from closeWirelessConnection",
+    function()
+      local plugin = Calibre:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
         },
-      },
-    })
+      })
 
-    plugin:closeWirelessConnection()
+      plugin:closeWirelessConnection()
 
-    assert.spy(mock_socket.stop).was_called(1)
-    assert.is_nil(CalibreWireless.calibre_socket)
-    assert.is_nil(CalibreWireless.calibre_messagequeue)
-    assert.spy(UIManager.removeZMQ).was_called_with(UIManager, "mock_zmq")
-  end)
+      assert.spy(mock_socket.stop).was_called(1)
+      assert.is_nil(CalibreWireless.calibre_socket)
+      assert.is_nil(CalibreWireless.calibre_messagequeue)
+      assert.spy(UIManager.removeZMQ).was_called_with(UIManager, "mock_zmq")
+    end
+  )
 
-  it("disconnects active wireless connection from the main menu callback", function()
-    local plugin = Calibre:new({
-      ui = {
-        menu = {
-          registerToMainMenu = function() end,
+  it(
+    "disconnects active wireless connection from the main menu callback",
+    function()
+      local plugin = Calibre:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
         },
-      },
-    })
-    local menu_items = {}
-    plugin:addToMainMenu(menu_items)
+      })
+      local menu_items = {}
+      plugin:addToMainMenu(menu_items)
 
-    menu_items.calibre.sub_item_table[1].callback()
+      menu_items.calibre.sub_item_table[1].callback()
 
-    assert.spy(mock_socket.stop).was_called(1)
-    assert.is_nil(CalibreWireless.calibre_socket)
-    assert.is_nil(CalibreWireless.calibre_messagequeue)
-    assert.spy(UIManager.removeZMQ).was_called_with(UIManager, "mock_zmq")
-  end)
+      assert.spy(mock_socket.stop).was_called(1)
+      assert.is_nil(CalibreWireless.calibre_socket)
+      assert.is_nil(CalibreWireless.calibre_messagequeue)
+      assert.spy(UIManager.removeZMQ).was_called_with(UIManager, "mock_zmq")
+    end
+  )
 end)

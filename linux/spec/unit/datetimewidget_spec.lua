@@ -240,13 +240,16 @@ describe("DateTimeWidget module", function()
       assert.are.equal(28, widget.day)
     end)
 
-    it("handles placeholder removal without calling table.remove at index 0", function()
-      local widget = DateTimeWidget:new({
-        hour = 12,
-        title_text = "Hour only",
-      })
-      assert.is_table(widget)
-      assert.are.equal(1, widget.nb_pickers)
-    end)
+    it(
+      "handles placeholder removal without calling table.remove at index 0",
+      function()
+        local widget = DateTimeWidget:new({
+          hour = 12,
+          title_text = "Hour only",
+        })
+        assert.is_table(widget)
+        assert.are.equal(1, widget.nb_pickers)
+      end
+    )
   end)
 end)

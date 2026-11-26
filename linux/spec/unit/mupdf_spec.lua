@@ -44,9 +44,15 @@ describe("ffi/mupdf module", function()
       local i = 1
       while true do
         local name, val = debug.getupvalue(mupdf.renderImage, i)
-        if not name then break end
-        if name == "W" then idx_W, orig_W = i, val end
-        if name == "M" then idx_M, orig_M = i, val end
+        if not name then
+          break
+        end
+        if name == "W" then
+          idx_W, orig_W = i, val
+        end
+        if name == "M" then
+          idx_M, orig_M = i, val
+        end
         i = i + 1
       end
 

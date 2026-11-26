@@ -50,33 +50,36 @@ describe("Sudoku close lifecycle", function()
     return nil
   end
 
-  it("closes UIManager window and saves state once when pressing Back", function()
-    local plugin = createPlugin()
-    local save_calls = 0
-    local closed_calls = 0
-    local orig_save = plugin.saveState
-    local orig_closed = plugin.onScreenClosed
-    plugin.saveState = function(self)
-      save_calls = save_calls + 1
-      return orig_save(self)
-    end
-    plugin.onScreenClosed = function(self)
-      closed_calls = closed_calls + 1
-      return orig_closed(self)
-    end
+  it(
+    "closes UIManager window and saves state once when pressing Back",
+    function()
+      local plugin = createPlugin()
+      local save_calls = 0
+      local closed_calls = 0
+      local orig_save = plugin.saveState
+      local orig_closed = plugin.onScreenClosed
+      plugin.saveState = function(self)
+        save_calls = save_calls + 1
+        return orig_save(self)
+      end
+      plugin.onScreenClosed = function(self)
+        closed_calls = closed_calls + 1
+        return orig_closed(self)
+      end
 
-    plugin:showGame()
-    local screen = plugin.screen
-    assert.is_table(screen)
-    assert.is_true(UIManager:isWindowWidget(screen))
+      plugin:showGame()
+      local screen = plugin.screen
+      assert.is_table(screen)
+      assert.is_true(UIManager:isWindowWidget(screen))
 
-    local handled = screen:onKeyPress(Key:new("Back", {}))
-    assert.is_true(handled)
-    assert.is_false(UIManager:isWindowWidget(screen))
-    assert.is_nil(plugin.screen)
-    assert.are.equal(1, save_calls)
-    assert.are.equal(1, closed_calls)
-  end)
+      local handled = screen:onKeyPress(Key:new("Back", {}))
+      assert.is_true(handled)
+      assert.is_false(UIManager:isWindowWidget(screen))
+      assert.is_nil(plugin.screen)
+      assert.are.equal(1, save_calls)
+      assert.are.equal(1, closed_calls)
+    end
+  )
 
   it("closes UIManager window and saves state once via Close button", function()
     local plugin = createPlugin()

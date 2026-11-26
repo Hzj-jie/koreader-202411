@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-26 01:45-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Tommi Ahonen <tommi.t.ahonen@gmail.com>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/koreader/"
@@ -2982,17 +2982,6 @@ msgstr "Skärm"
 msgid "Fulltext search"
 msgstr "Heltextssökning"
 
-msgid "Top"
-msgstr ""
-
-#, fuzzy
-msgid "Bottom"
-msgstr "Längst ner till vänster"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "Skärmsläckarmeddelande"
-
 #, fuzzy
 msgid "Start content selection"
 msgstr "Gå tillbaka till föregående plats"
@@ -3103,10 +3092,6 @@ msgstr "Långt tryck för att välja"
 #, fuzzy
 msgid "Dictionary on single word selection"
 msgstr "Misslyckades med att hämta HTML för markering"
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "Markera åtgärd"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -6425,6 +6410,13 @@ msgstr "Toppmarginal"
 msgid "Top/Bottom Margins"
 msgstr "Bottenmarginal"
 
+msgid "Top"
+msgstr ""
+
+#, fuzzy
+msgid "Bottom"
+msgstr "Längst ner till vänster"
+
 msgid "Bottom Margin"
 msgstr "Bottenmarginal"
 
@@ -8797,6 +8789,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -17256,6 +17261,14 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Plats"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "Skärmsläckarmeddelande"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Markera åtgärd"
 
 #~ msgid "Synchronize time"
 #~ msgstr "Synkronisera tid"

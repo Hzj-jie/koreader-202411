@@ -539,49 +539,54 @@ describe("Cache unit behavior", function()
     end
   )
 
-  it("purges on-disk cache and returns nil when item:load fails (bug #528)", function()
-    local Cache = require("cache")
-    local TileCacheItem = require("document/tilecacheitem")
-    local ffi = require("ffi")
-    local lfs = require("libs/libkoreader-lfs")
-    local md5 = require("ffi/sha2").md5
-    local zstd = require("ffi/zstd")
+  it(
+    "purges on-disk cache and returns nil when item:load fails (bug #528)",
+    function()
+      local Cache = require("cache")
+      local TileCacheItem = require("document/tilecacheitem")
+      local ffi = require("ffi")
+      local lfs = require("libs/libkoreader-lfs")
+      local md5 = require("ffi/sha2").md5
+      local zstd = require("ffi/zstd")
 
-    local tmp_dir = (os.getenv("TMPDIR") or "/tmp") .. "/cache_test_" .. tostring(ffi.C.getpid())
-    lfs.mkdir(tmp_dir)
+      local tmp_dir = (os.getenv("TMPDIR") or "/tmp")
+        .. "/cache_test_"
+        .. tostring(ffi.C.getpid())
+      lfs.mkdir(tmp_dir)
 
-    local c = Cache:new({
-      size = 1000,
-      avg_itemsize = 100,
-      enable_eviction_cb = true,
-      disk_cache = true,
-      cache_path = tmp_dir .. "/",
-    })
-    c:init()
+      local c = Cache:new({
+        size = 1000,
+        avg_itemsize = 100,
+        enable_eviction_cb = true,
+        disk_cache = true,
+        cache_path = tmp_dir .. "/",
+      })
+      c:init()
 
-    local test_key = "corrupt_key"
-    local cached_filename = tmp_dir .. "/" .. md5(test_key)
-    local payload = "not a valid serialized table payload"
-    local cbuff, clen = zstd.zstd_compress(payload, #payload)
-    local str = ffi.string(cbuff, clen)
-    ffi.C.free(cbuff)
+      local test_key = "corrupt_key"
+      local cached_filename = tmp_dir .. "/" .. md5(test_key)
+      local payload = "not a valid serialized table payload"
+      local cbuff, clen = zstd.zstd_compress(payload, #payload)
+      local str = ffi.string(cbuff, clen)
+      ffi.C.free(cbuff)
 
-    local f = assert(io.open(cached_filename, "wb"))
-    f:write(str)
-    f:close()
+      local f = assert(io.open(cached_filename, "wb"))
+      f:write(str)
+      f:close()
 
-    finally(function()
-      os.remove(cached_filename)
-      lfs.rmdir(tmp_dir)
-    end)
+      finally(function()
+        os.remove(cached_filename)
+        lfs.rmdir(tmp_dir)
+      end)
 
-    c:refreshSnapshot()
-    assert.is_not_nil(c.cached[md5(test_key)])
+      c:refreshSnapshot()
+      assert.is_not_nil(c.cached[md5(test_key)])
 
-    local res = c:check(test_key, TileCacheItem)
-    assert.is_nil(res)
-    assert.is_nil(lfs.attributes(cached_filename))
-  end)
+      local res = c:check(test_key, TileCacheItem)
+      assert.is_nil(res)
+      assert.is_nil(lfs.attributes(cached_filename))
+    end
+  )
 
   it("loads valid dumped TileCacheItem through Cache:check", function()
     local Blitbuffer = require("ffi/blitbuffer")
@@ -591,7 +596,9 @@ describe("Cache unit behavior", function()
     local lfs = require("libs/libkoreader-lfs")
     local md5 = require("ffi/sha2").md5
 
-    local tmp_dir = (os.getenv("TMPDIR") or "/tmp") .. "/cache_rt_test_" .. tostring(ffi.C.getpid())
+    local tmp_dir = (os.getenv("TMPDIR") or "/tmp")
+      .. "/cache_rt_test_"
+      .. tostring(ffi.C.getpid())
     lfs.mkdir(tmp_dir)
 
     local c = Cache:new({
@@ -640,7 +647,9 @@ describe("Cache unit behavior", function()
     local lfs = require("libs/libkoreader-lfs")
     local md5 = require("ffi/sha2").md5
 
-    local tmp_dir = (os.getenv("TMPDIR") or "/tmp") .. "/cache_trunc_test_" .. tostring(ffi.C.getpid())
+    local tmp_dir = (os.getenv("TMPDIR") or "/tmp")
+      .. "/cache_trunc_test_"
+      .. tostring(ffi.C.getpid())
     lfs.mkdir(tmp_dir)
 
     local c = Cache:new({

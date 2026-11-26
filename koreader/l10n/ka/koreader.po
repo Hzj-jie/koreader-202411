@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-26 01:45-0800\n"
 "PO-Revision-Date: 2021-02-16 16:09+0000\n"
 "Last-Translator: Beka Arabuli <arabulibeqa@gmail.com>\n"
 "Language-Team: Georgian <https://hosted.weblate.org/projects/koreader/"
@@ -2787,16 +2787,6 @@ msgstr "მონიშვნა"
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr ""
-
-msgid "Bottom"
-msgstr ""
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "ჟესტები"
-
 msgid "Start content selection"
 msgstr ""
 
@@ -2903,10 +2893,6 @@ msgstr "ამჯამინდელი საქაღალდე"
 
 msgid "Dictionary on single word selection"
 msgstr ""
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "მონიშვნა"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -5856,6 +5842,12 @@ msgstr ""
 msgid "Top/Bottom Margins"
 msgstr ""
 
+msgid "Top"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
 msgid "Bottom Margin"
 msgstr ""
 
@@ -7949,6 +7941,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -15760,6 +15765,14 @@ msgstr ""
 #, fuzzy
 msgid "annotations"
 msgstr "ბრუნვა"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "ჟესტები"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "მონიშვნა"
 
 #, fuzzy
 #~ msgid "Go to download folder?"

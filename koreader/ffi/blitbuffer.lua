@@ -2446,14 +2446,7 @@ function BB_mt.__index:paintRect(x, y, w, h, value, setter)
     return
   end
   if self:canUseCbb() and setter == self.setPixel then
-    cblitbuffer.BB_fill_rect(
-      self,
-      x,
-      y,
-      w,
-      h,
-      value:getColor8().a
-    )
+    cblitbuffer.BB_fill_rect(self, x, y, w, h, value:getColor8().a)
   else
     -- We can only do fast filling when there's no complex processing involved (i.e., simple setPixel only)
     if setter == self.setPixel then
@@ -3005,16 +2998,7 @@ function BB_mt.__index:hatchRect(x, y, w, h, sw, c, a)
   c = c or Color8(0)
   sw = ceil(sw)
   if self:canUseCbb() then
-    cblitbuffer.BB_hatch_rect(
-      self,
-      x,
-      y,
-      w,
-      h,
-      sw,
-      c,
-      a
-    )
+    cblitbuffer.BB_hatch_rect(self, x, y, w, h, sw, c, a)
   else
     local sw2 = sw * 2
     if a < 0xFF then
@@ -3164,14 +3148,7 @@ function BB_mt.__index:multiplyRectRGB(x, y, w, h, color)
     if w <= 0 or h <= 0 then
       return
     end
-    cblitbuffer.BB_blend_RGB_multiply_rect(
-      self,
-      x,
-      y,
-      w,
-      h,
-      c
-    )
+    cblitbuffer.BB_blend_RGB_multiply_rect(self, x, y, w, h, c)
   else
     self:paintRect(x, y, w, h, c, self.setPixelMultiply)
   end
@@ -3196,14 +3173,7 @@ function BB_mt.__index:blendRectRGB32(x, y, w, h, color)
     if w <= 0 or h <= 0 then
       return
     end
-    cblitbuffer.BB_blend_RGB32_over_rect(
-      self,
-      x,
-      y,
-      w,
-      h,
-      c
-    )
+    cblitbuffer.BB_blend_RGB32_over_rect(self, x, y, w, h, c)
   else
     self:paintRect(x, y, w, h, c, self.setPixelBlend)
   end

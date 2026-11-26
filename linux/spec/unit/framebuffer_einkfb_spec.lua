@@ -29,7 +29,8 @@ describe("ffi/framebuffer_einkfb module", function()
     ffi = require("ffi")
     FramebufferLinux = require("ffi/framebuffer_linux")
     FramebufferEinkfb = require("ffi/framebuffer_einkfb")
-    local _, fn = findUpvalue(FramebufferEinkfb.refreshPartialImp, "einkfb_update")
+    local _, fn =
+      findUpvalue(FramebufferEinkfb.refreshPartialImp, "einkfb_update")
     einkfb_update = fn
     einkfb_C_idx, orig_einkfb_C = findUpvalue(einkfb_update, "C")
     linux_C_idx, orig_linux_C = findUpvalue(FramebufferLinux.reinit, "C")
@@ -236,7 +237,13 @@ describe("ffi/framebuffer_einkfb module", function()
 
       fb:refreshPartial(1, 2, 3, 1)
       assert.are.same({
-        { x1 = 1, y1 = 2, x2 = 4, y2 = 3, which_fx = tonumber(ffi.C.fx_update_partial) },
+        {
+          x1 = 1,
+          y1 = 2,
+          x2 = 4,
+          y2 = 3,
+          which_fx = tonumber(ffi.C.fx_update_partial),
+        },
       }, state.updates)
       -- Row 2 nibbles: x=0 (0x0), x=1 (0xF), x=2 (0xF), x=3 (0xF), x=4 (0x0)
       assert.are.equal(0x0F, state.raw_mem[8 * 2 + 0])
@@ -269,7 +276,13 @@ describe("ffi/framebuffer_einkfb module", function()
       assert.are.equal(10, fb:getHeight())
       fb.bb:setPixel(2, 1, BB.COLOR_BLACK)
       fb:refreshPartial(2, 1, 2, 2)
-      assert.are.same({ x1 = 1, y1 = 2, x2 = 3, y2 = 4, which_fx = tonumber(ffi.C.fx_update_partial) }, state.updates[2])
+      assert.are.same({
+        x1 = 1,
+        y1 = 2,
+        x2 = 3,
+        y2 = 4,
+        which_fx = tonumber(ffi.C.fx_update_partial),
+      }, state.updates[2])
       -- (lx=2, ly=1) -> (px = 1, py = 6 - 2 - 1 = 3): lower nibble at row 3 byte 0 is 0xF
       assert.are.equal(0x0F, state.raw_mem[8 * 3 + 0])
 
@@ -307,7 +320,13 @@ describe("ffi/framebuffer_einkfb module", function()
       fb:refreshPartial(2, 1, 2, 3)
       -- Physical x = 1, y = 12 - (2 + 2) = 8, w = 3, h = 2
       assert.are.same({
-        { x1 = 1, y1 = 8, x2 = 4, y2 = 10, which_fx = tonumber(ffi.C.fx_update_partial) },
+        {
+          x1 = 1,
+          y1 = 8,
+          x2 = 4,
+          y2 = 10,
+          which_fx = tonumber(ffi.C.fx_update_partial),
+        },
       }, state.updates)
       -- (lx=2, ly=1) -> (px = 1, py = 12 - 2 - 1 = 9): day mode inverts 0x22 -> 0xDD
       assert.are.equal(255 - 0x22, state.raw_mem[12 * 9 + 1])

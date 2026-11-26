@@ -734,55 +734,61 @@ describe("Menu widget", function()
       end)
     end)
 
-    it("should keep selected.y stable across repeated updates on non-DPad devices", function()
-      local orig_hasFewKeys = Device.hasFewKeys
-      local orig_hasSymKey = Device.hasSymKey
-      local orig_hasScreenKB = Device.hasScreenKB
-      local orig_hasDPad = Device.hasDPad
-      finally(function()
-        Device.hasFewKeys = orig_hasFewKeys
-        Device.hasSymKey = orig_hasSymKey
-        Device.hasScreenKB = orig_hasScreenKB
-        Device.hasDPad = orig_hasDPad
-      end)
-      Device.hasFewKeys = function()
-        return true
-      end
-      Device.hasSymKey = function()
-        return false
-      end
-      Device.hasScreenKB = function()
-        return false
-      end
-      Device.hasDPad = function()
-        return false
-      end
+    it(
+      "should keep selected.y stable across repeated updates on non-DPad devices",
+      function()
+        local orig_hasFewKeys = Device.hasFewKeys
+        local orig_hasSymKey = Device.hasSymKey
+        local orig_hasScreenKB = Device.hasScreenKB
+        local orig_hasDPad = Device.hasDPad
+        finally(function()
+          Device.hasFewKeys = orig_hasFewKeys
+          Device.hasSymKey = orig_hasSymKey
+          Device.hasScreenKB = orig_hasScreenKB
+          Device.hasDPad = orig_hasDPad
+        end)
+        Device.hasFewKeys = function()
+          return true
+        end
+        Device.hasSymKey = function()
+          return false
+        end
+        Device.hasScreenKB = function()
+          return false
+        end
+        Device.hasDPad = function()
+          return false
+        end
 
-      local m = Menu:new({
-        title = "Non-DPad Menu",
-        title_bar_left_icon = "back",
-        item_table = {
-          { text = "Item 1" },
-          { text = "Item 2" },
-        },
-      })
-      -- With 2 title bar rows merged in front of items, item 1 is at y = 3
-      assert.are.equal(3, m.selected.y)
-      m:updateItems()
-      assert.are.equal(3, m.selected.y)
-      m:updateItems()
-      assert.are.equal(3, m.selected.y)
-    end)
+        local m = Menu:new({
+          title = "Non-DPad Menu",
+          title_bar_left_icon = "back",
+          item_table = {
+            { text = "Item 1" },
+            { text = "Item 2" },
+          },
+        })
+        -- With 2 title bar rows merged in front of items, item 1 is at y = 3
+        assert.are.equal(3, m.selected.y)
+        m:updateItems()
+        assert.are.equal(3, m.selected.y)
+        m:updateItems()
+        assert.are.equal(3, m.selected.y)
+      end
+    )
 
-    it("should return nil focus and not throw on empty no_title menu", function()
-      local m = Menu:new({
-        no_title = true,
-        item_table = {},
-      })
-      assert.is_nil(m:getFocusItem())
-      assert.has_no.errors(function()
-        m:_sendGestureEventToFocusedWidget("Press")
-      end)
-    end)
+    it(
+      "should return nil focus and not throw on empty no_title menu",
+      function()
+        local m = Menu:new({
+          no_title = true,
+          item_table = {},
+        })
+        assert.is_nil(m:getFocusItem())
+        assert.has_no.errors(function()
+          m:_sendGestureEventToFocusedWidget("Press")
+        end)
+      end
+    )
   end)
 end)

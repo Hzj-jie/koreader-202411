@@ -6,6 +6,7 @@ local KeyValuePage = require("ui/widget/keyvaluepage")
 local Math = require("optmath")
 local TextViewer = require("ui/widget/textviewer")
 local UIManager = require("ui/uimanager")
+local Version = require("version")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local datetime = require("datetime")
 local ffiUtil = require("ffi/util")
@@ -13,7 +14,6 @@ local gettext = require("gettext")
 local lfs = require("libs/libkoreader-lfs")
 local time = require("ui/time")
 local util = require("util")
-local Version = require("version")
 local T = ffiUtil.template
 
 local function systemInfo()
@@ -478,10 +478,7 @@ function SystemStat:appendProcessInfo()
         string.format(
           "%.2f",
           n1
-            / (
-              self.sys_stat.cpu.total
-              * (koreader_awake / self.sys_stat.uptime.monotonic)
-            )
+            / (self.sys_stat.cpu.total * (koreader_awake / self.sys_stat.uptime.monotonic))
             * 100
         ),
       })

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-26 01:45-0800\n"
 "PO-Revision-Date: 2020-09-20 07:38+0000\n"
 "Last-Translator: OIS <mistresssilvara@hotmail.com>\n"
 "Language-Team: Occidental <https://hosted.weblate.org/projects/koreader/"
@@ -2709,15 +2709,6 @@ msgstr "Ecran"
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr ""
-
-msgid "Bottom"
-msgstr ""
-
-msgid "Gesture position"
-msgstr ""
-
 msgid "Start content selection"
 msgstr ""
 
@@ -2818,10 +2809,6 @@ msgstr "Al fólder superiori"
 
 msgid "Dictionary on single word selection"
 msgstr ""
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "Al fólder superiori"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -5745,6 +5732,12 @@ msgstr ""
 msgid "Top/Bottom Margins"
 msgstr ""
 
+msgid "Top"
+msgstr ""
+
+msgid "Bottom"
+msgstr ""
+
 msgid "Bottom Margin"
 msgstr ""
 
@@ -7810,6 +7803,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -15523,6 +15529,10 @@ msgstr ""
 #, fuzzy
 msgid "annotations"
 msgstr "Navigation"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Al fólder superiori"
 
 #, fuzzy
 #~ msgid "Go to download folder?"

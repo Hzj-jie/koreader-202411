@@ -447,13 +447,16 @@ describe("FocusManager module", function()
     )
   end)
 
-  it("should return nil from getFocusItem when layout is empty and not error on gesture", function()
-    local focusmanager = FocusManager:new({})
-    focusmanager.layout = {}
-    focusmanager.selected = { y = 1, x = 1 }
-    assert.is_nil(focusmanager:getFocusItem())
-    assert.has_no.errors(function()
-      focusmanager:_sendGestureEventToFocusedWidget("Press")
-    end)
-  end)
+  it(
+    "should return nil from getFocusItem when layout is empty and not error on gesture",
+    function()
+      local focusmanager = FocusManager:new({})
+      focusmanager.layout = {}
+      focusmanager.selected = { y = 1, x = 1 }
+      assert.is_nil(focusmanager:getFocusItem())
+      assert.has_no.errors(function()
+        focusmanager:_sendGestureEventToFocusedWidget("Press")
+      end)
+    end
+  )
 end)

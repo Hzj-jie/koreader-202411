@@ -20,7 +20,8 @@ describe("BinaryVersions", function()
       assert.is_nil(item.dim)
       local path = item.text:match("^(.-): .+$")
       assert.is_string(path)
-      local cur_section = path:match("^common/") and 2 or (path:match("^libs/") and 3 or 1)
+      local cur_section = path:match("^common/") and 2
+        or (path:match("^libs/") and 3 or 1)
       assert.is_true(cur_section >= section)
       if cur_section == section then
         assert.is_true(prev_path < path)
@@ -68,45 +69,53 @@ describe("BinaryVersions", function()
     assert.is_truthy(by_path["libs/libfribidi.so.0"]:match("%d+%.%d+"))
     assert.is_truthy(by_path["libs/libunibreak.so.6"]:match("^%d+%.%d+$"))
     assert.is_truthy(by_path["libs/liblodepng.so"]:match("%d+"))
-    assert.are.equal(require("ffi/mupdf").version, by_path["libs/libwrap-mupdf.so"])
-    assert.is_truthy(by_path["libs/libjpeg.so.8"]:match("^libjpeg%-turbo version "))
+    assert.are.equal(
+      require("ffi/mupdf").version,
+      by_path["libs/libwrap-mupdf.so"]
+    )
+    assert.is_truthy(
+      by_path["libs/libjpeg.so.8"]:match("^libjpeg%-turbo version ")
+    )
   end)
 
-  it("falls back to file modification time when binary version is unknown", function()
-    local T = require("ffi/util").template
-    local lfs = require("libs/libkoreader-lfs")
-    local tmp_dir = os.tmpname()
-    os.remove(tmp_dir)
-    lfs.mkdir(tmp_dir)
-    lfs.mkdir(tmp_dir .. "/common")
-    lfs.mkdir(tmp_dir .. "/libs")
-    local tmp_file = tmp_dir .. "/libs/libdummy_unknown.so"
-    local f = io.open(tmp_file, "w")
-    f:write("\x7fELF")
-    f:close()
-    local fixed_time = 1700000000
-    lfs.touch(tmp_file, fixed_time, fixed_time)
+  it(
+    "falls back to file modification time when binary version is unknown",
+    function()
+      local T = require("ffi/util").template
+      local lfs = require("libs/libkoreader-lfs")
+      local tmp_dir = os.tmpname()
+      os.remove(tmp_dir)
+      lfs.mkdir(tmp_dir)
+      lfs.mkdir(tmp_dir .. "/common")
+      lfs.mkdir(tmp_dir .. "/libs")
+      local tmp_file = tmp_dir .. "/libs/libdummy_unknown.so"
+      local f = io.open(tmp_file, "w")
+      f:write("\x7fELF")
+      f:close()
+      local fixed_time = 1700000000
+      lfs.touch(tmp_file, fixed_time, fixed_time)
 
-    local old_dir = lfs.currentdir()
-    lfs.chdir(tmp_dir)
-    finally(function()
-      lfs.chdir(old_dir)
-      os.remove(tmp_file)
-      lfs.rmdir(tmp_dir .. "/libs")
-      lfs.rmdir(tmp_dir .. "/common")
-      lfs.rmdir(tmp_dir)
-    end)
+      local old_dir = lfs.currentdir()
+      lfs.chdir(tmp_dir)
+      finally(function()
+        lfs.chdir(old_dir)
+        os.remove(tmp_file)
+        lfs.rmdir(tmp_dir .. "/libs")
+        lfs.rmdir(tmp_dir .. "/common")
+        lfs.rmdir(tmp_dir)
+      end)
 
-    assert.are.same({
-      {
-        text = "libs/libdummy_unknown.so: " .. T(
-          gettext("Last modified: %1"),
-          os.date("%Y-%m-%d %H:%M", fixed_time)
-        ),
-        select_enabled = false,
-      },
-    }, BinaryVersions:getMenuItems())
-  end)
+      assert.are.same({
+        {
+          text = "libs/libdummy_unknown.so: " .. T(
+            gettext("Last modified: %1"),
+            os.date("%Y-%m-%d %H:%M", fixed_time)
+          ),
+          select_enabled = false,
+        },
+      }, BinaryVersions:getMenuItems())
+    end
+  )
 
   it("shows Binary versions button in About dialog and opens Menu", function()
     local UIManager = require("ui/uimanager")

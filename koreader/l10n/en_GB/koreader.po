@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:52-0800\n"
+"POT-Creation-Date: 2026-11-26 01:45-0800\n"
 "PO-Revision-Date: 2024-11-13 05:20+0000\n"
 "Last-Translator: Chris Heywood <cheywood@users.noreply.hosted.weblate.org>\n"
 "Language-Team: English (United Kingdom) <https://hosted.weblate.org/projects/"
@@ -2864,15 +2864,6 @@ msgstr "Select and highlight"
 msgid "Fulltext search"
 msgstr "Fulltext search"
 
-msgid "Top"
-msgstr "Top"
-
-msgid "Bottom"
-msgstr "Bottom"
-
-msgid "Gesture position"
-msgstr "Gesture position"
-
 msgid "Start content selection"
 msgstr "Start content selection"
 
@@ -2973,9 +2964,6 @@ msgstr "Long-press on text"
 
 msgid "Dictionary on single word selection"
 msgstr "Dictionary on single word selection"
-
-msgid "Highlight dialog position: %1"
-msgstr "Highlight dialog position: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Highlight very-long-press interval: %1 s"
@@ -6376,6 +6364,12 @@ msgstr "Top Margin"
 msgid "Top/Bottom Margins"
 msgstr "Top/Bottom Margins"
 
+msgid "Top"
+msgstr "Top"
+
+msgid "Bottom"
+msgstr "Bottom"
+
 msgid "Bottom Margin"
 msgstr "Bottom Margin"
 
@@ -8759,6 +8753,19 @@ msgstr ""
 "Please consider restarting KOReader at the ealiest convenience."
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -17475,6 +17482,12 @@ msgstr "wallabag"
 
 msgid "annotations"
 msgstr "annotations"
+
+#~ msgid "Gesture position"
+#~ msgstr "Gesture position"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Highlight dialog position: %1"
 
 #~ msgid "5 minutes usage %"
 #~ msgstr "5 minutes usage %"

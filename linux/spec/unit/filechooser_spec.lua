@@ -218,32 +218,35 @@ describe("FileChooser module", function()
     fc.file_filter = nil
   end)
 
-  it("filters finished books via DocSettings.getStatus when show_finished is false", function()
-    local orig_getStatus = DocSettings.getStatus
-    finally(function()
-      DocSettings.getStatus = orig_getStatus
-    end)
-    local statuses = {
-      ["/tmp/done.epub"] = "complete",
-      ["/tmp/reading.epub"] = "reading",
-      ["/tmp/new.epub"] = "new",
-    }
-    DocSettings.getStatus = function(path)
-      return statuses[path] or "new"
+  it(
+    "filters finished books via DocSettings.getStatus when show_finished is false",
+    function()
+      local orig_getStatus = DocSettings.getStatus
+      finally(function()
+        DocSettings.getStatus = orig_getStatus
+      end)
+      local statuses = {
+        ["/tmp/done.epub"] = "complete",
+        ["/tmp/reading.epub"] = "reading",
+        ["/tmp/new.epub"] = "new",
+      }
+      DocSettings.getStatus = function(path)
+        return statuses[path] or "new"
+      end
+
+      local fc = FileChooser:new({
+        dimen = Screen:getSize(),
+        path = "/tmp",
+        show_finished = false,
+      })
+      assert.is_false(fc:show_file("done.epub", "/tmp/done.epub"))
+      assert.is_true(fc:show_file("reading.epub", "/tmp/reading.epub"))
+      assert.is_true(fc:show_file("new.epub", "/tmp/new.epub"))
+
+      fc.show_finished = true
+      assert.is_true(fc:show_file("done.epub", "/tmp/done.epub"))
     end
-
-    local fc = FileChooser:new({
-      dimen = Screen:getSize(),
-      path = "/tmp",
-      show_finished = false,
-    })
-    assert.is_false(fc:show_file("done.epub", "/tmp/done.epub"))
-    assert.is_true(fc:show_file("reading.epub", "/tmp/reading.epub"))
-    assert.is_true(fc:show_file("new.epub", "/tmp/new.epub"))
-
-    fc.show_finished = true
-    assert.is_true(fc:show_file("done.epub", "/tmp/done.epub"))
-  end)
+  )
 
   it("should test showFileInBold options", function()
     local fc = FileChooser:new({
@@ -706,77 +709,83 @@ describe("FileChooser module", function()
       rm_rf(test_root)
     end)
 
-    it("climbs to ancestor on onFolderUp when current directory is deleted", function()
-      local x = test_root .. "/x"
-      local a = x .. "/a"
-      local b = a .. "/b"
-      lfs.mkdir(x)
-      lfs.mkdir(a)
-      lfs.mkdir(b)
-      local real_x = ffiUtil.realpath(x)
-      local real_a = ffiUtil.realpath(a)
-      local real_b = ffiUtil.realpath(b)
+    it(
+      "climbs to ancestor on onFolderUp when current directory is deleted",
+      function()
+        local x = test_root .. "/x"
+        local a = x .. "/a"
+        local b = a .. "/b"
+        lfs.mkdir(x)
+        lfs.mkdir(a)
+        lfs.mkdir(b)
+        local real_x = ffiUtil.realpath(x)
+        local real_a = ffiUtil.realpath(a)
+        local real_b = ffiUtil.realpath(b)
 
-      local fc = FileChooser:new({
-        dimen = Screen:getSize(),
-        path = b,
-      })
-      assert.are.equal(real_b, fc.path)
+        local fc = FileChooser:new({
+          dimen = Screen:getSize(),
+          path = b,
+        })
+        assert.are.equal(real_b, fc.path)
 
-      -- Case 1: remove b, onFolderUp climbs to a
-      lfs.rmdir(b)
-      fc:onFolderUp()
-      assert.are.equal(real_a, fc.path)
+        -- Case 1: remove b, onFolderUp climbs to a
+        lfs.rmdir(b)
+        fc:onFolderUp()
+        assert.are.equal(real_a, fc.path)
 
-      -- Case 2: remove both a and recreated b, onFolderUp climbs to x
-      lfs.mkdir(b)
-      fc:changeToPath(b)
-      lfs.rmdir(b)
-      lfs.rmdir(a)
-      fc:onFolderUp()
-      assert.are.equal(real_x, fc.path)
-    end)
-
-    it("stays in current directory and refreshes when selecting deleted child folder", function()
-      local x = test_root .. "/child_test"
-      local child = x .. "/deleted_child"
-      lfs.mkdir(x)
-      lfs.mkdir(child)
-      local real_x = ffiUtil.realpath(x)
-
-      local fc = FileChooser:new({
-        dimen = Screen:getSize(),
-        path = x,
-      })
-      assert.are.equal(real_x, fc.path)
-
-      -- Verify deleted_child is in item_table
-      local found = false
-      for _, it in ipairs(fc.item_table) do
-        if it.path == child or it.text == "deleted_child/" then
-          found = true
-          break
-        end
+        -- Case 2: remove both a and recreated b, onFolderUp climbs to x
+        lfs.mkdir(b)
+        fc:changeToPath(b)
+        lfs.rmdir(b)
+        lfs.rmdir(a)
+        fc:onFolderUp()
+        assert.are.equal(real_x, fc.path)
       end
-      assert.is_true(found)
+    )
 
-      -- Remove deleted_child on disk, then select it via onMenuSelect
-      lfs.rmdir(child)
-      fc:onMenuSelect({ path = child, is_file = false })
+    it(
+      "stays in current directory and refreshes when selecting deleted child folder",
+      function()
+        local x = test_root .. "/child_test"
+        local child = x .. "/deleted_child"
+        lfs.mkdir(x)
+        lfs.mkdir(child)
+        local real_x = ffiUtil.realpath(x)
 
-      -- Path remains real_x
-      assert.are.equal(real_x, fc.path)
+        local fc = FileChooser:new({
+          dimen = Screen:getSize(),
+          path = x,
+        })
+        assert.are.equal(real_x, fc.path)
 
-      -- Refreshed item_table no longer contains deleted_child
-      local still_found = false
-      for _, it in ipairs(fc.item_table) do
-        if it.path == child or it.text == "deleted_child/" then
-          still_found = true
-          break
+        -- Verify deleted_child is in item_table
+        local found = false
+        for _, it in ipairs(fc.item_table) do
+          if it.path == child or it.text == "deleted_child/" then
+            found = true
+            break
+          end
         end
+        assert.is_true(found)
+
+        -- Remove deleted_child on disk, then select it via onMenuSelect
+        lfs.rmdir(child)
+        fc:onMenuSelect({ path = child, is_file = false })
+
+        -- Path remains real_x
+        assert.are.equal(real_x, fc.path)
+
+        -- Refreshed item_table no longer contains deleted_child
+        local still_found = false
+        for _, it in ipairs(fc.item_table) do
+          if it.path == child or it.text == "deleted_child/" then
+            still_found = true
+            break
+          end
+        end
+        assert.is_false(still_found)
       end
-      assert.is_false(still_found)
-    end)
+    )
   end)
 
   describe("monkey test mode working directory restriction", function()
@@ -796,38 +805,41 @@ describe("FileChooser module", function()
       end
     end)
 
-    it("prevents navigating outside working directory when isMonkeyTest is true", function()
-      local orig_isMonkeyTest = util.isMonkeyTest
-      finally(function()
-        util.isMonkeyTest = orig_isMonkeyTest
-      end)
-      util.isMonkeyTest = function()
-        return true
+    it(
+      "prevents navigating outside working directory when isMonkeyTest is true",
+      function()
+        local orig_isMonkeyTest = util.isMonkeyTest
+        finally(function()
+          util.isMonkeyTest = orig_isMonkeyTest
+        end)
+        util.isMonkeyTest = function()
+          return true
+        end
+
+        local cwd = ffiUtil.realpath(lfs.currentdir())
+        local real_subdir = ffiUtil.realpath(test_subdir)
+
+        local fc = FileChooser:new({
+          dimen = Screen:getSize(),
+          path = cwd,
+        })
+        assert.are.equal(cwd, fc.path)
+
+        -- Navigating into subdirectory under cwd is allowed
+        fc:changeToPath(test_subdir)
+        assert.are.equal(real_subdir, fc.path)
+
+        -- Navigating back to cwd is allowed
+        fc:changeToPath(cwd)
+        assert.are.equal(cwd, fc.path)
+
+        -- Navigating outside cwd (cwd .. "/.." or "/") is ignored, path remains cwd
+        fc:changeToPath(cwd .. "/..")
+        assert.are.equal(cwd, fc.path)
+
+        fc:changeToPath("/")
+        assert.are.equal(cwd, fc.path)
       end
-
-      local cwd = ffiUtil.realpath(lfs.currentdir())
-      local real_subdir = ffiUtil.realpath(test_subdir)
-
-      local fc = FileChooser:new({
-        dimen = Screen:getSize(),
-        path = cwd,
-      })
-      assert.are.equal(cwd, fc.path)
-
-      -- Navigating into subdirectory under cwd is allowed
-      fc:changeToPath(test_subdir)
-      assert.are.equal(real_subdir, fc.path)
-
-      -- Navigating back to cwd is allowed
-      fc:changeToPath(cwd)
-      assert.are.equal(cwd, fc.path)
-
-      -- Navigating outside cwd (cwd .. "/.." or "/") is ignored, path remains cwd
-      fc:changeToPath(cwd .. "/..")
-      assert.are.equal(cwd, fc.path)
-
-      fc:changeToPath("/")
-      assert.are.equal(cwd, fc.path)
-    end)
+    )
   end)
 end)
