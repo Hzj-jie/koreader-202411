@@ -192,7 +192,10 @@ function MovableContainer:ensureAnchor(x, y)
       top = max_y - content_h
     end
   end
-  -- Ensure we show the top if we would overflow
+  -- Keep inside [min_y, max_y], preferring to keep the top visible on overflow
+  if top + content_h > max_y then
+    top = max_y - content_h
+  end
   if top < min_y then
     top = min_y
   end
