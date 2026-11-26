@@ -568,8 +568,7 @@ function DocSettings.updateLocation(doc_path, new_doc_path, copy)
             .. "/"
             .. new_doc_settings.sidecar_filename
         end
-      end
-      if not new_sidecar_dir then
+      else
         for _, cand in ipairs(getCandidates(new_doc_path)) do
           if cand.dir and util.isDirRW(cand.dir, true) then
             new_sidecar_dir = cand.dir
