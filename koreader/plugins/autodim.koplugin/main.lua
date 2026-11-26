@@ -38,7 +38,8 @@ function AutoDim:addToMainMenu(menu_items)
       return gettext("Automatic dimmer")
         .. ": "
         .. (
-          not G_named_settings.has.autodim_starttime_minutes() and gettext("disabled")
+          not G_named_settings.has.autodim_starttime_minutes()
+            and gettext("disabled")
           or T(
             gettext("after %1"),
             datetime.secondsToClockDuration(
@@ -98,7 +99,11 @@ function AutoDim:_restoreFrontlight()
 end
 
 function AutoDim:onDeviceIdling()
-  if self.trap_widget or not G_named_settings.has.autodim_starttime_minutes() or Powerd:isFrontlightOff() then
+  if
+    self.trap_widget
+    or not G_named_settings.has.autodim_starttime_minutes()
+    or Powerd:isFrontlightOff()
+  then
     return
   end
 

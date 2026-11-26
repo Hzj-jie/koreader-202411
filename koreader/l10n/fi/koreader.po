@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:51-0800\n"
+"POT-Creation-Date: 2026-11-26 01:26-0800\n"
 "PO-Revision-Date: 2024-08-30 10:09+0000\n"
 "Last-Translator: Mikko Peltonen <mikkopee9@gmail.com>\n"
 "Language-Team: Finnish <https://hosted.weblate.org/projects/koreader/"
@@ -2924,15 +2924,6 @@ msgstr "Kuvankaappaus"
 msgid "Fulltext search"
 msgstr "Kokotekstihaku"
 
-msgid "Top"
-msgstr "Ylhäällä"
-
-msgid "Bottom"
-msgstr "Alhaalla"
-
-msgid "Gesture position"
-msgstr "Eleasento"
-
 msgid "Start content selection"
 msgstr ""
 
@@ -3042,9 +3033,6 @@ msgstr "Paina tekstiä pitkään"
 
 msgid "Dictionary on single word selection"
 msgstr "Sanakirja yhden sanan valinnasta"
-
-msgid "Highlight dialog position: %1"
-msgstr "Korosta valintaikkunan sijainti: %1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "Korosta erittäin pitkän painalluksen aikaväli: %1 s"
@@ -6343,6 +6331,12 @@ msgstr "Ylämarginaali"
 msgid "Top/Bottom Margins"
 msgstr "Ylä-/alamarginaalit"
 
+msgid "Top"
+msgstr "Ylhäällä"
+
+msgid "Bottom"
+msgstr "Alhaalla"
+
 msgid "Bottom Margin"
 msgstr "Alamarginaali"
 
@@ -8453,6 +8447,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -16191,6 +16198,12 @@ msgstr ""
 #, fuzzy
 msgid "annotations"
 msgstr "Kierto"
+
+#~ msgid "Gesture position"
+#~ msgstr "Eleasento"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Korosta valintaikkunan sijainti: %1"
 
 #~ msgid ""
 #~ "In CRE documents, an alternative status bar can be displayed at the top "

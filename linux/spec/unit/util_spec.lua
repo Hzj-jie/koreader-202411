@@ -1565,103 +1565,122 @@ describe("util module", function()
       assert.is_truthy(err)
     end)
 
-    it("cleans up .new and keeps original file when file:write fails", function()
-      local test_file = "/tmp/test_write_to_file_write_fail.txt"
-      local new_file = test_file .. ".new"
-      os.remove(test_file)
-      os.remove(new_file)
-      local f = io.open(test_file, "w")
-      f:write("original content")
-      f:close()
+    it(
+      "cleans up .new and keeps original file when file:write fails",
+      function()
+        local test_file = "/tmp/test_write_to_file_write_fail.txt"
+        local new_file = test_file .. ".new"
+        os.remove(test_file)
+        os.remove(new_file)
+        local f = io.open(test_file, "w")
+        f:write("original content")
+        f:close()
 
-      local orig_io_open = io.open
-      io.open = function(path, mode)
-        if path == new_file then
-          local real_file = orig_io_open(path, mode)
-          return {
-            write = function() return nil, "disk full" end,
-            close = function()
-              if real_file then real_file:close() end
-              return true
-            end,
-          }
+        local orig_io_open = io.open
+        io.open = function(path, mode)
+          if path == new_file then
+            local real_file = orig_io_open(path, mode)
+            return {
+              write = function()
+                return nil, "disk full"
+              end,
+              close = function()
+                if real_file then
+                  real_file:close()
+                end
+                return true
+              end,
+            }
+          end
+          return orig_io_open(path, mode)
         end
-        return orig_io_open(path, mode)
+        local ok, err = util.writeToFile("new content", test_file)
+        io.open = orig_io_open
+
+        assert.is_false(ok)
+        assert.same("disk full", err)
+        assert.is_nil(lfs.attributes(new_file))
+        local content = util.readFromFile(test_file)
+        assert.same("original content", content)
+        os.remove(test_file)
       end
-      local ok, err = util.writeToFile("new content", test_file)
-      io.open = orig_io_open
+    )
 
-      assert.is_false(ok)
-      assert.same("disk full", err)
-      assert.is_nil(lfs.attributes(new_file))
-      local content = util.readFromFile(test_file)
-      assert.same("original content", content)
-      os.remove(test_file)
-    end)
+    it(
+      "cleans up .new and keeps original file when fsyncOpenedFile fails",
+      function()
+        local test_file = "/tmp/test_write_to_file_sync_fail.txt"
+        local new_file = test_file .. ".new"
+        os.remove(test_file)
+        os.remove(new_file)
+        local f = io.open(test_file, "w")
+        f:write("original content")
+        f:close()
 
-    it("cleans up .new and keeps original file when fsyncOpenedFile fails", function()
-      local test_file = "/tmp/test_write_to_file_sync_fail.txt"
-      local new_file = test_file .. ".new"
-      os.remove(test_file)
-      os.remove(new_file)
-      local f = io.open(test_file, "w")
-      f:write("original content")
-      f:close()
-
-      local ffiUtil = require("ffi/util")
-      local orig_fsync = ffiUtil.fsyncOpenedFile
-      ffiUtil.fsyncOpenedFile = function()
-        return false, "sync error"
-      end
-      local ok, err = util.writeToFile("new content", test_file)
-      ffiUtil.fsyncOpenedFile = orig_fsync
-
-      assert.is_false(ok)
-      assert.same("sync error", err)
-      assert.is_nil(lfs.attributes(new_file))
-      local content = util.readFromFile(test_file)
-      assert.same("original content", content)
-      os.remove(test_file)
-    end)
-
-    it("cleans up .new and keeps original file when file:close fails", function()
-      local test_file = "/tmp/test_write_to_file_close_fail.txt"
-      local new_file = test_file .. ".new"
-      os.remove(test_file)
-      os.remove(new_file)
-      local f = io.open(test_file, "w")
-      f:write("original content")
-      f:close()
-
-      local ffiUtil = require("ffi/util")
-      local orig_fsync = ffiUtil.fsyncOpenedFile
-      ffiUtil.fsyncOpenedFile = function() return true end
-
-      local orig_io_open = io.open
-      io.open = function(path, mode)
-        if path == new_file then
-          local real_file = orig_io_open(path, mode)
-          return {
-            write = function(self, d) return real_file:write(d) end,
-            close = function()
-              if real_file then real_file:close() end
-              return nil, "close error"
-            end,
-          }
+        local ffiUtil = require("ffi/util")
+        local orig_fsync = ffiUtil.fsyncOpenedFile
+        ffiUtil.fsyncOpenedFile = function()
+          return false, "sync error"
         end
-        return orig_io_open(path, mode)
-      end
-      local ok, err = util.writeToFile("new content", test_file)
-      io.open = orig_io_open
-      ffiUtil.fsyncOpenedFile = orig_fsync
+        local ok, err = util.writeToFile("new content", test_file)
+        ffiUtil.fsyncOpenedFile = orig_fsync
 
-      assert.is_false(ok)
-      assert.same("close error", err)
-      assert.is_nil(lfs.attributes(new_file))
-      local content = util.readFromFile(test_file)
-      assert.same("original content", content)
-      os.remove(test_file)
-    end)
+        assert.is_false(ok)
+        assert.same("sync error", err)
+        assert.is_nil(lfs.attributes(new_file))
+        local content = util.readFromFile(test_file)
+        assert.same("original content", content)
+        os.remove(test_file)
+      end
+    )
+
+    it(
+      "cleans up .new and keeps original file when file:close fails",
+      function()
+        local test_file = "/tmp/test_write_to_file_close_fail.txt"
+        local new_file = test_file .. ".new"
+        os.remove(test_file)
+        os.remove(new_file)
+        local f = io.open(test_file, "w")
+        f:write("original content")
+        f:close()
+
+        local ffiUtil = require("ffi/util")
+        local orig_fsync = ffiUtil.fsyncOpenedFile
+        ffiUtil.fsyncOpenedFile = function()
+          return true
+        end
+
+        local orig_io_open = io.open
+        io.open = function(path, mode)
+          if path == new_file then
+            local real_file = orig_io_open(path, mode)
+            return {
+              write = function(self, d)
+                return real_file:write(d)
+              end,
+              close = function()
+                if real_file then
+                  real_file:close()
+                end
+                return nil, "close error"
+              end,
+            }
+          end
+          return orig_io_open(path, mode)
+        end
+        local ok, err = util.writeToFile("new content", test_file)
+        io.open = orig_io_open
+        ffiUtil.fsyncOpenedFile = orig_fsync
+
+        assert.is_false(ok)
+        assert.same("close error", err)
+        assert.is_nil(lfs.attributes(new_file))
+        local content = util.readFromFile(test_file)
+        assert.same("original content", content)
+        os.remove(test_file)
+      end
+    )
 
     it("cleans up .new and keeps original file when os.rename fails", function()
       local test_file = "/tmp/test_write_to_file_rename_fail.txt"
@@ -1972,74 +1991,77 @@ describe("util module", function()
       assert.is_nil(ffiUtil.subprocesses[pid])
     end)
 
-    it("forwards complete lines to parent stdout and flushes partial line on completion", function()
-      local file_mt = debug.getmetatable(io.stdout).__index
-      local orig_write = file_mt.write
-      local forwarded = {}
-      finally(function()
-        file_mt.write = orig_write
-      end)
-      file_mt.write = function(self, data, ...)
-        if self == io.stdout and type(data) == "string" then
-          table.insert(forwarded, data)
+    it(
+      "forwards complete lines to parent stdout and flushes partial line on completion",
+      function()
+        local file_mt = debug.getmetatable(io.stdout).__index
+        local orig_write = file_mt.write
+        local forwarded = {}
+        finally(function()
+          file_mt.write = orig_write
+        end)
+        file_mt.write = function(self, data, ...)
+          if self == io.stdout and type(data) == "string" then
+            table.insert(forwarded, data)
+          end
+          return orig_write(self, data, ...)
         end
-        return orig_write(self, data, ...)
-      end
 
-      local sync_fds = require("ffi").new("int[2]")
-      local ack_fds = require("ffi").new("int[2]")
-      local C = require("ffi").C
-      assert.are.equal(0, C.pipe(sync_fds))
-      assert.are.equal(0, C.pipe(ack_fds))
-      local sync_r, sync_w = sync_fds[0], sync_fds[1]
-      local ack_r, ack_w = ack_fds[0], ack_fds[1]
+        local sync_fds = require("ffi").new("int[2]")
+        local ack_fds = require("ffi").new("int[2]")
+        local C = require("ffi").C
+        assert.are.equal(0, C.pipe(sync_fds))
+        assert.are.equal(0, C.pipe(ack_fds))
+        local sync_r, sync_w = sync_fds[0], sync_fds[1]
+        local ack_r, ack_w = ack_fds[0], ack_fds[1]
 
-      local pid = ffiUtil.runInSubProcess(function()
-        C.close(sync_r)
-        C.close(ack_w)
-        local ch = require("ffi").new("char[1]")
+        local pid = ffiUtil.runInSubProcess(function()
+          C.close(sync_r)
+          C.close(ack_w)
+          local ch = require("ffi").new("char[1]")
 
-        io.stdout:write("line 1\n")
-        io.stdout:flush()
-        C.write(sync_w, "1", 1)
-        C.read(ack_r, ch, 1)
+          io.stdout:write("line 1\n")
+          io.stdout:flush()
+          C.write(sync_w, "1", 1)
+          C.read(ack_r, ch, 1)
 
-        io.stdout:write("line 2\npartial line")
-        io.stdout:flush()
-        C.write(sync_w, "2", 1)
-        C.read(ack_r, ch, 1)
+          io.stdout:write("line 2\npartial line")
+          io.stdout:flush()
+          C.write(sync_w, "2", 1)
+          C.read(ack_r, ch, 1)
 
+          C.close(sync_w)
+          C.close(ack_r)
+        end)
         C.close(sync_w)
         C.close(ack_r)
-      end)
-      C.close(sync_w)
-      C.close(ack_r)
 
-      local ch = require("ffi").new("char[1]")
-      -- Line 1 forwarded while child runs
-      assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
-      ffiUtil.isSubProcessDone(pid, false)
-      local combined_mid = table.concat(forwarded, "")
-      assert.is_truthy(combined_mid:find("line 1\n", 1, true))
-      assert.is_falsy(combined_mid:find("line 2\n", 1, true))
-      C.write(ack_w, "a", 1)
+        local ch = require("ffi").new("char[1]")
+        -- Line 1 forwarded while child runs
+        assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
+        ffiUtil.isSubProcessDone(pid, false)
+        local combined_mid = table.concat(forwarded, "")
+        assert.is_truthy(combined_mid:find("line 1\n", 1, true))
+        assert.is_falsy(combined_mid:find("line 2\n", 1, true))
+        C.write(ack_w, "a", 1)
 
-      -- Line 2 forwarded, partial buffered
-      assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
-      ffiUtil.isSubProcessDone(pid, false)
-      local combined_mid2 = table.concat(forwarded, "")
-      assert.is_truthy(combined_mid2:find("line 2\n", 1, true))
-      assert.is_falsy(combined_mid2:find("partial line", 1, true))
-      C.write(ack_w, "b", 1)
+        -- Line 2 forwarded, partial buffered
+        assert.are.equal(1, tonumber(C.read(sync_r, ch, 1)))
+        ffiUtil.isSubProcessDone(pid, false)
+        local combined_mid2 = table.concat(forwarded, "")
+        assert.is_truthy(combined_mid2:find("line 2\n", 1, true))
+        assert.is_falsy(combined_mid2:find("partial line", 1, true))
+        C.write(ack_w, "b", 1)
 
-      -- On reap, partial line is flushed with newline
-      ffiUtil.isSubProcessDone(pid, true)
-      local combined = table.concat(forwarded, "")
-      assert.is_truthy(combined:find("partial line\n", 1, true))
+        -- On reap, partial line is flushed with newline
+        ffiUtil.isSubProcessDone(pid, true)
+        local combined = table.concat(forwarded, "")
+        assert.is_truthy(combined:find("partial line\n", 1, true))
 
-      C.close(sync_r)
-      C.close(ack_w)
-    end)
+        C.close(sync_r)
+        C.close(ack_w)
+      end
+    )
   end)
 
   describe("ffi/util basename()", function()
@@ -2048,36 +2070,42 @@ describe("util module", function()
       ffiUtil = require("ffi/util")
     end)
 
-    it("should handle root slash, trailing slashes, and empty string correctly", function()
-      assert.are.equal("/", ffiUtil.basename("/"))
-      assert.are.equal("/", ffiUtil.basename("///"))
-      assert.are.equal("b", ffiUtil.basename("/a/b/"))
-      assert.are.equal("b", ffiUtil.basename("/a/b"))
-      assert.are.equal("", ffiUtil.basename(""))
-    end)
+    it(
+      "should handle root slash, trailing slashes, and empty string correctly",
+      function()
+        assert.are.equal("/", ffiUtil.basename("/"))
+        assert.are.equal("/", ffiUtil.basename("///"))
+        assert.are.equal("b", ffiUtil.basename("/a/b/"))
+        assert.are.equal("b", ffiUtil.basename("/a/b"))
+        assert.are.equal("", ffiUtil.basename(""))
+      end
+    )
   end)
 
   describe("util.backup_dir()", function()
-    it("returns lfs.currentdir() in monkey test mode and Device.home_dir otherwise", function()
-      local Device = require("device")
-      local orig_isMonkeyTest = util.isMonkeyTest
-      local orig_home_dir = Device.home_dir
-      Device.home_dir = "/mock/home"
+    it(
+      "returns lfs.currentdir() in monkey test mode and Device.home_dir otherwise",
+      function()
+        local Device = require("device")
+        local orig_isMonkeyTest = util.isMonkeyTest
+        local orig_home_dir = Device.home_dir
+        Device.home_dir = "/mock/home"
 
-      finally(function()
-        util.isMonkeyTest = orig_isMonkeyTest
-        Device.home_dir = orig_home_dir
-      end)
+        finally(function()
+          util.isMonkeyTest = orig_isMonkeyTest
+          Device.home_dir = orig_home_dir
+        end)
 
-      util.isMonkeyTest = function()
-        return true
+        util.isMonkeyTest = function()
+          return true
+        end
+        assert.are.equal(lfs.currentdir(), util.backup_dir())
+
+        util.isMonkeyTest = function()
+          return false
+        end
+        assert.are.equal("/mock/home", util.backup_dir())
       end
-      assert.are.equal(lfs.currentdir(), util.backup_dir())
-
-      util.isMonkeyTest = function()
-        return false
-      end
-      assert.are.equal("/mock/home", util.backup_dir())
-    end)
+    )
   end)
 end)

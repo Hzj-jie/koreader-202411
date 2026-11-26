@@ -1697,7 +1697,8 @@ function ReaderRolling:checkXPointersAndProposeDOMVersionUpgrade()
         .. ".old_dom"
         .. tostring(cur_dom_version)
       if not lfs.attributes(backup_filepath) then -- backup does not yet exist
-        local ok, err = os.rename(self.ui.doc_settings.filepath, backup_filepath)
+        local ok, err =
+          os.rename(self.ui.doc_settings.filepath, backup_filepath)
         if ok then
           logger.info("  previous docsetting file saved as", backup_filepath)
         else

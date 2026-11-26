@@ -146,14 +146,11 @@ describe("AutoDim widget tests", function()
     assert.is_nil(AutoDim.origin_fl)
   end)
 
-  it(
-    "onDeviceIdling does nothing when AutoDim is disabled",
-    function()
-      G_named_settings.set.autodim_starttime_minutes(nil)
-      AutoDim:onDeviceIdling()
-      assert.is_nil(AutoDim.trap_widget)
-    end
-  )
+  it("onDeviceIdling does nothing when AutoDim is disabled", function()
+    G_named_settings.set.autodim_starttime_minutes(nil)
+    AutoDim:onDeviceIdling()
+    assert.is_nil(AutoDim.trap_widget)
+  end)
 
   it(
     "broadcasts DeviceBusy exactly once on user action while idle, and never when not idle",
@@ -162,7 +159,9 @@ describe("AutoDim widget tests", function()
       local events = {}
       local orig_broadcast = UIManager.broadcastEvent
       UIManager.broadcastEvent = function(self, ev)
-        local name = type(ev) == "table" and (ev.handler and ev.handler:gsub("^on", "") or ev.action) or ev
+        local name = type(ev) == "table"
+            and (ev.handler and ev.handler:gsub("^on", "") or ev.action)
+          or ev
         table.insert(events, name)
         return orig_broadcast(self, ev)
       end
@@ -205,7 +204,10 @@ describe("AutoDim widget tests", function()
       local fl_after_busy = Device:getPowerDevice():frontlightIntensity()
       MockTime:increase(1)
       UIManager:handleInput()
-      assert.are.equal(fl_after_busy, Device:getPowerDevice():frontlightIntensity())
+      assert.are.equal(
+        fl_after_busy,
+        Device:getPowerDevice():frontlightIntensity()
+      )
 
       -- Tap dismiss restores intensity
       AutoDim.trap_widget:onTapDismiss()

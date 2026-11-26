@@ -167,10 +167,10 @@ function Gestures:init()
       self.settings_data.data[key] = nil
     end
   end
-  self.settings_data.data[self.ges_mode] =
-    self.settings_data.data[self.ges_mode] or util.tableDeepCopy(self.defaults)
-  self.settings_data.data["custom_multiswipes"] =
-    self.settings_data.data["custom_multiswipes"] or {}
+  self.settings_data.data[self.ges_mode] = self.settings_data.data[self.ges_mode]
+    or util.tableDeepCopy(self.defaults)
+  self.settings_data.data["custom_multiswipes"] = self.settings_data.data["custom_multiswipes"]
+    or {}
   self.gestures = self.settings_data.data[self.ges_mode]
   self.custom_multiswipes = self.settings_data.data["custom_multiswipes"]
 

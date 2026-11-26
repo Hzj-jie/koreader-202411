@@ -177,10 +177,7 @@ function SyncService.sync(server, file_path, sync_cb, is_silent, finish_cb)
       return false
     end
     local file_name = ffiutil.basename(file_path)
-    local income_file_path = tmp_dir
-      .. "/"
-      .. file_name
-      .. ".temp" -- file downloaded from server
+    local income_file_path = tmp_dir .. "/" .. file_name .. ".temp" -- file downloaded from server
     local cached_file_path = file_path .. ".sync" -- file uploaded to server last time
     if server.type ~= "dropbox" and server.type ~= "webdav" then
       show_msg(gettext("Wrong server type."))

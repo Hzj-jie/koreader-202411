@@ -166,12 +166,8 @@ function AutoSuspend:pickTimeoutValue(
       if menu then
         menu:updateItems()
       end
-      local time_string = datetime.secondsToClockDuration(
-        "letters",
-        self[setting],
-        true,
-        true
-      )
+      local time_string =
+        datetime.secondsToClockDuration("letters", self[setting], true, true)
       UIManager:show(InfoMessage:new({
         text = T(gettext("%1: %2"), title, time_string),
         timeout = 3,

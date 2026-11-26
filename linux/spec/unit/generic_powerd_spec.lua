@@ -298,10 +298,9 @@ describe("device/generic/powerd", function()
 
         powerd:beforeSuspend()
         assert.spy(mock_uimgr.flushSettings).was.called()
-        assert.spy(mock_uimgr.broadcastEvent).was.called_with(
-          mock_uimgr,
-          "Suspend"
-        )
+        assert
+          .spy(mock_uimgr.broadcastEvent).was
+          .called_with(mock_uimgr, "Suspend")
         assert.is_true(mock_device.last_suspend_at > 0)
         assert.spy(mock_device.disableKeyRepeat).was.called()
         assert.spy(powerd.beforeSuspendHW).was.called()
@@ -311,13 +310,12 @@ describe("device/generic/powerd", function()
         assert.are.equal(0, last_resume_at_in_hw)
         assert.are.equal(1, broadcast_count_in_hw)
         assert.spy(mock_device.restoreKeyRepeat).was.called()
-        assert.is_true(mock_device.last_resume_at >= mock_device.last_suspend_at)
+        assert.is_true(
+          mock_device.last_resume_at >= mock_device.last_suspend_at
+        )
         assert.is_true(mock_device.total_suspend_time >= 0)
         assert.spy(mock_uimgr.updateLastUserActionTime).was.called()
-        assert.are.equal(
-          "Resume",
-          mock_uimgr.broadcastEvent.calls[2].vals[2]
-        )
+        assert.are.equal("Resume", mock_uimgr.broadcastEvent.calls[2].vals[2])
         -- Capacity caches should be invalidated (set to -61)
         local time = require("ui/time")
         assert.are.equal(time.s(-61), powerd.last_capacity_pull_time)
@@ -565,7 +563,6 @@ describe("device/generic/powerd", function()
         assert.are.equal("", powerd:getBatterySymbol(false, false, 5))
       end
     )
-
   end)
 
   describe("suspend and wakeup notifications", function()

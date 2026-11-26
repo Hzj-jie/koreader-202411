@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:51-0800\n"
+"POT-Creation-Date: 2026-11-26 01:26-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -2929,16 +2929,6 @@ msgstr "Pantaila"
 msgid "Fulltext search"
 msgstr ""
 
-msgid "Top"
-msgstr "Goian"
-
-msgid "Bottom"
-msgstr "Behean"
-
-#, fuzzy
-msgid "Gesture position"
-msgstr "Pantaila-babesle mezua"
-
 #, fuzzy
 msgid "Start content selection"
 msgstr "Joan aurreko kokalekura"
@@ -3048,10 +3038,6 @@ msgstr "Joan karpeta nagusira"
 
 msgid "Dictionary on single word selection"
 msgstr ""
-
-#, fuzzy
-msgid "Highlight dialog position: %1"
-msgstr "Nabarmentze ekintza"
 
 #, fuzzy
 msgid "Highlight very-long-press interval: %1 s"
@@ -6161,6 +6147,12 @@ msgstr "Goiko marjina"
 msgid "Top/Bottom Margins"
 msgstr "Goiko/beheko marjinak"
 
+msgid "Top"
+msgstr "Goian"
+
+msgid "Bottom"
+msgstr "Behean"
+
 msgid "Bottom Margin"
 msgstr "Beheko marjina"
 
@@ -8340,6 +8332,19 @@ msgid ""
 msgstr ""
 
 msgid "Binary versions"
+msgstr ""
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr ""
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+
+msgid "Benchmark"
 msgstr ""
 
 msgid "Start %1 reader app"
@@ -16541,6 +16546,14 @@ msgstr "Wallabag"
 #, fuzzy
 msgid "annotations"
 msgstr "Kokapena"
+
+#, fuzzy
+#~ msgid "Gesture position"
+#~ msgstr "Pantaila-babesle mezua"
+
+#, fuzzy
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "Nabarmentze ekintza"
 
 #~ msgid "Synchronize time"
 #~ msgstr "Sinkronizatu ordua"

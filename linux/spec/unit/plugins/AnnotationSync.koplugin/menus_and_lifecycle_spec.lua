@@ -645,7 +645,10 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
         })
         local diff_menu = shown_widgets[#shown_widgets]
         assert.are.equal(
-          require("ffi/util").template(gettext("Settings from %1"), "RemoteReader"),
+          require("ffi/util").template(
+            gettext("Settings from %1"),
+            "RemoteReader"
+          ),
           diff_menu.title
         )
         assert.are.equal(4, #diff_menu.item_table)
@@ -675,7 +678,9 @@ describe("AnnotationSync menus, lifecycle, and settings edge cases", function()
           assert.are.equal("settings/foo", domain)
           assert.are.equal("x", key)
 
-          assert.is_nil(sync_instance.manager:parseSettingKey("malformed_key_without_colon"))
+          assert.is_nil(
+            sync_instance.manager:parseSettingKey("malformed_key_without_colon")
+          )
           assert.is_nil(sync_instance.manager:parseSettingKey("reader:"))
           assert.is_nil(sync_instance.manager:parseSettingKey("unknown:x"))
         end

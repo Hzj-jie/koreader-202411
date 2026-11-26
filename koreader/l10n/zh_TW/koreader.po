@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 21:51-0800\n"
+"POT-Creation-Date: 2026-11-26 01:26-0800\n"
 "PO-Revision-Date: 2024-08-06 11:26+0000\n"
 "Last-Translator: Ricky From Hong Kong <lamricky11@hotmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
@@ -2816,15 +2816,6 @@ msgstr "選擇並標注"
 msgid "Fulltext search"
 msgstr "全文搜尋"
 
-msgid "Top"
-msgstr "上"
-
-msgid "Bottom"
-msgstr "下"
-
-msgid "Gesture position"
-msgstr "手勢位置"
-
 msgid "Start content selection"
 msgstr "開始內容選擇"
 
@@ -2918,9 +2909,6 @@ msgstr "長按文字"
 
 msgid "Dictionary on single word selection"
 msgstr "選擇單一文字時開啟字典"
-
-msgid "Highlight dialog position: %1"
-msgstr "標註對話方塊位置：%1"
 
 msgid "Highlight very-long-press interval: %1 s"
 msgstr "高亮時間非常久的長按間隔：%1 秒"
@@ -6206,6 +6194,12 @@ msgstr "上邊距"
 msgid "Top/Bottom Margins"
 msgstr "上/下邊距"
 
+msgid "Top"
+msgstr "上"
+
+msgid "Bottom"
+msgstr "下"
+
 msgid "Bottom Margin"
 msgstr "下邊距"
 
@@ -8495,6 +8489,23 @@ msgstr ""
 
 msgid "Binary versions"
 msgstr "二進位檔案版本"
+
+msgid "Lua vs LuaJIT benchmark"
+msgstr "Lua 與 LuaJIT 基準測試"
+
+msgid ""
+"KOReader will restart to run the Lua vs LuaJIT benchmark (this can take "
+"several minutes on slower devices) and reopen automatically afterward.\n"
+"\n"
+"Start benchmark now?"
+msgstr ""
+"KOReader 將重新啟動以執行 Lua 與 LuaJIT 基準測試（在較慢的裝置上可能需要幾分"
+"鐘），完成後會自動重新開啟。\n"
+"\n"
+"現在開始基準測試嗎？"
+
+msgid "Benchmark"
+msgstr "基準測試"
 
 msgid "Start %1 reader app"
 msgstr "啟動 %1 閱讀器應用程式"
@@ -16957,6 +16968,12 @@ msgstr "Wallabag"
 
 msgid "annotations"
 msgstr "註釋"
+
+#~ msgid "Gesture position"
+#~ msgstr "手勢位置"
+
+#~ msgid "Highlight dialog position: %1"
+#~ msgstr "標註對話方塊位置：%1"
 
 #~ msgid "5 minutes usage %"
 #~ msgstr "5分鐘使用率 %"

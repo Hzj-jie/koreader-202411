@@ -51,10 +51,7 @@ describe("docsettings module", function()
       docsettings_dir .. "/foo/bar.sdr",
       getSidecarDir("/foo/bar.pdf")
     )
-    assert.Equals(
-      docsettings_dir .. "baz.sdr",
-      getSidecarDir("baz.pdf")
-    )
+    assert.Equals(docsettings_dir .. "baz.sdr", getSidecarDir("baz.pdf"))
   end)
 
   it(
@@ -2065,7 +2062,10 @@ describe("docsettings module", function()
         UIManager.show = orig_show
 
         -- Wrote to internal storage because flush refreshed candidates
-        assert.are.equal(docsettings_dir .. tmp_dir .. "/test_flush_dyn.sdr", new_dir)
+        assert.are.equal(
+          docsettings_dir .. tmp_dir .. "/test_flush_dyn.sdr",
+          new_dir
+        )
         -- No read-only warning should be shown!
         assert.are.equal(0, #shown_notifications)
 
@@ -2179,7 +2179,8 @@ describe("docsettings module", function()
     it(
       "asserts when flush is called on an instance created by openSettingsFile",
       function()
-        local inst = docsettings.openSettingsFile("/nonexistent/dummy_settings.lua")
+        local inst =
+          docsettings.openSettingsFile("/nonexistent/dummy_settings.lua")
         assert.has_error(function()
           inst:flush()
         end, "DocSettings: doc_path must not be nil or empty")
@@ -2227,7 +2228,10 @@ describe("docsettings module", function()
 
         inst:flush()
         assert.truthy(shown_notification)
-        assert.are.equal(gettext("Failed to save custom metadata to disk."), shown_notification.text)
+        assert.are.equal(
+          gettext("Failed to save custom metadata to disk."),
+          shown_notification.text
+        )
         assert.is_false(removed)
       end
     )
@@ -2273,7 +2277,10 @@ describe("docsettings module", function()
 
         inst:flush()
         assert.truthy(shown_notification)
-        assert.are.equal(gettext("Failed to save custom cover to disk."), shown_notification.text)
+        assert.are.equal(
+          gettext("Failed to save custom cover to disk."),
+          shown_notification.text
+        )
         assert.is_false(removed)
       end
     )
@@ -2368,10 +2375,8 @@ describe("docsettings module", function()
         assert.are.equal("reading", docsettings.getStatus(no_summary_doc))
 
         local non_table_doc = temp_root .. "/non_table_summary.epub"
-        local sidecar_file = non_table_doc:gsub(
-          "%.epub$",
-          ".sdr/metadata.epub.lua"
-        )
+        local sidecar_file =
+          non_table_doc:gsub("%.epub$", ".sdr/metadata.epub.lua")
         finally(function()
           os.remove(sidecar_file)
           docsettings.removeSidecarDir(temp_root .. "/non_table_summary.sdr")

@@ -73,7 +73,9 @@ describe("ffi/util module", function()
                 source_closed = true
               end,
             }
-          elseif (path == "dummy_dst" or path == "dummy_dst.new") and mode == "wb" then
+          elseif
+            (path == "dummy_dst" or path == "dummy_dst.new") and mode == "wb"
+          then
             return nil, "Permission denied"
           end
           return orig_io_open(path, mode)
@@ -86,165 +88,192 @@ describe("ffi/util module", function()
       end
     )
 
-    it("cleans up .new and preserves original destination when write fails", function()
-      local pid = ffiUtil.getpid()
-      local src = "/tmp/koreader_test_copy_wfail_" .. pid .. "_src.txt"
-      local dst = "/tmp/koreader_test_copy_wfail_" .. pid .. "_dst.txt"
-      local new_dst = dst .. ".new"
-      finally(function()
-        os.remove(src)
-        os.remove(dst)
-        os.remove(new_dst)
-      end)
+    it(
+      "cleans up .new and preserves original destination when write fails",
+      function()
+        local pid = ffiUtil.getpid()
+        local src = "/tmp/koreader_test_copy_wfail_" .. pid .. "_src.txt"
+        local dst = "/tmp/koreader_test_copy_wfail_" .. pid .. "_dst.txt"
+        local new_dst = dst .. ".new"
+        finally(function()
+          os.remove(src)
+          os.remove(dst)
+          os.remove(new_dst)
+        end)
 
-      local f_src = io.open(src, "wb")
-      f_src:write("source data")
-      f_src:close()
+        local f_src = io.open(src, "wb")
+        f_src:write("source data")
+        f_src:close()
 
-      local f_dst = io.open(dst, "wb")
-      f_dst:write("old destination")
-      f_dst:close()
+        local f_dst = io.open(dst, "wb")
+        f_dst:write("old destination")
+        f_dst:close()
 
-      io.open = function(path, mode)
-        if path == new_dst then
-          local real = orig_io_open(path, mode)
-          return {
-            write = function() return nil, "disk full" end,
-            close = function() if real then real:close() end return true end,
-          }
+        io.open = function(path, mode)
+          if path == new_dst then
+            local real = orig_io_open(path, mode)
+            return {
+              write = function()
+                return nil, "disk full"
+              end,
+              close = function()
+                if real then
+                  real:close()
+                end
+                return true
+              end,
+            }
+          end
+          return orig_io_open(path, mode)
         end
-        return orig_io_open(path, mode)
+
+        local err = ffiUtil.copyFile(src, dst)
+        io.open = orig_io_open
+
+        assert.same("disk full", err)
+        assert.is_nil(lfs.attributes(new_dst))
+        local f_check = io.open(dst, "rb")
+        local content = f_check:read("*all")
+        f_check:close()
+        assert.same("old destination", content)
       end
+    )
 
-      local err = ffiUtil.copyFile(src, dst)
-      io.open = orig_io_open
+    it(
+      "cleans up .new and preserves original destination when fsync fails",
+      function()
+        local pid = ffiUtil.getpid()
+        local src = "/tmp/koreader_test_copy_sfail_" .. pid .. "_src.txt"
+        local dst = "/tmp/koreader_test_copy_sfail_" .. pid .. "_dst.txt"
+        local new_dst = dst .. ".new"
+        finally(function()
+          os.remove(src)
+          os.remove(dst)
+          os.remove(new_dst)
+        end)
 
-      assert.same("disk full", err)
-      assert.is_nil(lfs.attributes(new_dst))
-      local f_check = io.open(dst, "rb")
-      local content = f_check:read("*all")
-      f_check:close()
-      assert.same("old destination", content)
-    end)
+        local f_src = io.open(src, "wb")
+        f_src:write("source data")
+        f_src:close()
 
-    it("cleans up .new and preserves original destination when fsync fails", function()
-      local pid = ffiUtil.getpid()
-      local src = "/tmp/koreader_test_copy_sfail_" .. pid .. "_src.txt"
-      local dst = "/tmp/koreader_test_copy_sfail_" .. pid .. "_dst.txt"
-      local new_dst = dst .. ".new"
-      finally(function()
-        os.remove(src)
-        os.remove(dst)
-        os.remove(new_dst)
-      end)
+        local f_dst = io.open(dst, "wb")
+        f_dst:write("old destination")
+        f_dst:close()
 
-      local f_src = io.open(src, "wb")
-      f_src:write("source data")
-      f_src:close()
-
-      local f_dst = io.open(dst, "wb")
-      f_dst:write("old destination")
-      f_dst:close()
-
-      local orig_fsync = ffiUtil.fsyncOpenedFile
-      ffiUtil.fsyncOpenedFile = function() return false, "sync error" end
-
-      local err = ffiUtil.copyFile(src, dst)
-      ffiUtil.fsyncOpenedFile = orig_fsync
-
-      assert.same("sync error", err)
-      assert.is_nil(lfs.attributes(new_dst))
-      local f_check = io.open(dst, "rb")
-      local content = f_check:read("*all")
-      f_check:close()
-      assert.same("old destination", content)
-    end)
-
-    it("cleans up .new and preserves original destination when close fails", function()
-      local pid = ffiUtil.getpid()
-      local src = "/tmp/koreader_test_copy_cfail_" .. pid .. "_src.txt"
-      local dst = "/tmp/koreader_test_copy_cfail_" .. pid .. "_dst.txt"
-      local new_dst = dst .. ".new"
-      finally(function()
-        os.remove(src)
-        os.remove(dst)
-        os.remove(new_dst)
-      end)
-
-      local f_src = io.open(src, "wb")
-      f_src:write("source data")
-      f_src:close()
-
-      local f_dst = io.open(dst, "wb")
-      f_dst:write("old destination")
-      f_dst:close()
-
-      local orig_fsync = ffiUtil.fsyncOpenedFile
-      ffiUtil.fsyncOpenedFile = function() return true end
-
-      io.open = function(path, mode)
-        if path == new_dst then
-          local real = orig_io_open(path, mode)
-          return {
-            write = function(self, d) return real:write(d) end,
-            close = function()
-              if real then real:close() end
-              return nil, "close failed"
-            end,
-          }
+        local orig_fsync = ffiUtil.fsyncOpenedFile
+        ffiUtil.fsyncOpenedFile = function()
+          return false, "sync error"
         end
-        return orig_io_open(path, mode)
+
+        local err = ffiUtil.copyFile(src, dst)
+        ffiUtil.fsyncOpenedFile = orig_fsync
+
+        assert.same("sync error", err)
+        assert.is_nil(lfs.attributes(new_dst))
+        local f_check = io.open(dst, "rb")
+        local content = f_check:read("*all")
+        f_check:close()
+        assert.same("old destination", content)
       end
+    )
 
-      local err = ffiUtil.copyFile(src, dst)
-      io.open = orig_io_open
-      ffiUtil.fsyncOpenedFile = orig_fsync
+    it(
+      "cleans up .new and preserves original destination when close fails",
+      function()
+        local pid = ffiUtil.getpid()
+        local src = "/tmp/koreader_test_copy_cfail_" .. pid .. "_src.txt"
+        local dst = "/tmp/koreader_test_copy_cfail_" .. pid .. "_dst.txt"
+        local new_dst = dst .. ".new"
+        finally(function()
+          os.remove(src)
+          os.remove(dst)
+          os.remove(new_dst)
+        end)
 
-      assert.same("close failed", err)
-      assert.is_nil(lfs.attributes(new_dst))
-      local f_check = io.open(dst, "rb")
-      local content = f_check:read("*all")
-      f_check:close()
-      assert.same("old destination", content)
-    end)
+        local f_src = io.open(src, "wb")
+        f_src:write("source data")
+        f_src:close()
 
-    it("cleans up .new and preserves original destination when rename fails", function()
-      local pid = ffiUtil.getpid()
-      local src = "/tmp/koreader_test_copy_rfail_" .. pid .. "_src.txt"
-      local dst = "/tmp/koreader_test_copy_rfail_" .. pid .. "_dst.txt"
-      local new_dst = dst .. ".new"
-      finally(function()
-        os.remove(src)
-        os.remove(dst)
-        os.remove(new_dst)
-      end)
+        local f_dst = io.open(dst, "wb")
+        f_dst:write("old destination")
+        f_dst:close()
 
-      local f_src = io.open(src, "wb")
-      f_src:write("source data")
-      f_src:close()
-
-      local f_dst = io.open(dst, "wb")
-      f_dst:write("old destination")
-      f_dst:close()
-
-      local orig_rename = os.rename
-      os.rename = function(from, to)
-        if from == new_dst then
-          return nil, "rename failed"
+        local orig_fsync = ffiUtil.fsyncOpenedFile
+        ffiUtil.fsyncOpenedFile = function()
+          return true
         end
-        return orig_rename(from, to)
+
+        io.open = function(path, mode)
+          if path == new_dst then
+            local real = orig_io_open(path, mode)
+            return {
+              write = function(self, d)
+                return real:write(d)
+              end,
+              close = function()
+                if real then
+                  real:close()
+                end
+                return nil, "close failed"
+              end,
+            }
+          end
+          return orig_io_open(path, mode)
+        end
+
+        local err = ffiUtil.copyFile(src, dst)
+        io.open = orig_io_open
+        ffiUtil.fsyncOpenedFile = orig_fsync
+
+        assert.same("close failed", err)
+        assert.is_nil(lfs.attributes(new_dst))
+        local f_check = io.open(dst, "rb")
+        local content = f_check:read("*all")
+        f_check:close()
+        assert.same("old destination", content)
       end
+    )
 
-      local err = ffiUtil.copyFile(src, dst)
-      os.rename = orig_rename
+    it(
+      "cleans up .new and preserves original destination when rename fails",
+      function()
+        local pid = ffiUtil.getpid()
+        local src = "/tmp/koreader_test_copy_rfail_" .. pid .. "_src.txt"
+        local dst = "/tmp/koreader_test_copy_rfail_" .. pid .. "_dst.txt"
+        local new_dst = dst .. ".new"
+        finally(function()
+          os.remove(src)
+          os.remove(dst)
+          os.remove(new_dst)
+        end)
 
-      assert.same("rename failed", err)
-      assert.is_nil(lfs.attributes(new_dst))
-      local f_check = io.open(dst, "rb")
-      local content = f_check:read("*all")
-      f_check:close()
-      assert.same("old destination", content)
-    end)
+        local f_src = io.open(src, "wb")
+        f_src:write("source data")
+        f_src:close()
+
+        local f_dst = io.open(dst, "wb")
+        f_dst:write("old destination")
+        f_dst:close()
+
+        local orig_rename = os.rename
+        os.rename = function(from, to)
+          if from == new_dst then
+            return nil, "rename failed"
+          end
+          return orig_rename(from, to)
+        end
+
+        local err = ffiUtil.copyFile(src, dst)
+        os.rename = orig_rename
+
+        assert.same("rename failed", err)
+        assert.is_nil(lfs.attributes(new_dst))
+        local f_check = io.open(dst, "rb")
+        local content = f_check:read("*all")
+        f_check:close()
+        assert.same("old destination", content)
+      end
+    )
   end)
 
   describe("getpid()", function()
@@ -269,22 +298,25 @@ describe("ffi/util module", function()
       assert.is_not_nil(err)
     end)
 
-    it("returns nil and error without raising on unreadable directory", function()
-      local pid = ffiUtil.getpid()
-      local unreadable = "/tmp/unreadable_purge_dir_" .. pid
-      lfs.mkdir(unreadable)
-      os.execute("chmod 000 " .. unreadable)
-      finally(function()
-        os.execute("chmod 755 " .. unreadable)
-        os.remove(unreadable)
-      end)
+    it(
+      "returns nil and error without raising on unreadable directory",
+      function()
+        local pid = ffiUtil.getpid()
+        local unreadable = "/tmp/unreadable_purge_dir_" .. pid
+        lfs.mkdir(unreadable)
+        os.execute("chmod 000 " .. unreadable)
+        finally(function()
+          os.execute("chmod 755 " .. unreadable)
+          os.remove(unreadable)
+        end)
 
-      local ok, err
-      assert.has_no.errors(function()
-        ok, err = ffiUtil.purgeDir(unreadable)
-      end)
-      assert.is_nil(ok)
-      assert.is_not_nil(err)
-    end)
+        local ok, err
+        assert.has_no.errors(function()
+          ok, err = ffiUtil.purgeDir(unreadable)
+        end)
+        assert.is_nil(ok)
+        assert.is_not_nil(err)
+      end
+    )
   end)
 end)
