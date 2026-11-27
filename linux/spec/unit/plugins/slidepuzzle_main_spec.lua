@@ -163,4 +163,21 @@ describe("SlidePuzzle main plugin module", function()
     assert.is_table(plugin.screen)
     assert.are.same({}, unknown_warnings)
   end)
+
+  it("returns disabled table when Device:isTouchDevice() is false", function()
+    local Device = require("device")
+    local orig_is_touch = Device.isTouchDevice
+    local orig_loaded = package.loaded["plugins/slidepuzzle.koplugin/main"]
+    finally(function()
+      Device.isTouchDevice = orig_is_touch
+      package.loaded["plugins/slidepuzzle.koplugin/main"] = orig_loaded
+    end)
+
+    Device.isTouchDevice = function()
+      return false
+    end
+    package.loaded["plugins/slidepuzzle.koplugin/main"] = nil
+    local mod = require("plugins/slidepuzzle.koplugin/main")
+    assert.are.same({ disabled = true }, mod)
+  end)
 end)

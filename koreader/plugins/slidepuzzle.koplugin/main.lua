@@ -5,6 +5,11 @@
     instances to the screen.
 --]]
 
+local Device = require("device")
+if not Device:isTouchDevice() then
+  return { disabled = true }
+end
+
 local DataStorage = require("datastorage")
 local LuaSettings = require("luasettings")
 local UIManager = require("ui/uimanager")

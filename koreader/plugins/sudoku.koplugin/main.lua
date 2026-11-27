@@ -1,7 +1,11 @@
+local Device = require("device")
+if not Device:isTouchDevice() then
+  return { disabled = true }
+end
+
 local Blitbuffer = require("ffi/blitbuffer")
 local ButtonTable = require("ui/widget/buttontable")
 local DataStorage = require("datastorage")
-local Device = require("device")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")

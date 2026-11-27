@@ -104,4 +104,21 @@ describe("Solitaire main plugin module", function()
       end
     end)
   end)
+
+  it("returns disabled table when Device:isTouchDevice() is false", function()
+    local Device = require("device")
+    local orig_is_touch = Device.isTouchDevice
+    local orig_loaded = package.loaded["plugins/solitaire.koplugin/main"]
+    finally(function()
+      Device.isTouchDevice = orig_is_touch
+      package.loaded["plugins/solitaire.koplugin/main"] = orig_loaded
+    end)
+
+    Device.isTouchDevice = function()
+      return false
+    end
+    package.loaded["plugins/solitaire.koplugin/main"] = nil
+    local mod = require("plugins/solitaire.koplugin/main")
+    assert.are.same({ disabled = true }, mod)
+  end)
 end)

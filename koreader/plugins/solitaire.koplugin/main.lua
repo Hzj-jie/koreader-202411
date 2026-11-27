@@ -1,3 +1,8 @@
+local Device = require("device")
+if not Device:isTouchDevice() then
+  return { disabled = true }
+end
+
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local gettext = require("gettext")

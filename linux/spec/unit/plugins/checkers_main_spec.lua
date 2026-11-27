@@ -307,4 +307,21 @@ describe("Checkers main plugin module", function()
     end
     UIManager:quit()
   end)
+
+  it("returns disabled table when Device:isTouchDevice() is false", function()
+    local Device = require("device")
+    local orig_is_touch = Device.isTouchDevice
+    local orig_loaded = package.loaded["plugins/checkers.koplugin/main"]
+    finally(function()
+      Device.isTouchDevice = orig_is_touch
+      package.loaded["plugins/checkers.koplugin/main"] = orig_loaded
+    end)
+
+    Device.isTouchDevice = function()
+      return false
+    end
+    package.loaded["plugins/checkers.koplugin/main"] = nil
+    local mod = require("plugins/checkers.koplugin/main")
+    assert.are.same({ disabled = true }, mod)
+  end)
 end)

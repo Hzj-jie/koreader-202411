@@ -1,6 +1,10 @@
 -- Checkers KOReader plugin — main entry point.
 
 local Device = require("device")
+if not Device:isTouchDevice() then
+  return { disabled = true }
+end
+
 local Screen = Device.screen
 local Blitbuffer = require("ffi/blitbuffer")
 local DataStorage = require("datastorage")
