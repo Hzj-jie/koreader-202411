@@ -866,4 +866,78 @@ describe("ReaderStatistics plugin main spec", function()
       ReaderStatistics:onDispatcherRegisterActions()
     end
   end)
+
+  it(
+    "omits sync dispatcher action and menu entries when Device:hasNetwork() is false",
+    function()
+      local gettext = require("gettext")
+      local has_network_stub = stub(Device, "hasNetwork")
+      finally(function()
+        has_network_stub:revert()
+      end)
+
+      local function collectTexts(items)
+        local texts = {}
+        for _, item in ipairs(items) do
+          if item.text then
+            texts[item.text] = true
+          end
+        end
+        return texts
+      end
+
+      local function registeredActions()
+        local ids = {}
+        for _, call in ipairs(Dispatcher.registerAction.calls) do
+          ids[call.vals[2]] = true
+        end
+        return ids
+      end
+
+      has_network_stub.returns(false)
+      Dispatcher.registerAction:clear()
+      local stats = createInstance()
+      local no_net_actions = registeredActions()
+      assert.is_nil(no_net_actions["stats_sync"])
+      assert.is_true(no_net_actions["toggle_statistics"])
+      assert.is_true(no_net_actions["book_statistics"])
+
+      local no_net_menu = {}
+      stats:addToMainMenu(no_net_menu)
+      local top_texts = collectTexts(no_net_menu.statistics.sub_item_table)
+      assert.is_nil(top_texts[gettext("Synchronize now")])
+      assert.is_true(top_texts[gettext("Reset statistics")])
+      assert.is_true(top_texts[gettext("Current book")])
+
+      local settings_item
+      for _, item in ipairs(no_net_menu.statistics.sub_item_table) do
+        if item.text == gettext("Settings") then
+          settings_item = item
+          break
+        end
+      end
+      assert.is_table(settings_item)
+      local settings_texts = collectTexts(settings_item.sub_item_table)
+      assert.is_nil(settings_texts[gettext("Cloud sync")])
+      assert.is_nil(settings_texts[gettext("Auto sync when idle")])
+      assert.is_true(settings_texts[gettext("Also use in calendar view")])
+
+      has_network_stub.returns(true)
+      Dispatcher.registerAction:clear()
+      local net_stats = createInstance()
+      assert.is_true(registeredActions()["stats_sync"])
+
+      local net_menu = {}
+      net_stats:addToMainMenu(net_menu)
+      assert.is_true(
+        collectTexts(net_menu.statistics.sub_item_table)[gettext(
+          "Synchronize now"
+        )]
+      )
+      local net_settings_texts =
+        collectTexts(net_menu.statistics.sub_item_table[2].sub_item_table)
+      assert.is_true(net_settings_texts[gettext("Cloud sync")])
+      assert.is_true(net_settings_texts[gettext("Auto sync when idle")])
+    end
+  )
 end)

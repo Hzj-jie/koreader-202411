@@ -316,15 +316,19 @@ function MenuDialog:setupPluginMenu()
     end,
   }
 
+  local button_rows = {
+    { reverse_button },
+    { sync_button },
+    { search_button },
+    { filter_button, edit_button },
+    { reset_button, clean_button },
+  }
+  if not Device:hasNetwork() then
+    table.remove(button_rows, 2)
+  end
   local buttons = ButtonTable:new({
     width = width,
-    buttons = {
-      { reverse_button },
-      { sync_button },
-      { search_button },
-      { filter_button, edit_button },
-      { reset_button, clean_button },
-    },
+    buttons = button_rows,
   })
   self:mergeLayoutInVertical(buttons)
 

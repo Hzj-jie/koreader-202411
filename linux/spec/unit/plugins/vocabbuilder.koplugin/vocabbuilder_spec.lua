@@ -452,5 +452,48 @@ describe("VocabBuilder plugin unit tests", function()
 
       widget:onExit()
     end)
+
+    it(
+      "omits Cloud sync button from menu dialog when Device:hasNetwork() is false",
+      function()
+        local Device = require("device")
+        local gettext = require("gettext")
+        local has_network_stub = stub(Device, "hasNetwork")
+        finally(function()
+          has_network_stub:revert()
+        end)
+
+        local function collectButtonTexts(dialog)
+          local texts = {}
+          for _, row in ipairs(dialog.layout or {}) do
+            for _, btn in ipairs(row) do
+              if btn.text then
+                texts[btn.text] = true
+              end
+            end
+          end
+          return texts
+        end
+
+        has_network_stub.returns(false)
+        local builder = VocabBuilder:new({ ui = mock_ui })
+        local no_net_dialog = getMenuDialog(builder)
+        assert.is_table(no_net_dialog)
+        local no_net_texts = collectButtonTexts(no_net_dialog)
+        assert.is_nil(no_net_texts[gettext("Cloud sync")])
+        assert.is_true(no_net_texts[gettext("Search")])
+        builder.widget:onExit()
+
+        UIManager.show:clear()
+        has_network_stub.returns(true)
+        local net_builder = VocabBuilder:new({ ui = mock_ui })
+        local net_dialog = getMenuDialog(net_builder)
+        assert.is_table(net_dialog)
+        local net_texts = collectButtonTexts(net_dialog)
+        assert.is_true(net_texts[gettext("Cloud sync")])
+        assert.is_true(net_texts[gettext("Search")])
+        net_builder.widget:onExit()
+      end
+    )
   end)
 end)
