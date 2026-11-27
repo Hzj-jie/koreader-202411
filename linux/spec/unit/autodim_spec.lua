@@ -215,4 +215,20 @@ describe("AutoDim widget tests", function()
       assert.are.equal(10, Device:getPowerDevice():frontlightIntensity())
     end
   )
+
+  it("returns disabled table when Device:hasFrontlight() is false", function()
+    local orig_has_frontlight = Device.hasFrontlight
+    local orig_loaded = package.loaded["plugins/autodim.koplugin/main"]
+    finally(function()
+      Device.hasFrontlight = orig_has_frontlight
+      package.loaded["plugins/autodim.koplugin/main"] = orig_loaded
+    end)
+
+    Device.hasFrontlight = function()
+      return false
+    end
+    package.loaded["plugins/autodim.koplugin/main"] = nil
+    local mod = require("plugins/autodim.koplugin/main")
+    assert.are.same({ disabled = true }, mod)
+  end)
 end)

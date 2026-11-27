@@ -6,6 +6,10 @@ Plugin for automatic dimming of the frontlight after an idle period.
 --
 
 local Device = require("device")
+if not Device:hasFrontlight() then
+  return { disabled = true }
+end
+
 local SpinWidget = require("ui/widget/spinwidget")
 local TrapWidget = require("ui/widget/trapwidget")
 local UIManager = require("ui/uimanager")
