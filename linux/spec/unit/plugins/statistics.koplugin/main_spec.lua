@@ -866,4 +866,126 @@ describe("ReaderStatistics plugin main spec", function()
       ReaderStatistics:onDispatcherRegisterActions()
     end
   end)
+
+  it(
+    "should initialize DB schema on FileManager startup without an open document",
+    function()
+      local lfs = require("libs/libkoreader-lfs")
+      local FFIUtil = require("ffi/util")
+      local pid = tostring(ffi.C.getpid())
+      local work_db = DataStorage:getSettingsDir()
+        .. "/fm_sync_work_"
+        .. pid
+        .. ".sqlite3"
+      local cached_db = DataStorage:getSettingsDir()
+        .. "/fm_sync_cached_"
+        .. pid
+        .. ".sqlite3"
+      local income_db = DataStorage:getSettingsDir()
+        .. "/fm_sync_income_"
+        .. pid
+        .. ".sqlite3"
+      finally(function()
+        os.remove(work_db)
+        os.remove(cached_db)
+        os.remove(income_db)
+      end)
+
+      assert.is_nil(lfs.attributes(db_location, "mode"))
+
+      local stats = ReaderStatistics:new({
+        ui = {
+          menu = {
+            registerToMainMenu = function() end,
+          },
+        },
+      })
+
+      assert.are.equal("file", lfs.attributes(db_location, "mode"))
+      local conn = SQ3.open(db_location)
+      local table_count = tonumber(
+        conn:rowexec(
+          "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('book', 'page_stat_data');"
+        )
+      )
+      conn:close()
+      assert.are.equal(2, table_count)
+
+      -- Queries and sync from FileManager should work immediately
+      assert.is_table(stats:getBooksFromPeriod(0, os.time()))
+      assert.has_no_errors(function()
+        stats:getReadingProgressStats(7)
+      end)
+
+      local c_inc = SQ3.open(income_db)
+      ReaderStatistics:createDB(c_inc)
+      c_inc:exec(
+        "INSERT INTO book (id, title, authors, pages, md5, total_read_time, total_read_pages) VALUES (1, 'Remote Book', 'Remote Author', 120, 'remote_md5', 60, 2);"
+      )
+      c_inc:exec(
+        "INSERT INTO page_stat_data (id_book, page, start_time, duration, total_pages) VALUES (1, 1, 1000, 30, 120);"
+      )
+      c_inc:close()
+
+      assert.is_nil(FFIUtil.copyFile(db_location, work_db))
+      assert.is_true(ReaderStatistics.onSync(work_db, cached_db, income_db))
+      local c_merged = SQ3.open(work_db)
+      local merged_count = tonumber(
+        c_merged:rowexec("SELECT count(*) FROM book WHERE md5 = 'remote_md5';")
+      )
+      c_merged:close()
+      assert.are.equal(1, merged_count)
+    end
+  )
+
+  it(
+    "should not call _initData from corrupt DB recreate callback before doc state is initialized",
+    function()
+      local ConfirmBox = require("ui/widget/confirmbox")
+      local captured_boxes = {}
+      UIManager.show:revert()
+      stub(UIManager, "show", function(_, widget)
+        if getmetatable(widget) == ConfirmBox then
+          table.insert(captured_boxes, widget)
+        end
+      end)
+
+      local function createCorruptDB()
+        os.remove(db_location)
+        local conn = SQ3.open(db_location)
+        conn:exec(
+          "CREATE TABLE dummy (x integer); PRAGMA user_version = 20221111;"
+        )
+        conn:close()
+      end
+
+      -- Picture document: self.document is set, but _initDocState skips it
+      createCorruptDB()
+      local pic_stats = ReaderStatistics:new({
+        ui = createMockUI(),
+        document = { is_pic = true },
+      })
+      assert.are.equal(1, #captured_boxes)
+      local pic_init_spy = spy.on(pic_stats, "_initData")
+      assert.has_no_errors(function()
+        captured_boxes[1].ok_callback()
+      end)
+      assert.spy(pic_init_spy).was_not_called()
+
+      -- Standard Reader startup before onPostReaderReady (doc_props is nil)
+      createCorruptDB()
+      local ui = createMockUI()
+      ui.doc_props = nil
+      local pre_ready_stats = ReaderStatistics:new({
+        ui = ui,
+        document = ui.document,
+      })
+      assert.are.equal(2, #captured_boxes)
+      local pre_ready_spy = spy.on(pre_ready_stats, "_initData")
+      assert.has_no_errors(function()
+        captured_boxes[2].ok_callback()
+      end)
+      assert.spy(pre_ready_spy).was_not_called()
+    end
+  )
 end)

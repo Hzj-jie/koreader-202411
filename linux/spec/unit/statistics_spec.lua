@@ -552,12 +552,10 @@ describe("Statistics plugin", function()
 
       local opts = helper_create_stats_opts()
       opts.ui.doc_props = nil
-      local stats = ReaderStatistics:new(opts)
-      stats.migrateToDB = function()
+      opts.migrateToDB = function()
         return 1
       end
-
-      stats:_checkInitDatabase()
+      ReaderStatistics:new(opts)
 
       assert.is_true(#shown_texts >= 2)
       assert.are.equal(
