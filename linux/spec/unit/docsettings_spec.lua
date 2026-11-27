@@ -3170,6 +3170,7 @@ describe("docsettings module", function()
         ds:flush()
         ds:close()
         assert.is_true(docsettings:flushCustomCover(orig, src_cover))
+        lfs.touch(hash_file, 2000, 2000)
         local orig_mtime = lfs.attributes(hash_file, "modification")
 
         G_reader_settings:save("document_metadata_folder", "doc")
@@ -3348,6 +3349,48 @@ describe("docsettings module", function()
         assert.is_false(util.fileExists(orig_file))
         assert.is_nil(lfs.attributes(orig_dir, "mode"))
         assert.is_false(docsettings:hasSidecarFile(dest))
+      end
+    )
+
+    it(
+      "copies custom cover from book folder into hash sidecar when copying a hash-backed book",
+      function()
+        local orig = createBook("copy_hash_ext_cover_orig.epub")
+        local copy_book = temp_root .. "/copy_hash_ext_cover_copy.epub"
+        local src_cover =
+          createTempCover("copy_hash_ext_cover.png", "ext-doc-cover")
+        local hash_dir
+        finally(function()
+          if hash_dir then
+            ffiutil.purgeDir(hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+        end)
+
+        -- Custom cover in doc folder, active sidecar in hash folder
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local orig_doc_dir = getSidecarDir(orig)
+        assert.is_true(docsettings:flushCustomCover(orig, src_cover))
+
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir = getSidecarDir(orig)
+        local hash_file = getSidecarFile(orig)
+        local ds = docsettings:open(orig)
+        ds:save("last_page", 71)
+        ds:flush(nil, true)
+        lfs.touch(hash_file, 2000, 2000)
+        assert.is_true(util.fileExists(orig_doc_dir .. "/cover.png"))
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        assert.is_nil(ffiutil.copyFile(orig, copy_book))
+        docsettings.updateLocation(orig, copy_book, true)
+
+        assert.are.equal(2000, lfs.attributes(hash_file, "modification"))
+        assert.is_true(util.fileExists(orig_doc_dir .. "/cover.png"))
+        local copy_cover = docsettings:findCustomCoverFile(copy_book)
+        assert.is_truthy(copy_cover)
+        assert.is_true(util.stringStartsWith(copy_cover, hash_dir .. "/"))
+        assert.are.equal("ext-doc-cover", util.readFromFile(copy_cover))
       end
     )
   end)
