@@ -106,6 +106,7 @@ local settingsList = {
     event = "ShowWikipediaLookup",
     title = gettext("Wikipedia lookup"),
     general = true,
+    condition = Device:hasNetwork(),
     separator = true,
   },
   ----
@@ -783,6 +784,7 @@ local settingsList = {
     event = "TranslateCurrentPage",
     title = gettext("Translate current page"),
     reader = true,
+    condition = Device:hasNetwork(),
     separator = true,
   },
   ----

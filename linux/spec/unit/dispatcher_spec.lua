@@ -679,45 +679,99 @@ describe("dispatcher", function()
       end
     )
 
-    it("disables Wi-Fi and show_network_info dispatcher actions when Device:hasNetwork() is false", function()
-      local Device = require("device")
-      local orig_dispatcher = package.loaded["dispatcher"]
-      local orig_has_network = Device.hasNetwork
-      local orig_has_toggle = Device.hasWifiToggle
-      finally(function()
-        Device.hasNetwork = orig_has_network
-        Device.hasWifiToggle = orig_has_toggle
-        package.loaded["dispatcher"] = orig_dispatcher
-      end)
+    it(
+      "disables Wi-Fi and show_network_info dispatcher actions when Device:hasNetwork() is false",
+      function()
+        local Device = require("device")
+        local orig_dispatcher = package.loaded["dispatcher"]
+        local orig_has_network = Device.hasNetwork
+        local orig_has_toggle = Device.hasWifiToggle
+        finally(function()
+          Device.hasNetwork = orig_has_network
+          Device.hasWifiToggle = orig_has_toggle
+          package.loaded["dispatcher"] = orig_dispatcher
+        end)
 
-      Device.hasNetwork = function()
-        return false
-      end
-      Device.hasWifiToggle = function()
-        return true
-      end
-      package.loaded["dispatcher"] = nil
-      local actions = {
-        wifi_on = true,
-        wifi_off = true,
-        toggle_wifi = true,
-        show_network_info = true,
-      }
-      local no_net_disp = require("dispatcher")
-      assert.are.same({}, no_net_disp:getDisplayList(actions))
+        Device.hasNetwork = function()
+          return false
+        end
+        Device.hasWifiToggle = function()
+          return true
+        end
+        package.loaded["dispatcher"] = nil
+        local actions = {
+          wifi_on = true,
+          wifi_off = true,
+          toggle_wifi = true,
+          show_network_info = true,
+        }
+        local no_net_disp = require("dispatcher")
+        assert.are.same({}, no_net_disp:getDisplayList(actions))
 
-      -- Device with network but no Wi-Fi toggle still enables show_network_info while hiding Wi-Fi toggles
-      Device.hasNetwork = function()
-        return true
+        -- Device with network but no Wi-Fi toggle still enables show_network_info while hiding Wi-Fi toggles
+        Device.hasNetwork = function()
+          return true
+        end
+        Device.hasWifiToggle = function()
+          return false
+        end
+        package.loaded["dispatcher"] = nil
+        local unmanaged_disp = require("dispatcher")
+        local unmanaged_list = unmanaged_disp:getDisplayList(actions)
+        assert.are.equal(1, #unmanaged_list)
+        assert.are.equal("show_network_info", unmanaged_list[1].key)
       end
-      Device.hasWifiToggle = function()
-        return false
+    )
+
+    it(
+      "hides and skips wikipedia_lookup and translate_page when Device:hasNetwork() is false",
+      function()
+        local Device = require("device")
+        local ReaderUI = require("apps/reader/readerui")
+        local UIManager = require("ui/uimanager")
+        local orig_dispatcher = package.loaded["dispatcher"]
+        local orig_has_network = Device.hasNetwork
+        local orig_reader_instance = ReaderUI.instance
+        local events = {}
+        local user_input_stub = stub(UIManager, "userInput", function(_self, ev)
+          table.insert(events, ev.handler)
+        end)
+        finally(function()
+          user_input_stub:revert()
+          Device.hasNetwork = orig_has_network
+          ReaderUI.instance = orig_reader_instance
+          package.loaded["dispatcher"] = orig_dispatcher
+        end)
+
+        ReaderUI.instance = { rolling = true }
+        local actions = {
+          wikipedia_lookup = true,
+          translate_page = true,
+        }
+
+        Device.hasNetwork = function()
+          return false
+        end
+        package.loaded["dispatcher"] = nil
+        local no_net_disp = require("dispatcher")
+        assert.are.same({}, no_net_disp:getDisplayList(actions))
+        no_net_disp:execute(actions)
+        assert.are.same({}, events)
+
+        Device.hasNetwork = function()
+          return true
+        end
+        package.loaded["dispatcher"] = nil
+        local net_disp = require("dispatcher")
+        local net_list = net_disp:getDisplayList(actions)
+        assert.are.equal(2, #net_list)
+        net_disp:execute(actions)
+        table.sort(events)
+        assert.are.same(
+          { "onShowWikipediaLookup", "onTranslateCurrentPage" },
+          events
+        )
       end
-      package.loaded["dispatcher"] = nil
-      local unmanaged_disp = require("dispatcher")
-      local unmanaged_list = unmanaged_disp:getDisplayList(actions)
-      assert.are.equal(1, #unmanaged_list)
-      assert.are.equal("show_network_info", unmanaged_list[1].key)
-    end)
+    )
   end)
 end)

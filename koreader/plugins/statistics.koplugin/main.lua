@@ -105,13 +105,15 @@ function ReaderStatistics:onDispatcherRegisterActions()
     title = gettext("Statistics today's timeline"),
     general = true,
   })
-  Dispatcher:registerAction("stats_sync", {
-    category = "none",
-    event = "SyncBookStats",
-    title = gettext("Synchronize book statistics"),
-    general = true,
-    separator = true,
-  })
+  if Device:hasNetwork() then
+    Dispatcher:registerAction("stats_sync", {
+      category = "none",
+      event = "SyncBookStats",
+      title = gettext("Synchronize book statistics"),
+      general = true,
+      separator = true,
+    })
+  end
   Dispatcher:registerAction("book_statistics", {
     category = "none",
     event = "ShowBookStats",
@@ -1728,6 +1730,12 @@ Time is in hours and minutes.]]),
       },
     },
   }
+  if not Device:hasNetwork() then
+    local settings_sub = menu_items.statistics.sub_item_table[2].sub_item_table
+    table.remove(settings_sub)
+    table.remove(settings_sub)
+    table.remove(menu_items.statistics.sub_item_table, 4)
+  end
 end
 
 function ReaderStatistics:statMenu()
