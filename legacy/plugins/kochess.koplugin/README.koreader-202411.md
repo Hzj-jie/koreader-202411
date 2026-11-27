@@ -1,0 +1,1 @@
+../../../koreader/plugins/kochess.koplugin/README.koreader-202411.md

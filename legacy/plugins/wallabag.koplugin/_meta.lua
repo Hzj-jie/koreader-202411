@@ -1,0 +1,1 @@
+../../../koreader/plugins/wallabag.koplugin/_meta.lua

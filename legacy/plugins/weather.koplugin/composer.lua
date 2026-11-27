@@ -1,0 +1,1 @@
+../../../koreader/plugins/weather.koplugin/composer.lua

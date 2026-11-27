@@ -19,7 +19,7 @@ This guide details the steps and best practices for importing third-party plugin
   - Implicitly serving as the marker for the default disabled status.
 
 ### [ ] Step 3: Establish Platform Symlinks & Exclusions
-- If the plugin needs to be excluded from specific target platforms (e.g., legacy DXG Kindle target `legacy/` due to the lack of touchscreen/Wi-Fi, or desktop binaries from embedded targets), open `lns.sh` and add the plugin to the corresponding exclude patterns variable (e.g., `LEGACY_EXCLUDES`, `PW2_EXCLUDES`, `KOBO_EXCLUDES`).
+- If the plugin requires specific hardware capabilities (such as network, touchscreen, or frontlight), guard it at the very top of its `main.lua` before other `require` calls (e.g., `local Device = require("device"); if not Device:hasNetwork() then return { disabled = true } end`) rather than excluding it in `lns.sh`. Only add an entry to `lns.sh` (`LEGACY_EXCLUDES`, `PW2_EXCLUDES`, `KOBO_EXCLUDES`) when a plugin or binary is platform-incompatible or too heavy to ship on that target (for example `coverbrowser` or `terminal` on `legacy/`).
 - From the root of the repository, execute the consolidated link script to link/exclude all plugin files (including the new README) to all platform directories:
   ```bash
   ./lns.sh

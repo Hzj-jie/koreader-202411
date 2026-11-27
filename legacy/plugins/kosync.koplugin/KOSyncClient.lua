@@ -1,0 +1,1 @@
+../../../koreader/plugins/kosync.koplugin/KOSyncClient.lua

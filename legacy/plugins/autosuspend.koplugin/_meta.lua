@@ -1,0 +1,1 @@
+../../../koreader/plugins/autosuspend.koplugin/_meta.lua

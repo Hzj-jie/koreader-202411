@@ -1,0 +1,1 @@
+../../../koreader/plugins/mathpuzzle.koplugin/main.lua

@@ -1,6 +1,12 @@
+local Device = require("device")
+if
+  not Device:hasNetwork() or (not Device:isKobo() and not Device:isEmulator())
+then
+  return { disabled = true }
+end
+
 local BD = require("ui/bidi")
 local DataStorage = require("datastorage")
-local Device = require("device")
 local Dispatcher = require("dispatcher")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
@@ -10,12 +16,6 @@ local gettext = require("gettext")
 local logger = require("logger")
 local util = require("util")
 local T = require("ffi/util").template
-
-if
-  not Device:hasNetwork() or (not Device:isKobo() and not Device:isEmulator())
-then
-  return { disabled = true }
-end
 
 -- This plugin uses a patched dropbear that adds two things:
 -- the -n option to bypass password checks

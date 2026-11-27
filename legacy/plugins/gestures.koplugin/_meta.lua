@@ -1,0 +1,1 @@
+../../../koreader/plugins/gestures.koplugin/_meta.lua

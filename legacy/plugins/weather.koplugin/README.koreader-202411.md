@@ -1,0 +1,1 @@
+../../../koreader/plugins/weather.koplugin/README.koreader-202411.md

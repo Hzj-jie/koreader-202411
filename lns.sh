@@ -49,8 +49,8 @@ done
 
 # --- 1. Linux ---
 echo "Configuring linux/..."
-# Linux specific pruning: scripts, settings, spinning_zsync
-LINUX_EXCLUDES="^scripts/|^scripts$|^settings/|^settings$|^spinning_zsync$"
+# Linux specific pruning: scripts
+LINUX_EXCLUDES="^scripts/|^scripts$"
 link_dir_contents "koreader" "linux" "$LINUX_EXCLUDES"
 
 # Recreate test and spec symlinks for linux tests
@@ -63,21 +63,21 @@ ln -rsf "origin.linux/data/tessdata" "linux/data/tessdata"
 
 # --- 2. PW2 ---
 echo "Configuring pw2/..."
-PW2_EXCLUDES="^extensions/|^extensions$|plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$|plugins/legacy_terminal\.koplugin"
+PW2_EXCLUDES="^extensions/|^extensions$|plugins/legacy_terminal\.koplugin"
 link_dir_contents "koreader" "pw2" "$PW2_EXCLUDES"
 # PW2 specific: merge with kindle
 link_dir_contents "kindle" "pw2" "$PW2_EXCLUDES"
 
 # --- 3. Legacy ---
 echo "Configuring legacy/..."
-LEGACY_EXCLUDES="^extensions/|^extensions$|^web/|^web$|settings/weather\.lua|plugins/autodim\.koplugin|plugins/autofrontlight\.koplugin|plugins/autostandby\.koplugin|plugins/autosuspend\.koplugin|plugins/calibre\.koplugin|plugins/httpinspector\.koplugin|plugins/kosync\.koplugin|plugins/newsdownloader\.koplugin|plugins/opds\.koplugin|plugins/SSH\.koplugin|plugins/wallabag\.koplugin|plugins/weather\.koplugin|plugins/gestures\.koplugin|plugins/terminal\.koplugin|plugins/coverbrowser\.koplugin|plugins/kochess\.koplugin/engines/stockfish_pc|plugins/AnnotationSync\.koplugin|plugins/checkers\.koplugin|plugins/game2048\.koplugin|plugins/kochess\.koplugin|plugins/nonogram\.koplugin|plugins/slidepuzzle\.koplugin|plugins/sokoban\.koplugin|plugins/solitaire\.koplugin|plugins/sudoku\.koplugin|plugins/mathpuzzle\.koplugin|/spec/|/spec$"
+LEGACY_EXCLUDES="^extensions/|^extensions$|plugins/coverbrowser\.koplugin|plugins/terminal\.koplugin"
 link_dir_contents "koreader" "legacy" "$LEGACY_EXCLUDES"
 # Legacy specific: merge with kindle
 link_dir_contents "kindle" "legacy" "$LEGACY_EXCLUDES"
 
 # --- 4. Kobo ---
 echo "Configuring kobo/..."
-KOBO_EXCLUDES="plugins/kochess\.koplugin/engines/stockfish_pc|/spec/|/spec$|plugins/legacy_terminal\.koplugin"
+KOBO_EXCLUDES="plugins/legacy_terminal\.koplugin"
 link_dir_contents "koreader" "kobo" "$KOBO_EXCLUDES"
 
 echo "Platform linking complete!"
