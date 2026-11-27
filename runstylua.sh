@@ -10,9 +10,6 @@ function run {
   # note: run with `RUST_BACKTRACE=1` environment variable to display a
   # backtrace
   ./stylua "$1"
-  if [ -e "$1/jit/dump.lua" ]; then
-    ./stylua --syntax Lua53 "$1/jit/dump.lua"
-  fi
 }
 
 function run_twice {
