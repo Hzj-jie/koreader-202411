@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 01:26-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2024-08-30 10:09+0000\n"
 "Last-Translator: Mikko Peltonen <mikkopee9@gmail.com>\n"
 "Language-Team: Finnish <https://hosted.weblate.org/projects/koreader/"
@@ -645,6 +645,12 @@ msgstr "Kokoelmat"
 msgid "Favorites"
 msgstr "Suosikit"
 
+msgid "Status: %1"
+msgstr ""
+
+msgid "Loading collection…"
+msgstr ""
+
 msgid "Remove from collection"
 msgstr "Poista kokoelmasta"
 
@@ -686,6 +692,15 @@ msgstr "Käytä valintaa"
 
 msgid "Arrange collections"
 msgstr "Järjestä kokoelmat"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "Syötä kokoelman nimi"
@@ -841,6 +856,9 @@ msgstr "Suodata kokoelmien mukaan"
 msgid "Search in filename and book metadata"
 msgstr "Hae tiedostonimestä ja kirjan metatiedosta"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Siivoa poistetut tiedostot historiasta"
 
@@ -852,6 +870,36 @@ msgstr "Tyhjennä"
 
 msgid "Filter by book status"
 msgstr "Suodata kirjan tilan mukaan"
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "Palauta"
 
 #, fuzzy
 msgid "Enter text to search history for"
@@ -4355,9 +4403,6 @@ msgstr "Kirjan säätöä ei muutettu."
 msgid "Edit book-specific style tweak"
 msgstr "Muokkaa kirjakohtaista tyylisäätöä"
 
-msgid "Restore"
-msgstr "Palauta"
-
 msgid "Book tweak restored"
 msgstr "Kirjan säätö palautettu"
 
@@ -6251,6 +6296,12 @@ msgstr "Lisäosien hallinta"
 
 msgctxt "Date string"
 msgid "%y-%m-%d"
+msgstr ""
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
 msgstr ""
 
 msgctxt "Font weight class"
@@ -13049,46 +13100,6 @@ msgid "External keyboard"
 msgstr ""
 
 msgid "Manages USB OTG and configures keyboard."
-msgstr ""
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
 msgstr ""
 
 msgid "New game"

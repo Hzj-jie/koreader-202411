@@ -171,7 +171,6 @@ local function mergeWith(b)
     main = {
       "history",
       "open_previous_document",
-      "findhistory",
       "----------------------------",
       "favorites",
       "collections",

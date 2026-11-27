@@ -2,18 +2,27 @@ local BD = require("ui/bidi")
 local ButtonDialog = require("ui/widget/buttondialog")
 local CheckButton = require("ui/widget/checkbutton")
 local ConfirmBox = require("ui/widget/confirmbox")
+local DataStorage = require("datastorage")
 local DocSettings = require("docsettings")
+local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
 local Menu = require("ui/widget/menu")
+local MultiConfirmBox = require("ui/widget/multiconfirmbox")
+local Notification = require("ui/widget/notification")
 local ReadCollection = require("readcollection")
 local UIManager = require("ui/uimanager")
 local Utf8Proc = require("ffi/utf8proc")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local ffiutil = require("ffi/util")
 local filemanagerutil = require("apps/filemanager/filemanagerutil")
 local gettext = require("gettext")
 local util = require("util")
 local C_ = gettext.pgettext
-local T = require("ffi/util").template
+local T = ffiutil.template
+
+local history_file = ffiutil.joinPath(DataStorage:getDataDir(), "history.lua")
+local history_backup_file =
+  ffiutil.joinPath(DataStorage:getDataDir(), "history.lua.backup")
 
 local FileManagerHistory = WidgetContainer:extend({
   hist_menu_title = gettext("History"),
@@ -399,6 +408,16 @@ function FileManagerHistory:showHistDialog()
       end,
     },
   })
+  table.insert(buttons, {}) -- separator
+  table.insert(buttons, {
+    {
+      text = gettext("Retrieve reading history"),
+      callback = function()
+        UIManager:close(hist_dialog)
+        self:retrieveHistory()
+      end,
+    },
+  })
   if self.count.deleted > 0 then
     table.insert(buttons, {}) -- separator
     table.insert(buttons, {
@@ -425,6 +444,146 @@ function FileManagerHistory:showHistDialog()
     buttons = buttons,
   })
   self:showWidget(hist_dialog)
+end
+
+function FileManagerHistory:refreshAfterHistoryUpdate()
+  assert(self.hist_menu ~= nil)
+  if self.filter ~= "all" or self.is_frozen then
+    self:fetchStatuses(false)
+  else
+    self.statuses_fetched = false
+  end
+  self:updateItemTable()
+end
+
+function FileManagerHistory:doBuildHistory()
+  local updated = false
+  UIManager:runWith(function()
+    local ReadHistory = require("readhistory")
+    local times_by_file = {}
+    local function scanSidecars(root, prefix_len)
+      util.findFiles(root, function(path, _, attr)
+        local book_path, replaced =
+          path:sub(prefix_len + 1):gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+        if replaced > 0 and book_path ~= "" then
+          book_path = ffiutil.realpath(book_path)
+          if
+            book_path
+            and util.fileExists(book_path)
+            and not ReadHistory:ignoreItem(book_path)
+            and (
+              not times_by_file[book_path]
+              or attr.modification > times_by_file[book_path]
+            )
+          then
+            times_by_file[book_path] = attr.modification
+          end
+        end
+      end)
+    end
+    scanSidecars(G_named_settings.home_dir():gsub("(.+)/+$", "%1"), 0)
+    local docsettings_dir = DataStorage:getDocSettingsDir():gsub("/+$", "")
+    scanSidecars(docsettings_dir, #docsettings_dir)
+    local records = {}
+    for file, mtime in pairs(times_by_file) do
+      table.insert(records, {
+        file = file,
+        time = mtime,
+      })
+    end
+    table.sort(records, function(l, r)
+      return l.time > r.time
+    end)
+    local backed_up = false
+    if util.fileExists(history_file) then
+      local ok, err = os.rename(history_file, history_backup_file)
+      if not ok then
+        Notification:notify(
+          T(gettext("Failed to back up reading history: %1"), err)
+        )
+        return
+      end
+      backed_up = true
+    end
+    local prev_hist = ReadHistory.hist
+    ReadHistory.hist = records
+    if not ReadHistory:flush() then
+      ReadHistory.hist = prev_hist
+      if backed_up then
+        local ok, err = os.rename(history_backup_file, history_file)
+        if not ok then
+          Notification:notify(
+            T(gettext("Failed to restore reading history: %1"), err)
+          )
+        end
+      end
+      ReadHistory:reload(true)
+      ReadHistory:ensureLastFile()
+      return
+    end
+    ReadHistory:reload(true)
+    ReadHistory:ensureLastFile()
+    self:refreshAfterHistoryUpdate()
+    updated = true
+  end, gettext("Searching for reading records…"))
+  if updated then
+    self:showWidget(InfoMessage:new({
+      text = gettext("History view has been updated."),
+    }))
+  end
+end
+
+function FileManagerHistory:buildHistory()
+  if util.fileExists(history_backup_file) then
+    self:showWidget(ConfirmBox:new({
+      text = gettext("A previous history backup already exists. Overwrite it?"),
+      ok_text = gettext("Overwrite"),
+      ok_callback = function()
+        self:doBuildHistory()
+      end,
+    }))
+  else
+    self:doBuildHistory()
+  end
+end
+
+function FileManagerHistory:restoreHistory()
+  if util.fileExists(history_backup_file) then
+    local ok, err = os.rename(history_backup_file, history_file)
+    if not ok then
+      Notification:notify(
+        T(gettext("Failed to restore reading history: %1"), err)
+      )
+      return
+    end
+    local ReadHistory = require("readhistory")
+    ReadHistory:reload(true)
+    ReadHistory:ensureLastFile()
+    self:refreshAfterHistoryUpdate()
+    self:showWidget(InfoMessage:new({
+      text = gettext("Last history view has been restored."),
+    }))
+  else
+    self:showWidget(InfoMessage:new({
+      text = gettext("No history backup found."),
+    }))
+  end
+end
+
+function FileManagerHistory:retrieveHistory()
+  self:showWidget(MultiConfirmBox:new({
+    text = gettext(
+      "Reading history will be retrieved from metadata files of books."
+    ),
+    choice1_text = gettext("Retrieve"),
+    choice1_callback = function()
+      self:buildHistory()
+    end,
+    choice2_text = gettext("Restore"),
+    choice2_callback = function()
+      self:restoreHistory()
+    end,
+  }))
 end
 
 function FileManagerHistory:onSearchHistory()

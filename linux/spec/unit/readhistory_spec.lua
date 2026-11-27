@@ -293,7 +293,7 @@ describe("ReadHistory module", function()
     end
     if no_flush then
       h:_reduce()
-      h:_flush()
+      h:flush()
     end
 
     assert.is.same(500, #h.hist)
@@ -488,7 +488,7 @@ describe("ReadHistory module", function()
   )
 
   it(
-    "handles ignoreFile, updateLastBookTime, and updateDateTimeString",
+    "handles ignoreItem, updateLastBookTime, and updateDateTimeString",
     function()
       rm(file("history.lua"))
       local h = reload()
@@ -496,9 +496,15 @@ describe("ReadHistory module", function()
       h:addItem(test_file("ignore_me.epub"), now)
       assert.are.equal(1, #h.hist)
 
-      assert.is_true(h:ignoreFile("crash.log"))
-      assert.is_true(h:ignoreFile("quickstart-guide.html"))
-      assert.is_false(h:ignoreFile("regular_book.epub"))
+      assert.is_true(h:ignoreItem(nil))
+      assert.is_true(h:ignoreItem("crash.log"))
+      assert.is_true(h:ignoreItem("quickstart-guide.html"))
+      assert.is_true(h:ignoreItem("/books/.DS_Store"))
+      assert.is_true(h:ignoreItem("/books/.Trash/regular_book.epub"))
+      assert.is_true(h:ignoreItem("/books/foo.sdr/regular_book.epub"))
+      assert.is_false(h:ignoreItem("regular_book.epub"))
+      assert.is_true(h:ignoreItem(test_file("missing_legacy.epub"), now))
+      assert.is_false(h:ignoreItem(test_file("ignore_me.epub"), now))
 
       h:updateLastBookTime(true)
       h:updateDateTimeString()
@@ -506,4 +512,57 @@ describe("ReadHistory module", function()
       rm(test_file("ignore_me.epub"))
     end
   )
+
+  it("flush returns true and persists entries on write success", function()
+    rm(file("history.lua"))
+    touch(test_file("flush_a"))
+    touch(test_file("flush_b"))
+    finally(function()
+      rm(file("history.lua"))
+      rm(test_file("flush_a"))
+      rm(test_file("flush_b"))
+    end)
+
+    local h = reload()
+    now = now + 61
+    h:addItem(test_file("flush_a"), now, true)
+    now = now + 61
+    h:addItem(test_file("flush_b"), now, true)
+    assert.is_nil(lfs.attributes(file("history.lua"), "mode"))
+
+    assert.is_true(h:flush())
+
+    local reloaded = reload()
+    assert.is.same(2, #reloaded.hist)
+    assert_item_is(reloaded, 1, "flush_b")
+    assert_item_is(reloaded, 2, "flush_a")
+  end)
+
+  it("flush returns false and notifies on write failure", function()
+    rm(file("history.lua"))
+    touch(test_file("flush_fail"))
+    local h = reload()
+    now = now + 61
+    h:addItem(test_file("flush_fail"), now, true)
+
+    local Notification = require("ui/widget/notification")
+    local gettext = require("gettext")
+    local write_stub = stub(Util, "writeToFile", function()
+      return false
+    end)
+    local notify_stub = stub(Notification, "notify")
+    finally(function()
+      write_stub:revert()
+      notify_stub:revert()
+      rm(file("history.lua"))
+      rm(test_file("flush_fail"))
+    end)
+
+    assert.is_false(h:flush())
+    assert.stub(notify_stub).was_called(1)
+    assert.stub(notify_stub).was_called_with(
+      Notification,
+      gettext("Failed to write settings to local storage.")
+    )
+  end)
 end)

@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 01:26-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2024-09-03 23:09+0000\n"
 "Last-Translator: Dogancan <dogancanyilmazer46@gmail.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/koreader/"
@@ -652,6 +652,12 @@ msgstr "Derlemeler"
 msgid "Favorites"
 msgstr "Sık Kullanılanlar"
 
+msgid "Status: %1"
+msgstr ""
+
+msgid "Loading collection…"
+msgstr ""
+
 msgid "Remove from collection"
 msgstr "Derlemeden çıkar"
 
@@ -693,6 +699,15 @@ msgstr "Seçimi uygula"
 
 msgid "Arrange collections"
 msgstr "Derlemeleri düzenle"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 msgid "Enter collection name"
 msgstr "Derleme adını yazın"
@@ -848,6 +863,9 @@ msgstr "Derlemelere göre süz"
 msgid "Search in filename and book metadata"
 msgstr "Dosya adı ve kitap üst verilerinde de aransın"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Silinmiş dosya geçmişini temizle"
 
@@ -859,6 +877,36 @@ msgstr "Temizle"
 
 msgid "Filter by book status"
 msgstr "Kitap durumuna göre süz"
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "Geri yükle"
 
 msgid "Enter text to search history for"
 msgstr "Geçmişte aranacak ifadeyi yazın"
@@ -4398,9 +4446,6 @@ msgstr "Kitap ince ayarı değiştirilmedi."
 msgid "Edit book-specific style tweak"
 msgstr "Kitaba özel biçem ince ayarını düzenle"
 
-msgid "Restore"
-msgstr "Geri yükle"
-
 msgid "Book tweak restored"
 msgstr "Kitaba özel ince ayar geri alındı"
 
@@ -6361,6 +6406,12 @@ msgstr "Uygulama eki yönetimi"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -14128,46 +14179,6 @@ msgstr "Dış klavye"
 
 msgid "Manages USB OTG and configures keyboard."
 msgstr "USB OTG kipini yönetir ve klavyeyi yapılandırır."
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
-msgstr ""
 
 msgid "New game"
 msgstr ""

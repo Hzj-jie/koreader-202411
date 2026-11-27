@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KOReader\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 01:26-0800\n"
+"POT-Creation-Date: 2026-11-26 01:46-0800\n"
 "PO-Revision-Date: 2024-11-03 14:00+0000\n"
 "Last-Translator: Miren <librezale@miren.be>\n"
 "Language-Team: Basque <https://hosted.weblate.org/projects/koreader/koreader/"
@@ -627,6 +627,12 @@ msgstr "Joan aurreko kokalekura"
 msgid "Favorites"
 msgstr "Gogokoenak"
 
+msgid "Status: %1"
+msgstr ""
+
+msgid "Loading collection…"
+msgstr ""
+
 #, fuzzy
 msgid "Remove from collection"
 msgstr "Joan aurreko kokalekura"
@@ -682,6 +688,15 @@ msgstr "Fitxategia ezabatuta"
 #, fuzzy
 msgid "Arrange collections"
 msgstr "Joan aurreko kokalekura"
+
+msgid "Refresh reading status collections"
+msgstr ""
+
+msgid "Refreshing reading status collections…"
+msgstr ""
+
+msgid "Reading status collections refreshed."
+msgstr ""
 
 #, fuzzy
 msgid "Enter collection name"
@@ -858,6 +873,9 @@ msgstr "Joan aurreko kokalekura"
 msgid "Search in filename and book metadata"
 msgstr "Bilatu liburu bat calibre katalogoan"
 
+msgid "Retrieve reading history"
+msgstr ""
+
 msgid "Clear history of deleted files"
 msgstr "Ezabatu ezabatutako fitxategien historia"
 
@@ -871,6 +889,36 @@ msgstr "Garbitu"
 #, fuzzy
 msgid "Filter by book status"
 msgstr "Aktibatu laster-marka"
+
+msgid "Failed to back up reading history: %1"
+msgstr ""
+
+msgid "Failed to restore reading history: %1"
+msgstr ""
+
+msgid "Searching for reading records…"
+msgstr ""
+
+msgid "History view has been updated."
+msgstr ""
+
+msgid "A previous history backup already exists. Overwrite it?"
+msgstr ""
+
+msgid "Last history view has been restored."
+msgstr ""
+
+msgid "No history backup found."
+msgstr ""
+
+msgid "Reading history will be retrieved from metadata files of books."
+msgstr ""
+
+msgid "Retrieve"
+msgstr ""
+
+msgid "Restore"
+msgstr "Berrezarri"
 
 #, fuzzy
 msgid "Enter text to search history for"
@@ -4178,9 +4226,6 @@ msgstr ""
 msgid "Edit book-specific style tweak"
 msgstr ""
 
-msgid "Restore"
-msgstr "Berrezarri"
-
 msgid "Book tweak restored"
 msgstr ""
 
@@ -6065,6 +6110,12 @@ msgstr "Plugin kudeaketa"
 msgctxt "Date string"
 msgid "%y-%m-%d"
 msgstr "%y-%m-%d"
+
+msgid "Failed to save reading status collection index."
+msgstr ""
+
+msgid "Failed to load reading status collection index."
+msgstr ""
 
 msgctxt "Font weight class"
 msgid "Thin"
@@ -13187,46 +13238,6 @@ msgid "External keyboard"
 msgstr ""
 
 msgid "Manages USB OTG and configures keyboard."
-msgstr ""
-
-msgid "Searching for reading records…"
-msgstr ""
-
-msgid "History view has been updated, use main menu to access it."
-msgstr ""
-
-msgid ""
-"Failed to backup current history view from %1 to %2, still want to proceed?"
-msgstr ""
-
-msgid "Proceed"
-msgstr ""
-
-msgid ""
-"Found an existing history backup file; it will be overwritten. Still want to "
-"proceed?"
-msgstr ""
-
-msgid "Last history view has been restored, use main menu to access it."
-msgstr ""
-
-msgid "Failed to restore the last history view from %1."
-msgstr ""
-
-msgid ""
-"This function searches and retrieves all the reading records in the home "
-"directory and build the history view.\n"
-"The last history view will be preserved and can be restored."
-msgstr ""
-
-msgid "Retrieve"
-msgstr ""
-
-msgid "Retrieve reading history"
-msgstr ""
-
-msgid ""
-"Searches reading records in the home folder and update the history view."
 msgstr ""
 
 msgid "New game"

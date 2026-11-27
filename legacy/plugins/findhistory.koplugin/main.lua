@@ -1,1 +1,0 @@
-../../../koreader/plugins/findhistory.koplugin/main.lua

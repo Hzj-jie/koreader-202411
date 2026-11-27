@@ -1,6 +1,9 @@
 describe("filemanagercollection", function()
   local FileManagerCollection
   local mock_read_collection
+  local mock_sdr_list
+  local mock_doc_settings
+  local mock_notification
   local mock_confirm_box
   local mock_info_message
   local mock_input_dialog
@@ -9,6 +12,7 @@ describe("filemanagercollection", function()
   local mock_sort_widget
   local mock_ui
   local mock_gettext
+  local lfs = require("libs/libkoreader-lfs")
   local match = require("luassert.match")
 
   setup(function()
@@ -123,16 +127,45 @@ describe("filemanagercollection", function()
       end,
     }
 
-    package.loaded["docsettings"] = {
-      hasSidecarFile = function()
+    mock_doc_settings = {
+      hasSidecarFile = spy.new(function()
         return false
-      end,
-      open = function()
+      end),
+      open = spy.new(function()
         return {}
-      end,
+      end),
+      getStatus = spy.new(function()
+        return "reading"
+      end),
     }
+    package.loaded["docsettings"] = mock_doc_settings
+
+    mock_sdr_list = {
+      files = {},
+      getFiles = spy.new(function(self)
+        return self.files
+      end),
+      rebuildFromDisk = spy.new(function()
+        return true
+      end),
+    }
+    package.loaded["sdrlist"] = mock_sdr_list
+
+    mock_notification = {
+      notify = spy.new(function() end),
+    }
+    package.loaded["ui/widget/notification"] = mock_notification
 
     package.loaded["apps/filemanager/filemanagerutil"] = {
+      statusToString = function(status)
+        local map = {
+          new = mock_gettext("Unread"),
+          reading = mock_gettext("Reading"),
+          abandoned = mock_gettext("On hold"),
+          complete = mock_gettext("Finished"),
+        }
+        return map[status]
+      end,
       genStatusButtonsRow = function()
         return { text = "Mock Status Row" }
       end,
@@ -260,6 +293,10 @@ describe("filemanagercollection", function()
         last_closed_widget = widget
       end),
       forceRepaint = spy.new(function() end),
+      runWith = spy.new(function(self, fn, widget)
+        assert(widget ~= nil)
+        return fn()
+      end),
       getLastShownWidget = function()
         return last_shown_widget
       end,
@@ -292,6 +329,9 @@ describe("filemanagercollection", function()
     }
 
     package.loaded["util"] = {
+      getFriendlySize = function(size)
+        return tostring(size) .. " B"
+      end,
       tableSize = function(t)
         local count = 0
         for _ in pairs(t) do
@@ -333,9 +373,11 @@ describe("filemanagercollection", function()
   after_each(function()
     package.loaded["apps/filemanager/filemanagercollection"] = nil
     package.loaded["readcollection"] = nil
+    package.loaded["sdrlist"] = nil
     package.loaded["ui/bidi"] = nil
     package.loaded["device"] = nil
     package.loaded["docsettings"] = nil
+    package.loaded["ui/widget/notification"] = nil
     package.loaded["apps/filemanager/filemanagerutil"] = nil
     package.loaded["ui/widget/menu"] = nil
     package.loaded["ui/widget/confirmbox"] = nil
@@ -511,8 +553,11 @@ describe("filemanagercollection", function()
         menu.onLeftButtonTap_icon or "appbar.menu"
       ) -- is normal mode icon
 
-      assert.are.equal("Collections (2)", menu.title)
-      assert.are.equal(2, #menu.item_table)
+      assert.are.equal(
+        require("ffi/util").template(mock_gettext("Collections (%1)"), 5),
+        menu.title
+      )
+      assert.are.equal(5, #menu.item_table)
       assert.are.equal("Favorites", menu.item_table[1].text)
       assert.are.equal("favorites", menu.item_table[1].name)
       assert.are.equal(2, menu.item_table[1].mandatory) -- count of favorites is 2
@@ -520,6 +565,40 @@ describe("filemanagercollection", function()
       assert.are.equal("Sci-Fi", menu.item_table[2].text)
       assert.are.equal("Sci-Fi", menu.item_table[2].name)
       assert.are.equal(1, menu.item_table[2].mandatory) -- count is 1
+
+      assert.are.equal(
+        require("ffi/util").template(
+          mock_gettext("Status: %1"),
+          mock_gettext("Reading")
+        ),
+        menu.item_table[3].text
+      )
+      assert.are.equal("__auto_reading", menu.item_table[3].name)
+      assert.is_nil(menu.item_table[3].mandatory)
+
+      assert.are.equal(
+        require("ffi/util").template(
+          mock_gettext("Status: %1"),
+          mock_gettext("On hold")
+        ),
+        menu.item_table[4].text
+      )
+      assert.are.equal("__auto_abandoned", menu.item_table[4].name)
+      assert.is_nil(menu.item_table[4].mandatory)
+
+      assert.are.equal(
+        require("ffi/util").template(
+          mock_gettext("Status: %1"),
+          mock_gettext("Finished")
+        ),
+        menu.item_table[5].text
+      )
+      assert.are.equal("__auto_complete", menu.item_table[5].name)
+      assert.is_nil(menu.item_table[5].mandatory)
+
+      assert.spy(mock_sdr_list.getFiles).was.not_called()
+      assert.spy(mock_doc_settings.getStatus).was.not_called()
+      assert.spy(mock_doc_settings.open).was.not_called()
     end)
 
     it("should show collections list in select mode for a book", function()
@@ -538,6 +617,7 @@ describe("filemanagercollection", function()
       assert.truthy(manager.selected_collections)
       assert.is_true(manager.selected_collections.favorites)
       assert.is_nil(manager.selected_collections["Sci-Fi"])
+      assert.are.equal(2, #menu.item_table)
 
       -- item 1 (favorites) has checkmark
       assert.are.equal(manager.checkmark, menu.item_table[1].mandatory)
@@ -600,7 +680,10 @@ describe("filemanagercollection", function()
       local manager = FileManagerCollection:new({ ui = mock_ui })
       manager.coll_list = {
         item_table = {},
-        switchItemTable = spy.new(function() end),
+        switchItemTable = spy.new(function(self, _t, item_table, item_number)
+          self.item_table = item_table
+          self.item_number = item_number
+        end),
       }
 
       local UIManager = require("ui/uimanager")
@@ -611,7 +694,7 @@ describe("filemanagercollection", function()
       assert.spy(UIManager.show).was.called(1)
       local dialog = UIManager.getLastShownWidget()
       assert.is_true(dialog.is_input_dialog)
-      assert.are.equal("Enter collection name", dialog.title)
+      assert.are.equal(mock_gettext("Enter collection name"), dialog.title)
 
       -- Submit name "New Coll"
       dialog.mock_input_value = "New Coll"
@@ -620,8 +703,22 @@ describe("filemanagercollection", function()
       assert
         .spy(mock_read_collection.addCollection).was
         .called_with(match._, "New Coll")
-      assert.are.equal(1, #manager.coll_list.item_table)
-      assert.are.equal("New Coll", manager.coll_list.item_table[1].name)
+      assert.is_true(#manager.coll_list.item_table >= 4)
+      assert.are.equal(
+        "New Coll",
+        manager.coll_list.item_table[manager.coll_list.item_number].name
+      )
+      local new_idx, auto_idx
+      for i, item in ipairs(manager.coll_list.item_table) do
+        if item.name == "New Coll" then
+          new_idx = i
+        elseif item.name == "__auto_reading" then
+          auto_idx = i
+        end
+      end
+      assert.truthy(new_idx)
+      assert.truthy(auto_idx)
+      assert.is_true(new_idx < auto_idx)
     end)
   end)
 
@@ -898,6 +995,9 @@ describe("filemanagercollection", function()
         item_table = {
           { name = "favorites", order = 1 },
           { name = "Sci-Fi", order = 2 },
+          { name = "__auto_reading" },
+          { name = "__auto_abandoned" },
+          { name = "__auto_complete" },
         },
         switchItemTable = spy.new(function() end),
       }
@@ -905,8 +1005,13 @@ describe("filemanagercollection", function()
       manager:sortCollections()
       local sort_w = require("ui/uimanager").getLastShownWidget()
       assert.truthy(sort_w.is_sort_widget)
+      assert.are.equal(2, #sort_w.item_table)
+      assert.are.equal("favorites", sort_w.item_table[1].name)
+      assert.are.equal("Sci-Fi", sort_w.item_table[2].name)
       sort_w.callback()
-      assert.spy(mock_read_collection.updateCollectionListOrder).was.called()
+      assert
+        .spy(mock_read_collection.updateCollectionListOrder).was
+        .called_with(match._, sort_w.item_table)
     end)
 
     it(
@@ -938,6 +1043,13 @@ describe("filemanagercollection", function()
         dialog.buttons[1][2].callback()
         local info = require("ui/uimanager").getLastShownWidget()
         assert.truthy(info.is_info_message)
+        assert.is_nil(called_name)
+
+        -- Save with reserved auto collection id
+        dialog.mock_input_value = "__auto_reading"
+        dialog.buttons[1][2].callback()
+        local reserved_info = require("ui/uimanager").getLastShownWidget()
+        assert.truthy(reserved_info.is_info_message)
         assert.is_nil(called_name)
       end
     )
@@ -1110,6 +1222,305 @@ describe("filemanagercollection", function()
           .was_called_with(UIManager, dummy_list)
 
         UIManager.closeIfShown:revert()
+      end
+    )
+  end)
+
+  describe("reading status auto collections", function()
+    it(
+      "populates virtual collections from SdrList and DocSettings.getStatus without touching ReadCollection",
+      function()
+        mock_sdr_list.files = {
+          "/books/reading.epub",
+          "/books/hold.epub",
+          "/books/finished.epub",
+          "/books/missing.epub",
+          "/books/open_live.epub",
+        }
+        mock_doc_settings.getStatus = spy.new(function(file)
+          if
+            file == "/books/reading.epub"
+            or file == "/books/missing.epub"
+            or file == "/books/open_live.epub"
+          then
+            return "reading"
+          elseif file == "/books/hold.epub" then
+            return "abandoned"
+          elseif file == "/books/finished.epub" then
+            return "complete"
+          end
+          return "new"
+        end)
+        local lfs_attr_stub = stub(lfs, "attributes", function(path)
+          if path == "/books/missing.epub" then
+            return nil
+          end
+          return { mode = "file", size = 2048 }
+        end)
+        finally(function()
+          lfs_attr_stub:revert()
+        end)
+
+        mock_ui.document = { file = "/books/open_live.epub" }
+        mock_ui.doc_settings = {
+          readTableRef = spy.new(function()
+            return { status = "complete" }
+          end),
+        }
+
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        manager:onShowColl("__auto_complete")
+
+        local menu = require("ui/uimanager").getLastShownWidget()
+        assert.are.equal(
+          require("ffi/util").template(
+            mock_gettext("Status: %1"),
+            mock_gettext("Finished")
+          ) .. " (1)",
+          menu.title
+        )
+        assert.are.equal(1, #menu.item_table)
+        assert.are.equal("/books/finished.epub", menu.item_table[1].file)
+        assert.are.equal("finished.epub", menu.item_table[1].text)
+        assert.are.equal(1, menu.item_table[1].order)
+        assert.is_nil(mock_read_collection.coll["__auto_complete"])
+
+        manager:onShowColl("__auto_reading")
+        menu = require("ui/uimanager").getLastShownWidget()
+        assert.are.equal(
+          require("ffi/util").template(
+            mock_gettext("Status: %1"),
+            mock_gettext("Reading")
+          ) .. " (2)",
+          menu.title
+        )
+        assert.are.equal(2, #menu.item_table)
+        assert.are.equal("/books/reading.epub", menu.item_table[1].file)
+        assert.are.equal("/books/open_live.epub", menu.item_table[2].file)
+        assert.are.equal(2, menu.item_table[2].order)
+
+        manager:onShowColl("__auto_abandoned")
+        menu = require("ui/uimanager").getLastShownWidget()
+        assert.are.equal(
+          require("ffi/util").template(
+            mock_gettext("Status: %1"),
+            mock_gettext("On hold")
+          ) .. " (1)",
+          menu.title
+        )
+        assert.are.equal(1, #menu.item_table)
+        assert.are.equal("/books/hold.epub", menu.item_table[1].file)
+        assert.spy(mock_ui.doc_settings.readTableRef).was.not_called()
+      end
+    )
+
+    it(
+      "enforces read-only behavior on auto collections across list hold, collection dialog, and book hold dialog",
+      function()
+        mock_sdr_list.files = { "/books/reading.epub" }
+        mock_doc_settings.getStatus = spy.new(function()
+          return "reading"
+        end)
+        local lfs_attr_stub = stub(lfs, "attributes", function()
+          return { mode = "file", size = 1024 }
+        end)
+        finally(function()
+          lfs_attr_stub:revert()
+        end)
+
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        local UIManager = require("ui/uimanager")
+
+        manager:onShowCollList()
+        local list_menu = UIManager.getLastShownWidget()
+        mock_button_dialog.new:clear()
+        list_menu:onMenuHold(list_menu.item_table[3]) -- __auto_reading
+        assert.spy(mock_button_dialog.new).was.not_called()
+
+        mock_ui.document = { file = "/books/other.epub" }
+        mock_ui.doc_settings = {
+          readTableRef = function()
+            return {}
+          end,
+        }
+        manager:onShowColl("__auto_reading")
+
+        mock_button_dialog.new:clear()
+        manager:showCollDialog()
+        local coll_dialog = UIManager.getLastShownWidget()
+        local labels = {}
+        for _, row in ipairs(coll_dialog.buttons) do
+          for _, btn in ipairs(row) do
+            table.insert(labels, btn.text or btn.text_func())
+          end
+        end
+        assert.are.same({ mock_gettext("Collections") }, labels)
+
+        mock_button_dialog.new:clear()
+        manager.coll_menu:onMenuHold(manager.coll_menu.item_table[1])
+        local book_dialog = UIManager.getLastShownWidget()
+        for _, row in ipairs(book_dialog.buttons) do
+          for _, btn in ipairs(row) do
+            assert.are_not.equal(
+              mock_gettext("Remove from collection"),
+              btn.text
+            )
+          end
+        end
+      end
+    )
+
+    it(
+      "refreshes sidecar index from disk via collections dialog and notifies on success only",
+      function()
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+        manager.selected_collections = nil
+        manager.coll_list = {
+          item_table = {},
+          switchItemTable = spy.new(function() end),
+        }
+
+        local UIManager = require("ui/uimanager")
+        manager:showCollListDialog(nil, false)
+        local dialog = UIManager.getLastShownWidget()
+
+        local refresh_btn
+        for _, row in ipairs(dialog.buttons) do
+          for _, btn in ipairs(row) do
+            if
+              btn.text == mock_gettext("Refresh reading status collections")
+            then
+              refresh_btn = btn
+            end
+          end
+        end
+        assert.truthy(refresh_btn)
+
+        refresh_btn.callback()
+        assert
+          .spy(UIManager.runWith).was
+          .called_with(
+            UIManager,
+            match.is_function(),
+            mock_gettext("Refreshing reading status collections…")
+          )
+        assert.spy(mock_sdr_list.rebuildFromDisk).was.called(1)
+        assert
+          .spy(mock_notification.notify).was
+          .called_with(
+            mock_notification,
+            mock_gettext("Reading status collections refreshed.")
+          )
+
+        mock_notification.notify:clear()
+        mock_sdr_list.rebuildFromDisk = spy.new(function()
+          return false
+        end)
+        refresh_btn.callback()
+        assert.spy(mock_sdr_list.rebuildFromDisk).was.called(1)
+        assert.spy(mock_notification.notify).was.not_called()
+      end
+    )
+
+    it(
+      "wraps auto-collection scan and book-hold refresh in UIManager:runWith while leaving manual collections and list page unwrapped",
+      function()
+        local UIManager = require("ui/uimanager")
+        local active_run_with = 0
+        local orig_run_with = UIManager.runWith
+        UIManager.runWith = spy.new(function(self, fn, widget)
+          active_run_with = active_run_with + 1
+          orig_run_with(self, fn, widget)
+          active_run_with = active_run_with - 1
+        end)
+
+        local status_calls_in_run_with = 0
+        mock_sdr_list.files = { "/books/reading.epub" }
+        mock_doc_settings.getStatus = spy.new(function()
+          if active_run_with > 0 then
+            status_calls_in_run_with = status_calls_in_run_with + 1
+          end
+          return "reading"
+        end)
+        local captured_update_cb
+        local lfs_attr_stub = stub(lfs, "attributes", function()
+          return { mode = "file", size = 1024 }
+        end)
+        local status_btn_stub = stub(
+          package.loaded["apps/filemanager/filemanagerutil"],
+          "genStatusButtonsRow",
+          function(_, cb)
+            captured_update_cb = cb
+            return { text = "Mock Status Row" }
+          end
+        )
+        finally(function()
+          status_btn_stub:revert()
+          lfs_attr_stub:revert()
+        end)
+
+        local manager = FileManagerCollection:new({ ui = mock_ui })
+
+        manager:onShowCollList()
+        manager:onShowColl("favorites")
+        manager:onShowColl("Sci-Fi")
+        assert.spy(UIManager.runWith).was.not_called()
+
+        manager:onShowColl("__auto_reading")
+        assert
+          .spy(UIManager.runWith).was
+          .called(1)
+        assert
+          .spy(UIManager.runWith).was
+          .called_with(
+            UIManager,
+            match.is_function(),
+            mock_gettext("Loading collection…")
+          )
+        assert.are.equal(1, status_calls_in_run_with)
+
+        UIManager.runWith:clear()
+        status_calls_in_run_with = 0
+
+        manager.coll_menu:onMenuHold(manager.coll_menu.item_table[1])
+        assert.truthy(captured_update_cb)
+        captured_update_cb()
+        assert
+          .spy(UIManager.runWith).was
+          .called(1)
+        assert
+          .spy(UIManager.runWith).was
+          .called_with(
+            UIManager,
+            match.is_function(),
+            mock_gettext("Loading collection…")
+          )
+        assert.are.equal(1, status_calls_in_run_with)
+      end
+    )
+
+    it(
+      "verifies localized Loading collection string in zh_CN and zh_TW",
+      function()
+        local saved_gettext = package.loaded["gettext"]
+        package.loaded["gettext"] = nil
+        local real_gettext = require("gettext")
+        finally(function()
+          real_gettext.changeLang("C")
+          package.loaded["gettext"] = saved_gettext
+        end)
+
+        real_gettext.changeLang("zh_CN")
+        assert.are.equal(
+          "正在加载分组…",
+          real_gettext("Loading collection…")
+        )
+
+        real_gettext.changeLang("zh_TW")
+        assert.are.equal(
+          "正在載入分組…",
+          real_gettext("Loading collection…")
+        )
       end
     )
   end)

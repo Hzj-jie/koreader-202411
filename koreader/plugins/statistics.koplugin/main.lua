@@ -235,7 +235,7 @@ end
 
 function ReaderStatistics:_initData()
   self.is_doc = (
-    self.document and not require("readhistory"):ignoreFile(self.document.file)
+    self.document and not require("readhistory"):ignoreItem(self.document.file)
   )
   self:_updateFrozen()
 

@@ -89,7 +89,7 @@ function ReadHistory:_reduce()
 end
 
 --- Saves history table to a file.
-function ReadHistory:_flush()
+function ReadHistory:flush()
   local content = {}
   for _, v in ipairs(self.hist) do
     table.insert(content, {
@@ -97,13 +97,15 @@ function ReadHistory:_flush()
       file = v.file,
     })
   end
-  if not util.writeToFile(dump(content), history_file, true) then
+  local written = util.writeToFile(dump(content), history_file, true)
+  if not written then
     local gettext = require("gettext")
     require("ui/widget/notification"):notify(
       gettext("Failed to write settings to local storage.")
     )
   end
   self:ensureLastFile()
+  return written
 end
 
 --- Reads history table from file.
@@ -160,7 +162,7 @@ function ReadHistory:_readLegacyHistory()
   end
   if history_updated then
     self:_reduce()
-    self:_flush()
+    self:flush()
   end
   os.remove(history_dir)
 end
@@ -212,7 +214,7 @@ function ReadHistory:updateItem(file, new_filepath)
     local item = self.hist[index]
     item.file = new_filepath
     item.text = new_filepath:gsub(".*/", "")
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -227,7 +229,7 @@ function ReadHistory:updateItems(files, new_path) -- files = { filepath = true, 
     end
   end
   if history_updated then
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -242,7 +244,7 @@ function ReadHistory:updateItemsByPath(old_path, new_path)
     end
   end
   if history_updated then
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -281,7 +283,7 @@ function ReadHistory:folderDeleted(path)
   end
   if history_updated then
     if G_reader_settings:isTrue("autoremove_deleted_items_from_history") then
-      self:_flush()
+      self:flush()
     else
       self:ensureLastFile()
     end
@@ -299,7 +301,7 @@ function ReadHistory:removeItems(files) -- files = { filepath = true, }
   end
   if history_updated then
     if G_reader_settings:isTrue("autoremove_deleted_items_from_history") then
-      self:_flush()
+      self:flush()
     else
       self:ensureLastFile()
     end
@@ -324,7 +326,7 @@ function ReadHistory:clearMissing()
     end
   end
   if history_updated then
-    self:_flush()
+    self:flush()
   end
 end
 
@@ -340,15 +342,23 @@ function ReadHistory:removeItem(item, idx, no_flush)
   table.remove(self.hist, index)
   os.remove(DocSettings:getHistoryPath(item.file))
   if not no_flush then
-    self:_flush()
+    self:flush()
   end
 end
 
-function ReadHistory:ignoreFile(file)
+function ReadHistory:ignoreItem(file, ts)
+  -- Expect file to be a realpath(file)
+  if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
+    return true -- bad legacy item
+  end
+  -- Note, the logic won't impact the existing items, but only the ones newly
+  -- added.
+  local FileChooser = require("ui/widget/filechooser")
+  if not FileChooser:show_dir(ffiutil.basename(ffiutil.dirname(file))) then
+    return true
+  end
   local filename = ffiutil.basename(file)
-  if
-    not require("ui/widget/filechooser"):show_file(ffiutil.basename(filename))
-  then
+  if not FileChooser:show_file(filename) then
     return true
   end
   local exclude_files = { -- const
@@ -366,25 +376,11 @@ function ReadHistory:ignoreFile(file)
   return false
 end
 
-function ReadHistory:_ignoreItem(file, ts)
-  -- Expect file to be a realpath(file)
-  if not file or (ts and lfs.attributes(file, "mode") ~= "file") then
-    return true -- bad legacy item
-  end
-  -- Note, the logic won't impact the existing items, but only the ones newly
-  -- added.
-  local path = ffiutil.dirname(file)
-  if not require("ui/widget/filechooser"):show_dir(ffiutil.basename(path)) then
-    return true
-  end
-  return self:ignoreFile(file)
-end
-
 --- Adds new item (last opened document) to the top of the history list.
 -- If item time (ts) is passed, add item to the history list at this time position.
 function ReadHistory:addItem(file, ts, no_flush)
   file = realpath(file)
-  if self:_ignoreItem(file, ts) then
+  if self:ignoreItem(file, ts) then
     return
   end
   local index = self:getIndexByFile(file)
@@ -406,7 +402,7 @@ function ReadHistory:addItem(file, ts, no_flush)
   end
   if not no_flush then
     self:_reduce()
-    self:_flush()
+    self:flush()
   end
   return true -- used while adding legacy items
 end
@@ -420,7 +416,7 @@ function ReadHistory:updateLastBookTime(no_flush)
   self.hist[1].time = now
   self.hist[1].mandatory = getMandatory(now)
   if not no_flush then
-    self:_flush()
+    self:flush()
   end
 end
 

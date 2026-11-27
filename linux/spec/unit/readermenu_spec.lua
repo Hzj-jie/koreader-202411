@@ -486,7 +486,7 @@ describe("ReaderMenu integration", function()
 
     -- Clear history
     ReadHistory.hist = {}
-    ReadHistory:_flush()
+    ReadHistory:flush()
 
     local file1 = "spec/front/unit/data/2col.pdf"
     local file2 = "spec/front/unit/data/paper.pdf"

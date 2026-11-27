@@ -1000,6 +1000,13 @@ function FileManager:pasteFileFromClipboard(file)
           ReadCollection:updateItemsByPath(orig_file, dest_file)
         end
       end
+      if not is_file then
+        require("sdrlist"):updateItemsByPath(
+          orig_file,
+          dest_file,
+          not self.cutfile
+        )
+      end
       self.clipboard = nil
       self:onRefresh()
     else
@@ -1236,6 +1243,7 @@ function FileManager:deleteFile(file, is_file)
   else
     local ok = ffiUtil.purgeDir(file)
     if ok then
+      require("sdrlist"):removeItemsByPath(file)
       ReadHistory:folderDeleted(file) -- will delete sdr
       ReadCollection:removeItemsByPath(file)
       return true
@@ -1335,6 +1343,7 @@ function FileManager:renameFile(file, basename, is_file)
       else
         ReadHistory:updateItemsByPath(file, dest)
         ReadCollection:updateItemsByPath(file, dest)
+        require("sdrlist"):updateItemsByPath(file, dest)
       end
       self:onRefresh()
     else
