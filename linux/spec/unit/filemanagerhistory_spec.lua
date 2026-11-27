@@ -18,6 +18,7 @@ describe("FileManagerHistory", function()
   local mock_notification = {}
   local mock_utf8proc = {}
   local mock_settings
+  local real_readhistory
 
   local function clear_table(t)
     for k in pairs(t) do
@@ -28,6 +29,8 @@ describe("FileManagerHistory", function()
 
   setup(function()
     require("commonrequire")
+    require("ui/widget/filechooser")
+    real_readhistory = require("readhistory")
   end)
 
   before_each(function()
@@ -156,6 +159,9 @@ describe("FileManagerHistory", function()
     end)
     mock_readhistory.reload = spy.new(function() end)
     mock_readhistory.ensureLastFile = spy.new(function() end)
+    mock_readhistory.ignoreItem = spy.new(function()
+      return false
+    end)
     package.loaded["readhistory"] = mock_readhistory
 
     clear_table(mock_filemanagerutil)
@@ -657,10 +663,16 @@ describe("FileManagerHistory", function()
       -- Row 8: Clear history of deleted files
       assert.is_table(buttons[5])
       assert.is_equal(0, #buttons[5])
-      assert.is_equal(mock_gettext("Retrieve reading history"), buttons[6][1].text)
+      assert.is_equal(
+        mock_gettext("Retrieve reading history"),
+        buttons[6][1].text
+      )
       assert.is_table(buttons[7])
       assert.is_equal(0, #buttons[7])
-      assert.is_equal(mock_gettext("Clear history of deleted files"), buttons[8][1].text)
+      assert.is_equal(
+        mock_gettext("Clear history of deleted files"),
+        buttons[8][1].text
+      )
 
       -- Let's trigger Filter reading callback
       fmh.updateItemTable = spy.new(function() end)
@@ -1329,7 +1341,8 @@ describe("FileManagerHistory", function()
         util.makePath(real_home)
         assert(lfs.link(real_home, link_home, true))
 
-        local canonical_book = ffiutil.realpath(real_home) .. "/Symlink Book.epub"
+        local canonical_book = ffiutil.realpath(real_home)
+          .. "/Symlink Book.epub"
         write_dummy(canonical_book, "book")
         write_metadata("Symlink Book.sdr/metadata.epub.lua", 150, real_home)
         write_metadata(
@@ -1350,38 +1363,71 @@ describe("FileManagerHistory", function()
       end
     )
 
-    it(
-      "skips sidecars whose book path fails ffiutil.realpath",
-      function()
-        local valid_book = home_dir .. "/Valid Book.epub"
-        local unresolvable_book = home_dir .. "/Unresolvable Book.epub"
-        write_dummy(valid_book, "valid")
-        write_dummy(unresolvable_book, "unresolvable")
-        write_metadata("Valid Book.sdr/metadata.epub.lua", 200)
-        write_metadata("Unresolvable Book.sdr/metadata.epub.lua", 500)
+    it("skips sidecars whose book path fails ffiutil.realpath", function()
+      local valid_book = home_dir .. "/Valid Book.epub"
+      local unresolvable_book = home_dir .. "/Unresolvable Book.epub"
+      write_dummy(valid_book, "valid")
+      write_dummy(unresolvable_book, "unresolvable")
+      write_metadata("Valid Book.sdr/metadata.epub.lua", 200)
+      write_metadata("Unresolvable Book.sdr/metadata.epub.lua", 500)
 
-        local orig_realpath = ffiutil.realpath
-        local realpath_stub = stub(ffiutil, "realpath", function(path)
-          if path == unresolvable_book then
-            return nil
-          end
-          return orig_realpath(path)
-        end)
-        finally(function()
-          realpath_stub:revert()
-        end)
+      local orig_realpath = ffiutil.realpath
+      local realpath_stub = stub(ffiutil, "realpath", function(path)
+        if path == unresolvable_book then
+          return nil
+        end
+        return orig_realpath(path)
+      end)
+      finally(function()
+        realpath_stub:revert()
+      end)
 
-        fmh:doBuildHistory()
+      fmh:doBuildHistory()
 
-        assert.is_same({
-          { file = orig_realpath(valid_book), time = 200 },
-        }, mock_readhistory.hist)
+      assert.is_same({
+        { file = orig_realpath(valid_book), time = 200 },
+      }, mock_readhistory.hist)
+    end)
+
+    it("skips files and folders ignored by ReadHistory:ignoreItem", function()
+      mock_readhistory.ignoreItem = function(_self, file)
+        return real_readhistory:ignoreItem(file)
       end
-    )
+
+      local valid_book = home_dir .. "/Valid Book.epub"
+      local quickstart = home_dir .. "/quickstart-en-v2024.11.html"
+      local trashed_book = home_dir .. "/.Trash-1000/Trashed Book.epub"
+      local excluded_file = home_dir .. "/BookReader.sqlite"
+      local dir_trashed = home_dir .. "/.Trash-1000/Dir Trashed.epub"
+      write_dummy(valid_book, "valid")
+      write_dummy(quickstart, "quickstart")
+      write_dummy(trashed_book, "trashed")
+      write_dummy(excluded_file, "excluded")
+      write_dummy(dir_trashed, "dir_trashed")
+
+      write_metadata("Valid Book.sdr/metadata.epub.lua", 200)
+      write_metadata("quickstart-en-v2024.11.sdr/metadata.html.lua", 300)
+      write_metadata(".Trash-1000/Trashed Book.sdr/metadata.epub.lua", 400)
+      write_metadata("BookReader.sdr/metadata.sqlite.lua", 450)
+      write_metadata(
+        ".Trash-1000/Dir Trashed.sdr/metadata.epub.lua",
+        500,
+        docsettings_dir .. ffiutil.realpath(home_dir)
+      )
+
+      fmh:doBuildHistory()
+
+      assert.is_same({
+        { file = ffiutil.realpath(valid_book), time = 200 },
+      }, mock_readhistory.hist)
+    end)
 
     it("restores backup history and refreshes open hist_menu", function()
       fmh:restoreHistory()
-      assert.is_equal(mock_gettext("No history backup found."), shown_dialogs[1].text)
+      assert.is_equal(
+        mock_gettext("No history backup found."),
+        shown_dialogs[1].text
+      )
 
       shown_dialogs = {}
       write_dummy(temp_dir .. "/history.lua.backup", "saved_history")

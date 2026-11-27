@@ -459,18 +459,22 @@ end
 function FileManagerHistory:doBuildHistory()
   local updated = false
   UIManager:runWith(function()
+    local ReadHistory = require("readhistory")
     local times_by_file = {}
     local function scanSidecars(root, prefix_len)
       util.findFiles(root, function(path, _, attr)
-        local book_path, replaced = path
-          :sub(prefix_len + 1)
-          :gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
+        local book_path, replaced =
+          path:sub(prefix_len + 1):gsub("%.sdr/metadata(%.[^/%.]+)%.lua$", "%1")
         if replaced > 0 and book_path ~= "" then
           book_path = ffiutil.realpath(book_path)
           if
             book_path
             and util.fileExists(book_path)
-            and (not times_by_file[book_path] or attr.modification > times_by_file[book_path])
+            and not ReadHistory:ignoreItem(book_path)
+            and (
+              not times_by_file[book_path]
+              or attr.modification > times_by_file[book_path]
+            )
           then
             times_by_file[book_path] = attr.modification
           end
@@ -501,7 +505,6 @@ function FileManagerHistory:doBuildHistory()
       end
       backed_up = true
     end
-    local ReadHistory = require("readhistory")
     local prev_hist = ReadHistory.hist
     ReadHistory.hist = records
     if not ReadHistory:flush() then
