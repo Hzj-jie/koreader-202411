@@ -1,0 +1,1 @@
+../../../../../koreader/plugins/AnnotationSync.koplugin/defaults/settings/battery_stats.lua

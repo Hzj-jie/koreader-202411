@@ -1,6 +1,10 @@
+local Device = require("device")
+if not Device:hasNetwork() then
+  return { disabled = true }
+end
+
 local BackgroundJobs = require("background_jobs")
 local ConfirmBox = require("ui/widget/confirmbox")
-local Device = require("device")
 local Dispatcher = require("dispatcher")
 local Event = require("ui/event")
 local InfoMessage = require("ui/widget/infomessage")
@@ -18,10 +22,6 @@ local time = require("ui/time")
 local util = require("util")
 local T = require("ffi/util").template
 local gettext = require("gettext")
-
-if not Device:hasNetwork() then
-  return { disabled = true }
-end
 
 if G_reader_settings:hasNot("device_id") then
   G_reader_settings:save("device_id", random.uuid())

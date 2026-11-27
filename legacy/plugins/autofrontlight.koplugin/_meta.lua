@@ -1,0 +1,1 @@
+../../../koreader/plugins/autofrontlight.koplugin/_meta.lua

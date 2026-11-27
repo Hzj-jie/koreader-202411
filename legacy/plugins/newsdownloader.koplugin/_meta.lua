@@ -1,0 +1,1 @@
+../../../koreader/plugins/newsdownloader.koplugin/_meta.lua

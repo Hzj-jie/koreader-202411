@@ -1,0 +1,1 @@
+../../../../koreader/plugins/newsdownloader.koplugin/lib/handler.lua

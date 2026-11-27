@@ -1,0 +1,1 @@
+../../../koreader/plugins/calibre.koplugin/_meta.lua
