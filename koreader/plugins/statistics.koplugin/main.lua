@@ -192,6 +192,8 @@ function ReaderStatistics:init()
     return readingprogress
   end
 
+  self:_checkInitDatabase()
+
   -- If the document is already fully loaded (e.g. during late loading
   -- when a user dynamically enables the plugin from settings), we can
   -- initialize document state immediately. Otherwise (during standard startup),
@@ -221,7 +223,6 @@ function ReaderStatistics:_initDocState(config)
   self.data = config:readTableRef("stats", { performance_in_pages = {} })
   self.doc_md5 = config:read("partial_md5_checksum")
 
-  self:_checkInitDatabase()
   self:_initData()
 end
 
@@ -428,7 +429,7 @@ Do you want to create an empty database?
             text = gettext("A new empty database has been created."),
             timeout = 3,
           }))
-          if self.document then
+          if self.data_initialized then
             self:_initData()
           end
         end,
