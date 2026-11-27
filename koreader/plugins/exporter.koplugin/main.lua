@@ -121,6 +121,14 @@ local Exporter = WidgetContainer:extend({
   },
 })
 
+if not Device:hasNetwork() then
+  for k, v in pairs(Exporter.targets) do
+    if v.is_remote then
+      Exporter.targets[k] = nil
+    end
+  end
+end
+
 function Exporter:init()
   migrateSettings()
   self.parser = MyClipping:new()
