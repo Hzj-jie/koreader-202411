@@ -64,17 +64,18 @@ local function showInfoMessage(text)
   )
 end
 
-local function isCandidateNotInPreferredLocation(cand)
+local function isCandidateNotInPreferredLocation(cand, preferred_location)
   return cand ~= nil
-    and cand.location ~= G_named_settings.document_metadata_folder()
+    and cand.location
+      ~= (preferred_location or G_named_settings.document_metadata_folder())
 end
 
-local function getFallbackStatus(cand)
+local function getFallbackStatus(cand, preferred_location)
   if not cand then
     return "readonly"
   elseif cand.location == "tmp" then
     return "tmp"
-  elseif isCandidateNotInPreferredLocation(cand) then
+  elseif isCandidateNotInPreferredLocation(cand, preferred_location) then
     return "fallback"
   end
 end
@@ -141,7 +142,7 @@ function DocSettings:getFileFromHistory(hist_name)
   end
 end
 
-local function getCandidates(doc_path)
+local function getCandidates(doc_path, preferred_location)
   assert(
     type(doc_path) == "string" and doc_path ~= "",
     "DocSettings: doc_path must not be nil or empty"
@@ -164,7 +165,8 @@ local function getCandidates(doc_path)
     dir = dir_dir,
     location = "dir",
   }
-  local preferred_location = G_named_settings.document_metadata_folder()
+  preferred_location = preferred_location
+    or G_named_settings.document_metadata_folder()
   local hash_cand
   if preferred_location == "hash" or DocSettings.isHashLocationEnabled() then
     hash_cand = CachedTable:new(function()
@@ -342,21 +344,23 @@ function DocSettings:open(doc_path)
     end
   end)
 
-  local candidate_path, ok, stored
+  local source_cand, ok, stored
   for _, t in ipairs(existing) do
-    candidate_path = t.cand.file
-    stored, ok = LuaSettings:load(candidate_path)
+    source_cand = t.cand
+    stored, ok = LuaSettings:load(source_cand.file)
     -- Ignore empty tables
     if ok and next(stored) ~= nil then
-      logger.dbg("DocSettings: data is read from", candidate_path)
+      logger.dbg("DocSettings: data is read from", source_cand.file)
       break
     end
-    logger.dbg("DocSettings:", candidate_path, "is invalid, removed.")
-    os.remove(candidate_path)
+    logger.dbg("DocSettings:", source_cand.file, "is invalid, removed.")
+    os.remove(source_cand.file)
+    DocSettings.removeSidecarDir(source_cand.dir)
   end
   if ok and next(stored) then
     new.data = stored
-    new.file = candidate_path
+    new.file = source_cand.file
+    new.source_cand = source_cand
   else
     new.data = {}
   end
@@ -389,18 +393,18 @@ function DocSettings.openSettingsFile(sidecar_file)
 end
 
 --- Serializes settings and writes them to `metadata.lua`.
-function DocSettings:flush(data, no_custom_metadata)
+function DocSettings:flush(data, no_custom_metadata, target_location)
   data = data or self.data
   local ser_data = dump(data)
 
   -- Always refresh candidates so order reflects current settings
-  self.candidates = getCandidates(self.doc_path)
+  self.candidates = getCandidates(self.doc_path, target_location)
 
   for _, cand in ipairs(self.candidates) do
     if cand.dir and util.isDirRW(cand.dir, true) then
       logger.dbg("DocSettings: Writing to", cand.file)
       if util.writeToFile(ser_data, cand.file, true) then
-        local reason = getFallbackStatus(cand)
+        local reason = getFallbackStatus(cand, target_location)
         if reason and not self.fallback_notified then
           if reason == "tmp" then
             showNotification(
@@ -555,75 +559,108 @@ end
 
 --- Updates sdr location for file rename/copy/move/delete operations.
 function DocSettings.updateLocation(doc_path, new_doc_path, copy)
-  local has_sidecar_file = DocSettings:hasSidecarFile(doc_path)
-  local custom_cover_file = DocSettings:findCustomCoverFile(doc_path)
-  local custom_metadata_file = DocSettings:findCustomMetadataFile(doc_path)
-  if has_sidecar_file or custom_cover_file or custom_metadata_file then
-    local doc_settings = DocSettings:open(doc_path)
+  local doc_settings = DocSettings:open(doc_path)
+  local custom_cover_file = doc_settings:findCustomCoverFile()
+  local custom_metadata_file = doc_settings:findCustomMetadataFile()
+  if doc_settings.file or custom_cover_file or custom_metadata_file then
     local do_purge
     local new_sidecar_file
 
     if new_doc_path then -- copy/rename/move
-      if G_named_settings.document_metadata_folder() ~= "hash" then -- keep hash location unchanged
-        local new_sidecar_dir
-        if has_sidecar_file then
-          local new_doc_settings = DocSettings:open(new_doc_path)
-          doc_settings.data.doc_path = new_doc_path
-          new_sidecar_dir = new_doc_settings:flush(doc_settings.data, true) -- without custom
-          if new_sidecar_dir then
-            new_sidecar_file = new_sidecar_dir
-              .. "/"
-              .. new_doc_settings.sidecar_filename
-          end
-        else
-          for _, cand in ipairs(getCandidates(new_doc_path)) do
-            if cand.dir and util.isDirRW(cand.dir, true) then
-              new_sidecar_dir = cand.dir
+      local source_cand = doc_settings.source_cand
+      local target_location
+      if new_doc_path ~= doc_path then
+        if not source_cand then
+          local custom_dir =
+            util.splitFilePathName(custom_cover_file or custom_metadata_file)
+          for _, cand in ipairs(doc_settings.candidates) do
+            if cand.dir and cand.dir .. "/" == custom_dir then
+              source_cand = cand
               break
             end
           end
         end
-        if new_sidecar_dir then
-          if custom_cover_file then
-            local _, filename = util.splitFilePathName(custom_cover_file)
-            local new_cover_file = new_sidecar_dir .. "/" .. filename
-            if custom_cover_file == new_cover_file then
-              custom_cover_file = false
-            elseif
-              ffiutil.copyFile(custom_cover_file, new_cover_file) ~= nil
-            then
-              showNotification(
-                gettext("Failed to save custom cover to disk.")
-              )
-              custom_cover_file = false
-            end
-          end
-          if custom_metadata_file then
-            local new_metadata_file = new_sidecar_dir
-              .. "/"
-              .. custom_metadata_filename
-            if custom_metadata_file == new_metadata_file then
-              custom_metadata_file = false
-            elseif
-              ffiutil.copyFile(custom_metadata_file, new_metadata_file) ~= nil
-            then
-              showNotification(
-                gettext("Failed to save custom metadata to disk.")
-              )
-              custom_metadata_file = false
-            end
-          end
-          do_purge = not copy
-        else
-          showInfoMessage(
-            gettext(
-              "Failed to save book settings to the new location. Original settings have been preserved."
-            )
+        if
+          source_cand
+          and (
+            source_cand.location == "doc"
+            or source_cand.location == "dir"
+            or source_cand.location == "hash"
           )
+        then
+          target_location = source_cand.location
         end
       end
+
+      local new_sidecar_dir
+      if
+        target_location == "hash"
+        and (
+          not doc_settings.file
+          or doc_settings.sidecar_filename
+            == DocSettings.getSidecarFilename(new_doc_path)
+        )
+      then
+        new_sidecar_dir = source_cand.dir
+        if doc_settings.file then
+          new_sidecar_file = source_cand.file
+        end
+      elseif doc_settings.file then
+        local new_doc_settings = DocSettings:open(new_doc_path)
+        doc_settings.data.doc_path = new_doc_path
+        new_sidecar_dir =
+          new_doc_settings:flush(doc_settings.data, true, target_location) -- without custom
+        if new_sidecar_dir then
+          new_sidecar_file = new_sidecar_dir
+            .. "/"
+            .. new_doc_settings.sidecar_filename
+        end
+      else
+        for _, cand in ipairs(getCandidates(new_doc_path, target_location)) do
+          if cand.dir and util.isDirRW(cand.dir, true) then
+            new_sidecar_dir = cand.dir
+            break
+          end
+        end
+      end
+      if new_sidecar_dir then
+        if custom_cover_file then
+          local _, filename = util.splitFilePathName(custom_cover_file)
+          local new_cover_file = new_sidecar_dir .. "/" .. filename
+          if custom_cover_file == new_cover_file then
+            custom_cover_file = false
+          elseif
+            ffiutil.copyFile(custom_cover_file, new_cover_file) ~= nil
+          then
+            showNotification(gettext("Failed to save custom cover to disk."))
+            custom_cover_file = false
+          end
+        end
+        if custom_metadata_file then
+          local new_metadata_file = new_sidecar_dir
+            .. "/"
+            .. custom_metadata_filename
+          if custom_metadata_file == new_metadata_file then
+            custom_metadata_file = false
+          elseif
+            ffiutil.copyFile(custom_metadata_file, new_metadata_file) ~= nil
+          then
+            showNotification(
+              gettext("Failed to save custom metadata to disk.")
+            )
+            custom_metadata_file = false
+          end
+        end
+        do_purge = not copy
+      else
+        showInfoMessage(
+          gettext(
+            "Failed to save book settings to the new location. Original settings have been preserved."
+          )
+        )
+      end
     else -- delete
-      if has_sidecar_file then
+      if doc_settings.file then
         local cache_file_path = doc_settings:read("cache_file_path")
         if cache_file_path then
           os.remove(cache_file_path)

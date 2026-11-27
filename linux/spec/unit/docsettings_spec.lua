@@ -3161,5 +3161,444 @@ describe("docsettings module", function()
         assert.are.equal("partial-cover", util.readFromFile(orig_cover))
       end
     )
+
+    it(
+      "migrates sidecar and custom files between doc and hash on same-path updateLocation",
+      function()
+        local book = createBook("move_doc_hash.epub")
+        local src_cover =
+          createTempCover("move_doc_hash_cover.png", "hash-move-cover")
+        local hash_dir
+        finally(function()
+          if hash_dir then
+            ffiutil.purgeDir(hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+        end)
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_dir = getSidecarDir(book)
+        local doc_file = getSidecarFile(book)
+        local ds = docsettings:open(book)
+        ds:save("last_page", 42)
+        ds:flush()
+        ds:close()
+        assert.is_true(docsettings:flushCustomCover(book, src_cover))
+        local custom_meta = docsettings.openSettingsFile()
+        custom_meta:save("doc_props", { title = "Hash Move" })
+        assert.is_true(custom_meta:flushCustomMetadata(book))
+
+        -- Move doc -> hash
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir = getSidecarDir(book)
+        local hash_file = getSidecarFile(book)
+        docsettings.updateLocation(book, book)
+
+        assert.is_true(util.fileExists(hash_file))
+        assert.is_false(util.fileExists(doc_file))
+        assert.is_nil(lfs.attributes(doc_dir, "mode"))
+        assert.are.equal(42, docsettings:open(book):read("last_page"))
+        local hash_cover = docsettings:findCustomCoverFile(book)
+        local hash_meta = docsettings:findCustomMetadataFile(book)
+        assert.is_true(util.stringStartsWith(hash_cover, hash_dir .. "/"))
+        assert.is_true(util.stringStartsWith(hash_meta, hash_dir .. "/"))
+        assert.are.equal("hash-move-cover", util.readFromFile(hash_cover))
+        assert.are.equal(
+          "Hash Move",
+          docsettings.openSettingsFile(hash_meta):read("doc_props").title
+        )
+
+        -- Move back hash -> doc
+        G_reader_settings:save("document_metadata_folder", "doc")
+        docsettings.updateLocation(book, book)
+
+        assert.is_true(util.fileExists(doc_file))
+        assert.is_false(util.fileExists(hash_file))
+        assert.is_nil(lfs.attributes(hash_dir, "mode"))
+        assert.are.equal(42, docsettings:open(book):read("last_page"))
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomCoverFile(book),
+            doc_dir .. "/"
+          )
+        )
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomMetadataFile(book),
+            doc_dir .. "/"
+          )
+        )
+      end
+    )
+
+    it(
+      "keeps doc and dir storage modes on rename without false fallback notification",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_show = UIManager.show
+        local shown = {}
+        local hash_dir
+        finally(function()
+          UIManager.show = orig_show
+          if hash_dir then
+            ffiutil.purgeDir(hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+        end)
+        UIManager.show = function(_, widget)
+          table.insert(shown, widget)
+        end
+
+        -- doc sidecar + custom cover renamed while hash is preferred
+        local doc_orig = createBook("keep_doc_orig.epub")
+        local doc_dest = temp_root .. "/keep_doc_dest.epub"
+        local src_cover =
+          createTempCover("keep_doc_cover.png", "keep-doc-cover")
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_orig_dir = getSidecarDir(doc_orig)
+        local ds1 = docsettings:open(doc_orig)
+        ds1:save("last_page", 11)
+        ds1:flush()
+        ds1:close()
+        assert.is_true(docsettings:flushCustomCover(doc_orig, src_cover))
+
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir = getSidecarDir(doc_orig)
+        assert(os.rename(doc_orig, doc_dest))
+        docsettings.updateLocation(doc_orig, doc_dest, false)
+
+        assert.is_nil(lfs.attributes(doc_orig_dir, "mode"))
+        assert.is_nil(lfs.attributes(hash_dir, "mode"))
+        assert.is_true(
+          util.fileExists(temp_root .. "/keep_doc_dest.sdr/metadata.epub.lua")
+        )
+        assert.are.equal(11, docsettings:open(doc_dest):read("last_page"))
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomCoverFile(doc_dest),
+            temp_root .. "/keep_doc_dest.sdr/"
+          )
+        )
+        assert.are.equal(0, #shown)
+
+        -- dir sidecar renamed while doc is preferred
+        local dir_orig = createBook("keep_dir_orig.epub")
+        local dir_dest = temp_root .. "/keep_dir_dest.epub"
+        G_reader_settings:save("document_metadata_folder", "dir")
+        local dir_orig_dir = getSidecarDir(dir_orig)
+        local dir_dest_file = getSidecarFile(dir_dest)
+        local ds2 = docsettings:open(dir_orig)
+        ds2:save("last_page", 22)
+        ds2:flush()
+        ds2:close()
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local doc_dest_file = getSidecarFile(dir_dest)
+        assert(os.rename(dir_orig, dir_dest))
+        docsettings.updateLocation(dir_orig, dir_dest, false)
+
+        assert.is_nil(lfs.attributes(dir_orig_dir, "mode"))
+        assert.is_false(util.fileExists(doc_dest_file))
+        assert.is_true(util.fileExists(dir_dest_file))
+        assert.are.equal(22, docsettings:open(dir_dest):read("last_page"))
+        assert.are.equal(0, #shown)
+      end
+    )
+
+    it(
+      "keeps doc sidecar independent on copy while hash is preferred",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_show = UIManager.show
+        local shown = {}
+        local hash_dir
+        finally(function()
+          UIManager.show = orig_show
+          if hash_dir then
+            ffiutil.purgeDir(hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+        end)
+        UIManager.show = function(_, widget)
+          table.insert(shown, widget)
+        end
+
+        local orig = createBook("copy_doc_while_hash_orig.epub")
+        local copy_book = temp_root .. "/copy_doc_while_hash_copy.epub"
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local orig_file = getSidecarFile(orig)
+        local copy_file = getSidecarFile(copy_book)
+        local ds = docsettings:open(orig)
+        ds:save("last_page", 33)
+        ds:flush()
+        ds:close()
+
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir = getSidecarDir(orig)
+        assert.is_nil(ffiutil.copyFile(orig, copy_book))
+        docsettings.updateLocation(orig, copy_book, true)
+
+        assert.is_true(util.fileExists(orig_file))
+        assert.is_true(util.fileExists(copy_file))
+        assert.is_nil(lfs.attributes(hash_dir, "mode"))
+        assert.are.equal(33, docsettings:open(orig):read("last_page"))
+        assert.are.equal(33, docsettings:open(copy_book):read("last_page"))
+        assert.are.equal(0, #shown)
+      end
+    )
+
+    it(
+      "preserves hash sidecar untouched on copy while doc is preferred",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_show = UIManager.show
+        local shown = {}
+        local hash_dir
+        finally(function()
+          UIManager.show = orig_show
+          if hash_dir then
+            ffiutil.purgeDir(hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+        end)
+        UIManager.show = function(_, widget)
+          table.insert(shown, widget)
+        end
+
+        local orig = createBook("copy_hash_while_doc_orig.epub")
+        local copy_book = temp_root .. "/copy_hash_while_doc_copy.epub"
+        local src_cover =
+          createTempCover("copy_hash_cover.png", "hash-copy-cover")
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir = getSidecarDir(orig)
+        local hash_file = getSidecarFile(orig)
+        local ds = docsettings:open(orig)
+        ds:save("last_page", 44)
+        ds:flush()
+        ds:close()
+        assert.is_true(docsettings:flushCustomCover(orig, src_cover))
+        lfs.touch(hash_file, 2000, 2000)
+        local orig_mtime = lfs.attributes(hash_file, "modification")
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        assert.is_nil(ffiutil.copyFile(orig, copy_book))
+        docsettings.updateLocation(orig, copy_book, true)
+
+        assert.is_true(util.fileExists(hash_file))
+        assert.are.equal(orig_mtime, lfs.attributes(hash_file, "modification"))
+        assert.is_false(util.fileExists(getSidecarFile(copy_book)))
+        assert.is_false(util.fileExists(getSidecarFile(orig)))
+        assert.are.equal(44, docsettings:open(orig):read("last_page"))
+        assert.are.equal(44, docsettings:open(copy_book):read("last_page"))
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomCoverFile(orig),
+            hash_dir .. "/"
+          )
+        )
+        assert.are.equal(0, #shown)
+      end
+    )
+
+    it(
+      "keeps hash sidecar on rename while cleaning stale doc leftovers and handles extension changes",
+      function()
+        local UIManager = require("ui/uimanager")
+        local orig_show = UIManager.show
+        local shown = {}
+        local hash_dir1, hash_dir2
+        finally(function()
+          UIManager.show = orig_show
+          if hash_dir1 then
+            ffiutil.purgeDir(hash_dir1)
+          end
+          if hash_dir2 then
+            ffiutil.purgeDir(hash_dir2)
+          end
+          docsettings.cleanHashLocationIfEmpty()
+        end)
+        UIManager.show = function(_, widget)
+          table.insert(shown, widget)
+        end
+
+        -- Same extension: hash active + stale older doc sidecar + stray doc custom cover
+        local orig1 = createBook("hash_rename_mixed_orig.epub")
+        local dest1 = temp_root .. "/hash_rename_mixed_dest.epub"
+        local stray_cover =
+          createTempCover("hash_rename_stray.png", "stray-doc-cover")
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local stale_doc_dir = getSidecarDir(orig1)
+        local stale_doc_file = getSidecarFile(orig1)
+        local ds_doc = docsettings:open(orig1)
+        ds_doc:save("last_page", 5)
+        ds_doc:flush()
+        ds_doc:close()
+        assert.is_true(docsettings:flushCustomCover(orig1, stray_cover))
+        lfs.touch(stale_doc_file, 1000, 1000)
+
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir1 = getSidecarDir(orig1)
+        local hash_file1 = getSidecarFile(orig1)
+        util.makePath(hash_dir1)
+        util.writeToFile(
+          'return {\n  ["last_page"] = 55,\n}\n',
+          hash_file1,
+          false
+        )
+        lfs.touch(hash_file1, 2000, 2000)
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        assert(os.rename(orig1, dest1))
+        docsettings.updateLocation(orig1, dest1, false)
+
+        assert.is_true(util.fileExists(hash_file1))
+        assert.is_nil(lfs.attributes(stale_doc_dir, "mode"))
+        assert.is_false(util.fileExists(getSidecarFile(dest1)))
+        assert.are.equal(55, docsettings:open(dest1):read("last_page"))
+        local moved_cover = docsettings:findCustomCoverFile(dest1)
+        assert.is_true(util.stringStartsWith(moved_cover, hash_dir1 .. "/"))
+        assert.are.equal("stray-doc-cover", util.readFromFile(moved_cover))
+        assert.are.equal(0, #shown)
+
+        -- Changed extension: metadata.epub.lua -> metadata.zip.lua inside <md5>.sdr
+        local orig2 = createBook("hash_rename_ext.epub")
+        local dest2 = temp_root .. "/hash_rename_ext.zip"
+        local ext_cover =
+          createTempCover("hash_ext_cover.png", "hash-ext-cover")
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir2 = getSidecarDir(orig2)
+        local old_hash_file = getSidecarFile(orig2)
+        local ds2 = docsettings:open(orig2)
+        ds2:save("last_page", 66)
+        ds2:flush()
+        ds2:close()
+        assert.is_true(docsettings:flushCustomCover(orig2, ext_cover))
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        assert(os.rename(orig2, dest2))
+        docsettings.updateLocation(orig2, dest2, false)
+
+        local new_hash_file = hash_dir2 .. "/metadata.zip.lua"
+        assert.is_true(util.fileExists(new_hash_file))
+        assert.is_false(util.fileExists(old_hash_file))
+        assert.is_false(util.fileExists(getSidecarFile(dest2)))
+        assert.are.equal(66, docsettings:open(dest2):read("last_page"))
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomCoverFile(dest2),
+            hash_dir2 .. "/"
+          )
+        )
+        assert.are.equal(0, #shown)
+      end
+    )
+
+    it(
+      "preserves custom-only book storage mode on rename while hash is preferred",
+      function()
+        local orig = createBook("custom_only_keep_doc_orig.epub")
+        local dest = temp_root .. "/custom_only_keep_doc_dest.epub"
+        local src_cover =
+          createTempCover("custom_only_keep_cover.png", "custom-only-cover")
+        local hash_dir
+        finally(function()
+          if hash_dir then
+            ffiutil.purgeDir(hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+        end)
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local orig_dir = getSidecarDir(orig)
+        local dest_dir = getSidecarDir(dest)
+        assert.is_true(docsettings:flushCustomCover(orig, src_cover))
+        local custom_meta = docsettings.openSettingsFile()
+        custom_meta:save("doc_props", { title = "Custom Only" })
+        assert.is_true(custom_meta:flushCustomMetadata(orig))
+
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir = getSidecarDir(orig)
+        assert(os.rename(orig, dest))
+        docsettings.updateLocation(orig, dest, false)
+
+        assert.is_nil(lfs.attributes(orig_dir, "mode"))
+        assert.is_nil(lfs.attributes(hash_dir, "mode"))
+        assert.is_false(docsettings:hasSidecarFile(dest))
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomCoverFile(dest),
+            dest_dir .. "/"
+          )
+        )
+        assert.is_true(
+          util.stringStartsWith(
+            docsettings:findCustomMetadataFile(dest),
+            dest_dir .. "/"
+          )
+        )
+      end
+    )
+
+    it(
+      "does not create an empty destination sidecar when source only had a corrupt sidecar",
+      function()
+        local orig = createBook("corrupt_only_orig.epub")
+        local dest = temp_root .. "/corrupt_only_dest.epub"
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local orig_dir = getSidecarDir(orig)
+        local orig_file = getSidecarFile(orig)
+        util.makePath(orig_dir)
+        util.writeToFile("return { broken syntax", orig_file, false)
+
+        assert(os.rename(orig, dest))
+        docsettings.updateLocation(orig, dest, false)
+
+        assert.is_false(util.fileExists(orig_file))
+        assert.is_nil(lfs.attributes(orig_dir, "mode"))
+        assert.is_false(docsettings:hasSidecarFile(dest))
+      end
+    )
+
+    it(
+      "copies custom cover from book folder into hash sidecar when copying a hash-backed book",
+      function()
+        local orig = createBook("copy_hash_ext_cover_orig.epub")
+        local copy_book = temp_root .. "/copy_hash_ext_cover_copy.epub"
+        local src_cover =
+          createTempCover("copy_hash_ext_cover.png", "ext-doc-cover")
+        local hash_dir
+        finally(function()
+          if hash_dir then
+            ffiutil.purgeDir(hash_dir)
+            docsettings.cleanHashLocationIfEmpty()
+          end
+        end)
+
+        -- Custom cover in doc folder, active sidecar in hash folder
+        G_reader_settings:save("document_metadata_folder", "doc")
+        local orig_doc_dir = getSidecarDir(orig)
+        assert.is_true(docsettings:flushCustomCover(orig, src_cover))
+
+        G_reader_settings:save("document_metadata_folder", "hash")
+        hash_dir = getSidecarDir(orig)
+        local hash_file = getSidecarFile(orig)
+        local ds = docsettings:open(orig)
+        ds:save("last_page", 71)
+        ds:flush(nil, true)
+        lfs.touch(hash_file, 2000, 2000)
+        assert.is_true(util.fileExists(orig_doc_dir .. "/cover.png"))
+
+        G_reader_settings:save("document_metadata_folder", "doc")
+        assert.is_nil(ffiutil.copyFile(orig, copy_book))
+        docsettings.updateLocation(orig, copy_book, true)
+
+        assert.are.equal(2000, lfs.attributes(hash_file, "modification"))
+        assert.is_true(util.fileExists(orig_doc_dir .. "/cover.png"))
+        local copy_cover = docsettings:findCustomCoverFile(copy_book)
+        assert.is_truthy(copy_cover)
+        assert.is_true(util.stringStartsWith(copy_cover, hash_dir .. "/"))
+        assert.are.equal("ext-doc-cover", util.readFromFile(copy_cover))
+      end
+    )
   end)
 end)
