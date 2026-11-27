@@ -1,8 +1,6 @@
 describe("EpubDownloadBackend module", function()
-  local EpubDownloadBackend, Trapper, socketutil, http, ffiUtil, lfs
+  local EpubDownloadBackend, socketutil, http, ffiUtil, lfs
   local saved_http_request
-  local saved_trapper_subprocess
-  local saved_trapper_confirm
 
   setup(function()
     require("commonrequire")
@@ -13,30 +11,16 @@ describe("EpubDownloadBackend module", function()
     http = require("socket.http")
     lfs = require("libs/libkoreader-lfs")
     socketutil = require("socketutil")
-    Trapper = require("ui/trapper")
     EpubDownloadBackend =
       require("plugins/newsdownloader.koplugin/epubdownloadbackend")
   end)
 
   before_each(function()
     saved_http_request = http.request
-    saved_trapper_subprocess = Trapper.dismissableRunInSubprocess
-    saved_trapper_confirm = Trapper.confirm
   end)
 
   after_each(function()
     http.request = saved_http_request
-    Trapper.dismissableRunInSubprocess = saved_trapper_subprocess
-    Trapper.confirm = saved_trapper_confirm
-    EpubDownloadBackend:resetTrapWidget()
-  end)
-
-  it("should set and reset trap widget", function()
-    local dummy = { name = "dummy_widget" }
-    EpubDownloadBackend:setTrapWidget(dummy)
-    assert.are.equal(dummy, EpubDownloadBackend.trap_widget)
-    EpubDownloadBackend:resetTrapWidget()
-    assert.is_nil(EpubDownloadBackend.trap_widget)
   end)
 
   it(
@@ -138,45 +122,17 @@ describe("EpubDownloadBackend module", function()
     end
   )
 
-  it(
-    "should handle loadPage with and without trap widget and user interruption",
-    function()
-      -- Direct loadPage without trap widget
-      http.request = function(req)
-        local body = "direct body"
-        if req.sink then
-          req.sink(body)
-        end
-        return 1, 200, { ["content-length"] = tostring(#body) }, "200 OK"
+  it("should handle loadPage", function()
+    http.request = function(req)
+      local body = "direct body"
+      if req.sink then
+        req.sink(body)
       end
-      local content = EpubDownloadBackend:loadPage("http://example.com/direct")
-      assert.are.equal("direct body", content)
-
-      -- loadPage with trap widget
-      local dummy_widget = { name = "dummy_trap" }
-      EpubDownloadBackend:setTrapWidget(dummy_widget)
-
-      Trapper.dismissableRunInSubprocess = function(self_trapper, fn, widget)
-        return true, true, "trapped body"
-      end
-      content = EpubDownloadBackend:loadPage("http://example.com/trapped")
-      assert.are.equal("trapped body", content)
-
-      -- loadPage user interruption
-      Trapper.dismissableRunInSubprocess = function(self_trapper, fn, widget)
-        return false, nil, nil
-      end
-      local ok, err = pcall(function()
-        EpubDownloadBackend:loadPage("http://example.com/interrupted")
-      end)
-      assert.is_false(ok)
-      assert.is_not_nil(
-        tostring(err):find(EpubDownloadBackend.dismissed_error_code, 1, true)
-      )
-
-      EpubDownloadBackend:resetTrapWidget()
+      return 1, 200, { ["content-length"] = tostring(#body) }, "200 OK"
     end
-  )
+    local content = EpubDownloadBackend:loadPage("http://example.com/direct")
+    assert.are.equal("direct body", content)
+  end)
 
   it(
     "should parse Set-Cookie with quoted values and attributes in getConnectionCookies",

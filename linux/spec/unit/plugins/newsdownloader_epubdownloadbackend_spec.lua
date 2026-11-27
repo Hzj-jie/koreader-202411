@@ -12,14 +12,6 @@ describe("EpubDownloadBackend module", function()
       require("plugins/newsdownloader.koplugin/epubdownloadbackend")
   end)
 
-  it("should set and reset trap widget", function()
-    local dummy_widget = { name = "dummy" }
-    EpubDownloadBackend:setTrapWidget(dummy_widget)
-    assert.are.equal(dummy_widget, EpubDownloadBackend.trap_widget)
-    EpubDownloadBackend:resetTrapWidget()
-    assert.is_nil(EpubDownloadBackend.trap_widget)
-  end)
-
   it(
     "should download page content via loadPage and getResponseAsString",
     function()
@@ -212,36 +204,6 @@ describe("EpubDownloadBackend module", function()
     end)
 
     http.request = old_request
-  end)
-
-  it("should handle loadPage under Trapper widget with dismissal", function()
-    local Trapper = require("ui/trapper")
-    local old_dismissable = Trapper.dismissableRunInSubprocess
-    local dummy_widget = { name = "dummy_trap" }
-    EpubDownloadBackend:setTrapWidget(dummy_widget)
-
-    -- Completed run
-    Trapper.dismissableRunInSubprocess = function(self_trapper, fn, widget)
-      return true, true, "<html>Trapper Content</html>"
-    end
-    local content =
-      EpubDownloadBackend:loadPage("http://example.com/trapped.html")
-    assert.are.equal("<html>Trapper Content</html>", content)
-
-    -- User interrupted / cancelled
-    Trapper.dismissableRunInSubprocess = function(self_trapper, fn, widget)
-      return false, nil, nil
-    end
-    local ok, err = pcall(function()
-      EpubDownloadBackend:loadPage("http://example.com/cancel.html")
-    end)
-    assert.is_false(ok)
-    assert.is_true(
-      tostring(err):find(EpubDownloadBackend.dismissed_error_code) ~= nil
-    )
-
-    EpubDownloadBackend:resetTrapWidget()
-    Trapper.dismissableRunInSubprocess = old_dismissable
   end)
 
   it(

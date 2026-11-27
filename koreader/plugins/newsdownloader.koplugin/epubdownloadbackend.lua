@@ -6,15 +6,7 @@ local socket = require("socket")
 local socket_url = require("socket.url")
 local socketutil = require("socketutil")
 
-local EpubDownloadBackend = {
-  -- Can be set so HTTP requests will be done under Trapper and
-  -- be interruptible
-  trap_widget = nil,
-  -- For actions done with Trapper:dismissable methods, we may throw
-  -- and error() with this code. We make the value of this error
-  -- accessible here so that caller can know it's a user dismiss.
-  dismissed_error_code = "Interrupted by user",
-}
+local EpubDownloadBackend = {}
 local max_redirects = 5 --prevent infinite redirects
 
 -- filter HTML using CSS selector
@@ -293,30 +285,8 @@ function EpubDownloadBackend:getResponseAsString(url, cookies)
   end
 end
 
-function EpubDownloadBackend:setTrapWidget(trap_widget)
-  self.trap_widget = trap_widget
-end
-
-function EpubDownloadBackend:resetTrapWidget()
-  self.trap_widget = nil
-end
-
 function EpubDownloadBackend:loadPage(url, cookies)
-  local completed, success, content
-  if self.trap_widget then -- if previously set with EpubDownloadBackend:setTrapWidget()
-    local Trapper = require("ui/trapper")
-    local timeout, maxtime = 30, 60
-    -- We use dismissableRunInSubprocess with complex return values:
-    completed, success, content = Trapper:dismissableRunInSubprocess(function()
-      return getUrlContent(url, cookies, timeout, maxtime)
-    end, self.trap_widget)
-    if not completed then
-      error(self.dismissed_error_code) -- "Interrupted by user"
-    end
-  else
-    local timeout, maxtime = 10, 60
-    success, content = getUrlContent(url, cookies, timeout, maxtime)
-  end
+  local success, content = getUrlContent(url, cookies, 10, 60)
   logger.dbg(
     "success:",
     success,
